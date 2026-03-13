@@ -1,0 +1,16 @@
+{
+  "color": {
+    "white":      { "$value": "#ffffff",  "$type": "color", "$description": "Base white" },
+    "darkBlue":   { "$value": "#003574",  "$type": "color", "$description": "Primary dark blue — main text and headers" },
+    "blue":       { "$value": "#0071c7",  "$type": "color", "$description": "Brand blue — primary buttons and links" },
+    "lightBlue":  { "$value": "#23bced",  "$type": "color", "$description": "Light blue — hover states" },
+    "teal":       { "$value": "#2BCDB0",  "$type": "color", "$description": "Teal — secondary accent" },
+    "lightTeal":  { "$value": "#BAF0E6",  "$type": "color", "$description": "Light teal — backgrounds and highlights" },
+    "green":      { "$value": "#03ab3d",  "$type": "color", "$description": "Green — success states" },
+    "tangerine":  { "$value": "#f55200",  "$type": "color", "$description": "Tangerine/orange — error states and CTAs" },
+    "yellow":     { "$value": "#e8f000",  "$type": "color", "$description": "Yellow — highlight accent" },
+    "lightGrey":  { "$value": "#f3f8fe",  "$type": "color", "$description": "Light grey — borders and subtle backgrounds" },
+    "steel":      { "$value": "#b2c2d5",  "$type": "color", "$description": "Steel blue — muted elements" },
+    "darkBlueDim":{ "$value": "#002a5b",  "$type": "color", "$description": "Darker blue variant — deep backgrounds" }
+  }
+}

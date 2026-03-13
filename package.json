@@ -1,0 +1,13 @@
+{
+  "name": "breath-city-design-system",
+  "type": "module",
+  "version": "1.0.0",
+  "description": "Design system tokens for Breathe Cities — compiles to CSS custom properties and Tailwind theme",
+  "scripts": {
+    "build": "style-dictionary build --config style-dictionary.config.js",
+    "watch": "style-dictionary build --config style-dictionary.config.js --watch"
+  },
+  "devDependencies": {
+    "style-dictionary": "^4.3.0"
+  }
+}

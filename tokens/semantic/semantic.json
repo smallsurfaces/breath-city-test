@@ -1,0 +1,13 @@
+{
+  "semantic": {
+    "bg":       { "$value": "{color.white}",      "$type": "color", "$description": "Page background" },
+    "text":     { "$value": "{color.darkBlue}",   "$type": "color", "$description": "Primary text colour" },
+    "brand":    { "$value": "{color.blue}",        "$type": "color", "$description": "Brand colour — primary buttons, links" },
+    "accent":   { "$value": "{color.darkBlue}",   "$type": "color", "$description": "Accent — partner sections, highlights" },
+    "hover":    { "$value": "{color.lightBlue}",  "$type": "color", "$description": "Interactive hover state" },
+    "border":   { "$value": "{color.lightGrey}",  "$type": "color", "$description": "Subtle borders and dividers" },
+    "error":    { "$value": "{color.tangerine}",  "$type": "color", "$description": "Error and destructive states" },
+    "success":  { "$value": "{color.green}",      "$type": "color", "$description": "Success and positive states" },
+    "muted":    { "$value": "{color.steel}",      "$type": "color", "$description": "Muted/secondary text" }
+  }
+}
