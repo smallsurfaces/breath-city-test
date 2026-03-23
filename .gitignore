@@ -5,3 +5,10 @@ dist/
 
 # Local Netlify folder
 .netlify
+
+# Next.js
+.next/
+out/
+
+# Environment files
+.env*.local

@@ -15,61 +15,66 @@
 /* ─── shadcn/ui CSS variable bridge ─────────────────────────────────────────
    Map --bc-* semantic tokens onto the shadcn/ui variable contract so
    shadcn components automatically inherit Breathe Cities branding.
-   Never override --bc-* vars here — extend only.
+   The --bc-* vars come from the Style Dictionary build at dist/css/tokens.css.
+   Never hardcode colour values here — reference tokens only.
    ─────────────────────────────────────────────────────────────────────────── */
 :root {
-  /* shadcn background / foreground */
+  /* Page background and primary text */
+  --background: var(--bc-semantic-bg);
+  --foreground: var(--bc-semantic-text);
 
   /* Card */
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
+  --card: var(--bc-color-white);
+  --card-foreground: var(--bc-semantic-text);
 
   /* Popover */
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
+  --popover: var(--bc-color-white);
+  --popover-foreground: var(--bc-semantic-text);
 
   /* Primary — Breathe Cities brand blue */
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
+  --primary: var(--bc-semantic-brand);
+  --primary-foreground: var(--bc-color-white);
 
   /* Secondary — teal accent */
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
+  --secondary: var(--bc-color-teal);
+  --secondary-foreground: var(--bc-color-dark-blue);
 
   /* Muted */
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
+  --muted: var(--bc-color-light-grey);
+  --muted-foreground: var(--bc-semantic-muted);
 
-  /* Accent */
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
+  /* Accent — light teal highlight */
+  --accent: var(--bc-color-light-teal);
+  --accent-foreground: var(--bc-semantic-text);
 
   /* Destructive — tangerine error */
-  --destructive: oklch(0.577 0.245 27.325);
+  --destructive: var(--bc-semantic-error);
   --destructive-foreground: var(--bc-color-white);
 
   /* Border / input / ring */
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  --border: var(--bc-semantic-border);
+  --input: var(--bc-semantic-border);
+  --ring: var(--bc-semantic-brand);
 
-  /* Border radius — uses bc-md as the base radius */
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  /* Border radius — bc-md (10px) as the shadcn base */
+  --radius: var(--bc-border-radius-md);
+
+  /* Chart colours — mapped to bc palette */
+  --chart-1: var(--bc-color-blue);
+  --chart-2: var(--bc-color-teal);
+  --chart-3: var(--bc-color-light-blue);
+  --chart-4: var(--bc-color-green);
+  --chart-5: var(--bc-color-tangerine);
+
+  /* Sidebar */
+  --sidebar: var(--bc-color-light-grey);
+  --sidebar-foreground: var(--bc-semantic-text);
+  --sidebar-primary: var(--bc-semantic-brand);
+  --sidebar-primary-foreground: var(--bc-color-white);
+  --sidebar-accent: var(--bc-color-light-teal);
+  --sidebar-accent-foreground: var(--bc-semantic-text);
+  --sidebar-border: var(--bc-semantic-border);
+  --sidebar-ring: var(--bc-semantic-brand);
 }
 
 /* ─── Tailwind v4 theme extension ────────────────────────────────────────────
@@ -77,26 +82,9 @@
    Breathe Cities tokens so they are available as Tailwind utilities.
    ─────────────────────────────────────────────────────────────────────────── */
 @theme {
-  /* Colours — shadcn semantic layer */
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
-  --color-destructive-foreground: var(--destructive-foreground);
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
+  /* ── Breathe Cities raw palette — available as Tailwind colour utilities
+     e.g. bg-bc-blue, text-bc-teal, border-bc-tangerine
+     ──────────────────────────────────────────────────────────────────────── */
 
   /* Colours — raw bc-* tokens */
   --color-bc-white: var(--bc-color-white);
