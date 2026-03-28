@@ -42,17 +42,6 @@ export default function HomePage() {
           Design System →
         </Link>
 
-        <Link
-          href="/air-quality"
-          className="inline-flex items-center justify-center gap-2 px-6 py-4 rounded-xl text-base font-medium transition-colors"
-          style={{
-            backgroundColor: "var(--bc-color-light-grey)",
-            color: "var(--bc-semantic-text)",
-            borderRadius: "var(--bc-border-radius-md)",
-          }}
-        >
-          Air Quality →
-        </Link>
       </nav>
 
       <div className="flex flex-col items-center gap-4">
