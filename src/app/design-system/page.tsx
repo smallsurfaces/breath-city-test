@@ -885,6 +885,278 @@ export default function DesignSystemPage() {
             </Example>
           </Group>
         </Section>
+
+        {/* ── 5. AQI COMPONENTS ───────────────────────────────────────────── */}
+        <Section id="aqi-components" title="AQI Components">
+          <p
+            className="text-sm"
+            style={{ color: "var(--bc-semantic-muted)" }}
+          >
+            Shared component registry for AQI feature agents. Components live
+            under <code className="font-mono">src/components/aqi/</code>.
+          </p>
+
+          {/* ── AqiCharts.tsx ── */}
+          <Group title="Charts — src/components/aqi/AqiCharts.tsx">
+
+            <Example label="AqiAreaChart">
+              <div
+                className="flex flex-col gap-2 p-4 rounded-lg border w-full max-w-md"
+                style={{
+                  borderColor: "var(--bc-semantic-border)",
+                  borderRadius: "var(--bc-border-radius-sm)",
+                }}
+              >
+                <p
+                  className="font-mono font-semibold text-sm"
+                  style={{ color: "var(--bc-semantic-text)" }}
+                >
+                  {"<AqiAreaChart />"}
+                </p>
+                <p
+                  className="text-xs font-mono"
+                  style={{ color: "var(--bc-semantic-muted)" }}
+                >
+                  Props: none
+                </p>
+                <p
+                  className="text-sm"
+                  style={{ color: "var(--bc-semantic-text)" }}
+                >
+                  24-hour AQI trend area chart (SVG, no external libs)
+                </p>
+              </div>
+            </Example>
+
+            <Example label="PollutantPieChart">
+              <div
+                className="flex flex-col gap-2 p-4 rounded-lg border w-full max-w-md"
+                style={{
+                  borderColor: "var(--bc-semantic-border)",
+                  borderRadius: "var(--bc-border-radius-sm)",
+                }}
+              >
+                <p
+                  className="font-mono font-semibold text-sm"
+                  style={{ color: "var(--bc-semantic-text)" }}
+                >
+                  {"<PollutantPieChart />"}
+                </p>
+                <p
+                  className="text-xs font-mono"
+                  style={{ color: "var(--bc-semantic-muted)" }}
+                >
+                  Props: none
+                </p>
+                <p
+                  className="text-sm"
+                  style={{ color: "var(--bc-semantic-text)" }}
+                >
+                  Pollutant contribution pie chart (SVG)
+                </p>
+              </div>
+            </Example>
+
+            <Example label="WeeklyBarChart">
+              <div
+                className="flex flex-col gap-2 p-4 rounded-lg border w-full max-w-md"
+                style={{
+                  borderColor: "var(--bc-semantic-border)",
+                  borderRadius: "var(--bc-border-radius-sm)",
+                }}
+              >
+                <p
+                  className="font-mono font-semibold text-sm"
+                  style={{ color: "var(--bc-semantic-text)" }}
+                >
+                  {"<WeeklyBarChart />"}
+                </p>
+                <p
+                  className="text-xs font-mono"
+                  style={{ color: "var(--bc-semantic-muted)" }}
+                >
+                  Props: none
+                </p>
+                <p
+                  className="text-sm"
+                  style={{ color: "var(--bc-semantic-text)" }}
+                >
+                  7-day AQI bar chart with moderate threshold line (SVG)
+                </p>
+              </div>
+            </Example>
+          </Group>
+
+          <Separator />
+
+          {/* ── DirectionHeader.tsx ── */}
+          <Group title="Direction Header — src/components/aqi/DirectionHeader.tsx">
+            <Example label="DirectionHeader">
+              <div
+                className="flex flex-col gap-2 p-4 rounded-lg border w-full max-w-lg"
+                style={{
+                  borderColor: "var(--bc-semantic-border)",
+                  borderRadius: "var(--bc-border-radius-sm)",
+                }}
+              >
+                <p
+                  className="font-mono font-semibold text-sm"
+                  style={{ color: "var(--bc-semantic-text)" }}
+                >
+                  {"<DirectionHeader />"}
+                </p>
+                <div className="flex flex-col gap-1">
+                  <p
+                    className="text-xs font-mono"
+                    style={{ color: "var(--bc-semantic-muted)" }}
+                  >
+                    directionName: string
+                  </p>
+                  <p
+                    className="text-xs font-mono"
+                    style={{ color: "var(--bc-semantic-muted)" }}
+                  >
+                    {"mode: 'light' | 'dark'"}
+                  </p>
+                  <p
+                    className="text-xs font-mono"
+                    style={{ color: "var(--bc-semantic-muted)" }}
+                  >
+                    fontLabel: string
+                  </p>
+                  <p
+                    className="text-xs font-mono"
+                    style={{ color: "var(--bc-semantic-muted)" }}
+                  >
+                    fontFamily: string
+                  </p>
+                  <p
+                    className="text-xs font-mono"
+                    style={{ color: "var(--bc-semantic-muted)" }}
+                  >
+                    monoFamily?: string
+                  </p>
+                  <p
+                    className="text-xs font-mono"
+                    style={{ color: "var(--bc-semantic-muted)" }}
+                  >
+                    swatches: Swatch[]
+                  </p>
+                </div>
+                <p
+                  className="text-sm"
+                  style={{ color: "var(--bc-semantic-text)" }}
+                >
+                  Direction name + mode badge, font specimen, colour swatches strip
+                </p>
+              </div>
+            </Example>
+          </Group>
+
+          <Separator />
+
+          {/* ── BrandPalette.tsx ── */}
+          <Group title="Brand Palette — src/components/aqi/BrandPalette.tsx">
+            <Example label="BrandPalette">
+              <div
+                className="flex flex-col gap-2 p-4 rounded-lg border w-full max-w-md"
+                style={{
+                  borderColor: "var(--bc-semantic-border)",
+                  borderRadius: "var(--bc-border-radius-sm)",
+                }}
+              >
+                <p
+                  className="font-mono font-semibold text-sm"
+                  style={{ color: "var(--bc-semantic-text)" }}
+                >
+                  {"<BrandPalette />"}
+                </p>
+                <p
+                  className="text-xs font-mono"
+                  style={{ color: "var(--bc-semantic-muted)" }}
+                >
+                  Props: none
+                </p>
+                <p
+                  className="text-sm"
+                  style={{ color: "var(--bc-semantic-text)" }}
+                >
+                  6 brand colours × 5 shades grid with hex values
+                </p>
+              </div>
+            </Example>
+          </Group>
+
+          <Separator />
+
+          {/* ── AqiMap.tsx ── */}
+          <Group title="AQI Map — src/components/aqi/AqiMap.tsx">
+            <Example label="AqiMap">
+              <div
+                className="flex flex-col gap-2 p-4 rounded-lg border w-full max-w-md"
+                style={{
+                  borderColor: "var(--bc-semantic-border)",
+                  borderRadius: "var(--bc-border-radius-sm)",
+                }}
+              >
+                <p
+                  className="font-mono font-semibold text-sm"
+                  style={{ color: "var(--bc-semantic-text)" }}
+                >
+                  {"<AqiMap />"}
+                </p>
+                <p
+                  className="text-xs font-mono"
+                  style={{ color: "var(--bc-semantic-muted)" }}
+                >
+                  Props: none
+                </p>
+                <p
+                  className="text-sm"
+                  style={{ color: "var(--bc-semantic-text)" }}
+                >
+                  CSS mock map of Vienna with AQI station markers, road SVG
+                  overlay, compass, legend
+                </p>
+              </div>
+            </Example>
+          </Group>
+
+          <Separator />
+
+          {/* ── AqiMockup.tsx ── */}
+          <Group title="AQI Mockup — src/components/aqi/AqiMockup.tsx">
+            <Example label="AqiMockup">
+              <div
+                className="flex flex-col gap-2 p-4 rounded-lg border w-full max-w-md"
+                style={{
+                  borderColor: "var(--bc-semantic-border)",
+                  borderRadius: "var(--bc-border-radius-sm)",
+                }}
+              >
+                <p
+                  className="font-mono font-semibold text-sm"
+                  style={{ color: "var(--bc-semantic-text)" }}
+                >
+                  {"<AqiMockup />"}
+                </p>
+                <p
+                  className="text-xs font-mono"
+                  style={{ color: "var(--bc-semantic-muted)" }}
+                >
+                  {"typography: 'sans' | 'sans-mono'"}
+                </p>
+                <p
+                  className="text-sm"
+                  style={{ color: "var(--bc-semantic-text)" }}
+                >
+                  Full Vienna AQI city page mockup. Pass{" "}
+                  <code className="font-mono">sans-mono</code> for Direction 3.
+                </p>
+              </div>
+            </Example>
+          </Group>
+        </Section>
       </main>
     </div>
   );

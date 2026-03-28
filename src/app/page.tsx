@@ -54,6 +54,112 @@ export default function HomePage() {
           Air Quality →
         </Link>
       </nav>
+
+      <div className="flex flex-col items-center gap-4">
+        <p
+          className="text-xs font-semibold tracking-widest uppercase"
+          style={{ color: "var(--bc-semantic-muted)" }}
+        >
+          Phase 3 — Visual Directions
+        </p>
+
+        <div className="flex flex-col gap-3 w-full max-w-xl">
+          <div className="flex items-center gap-3">
+            <span className="text-sm w-52 shrink-0" style={{ color: "var(--bc-semantic-text)" }}>
+              Direction 01 — Clear Signal
+            </span>
+            <Link
+              href="/direction-1-light"
+              className="inline-flex items-center justify-center px-4 py-2 rounded-xl text-sm font-medium transition-colors"
+              style={{
+                backgroundColor: "var(--bc-color-light-grey)",
+                color: "var(--bc-semantic-text)",
+                borderRadius: "var(--bc-border-radius-md)",
+              }}
+            >
+              Light →
+            </Link>
+            <Link
+              href="/direction-1-dark"
+              className="inline-flex items-center justify-center px-4 py-2 rounded-xl text-sm font-medium transition-colors"
+              style={{
+                backgroundColor: "var(--bc-color-dark-blue)",
+                color: "var(--bc-color-white)",
+                borderRadius: "var(--bc-border-radius-md)",
+              }}
+            >
+              Dark →
+            </Link>
+            <Link
+              href="/direction-1-final"
+              className="inline-flex items-center justify-center px-4 py-2 rounded-xl text-sm font-medium transition-colors"
+              style={{
+                backgroundColor: "var(--bc-semantic-aqi-good-bg)",
+                color: "var(--bc-semantic-aqi-good-text)",
+                borderRadius: "var(--bc-border-radius-md)",
+              }}
+            >
+              Direction 01 — Clear Signal (Final) →
+            </Link>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <span className="text-sm w-52 shrink-0" style={{ color: "var(--bc-semantic-text)" }}>
+              Direction 02 — Open Sky
+            </span>
+            <Link
+              href="/direction-2-light"
+              className="inline-flex items-center justify-center px-4 py-2 rounded-xl text-sm font-medium transition-colors"
+              style={{
+                backgroundColor: "var(--bc-color-light-grey)",
+                color: "var(--bc-semantic-text)",
+                borderRadius: "var(--bc-border-radius-md)",
+              }}
+            >
+              Light →
+            </Link>
+            <Link
+              href="/direction-2-dark"
+              className="inline-flex items-center justify-center px-4 py-2 rounded-xl text-sm font-medium transition-colors"
+              style={{
+                backgroundColor: "var(--bc-color-dark-blue)",
+                color: "var(--bc-color-white)",
+                borderRadius: "var(--bc-border-radius-md)",
+              }}
+            >
+              Dark →
+            </Link>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <span className="text-sm w-52 shrink-0" style={{ color: "var(--bc-semantic-text)" }}>
+              Direction 03 — Civic Depth
+            </span>
+            <Link
+              href="/direction-3-light"
+              className="inline-flex items-center justify-center px-4 py-2 rounded-xl text-sm font-medium transition-colors"
+              style={{
+                backgroundColor: "var(--bc-color-light-grey)",
+                color: "var(--bc-semantic-text)",
+                borderRadius: "var(--bc-border-radius-md)",
+              }}
+            >
+              Light →
+            </Link>
+            <Link
+              href="/direction-3-dark"
+              className="inline-flex items-center justify-center px-4 py-2 rounded-xl text-sm font-medium transition-colors"
+              style={{
+                backgroundColor: "var(--bc-color-dark-blue)",
+                color: "var(--bc-color-white)",
+                borderRadius: "var(--bc-border-radius-md)",
+              }}
+            >
+              Dark →
+            </Link>
+          </div>
+        </div>
+      </div>
     </main>
   );
 }
