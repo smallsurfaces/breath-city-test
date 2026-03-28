@@ -60,6 +60,34 @@ export default function HomePage() {
           className="text-xs font-semibold tracking-widest uppercase"
           style={{ color: "var(--bc-semantic-muted)" }}
         >
+          UX Concepts
+        </p>
+
+        <div className="flex flex-col gap-3 w-full max-w-xl">
+          <div className="flex items-center gap-3">
+            <span className="text-sm w-52 shrink-0" style={{ color: "var(--bc-semantic-text)" }}>
+              Direction 01 — Mapbox Prototype
+            </span>
+            <Link
+              href="/direction-1-mapbox"
+              className="inline-flex items-center justify-center px-4 py-2 rounded-xl text-sm font-medium transition-colors"
+              style={{
+                backgroundColor: "var(--bc-semantic-brand)",
+                color: "var(--bc-color-white)",
+                borderRadius: "var(--bc-border-radius-md)",
+              }}
+            >
+              Live Map →
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex flex-col items-center gap-4">
+        <p
+          className="text-xs font-semibold tracking-widest uppercase"
+          style={{ color: "var(--bc-semantic-muted)" }}
+        >
           Phase 3 — Visual Directions
         </p>
 
