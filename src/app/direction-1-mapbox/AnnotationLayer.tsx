@@ -63,14 +63,25 @@ export default function AnnotationLayer({
       const raw = localStorage.getItem('bc-annotations-direction1')
       if (raw) {
         const parsed = JSON.parse(raw)
+        // Validate array before processing — malformed localStorage data must not reach state
+        if (!Array.isArray(parsed)) return
         // BUG 7 — migrate legacy pixel-coordinate entries to normalised fractions
-        const migrated = parsed.map((a: Annotation) => ({
-          ...a,
-          authorName: a.authorName ?? '',
-          resolved: a.resolved ?? false,
-          x: a.x > 1 ? a.x / window.innerWidth : a.x,
-          y: a.y > 1 ? a.y / window.innerHeight : a.y,
-        }))
+        const migrated = parsed
+          .filter((a): a is Annotation =>
+            typeof a === 'object' && a !== null &&
+            typeof a.id === 'string' &&
+            typeof a.x === 'number' &&
+            typeof a.y === 'number' &&
+            typeof a.text === 'string' &&
+            typeof a.createdAt === 'number' &&
+            typeof a.resolved === 'boolean'
+          )
+          .map((a) => ({
+            ...a,
+            authorName: a.authorName ?? '',
+            x: a.x > 1 ? a.x / window.innerWidth : a.x,
+            y: a.y > 1 ? a.y / window.innerHeight : a.y,
+          }))
         setAnnotations(migrated)
       }
     } catch { /* ignore corrupt data */ }

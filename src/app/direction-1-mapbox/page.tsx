@@ -148,6 +148,19 @@ function buildRingsGeoJSON(sensors: SensorReading[]): GeoJSON.FeatureCollection 
   return featureCollection(ringFeatures) as GeoJSON.FeatureCollection
 }
 
+// ─── HTML escape helper ───────────────────────────────────────────────────────
+// Prevents XSS when interpolating user-controlled or API-sourced values into
+// setHTML() strings. Apply to all string values — not CSS var references.
+
+function escapeHTML(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;')
+}
+
 // ─── Popup content builder ────────────────────────────────────────────────────
 
 function buildPopupHTML(sensor: SensorReading): string {
@@ -165,7 +178,7 @@ function buildPopupHTML(sensor: SensorReading): string {
       font-family: var(--bc-font-family-sans, sans-serif);
     ">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; gap: 0.75rem;">
-        <span style="font-weight: 700; font-size: 0.875rem; color: var(--bc-semantic-text);">${sensor.name}</span>
+        <span style="font-weight: 700; font-size: 0.875rem; color: var(--bc-semantic-text);">${escapeHTML(sensor.name)}</span>
         <span style="
           background: ${bgVar};
           color: ${textVar};
@@ -174,9 +187,9 @@ function buildPopupHTML(sensor: SensorReading): string {
           padding: 2px 8px;
           border-radius: 4px;
           white-space: nowrap;
-        ">${label}</span>
+        ">${escapeHTML(label)}</span>
       </div>
-      <div style="font-size: 0.8rem; color: var(--bc-semantic-text); margin-bottom: 0.25rem;">AQI: <strong>${sensor.aqi}</strong></div>
+      <div style="font-size: 0.8rem; color: var(--bc-semantic-text); margin-bottom: 0.25rem;">AQI: <strong>${escapeHTML(String(sensor.aqi))}</strong></div>
       <div style="font-size: 0.8rem; color: var(--bc-semantic-muted); margin-bottom: 0.25rem;">Main pollutant: PM2.5</div>
       <div style="font-size: 0.8rem; color: var(--bc-semantic-muted);">Updated: 5 minutes ago</div>
     </div>
@@ -419,10 +432,10 @@ export default function DirectionOneMapboxPage(): React.ReactElement {
           'fill-opacity': [
             'match',
             ['get', 'ringIndex'],
-            0, 0.18,
-            1, 0.10,
-            2, 0.05,
-            0.05,
+            0, 0.28,
+            1, 0.16,
+            2, 0.08,
+            0.08,
           ],
         },
       })
@@ -558,24 +571,28 @@ export default function DirectionOneMapboxPage(): React.ReactElement {
           Breathe Cities
         </span>
 
-        {/* Search input */}
-        <input
-          type="text"
-          placeholder="Search city or location..."
+        {/* Location chip — intentional static state, search not yet implemented */}
+        <div
           style={{
-            width: 'clamp(240px, 30vw, 360px)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.375rem',
             height: '36px',
-            padding: '0 0.75rem',
+            padding: '0 0.875rem',
             border: '1px solid var(--bc-semantic-border)',
-            borderRadius: '8px',
+            borderRadius: '99px',
             background: 'var(--bc-semantic-bg)',
             color: 'var(--bc-semantic-text)',
             fontFamily: 'var(--bc-font-family-sans, sans-serif)',
             fontSize: '0.875rem',
-            outline: 'none',
+            whiteSpace: 'nowrap',
           }}
-          readOnly
-        />
+        >
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style={{ flexShrink: 0 }}>
+            <path d="M6 1C4.067 1 2.5 2.567 2.5 4.5c0 2.625 3.5 6.5 3.5 6.5s3.5-3.875 3.5-6.5C9.5 2.567 7.933 1 6 1zm0 4.75A1.25 1.25 0 1 1 6 3.25a1.25 1.25 0 0 1 0 2.5z" fill="var(--bc-semantic-muted)"/>
+          </svg>
+          Vienna, Austria
+        </div>
       </header>
 
       {/* ── Zone 2 — Floating toggle panel (desktop only) ──────────────────── */}
@@ -687,16 +704,27 @@ export default function DirectionOneMapboxPage(): React.ReactElement {
         }}
       >
         {/* Label */}
-        <span
-          style={{
-            fontSize: '0.75rem',
-            color: 'var(--bc-semantic-muted)',
-            whiteSpace: 'nowrap',
-            fontFamily: 'var(--bc-font-family-sans, sans-serif)',
-          }}
-        >
-          Historical data
-        </span>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1px', whiteSpace: 'nowrap' }}>
+          <span
+            style={{
+              fontSize: '0.75rem',
+              fontWeight: 600,
+              color: 'var(--bc-semantic-text)',
+              fontFamily: 'var(--bc-font-family-sans, sans-serif)',
+            }}
+          >
+            Air quality 2000 – 2026
+          </span>
+          <span
+            style={{
+              fontSize: '0.65rem',
+              color: 'var(--bc-semantic-muted)',
+              fontFamily: 'var(--bc-font-family-sans, sans-serif)',
+            }}
+          >
+            Drag to explore
+          </span>
+        </div>
 
         {/* Range slider */}
         <input
