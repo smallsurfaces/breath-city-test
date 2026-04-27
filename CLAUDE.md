@@ -94,6 +94,38 @@ npm run watch        # watch mode during development
 
 ---
 
+## Figma
+
+**File URL:** https://www.figma.com/design/Dlq6WaTDGDPe8I5VRgTVA6/breath-city-test
+**Current phase:** 08 — Concept Visual Design
+
+### Current Figma Pages
+- `📋 Version Log` — version history table (always first, never push content here)
+- `All Directions — v1 — 2026-03-25` — initial push, all three directions as frames on one page
+
+### Next push
+Create a new page per direction: `Direction 01 — v2 — [date]`, `Direction 02 — v2 — [date]`, etc.
+
+### Versioning Convention
+- Never overwrite Figma pages — always append a new page per push
+- Page naming: `Direction [N] — v[X] — [YYYY-MM-DD]`
+- Example: `Direction 01 — v3 — 2026-03-25`
+- The most recently created page for a direction is always current
+- The code build always reflects the latest push
+- A `📋 Version Log` page sits at the top of the file with a table of all versions
+
+### Version Log Format
+```
+| Version | Date       | Direction | What changed         |
+|---------|------------|-----------|----------------------|
+| v1      | 2026-03-24 | All       | Initial push         |
+```
+
+### Retrieval
+To retrieve a specific version: call `get_design_context` with the node ID for the target versioned page. One targeted MCP call.
+
+---
+
 ## Component Reference
 
 See `components/README.md` for the full UI component catalogue.
