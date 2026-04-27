@@ -14,7 +14,7 @@
 
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import type { City, Job, Hirer, ChainStep, MatrixCell, SupplyStatus, DemandStatus } from "@/types/jtbd";
 
 // JSON data imports — resolveJsonModule is enabled in tsconfig
@@ -132,20 +132,20 @@ function isUniversalGap(jobId: string, visibleCells: MatrixCell[]): boolean {
 // Display helpers
 // ---------------------------------------------------------------------------
 
-/** Supply status label, symbol, and colour class. */
+/** Supply status label, symbol, and colour class — uses BC semantic tokens. */
 const SUPPLY_DISPLAY: Record<SupplyStatus, { symbol: string; colourClass: string; label: string }> = {
-  served:  { symbol: "✓", colourClass: "text-green-600",  label: "Served"  },
-  partial: { symbol: "△", colourClass: "text-yellow-600", label: "Partial" },
-  gap:     { symbol: "✗", colourClass: "text-red-600",    label: "Gap"     },
-  unknown: { symbol: "—", colourClass: "text-gray-400",   label: "Unknown" },
+  served:  { symbol: "✓", colourClass: "text-[var(--bc-semantic-success)]",                  label: "Served"  },
+  partial: { symbol: "△", colourClass: "text-[var(--bc-semantic-aqi-moderate-indicator)]",   label: "Partial" },
+  gap:     { symbol: "✗", colourClass: "text-[var(--bc-color-red)]",                         label: "Gap"     },
+  unknown: { symbol: "—", colourClass: "text-muted-foreground",                              label: "Unknown" },
 };
 
-/** Demand status symbol and colour class. */
+/** Demand status symbol and colour class — uses BC semantic tokens. */
 const DEMAND_DISPLAY: Record<DemandStatus, { symbol: string; colourClass: string; label: string }> = {
-  confirmed:   { symbol: "●", colourClass: "text-green-600",  label: "Confirmed"   },
-  direct:      { symbol: "○", colourClass: "text-green-600",  label: "Direct"      },
-  inferred:    { symbol: "○", colourClass: "text-yellow-600", label: "Inferred"    },
-  hypothetical:{ symbol: "○", colourClass: "text-gray-400",   label: "Hypothetical"},
+  confirmed:   { symbol: "●", colourClass: "text-[var(--bc-semantic-success)]",                label: "Confirmed"   },
+  direct:      { symbol: "○", colourClass: "text-[var(--bc-semantic-success)]",                label: "Direct"      },
+  inferred:    { symbol: "○", colourClass: "text-[var(--bc-semantic-aqi-moderate-indicator)]", label: "Inferred"    },
+  hypothetical:{ symbol: "○", colourClass: "text-muted-foreground",                            label: "Hypothetical"},
 };
 
 /** Tier badge colours. */
@@ -212,34 +212,34 @@ function CellTooltip({ cell, selectedHirerId, x, y }: TooltipProps) {
   return (
     <div
       ref={ref}
-      className="fixed z-50 w-72 rounded-lg border border-gray-200 bg-white p-3 text-xs shadow-lg"
+      className="fixed z-50 w-72 rounded-lg border border-border bg-background p-3 text-xs shadow-lg"
       style={{ left: pos.left, top: pos.top }}
     >
       {/* Supply section */}
-      <div className="mb-2 border-b border-gray-200 pb-2">
+      <div className="mb-2 border-b border-border pb-2">
         <div className="mb-1 flex items-center gap-2">
           <span className={`text-sm font-bold ${supplyDisplay.colourClass}`}>
             {supplyDisplay.symbol}
           </span>
-          <span className="font-semibold text-gray-800">
+          <span className="font-semibold text-foreground">
             Supply: {supplyDisplay.label}
           </span>
         </div>
         {relevantSteps.length === 0 ? (
-          <p className="text-gray-500">No data for this hirer / city combination.</p>
+          <p className="text-muted-foreground">No data for this hirer / city combination.</p>
         ) : (
           relevantSteps.map((step) => (
             <div key={`${step.cityId}-${step.hirerId}-${step.jobId}`} className="mb-1">
               {step.supplyProduct && (
-                <p className="text-gray-700">
-                  <span className="text-gray-400">Product: </span>
+                <p className="text-foreground">
+                  <span className="text-muted-foreground">Product: </span>
                   {step.supplyProduct}
                 </p>
               )}
               {step.supplyNotes && (
-                <p className="text-gray-600 leading-relaxed">{step.supplyNotes}</p>
+                <p className="text-foreground/80 leading-relaxed">{step.supplyNotes}</p>
               )}
-              <p className="mt-0.5 text-gray-400">
+              <p className="mt-0.5 text-muted-foreground">
                 Confidence: {step.supplyConfidence.replace(/-/g, " ")}
               </p>
             </div>
@@ -253,7 +253,7 @@ function CellTooltip({ cell, selectedHirerId, x, y }: TooltipProps) {
           <span className={`text-sm ${demandDisplay.colourClass}`}>
             {demandDisplay.symbol}
           </span>
-          <span className="font-semibold text-gray-800">
+          <span className="font-semibold text-foreground">
             Demand: {demandDisplay.label}
           </span>
         </div>
@@ -267,10 +267,10 @@ function CellTooltip({ cell, selectedHirerId, x, y }: TooltipProps) {
           return bestStep ? (
             <>
               {bestStep.demandSource && (
-                <p className="text-gray-500">Source: {bestStep.demandSource}</p>
+                <p className="text-muted-foreground">Source: {bestStep.demandSource}</p>
               )}
               {bestStep.demandNotes && (
-                <p className="mt-0.5 text-gray-600 leading-relaxed">
+                <p className="mt-0.5 text-foreground/80 leading-relaxed">
                   {bestStep.demandNotes}
                 </p>
               )}
@@ -300,8 +300,8 @@ interface MatrixCellProps {
 function MatrixCellView({ cell, selectedHirerId, onHover }: MatrixCellProps) {
   if (!cell) {
     return (
-      <div className="flex h-14 items-center justify-center border-b border-r border-gray-200">
-        <span className="text-gray-400 text-xs">N/A</span>
+      <div className="flex h-14 items-center justify-center border-b border-r border-border">
+        <span className="text-muted-foreground text-xs">N/A</span>
       </div>
     );
   }
@@ -314,8 +314,8 @@ function MatrixCellView({ cell, selectedHirerId, onHover }: MatrixCellProps) {
   // If specific hirer selected and no steps exist, show N/A
   if (!hasSteps) {
     return (
-      <div className="flex h-14 items-center justify-center border-b border-r border-gray-200">
-        <span className="text-gray-400 text-xs">N/A</span>
+      <div className="flex h-14 items-center justify-center border-b border-r border-border">
+        <span className="text-muted-foreground text-xs">N/A</span>
       </div>
     );
   }
@@ -324,7 +324,7 @@ function MatrixCellView({ cell, selectedHirerId, onHover }: MatrixCellProps) {
 
   return (
     <div
-      className="flex h-14 cursor-pointer flex-col items-center justify-center gap-0.5 border-b border-r border-gray-200 transition-colors hover:bg-gray-100"
+      className="flex h-14 cursor-pointer flex-col items-center justify-center gap-0.5 border-b border-r border-border transition-colors hover:bg-muted"
       onMouseEnter={(e) => onHover(cell, e.clientX, e.clientY)}
       onMouseLeave={() => onHover(null, 0, 0)}
     >
@@ -361,8 +361,8 @@ function Pill({ label, active, onClick }: PillProps) {
       onClick={onClick}
       className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
         active
-          ? "bg-blue-600 text-white"
-          : "bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-800"
+          ? "bg-primary text-primary-foreground"
+          : "bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground"
       }`}
     >
       {label}
@@ -403,11 +403,22 @@ export default function JtbdFrameworkPage() {
   // Build the display matrix for the current filter state
   const matrix = buildMatrix(selectedHirerId, selectedTiers);
 
+  // O(1) cell lookup map — keyed by "jobId-cityId".
+  // Replaces the previous matrix.find() O(n) scan called in the nested render loop.
+  const cellMap = useMemo(() => {
+    const map = new Map<string, MatrixCell>();
+    for (const cell of matrix) {
+      map.set(`${cell.jobId}-${cell.cityId}`, cell);
+    }
+    return map;
+  }, [matrix]);
+
   /**
    * Look up a cell in the matrix for a specific job × city combination.
+   * Uses the pre-built Map for O(1) access instead of a linear scan.
    */
   function getCell(jobId: string, cityId: string): MatrixCell | undefined {
-    return matrix.find((c) => c.jobId === jobId && c.cityId === cityId);
+    return cellMap.get(`${jobId}-${cityId}`);
   }
 
   /**
@@ -462,25 +473,25 @@ export default function JtbdFrameworkPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6 font-mono text-gray-900">
+    <div className="min-h-screen bg-background p-6 font-mono text-foreground">
       {/* Header */}
       <div className="mb-6">
         <div className="flex items-start gap-3">
-          <h1 className="text-3xl font-bold text-gray-900">JTBD Framework</h1>
+          <h1 className="text-3xl font-bold text-foreground">JTBD Framework</h1>
           <span className="mt-1.5 rounded bg-yellow-100 px-2 py-0.5 text-xs text-yellow-700">
             Internal — team only
           </span>
         </div>
-        <p className="mt-1 text-sm text-gray-500">
+        <p className="mt-1 text-sm text-muted-foreground">
           Job × City coverage matrix — Phase 1: Paris (T1) · Mexico City (T2) · Accra (T3)
         </p>
       </div>
 
       {/* Filter bar */}
-      <div className="mb-6 flex flex-wrap gap-6 rounded-lg border border-gray-200 bg-white p-4">
+      <div className="mb-6 flex flex-wrap gap-6 rounded-lg border border-border bg-card p-4">
         {/* Hirer filter */}
         <div>
-          <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-gray-400">
+          <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
             Hirer
           </p>
           <div className="flex flex-wrap gap-1.5">
@@ -502,7 +513,7 @@ export default function JtbdFrameworkPage() {
 
         {/* Tier filter */}
         <div>
-          <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-gray-400">
+          <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
             Tier
           </p>
           <div className="flex gap-1.5">
@@ -523,34 +534,38 @@ export default function JtbdFrameworkPage() {
         </div>
       </div>
 
-      {/* Legend */}
-      <div className="mb-4 flex flex-wrap gap-4 text-xs text-gray-600">
-        <span className="font-semibold text-gray-700">Supply:</span>
-        <span><span className="text-green-400">✓</span> Served</span>
-        <span><span className="text-yellow-400">△</span> Partial</span>
-        <span><span className="text-red-400">✗</span> Gap</span>
-        <span><span className="text-gray-400">—</span> Unknown</span>
-        <span className="ml-4 font-semibold text-gray-700">Demand:</span>
-        <span><span className="text-green-300">●</span> Confirmed</span>
-        <span><span className="text-green-300">○</span> Direct</span>
-        <span><span className="text-yellow-300">○</span> Inferred</span>
-        <span><span className="text-gray-400">○</span> Hypothetical</span>
+      {/* Legend — swatches derived from SUPPLY_DISPLAY / DEMAND_DISPLAY constants so they
+           always match the matrix symbols exactly. */}
+      <div className="mb-4 flex flex-wrap gap-4 text-xs text-muted-foreground">
+        <span className="font-semibold text-foreground">Supply:</span>
+        <span><span className={SUPPLY_DISPLAY.served.colourClass}>{SUPPLY_DISPLAY.served.symbol}</span> Served</span>
+        <span><span className={SUPPLY_DISPLAY.partial.colourClass}>{SUPPLY_DISPLAY.partial.symbol}</span> Partial</span>
+        <span><span className={SUPPLY_DISPLAY.gap.colourClass}>{SUPPLY_DISPLAY.gap.symbol}</span> Gap</span>
+        <span><span className={SUPPLY_DISPLAY.unknown.colourClass}>{SUPPLY_DISPLAY.unknown.symbol}</span> Unknown</span>
+        <span className="ml-4 font-semibold text-foreground">Demand:</span>
+        <span><span className={DEMAND_DISPLAY.confirmed.colourClass}>{DEMAND_DISPLAY.confirmed.symbol}</span> Confirmed</span>
+        <span><span className={DEMAND_DISPLAY.direct.colourClass}>{DEMAND_DISPLAY.direct.symbol}</span> Direct</span>
+        <span><span className={DEMAND_DISPLAY.inferred.colourClass}>{DEMAND_DISPLAY.inferred.symbol}</span> Inferred</span>
+        <span><span className={DEMAND_DISPLAY.hypothetical.colourClass}>{DEMAND_DISPLAY.hypothetical.symbol}</span> Hypothetical</span>
       </div>
 
       {/* Matrix — scrollable */}
-      <div className="overflow-x-auto rounded-lg border border-gray-200">
-        <table className="w-full border-collapse text-xs">
+      <div className="overflow-x-auto rounded-lg border border-border">
+        <table className="w-full border-collapse text-xs" aria-label="JTBD job coverage matrix — supply and demand evidence by city and hirer">
+          <caption className="sr-only">
+            Job × City coverage matrix showing supply status and demand evidence for each JTBD job across Paris (T1), Mexico City (T2), and Accra (T3). Filter by hirer type and city tier using the controls above.
+          </caption>
           <thead>
             <tr>
               {/* Sticky row-header column — z-30 so it sits above both sticky city headers and sticky job column */}
-              <th className="sticky left-0 top-0 z-30 min-w-44 bg-gray-50 px-3 py-2 text-left text-[10px] font-semibold uppercase tracking-widest text-gray-400">
+              <th className="sticky left-0 top-0 z-30 min-w-44 bg-background px-3 py-2 text-left text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
                 Job
               </th>
               {/* City columns — sticky top-0 so city names stay visible on vertical scroll */}
               {visibleCities.map((city) => (
                 <th
                   key={city.id}
-                  className="sticky top-0 z-20 min-w-28 bg-gray-50 px-3 py-2 text-center text-gray-800"
+                  className="sticky top-0 z-20 min-w-28 bg-background px-3 py-2 text-center text-foreground"
                 >
                   <div className="flex flex-col items-center gap-1">
                     <span className="font-semibold">{city.name}</span>
@@ -574,18 +589,18 @@ export default function JtbdFrameworkPage() {
               return (
                 <tr
                   key={job.id}
-                  className={universalGap ? "bg-red-50" : ""}
+                  className={universalGap ? "bg-[var(--bc-color-red-light)]" : ""}
                 >
                   {/* Sticky row label */}
                   <td
-                    className={`sticky left-0 z-10 border-b border-r border-gray-200 px-3 py-0 ${
-                      universalGap ? "bg-red-50" : "bg-gray-50"
+                    className={`sticky left-0 z-10 border-b border-r border-border px-3 py-0 ${
+                      universalGap ? "bg-[var(--bc-color-red-light)]" : "bg-background"
                     }`}
                   >
                     <div className="flex min-h-14 items-center gap-2">
-                      <span className="text-sm text-gray-800">{job.name}</span>
+                      <span className="text-sm text-foreground">{job.name}</span>
                       {universalGap && (
-                        <span className="rounded bg-red-100 px-1.5 py-0.5 text-[10px] text-red-700">
+                        <span className="rounded bg-[var(--bc-color-red-light)] px-1.5 py-0.5 text-[10px] text-[var(--bc-color-red-dark)]">
                           Universal gap
                         </span>
                       )}
@@ -613,13 +628,13 @@ export default function JtbdFrameworkPage() {
       </div>
 
       {/* City context footnotes — filtered to match visible cities in the matrix */}
-      <div className="mt-6 space-y-1 text-[10px] text-gray-500">
+      <div className="mt-6 space-y-1 text-[10px] text-muted-foreground">
         {visibleCities.map((city) => (
           <p key={city.id}>
             <span className={`mr-2 rounded px-1 py-0.5 font-medium ${TIER_BADGE_CLASS[city.tier]}`}>
               T{city.tier}
             </span>
-            <span className="text-gray-600 font-medium">{city.name}: </span>
+            <span className="text-foreground font-medium">{city.name}: </span>
             {city.structuralContext}
           </p>
         ))}
