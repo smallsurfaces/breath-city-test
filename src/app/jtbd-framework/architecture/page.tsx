@@ -225,6 +225,10 @@ export default function JtbdArchitecturePage() {
         // Dynamic import keeps mermaid out of the SSR bundle entirely.
         const mermaid = (await import("mermaid")).default;
 
+        // securityLevel: "loose" is required for classDef fill/stroke styles to apply in the rendered SVG.
+        // SECURITY: safe only because DIAGRAM_DEFINITION is a static constant — no user input or
+        // external data reaches mermaid.render(). If dynamic content is ever added, switch to
+        // securityLevel: "strict" or "sandbox" and replace dangerouslySetInnerHTML with an iframe render.
         mermaid.initialize({
           startOnLoad: false,
           securityLevel: "loose",
@@ -407,7 +411,9 @@ export default function JtbdArchitecturePage() {
                     validated SVG string from our static diagram definition. No user
                     input reaches this path.
                     Bug 2 fix: ref={svgContainerRef} allows the bindFunctions effect
-                    above to call mermaid's post-insertion wiring on this exact element. */}
+                    above to call mermaid's post-insertion wiring on this exact element.
+                    dangerouslySetInnerHTML: SVG source is mermaid.render() output from the static
+                    DIAGRAM_DEFINITION constant. No user input path. Safe for this usage. */}
                 {svgContent && (
                   <div
                     ref={svgContainerRef}
