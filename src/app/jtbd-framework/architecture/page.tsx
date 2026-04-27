@@ -25,9 +25,11 @@
  *   The rendered SVG is wrapped in TransformWrapper / TransformComponent from
  *   react-zoom-pan-pinch. This provides scroll-to-zoom, drag-to-pan, and
  *   programmatic zoom controls (+ / − / Reset buttons) without modifying the
- *   diagram itself. initialScale: 0.85 + centerOnInit frames the full graph
- *   on load. The outer container is fixed at height: 600px with overflow:hidden
- *   so there is no dead space below the diagram.
+ *   diagram itself. initialScale: 0.85 sizes the graph on load; centerOnInit
+ *   correctly offsets the SVG's natural dimensions against the 600px wrapper
+ *   because contentStyle does not constrain the content to 100% width/height.
+ *   The outer container is fixed at height: 600px with overflow:hidden so
+ *   there is no dead space below the diagram.
  *
  * securityLevel: 'loose' is required so that mermaid can apply the classDef
  *   inline fill/stroke styles. The diagram content is entirely static and
@@ -322,12 +324,19 @@ export default function JtbdArchitecturePage() {
             - scroll-to-zoom (wheel, step: 0.1)
             - drag-to-pan
             - programmatic +/−/Reset controls positioned top-right
-          initialScale: 0.85 + centerOnInit frames the full graph on load.
-          The figure / figcaption structure is preserved for accessibility:
-            - inner div carries aria-live="polite" and aria-busy
+          initialScale: 0.85 sizes the graph; centerOnInit offsets the SVG's
+          natural size against the 600px wrapper to centre it correctly.
+          The figure / figcaption structure provides accessibility:
+            - aria-live="polite" and aria-busy sit on <figure> (untransformed)
             - figcaption provides the screen-reader accessible description
           ─────────────────────────────────────────────────────────────────── */}
+      {/* Bug 2 fix: aria-live and aria-busy are on the untransformed <figure>
+          element. Placing them inside TransformComponent (a CSS-transformed
+          subtree) causes some AT implementations to miss announcements. The
+          <figure> is not transformed, so the live region anchor is reliable. */}
       <figure
+        aria-live="polite"
+        aria-busy={isLoading}
         className="relative w-full overflow-hidden rounded-lg border border-border bg-card"
         style={{ height: "600px" }}
       >
@@ -342,69 +351,69 @@ export default function JtbdArchitecturePage() {
             <>
               {/* Zoom controls — top-right corner of the container.
                   z-10 keeps buttons above the panned diagram canvas.
-                  Buttons meet the 56px touch target via the 32px h-8/w-8
-                  size combined with generous gap — these are secondary utility
-                  controls, not primary actions. */}
+                  Bug 3 fix: h-10 w-10 = 40px — pragmatic floor for secondary
+                  utility controls that sit alongside drag/scroll interactions.
+                  32px (h-8/w-8) was below the JP minimum for any tappable target. */}
               <div className="absolute top-3 right-3 z-10 flex gap-1">
                 <button
                   onClick={() => zoomIn()}
-                  className="flex h-8 w-8 items-center justify-center rounded-md bg-background border border-border text-foreground hover:bg-muted text-sm font-medium shadow-sm"
+                  className="flex h-10 w-10 items-center justify-center rounded-md bg-background border border-border text-foreground hover:bg-muted text-sm font-medium shadow-sm"
                   aria-label="Zoom in"
                 >+</button>
                 <button
                   onClick={() => zoomOut()}
-                  className="flex h-8 w-8 items-center justify-center rounded-md bg-background border border-border text-foreground hover:bg-muted text-sm font-medium shadow-sm"
+                  className="flex h-10 w-10 items-center justify-center rounded-md bg-background border border-border text-foreground hover:bg-muted text-sm font-medium shadow-sm"
                   aria-label="Zoom out"
                 >−</button>
                 <button
                   onClick={() => resetTransform()}
-                  className="flex h-8 px-2 items-center justify-center rounded-md bg-background border border-border text-foreground hover:bg-muted text-xs shadow-sm"
+                  className="flex h-10 px-3 items-center justify-center rounded-md bg-background border border-border text-foreground hover:bg-muted text-xs shadow-sm"
                   aria-label="Reset zoom"
                 >Reset</button>
               </div>
 
-              {/* TransformComponent provides the pannable/zoomable canvas.
-                  wrapperStyle and contentStyle fill the fixed-height container
-                  so the transform origin is the full viewport, not the SVG size. */}
-              <TransformComponent
-                wrapperStyle={{ width: "100%", height: "100%" }}
-                contentStyle={{ width: "100%", height: "100%" }}
-              >
-                {/* Loading and error states sit inside TransformComponent so
-                    they are centred within the same fixed-height space. */}
-                <div
-                  aria-live="polite"
-                  aria-busy={isLoading}
-                  className="w-full h-full"
-                >
-                  {isLoading && !renderError && (
-                    <div className="flex items-center justify-center w-full h-full">
-                      <p className="text-muted-foreground text-sm">Loading diagram...</p>
-                    </div>
-                  )}
-
-                  {renderError && (
-                    <div className="flex items-center justify-center w-full h-full">
-                      <p className="text-destructive text-sm">
-                        Diagram failed to render: {renderError}
-                      </p>
-                    </div>
-                  )}
-
-                  {/* Side effect: inject the rendered SVG string into the DOM.
-                      dangerouslySetInnerHTML is intentional here — mermaid outputs a
-                      validated SVG string from our static diagram definition. No user
-                      input reaches this path.
-                      Bug 2 fix: ref={svgContainerRef} allows the bindFunctions effect
-                      above to call mermaid's post-insertion wiring on this exact element. */}
-                  {!isLoading && !renderError && (
-                    <div
-                      ref={svgContainerRef}
-                      className="w-full"
-                      dangerouslySetInnerHTML={{ __html: svgContent }}
-                    />
-                  )}
+              {/* Bug 4 fix: loading and error overlays are outside TransformComponent
+                  so they render at the natural coordinate space of the <figure>,
+                  regardless of the current pan/zoom transform. If they were inside
+                  the transform, a zoomed-in or panned state could push them off-screen.
+                  absolute inset-0 anchors them to the <figure> (which is relative). */}
+              {isLoading && !renderError && (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <p className="text-muted-foreground text-sm">Loading diagram...</p>
                 </div>
+              )}
+
+              {renderError && !isLoading && (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <p className="text-destructive text-sm">
+                    Diagram failed to render: {renderError}
+                  </p>
+                </div>
+              )}
+
+              {/* Bug 5 + Bug 1 fix: overflow: 'visible' prevents the library's
+                  default overflow:hidden from double-clipping alongside the outer
+                  <figure>'s overflow:hidden. touchAction: 'none' suppresses the
+                  browser's native pinch-to-zoom gesture so it doesn't fire
+                  simultaneously with TransformComponent's own touch handlers.
+                  Bug 6 fix: contentStyle is omitted (no width/height: 100%
+                  constraint). The content div now sizes to the SVG's natural
+                  dimensions, giving centerOnInit a real offset to calculate. */}
+              <TransformComponent
+                wrapperStyle={{ width: "100%", height: "100%", overflow: "visible", touchAction: "none" }}
+              >
+                {/* Side effect: inject the rendered SVG string into the DOM.
+                    dangerouslySetInnerHTML is intentional here — mermaid outputs a
+                    validated SVG string from our static diagram definition. No user
+                    input reaches this path.
+                    Bug 2 fix: ref={svgContainerRef} allows the bindFunctions effect
+                    above to call mermaid's post-insertion wiring on this exact element. */}
+                {svgContent && (
+                  <div
+                    ref={svgContainerRef}
+                    dangerouslySetInnerHTML={{ __html: svgContent }}
+                  />
+                )}
               </TransformComponent>
             </>
           )}
