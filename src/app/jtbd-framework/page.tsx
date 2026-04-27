@@ -134,25 +134,25 @@ function isUniversalGap(jobId: string, visibleCells: MatrixCell[]): boolean {
 
 /** Supply status label, symbol, and colour class. */
 const SUPPLY_DISPLAY: Record<SupplyStatus, { symbol: string; colourClass: string; label: string }> = {
-  served:  { symbol: "✓", colourClass: "text-green-400",  label: "Served"  },
-  partial: { symbol: "△", colourClass: "text-yellow-400", label: "Partial" },
-  gap:     { symbol: "✗", colourClass: "text-red-400",    label: "Gap"     },
-  unknown: { symbol: "—", colourClass: "text-gray-600",   label: "Unknown" },
+  served:  { symbol: "✓", colourClass: "text-green-600",  label: "Served"  },
+  partial: { symbol: "△", colourClass: "text-yellow-600", label: "Partial" },
+  gap:     { symbol: "✗", colourClass: "text-red-600",    label: "Gap"     },
+  unknown: { symbol: "—", colourClass: "text-gray-400",   label: "Unknown" },
 };
 
 /** Demand status symbol and colour class. */
 const DEMAND_DISPLAY: Record<DemandStatus, { symbol: string; colourClass: string; label: string }> = {
-  confirmed:   { symbol: "●", colourClass: "text-green-300",  label: "Confirmed"   },
-  direct:      { symbol: "○", colourClass: "text-green-300",  label: "Direct"      },
-  inferred:    { symbol: "○", colourClass: "text-yellow-300", label: "Inferred"    },
-  hypothetical:{ symbol: "○", colourClass: "text-gray-500",   label: "Hypothetical"},
+  confirmed:   { symbol: "●", colourClass: "text-green-600",  label: "Confirmed"   },
+  direct:      { symbol: "○", colourClass: "text-green-600",  label: "Direct"      },
+  inferred:    { symbol: "○", colourClass: "text-yellow-600", label: "Inferred"    },
+  hypothetical:{ symbol: "○", colourClass: "text-gray-400",   label: "Hypothetical"},
 };
 
 /** Tier badge colours. */
 const TIER_BADGE_CLASS: Record<number, string> = {
-  1: "bg-blue-900 text-blue-300",
-  2: "bg-purple-900 text-purple-300",
-  3: "bg-orange-900 text-orange-300",
+  1: "bg-blue-100 text-blue-700",
+  2: "bg-purple-100 text-purple-700",
+  3: "bg-orange-100 text-orange-700",
 };
 
 // ---------------------------------------------------------------------------
@@ -212,16 +212,16 @@ function CellTooltip({ cell, selectedHirerId, x, y }: TooltipProps) {
   return (
     <div
       ref={ref}
-      className="fixed z-50 w-72 rounded-lg border border-gray-700 bg-gray-900 p-3 text-xs shadow-xl"
+      className="fixed z-50 w-72 rounded-lg border border-gray-200 bg-white p-3 text-xs shadow-lg"
       style={{ left: pos.left, top: pos.top }}
     >
       {/* Supply section */}
-      <div className="mb-2 border-b border-gray-700 pb-2">
+      <div className="mb-2 border-b border-gray-200 pb-2">
         <div className="mb-1 flex items-center gap-2">
           <span className={`text-sm font-bold ${supplyDisplay.colourClass}`}>
             {supplyDisplay.symbol}
           </span>
-          <span className="font-semibold text-gray-200">
+          <span className="font-semibold text-gray-800">
             Supply: {supplyDisplay.label}
           </span>
         </div>
@@ -231,15 +231,15 @@ function CellTooltip({ cell, selectedHirerId, x, y }: TooltipProps) {
           relevantSteps.map((step) => (
             <div key={`${step.cityId}-${step.hirerId}-${step.jobId}`} className="mb-1">
               {step.supplyProduct && (
-                <p className="text-gray-300">
-                  <span className="text-gray-500">Product: </span>
+                <p className="text-gray-700">
+                  <span className="text-gray-400">Product: </span>
                   {step.supplyProduct}
                 </p>
               )}
               {step.supplyNotes && (
-                <p className="text-gray-400 leading-relaxed">{step.supplyNotes}</p>
+                <p className="text-gray-600 leading-relaxed">{step.supplyNotes}</p>
               )}
-              <p className="mt-0.5 text-gray-600">
+              <p className="mt-0.5 text-gray-400">
                 Confidence: {step.supplyConfidence.replace(/-/g, " ")}
               </p>
             </div>
@@ -253,7 +253,7 @@ function CellTooltip({ cell, selectedHirerId, x, y }: TooltipProps) {
           <span className={`text-sm ${demandDisplay.colourClass}`}>
             {demandDisplay.symbol}
           </span>
-          <span className="font-semibold text-gray-200">
+          <span className="font-semibold text-gray-800">
             Demand: {demandDisplay.label}
           </span>
         </div>
@@ -270,7 +270,7 @@ function CellTooltip({ cell, selectedHirerId, x, y }: TooltipProps) {
                 <p className="text-gray-500">Source: {bestStep.demandSource}</p>
               )}
               {bestStep.demandNotes && (
-                <p className="mt-0.5 text-gray-400 leading-relaxed">
+                <p className="mt-0.5 text-gray-600 leading-relaxed">
                   {bestStep.demandNotes}
                 </p>
               )}
@@ -300,8 +300,8 @@ interface MatrixCellProps {
 function MatrixCellView({ cell, selectedHirerId, onHover }: MatrixCellProps) {
   if (!cell) {
     return (
-      <div className="flex h-14 items-center justify-center border-b border-r border-gray-800">
-        <span className="text-gray-600 text-xs">N/A</span>
+      <div className="flex h-14 items-center justify-center border-b border-r border-gray-200">
+        <span className="text-gray-400 text-xs">N/A</span>
       </div>
     );
   }
@@ -314,8 +314,8 @@ function MatrixCellView({ cell, selectedHirerId, onHover }: MatrixCellProps) {
   // If specific hirer selected and no steps exist, show N/A
   if (!hasSteps) {
     return (
-      <div className="flex h-14 items-center justify-center border-b border-r border-gray-800">
-        <span className="text-gray-600 text-xs">N/A</span>
+      <div className="flex h-14 items-center justify-center border-b border-r border-gray-200">
+        <span className="text-gray-400 text-xs">N/A</span>
       </div>
     );
   }
@@ -324,7 +324,7 @@ function MatrixCellView({ cell, selectedHirerId, onHover }: MatrixCellProps) {
 
   return (
     <div
-      className="flex h-14 cursor-pointer flex-col items-center justify-center gap-0.5 border-b border-r border-gray-800 transition-colors hover:bg-gray-800/60"
+      className="flex h-14 cursor-pointer flex-col items-center justify-center gap-0.5 border-b border-r border-gray-200 transition-colors hover:bg-gray-100"
       onMouseEnter={(e) => onHover(cell, e.clientX, e.clientY)}
       onMouseLeave={() => onHover(null, 0, 0)}
     >
@@ -362,7 +362,7 @@ function Pill({ label, active, onClick }: PillProps) {
       className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
         active
           ? "bg-blue-600 text-white"
-          : "bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-gray-200"
+          : "bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-800"
       }`}
     >
       {label}
@@ -462,25 +462,25 @@ export default function JtbdFrameworkPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-950 p-6 font-mono text-white">
+    <div className="min-h-screen bg-gray-50 p-6 font-mono text-gray-900">
       {/* Header */}
       <div className="mb-6">
         <div className="flex items-start gap-3">
-          <h1 className="text-3xl font-bold text-white">JTBD Framework</h1>
-          <span className="mt-1.5 rounded bg-yellow-900 px-2 py-0.5 text-xs text-yellow-300">
+          <h1 className="text-3xl font-bold text-gray-900">JTBD Framework</h1>
+          <span className="mt-1.5 rounded bg-yellow-100 px-2 py-0.5 text-xs text-yellow-700">
             Internal — team only
           </span>
         </div>
-        <p className="mt-1 text-sm text-gray-400">
+        <p className="mt-1 text-sm text-gray-500">
           Job × City coverage matrix — Phase 1: Paris (T1) · Mexico City (T2) · Accra (T3)
         </p>
       </div>
 
       {/* Filter bar */}
-      <div className="mb-6 flex flex-wrap gap-6 rounded-lg border border-gray-800 bg-gray-900 p-4">
+      <div className="mb-6 flex flex-wrap gap-6 rounded-lg border border-gray-200 bg-white p-4">
         {/* Hirer filter */}
         <div>
-          <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-gray-500">
+          <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-gray-400">
             Hirer
           </p>
           <div className="flex flex-wrap gap-1.5">
@@ -502,7 +502,7 @@ export default function JtbdFrameworkPage() {
 
         {/* Tier filter */}
         <div>
-          <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-gray-500">
+          <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-gray-400">
             Tier
           </p>
           <div className="flex gap-1.5">
@@ -524,33 +524,33 @@ export default function JtbdFrameworkPage() {
       </div>
 
       {/* Legend */}
-      <div className="mb-4 flex flex-wrap gap-4 text-xs text-gray-500">
-        <span className="font-semibold text-gray-400">Supply:</span>
+      <div className="mb-4 flex flex-wrap gap-4 text-xs text-gray-600">
+        <span className="font-semibold text-gray-700">Supply:</span>
         <span><span className="text-green-400">✓</span> Served</span>
         <span><span className="text-yellow-400">△</span> Partial</span>
         <span><span className="text-red-400">✗</span> Gap</span>
-        <span><span className="text-gray-600">—</span> Unknown</span>
-        <span className="ml-4 font-semibold text-gray-400">Demand:</span>
+        <span><span className="text-gray-400">—</span> Unknown</span>
+        <span className="ml-4 font-semibold text-gray-700">Demand:</span>
         <span><span className="text-green-300">●</span> Confirmed</span>
         <span><span className="text-green-300">○</span> Direct</span>
         <span><span className="text-yellow-300">○</span> Inferred</span>
-        <span><span className="text-gray-500">○</span> Hypothetical</span>
+        <span><span className="text-gray-400">○</span> Hypothetical</span>
       </div>
 
       {/* Matrix — scrollable */}
-      <div className="overflow-x-auto rounded-lg border border-gray-800">
+      <div className="overflow-x-auto rounded-lg border border-gray-200">
         <table className="w-full border-collapse text-xs">
           <thead>
             <tr>
               {/* Sticky row-header column — z-30 so it sits above both sticky city headers and sticky job column */}
-              <th className="sticky left-0 top-0 z-30 min-w-44 bg-gray-950 px-3 py-2 text-left text-[10px] font-semibold uppercase tracking-widest text-gray-500">
+              <th className="sticky left-0 top-0 z-30 min-w-44 bg-gray-50 px-3 py-2 text-left text-[10px] font-semibold uppercase tracking-widest text-gray-400">
                 Job
               </th>
               {/* City columns — sticky top-0 so city names stay visible on vertical scroll */}
               {visibleCities.map((city) => (
                 <th
                   key={city.id}
-                  className="sticky top-0 z-20 min-w-28 bg-gray-950 px-3 py-2 text-center text-gray-200"
+                  className="sticky top-0 z-20 min-w-28 bg-gray-50 px-3 py-2 text-center text-gray-800"
                 >
                   <div className="flex flex-col items-center gap-1">
                     <span className="font-semibold">{city.name}</span>
@@ -574,18 +574,18 @@ export default function JtbdFrameworkPage() {
               return (
                 <tr
                   key={job.id}
-                  className={universalGap ? "bg-red-950/30" : ""}
+                  className={universalGap ? "bg-red-50" : ""}
                 >
                   {/* Sticky row label */}
                   <td
-                    className={`sticky left-0 z-10 border-b border-r border-gray-800 px-3 py-0 ${
-                      universalGap ? "bg-red-950/30" : "bg-gray-950"
+                    className={`sticky left-0 z-10 border-b border-r border-gray-200 px-3 py-0 ${
+                      universalGap ? "bg-red-50" : "bg-gray-50"
                     }`}
                   >
                     <div className="flex min-h-14 items-center gap-2">
-                      <span className="text-sm text-gray-200">{job.name}</span>
+                      <span className="text-sm text-gray-800">{job.name}</span>
                       {universalGap && (
-                        <span className="rounded bg-red-900 px-1.5 py-0.5 text-[10px] text-red-300">
+                        <span className="rounded bg-red-100 px-1.5 py-0.5 text-[10px] text-red-700">
                           Universal gap
                         </span>
                       )}
@@ -613,13 +613,13 @@ export default function JtbdFrameworkPage() {
       </div>
 
       {/* City context footnotes — filtered to match visible cities in the matrix */}
-      <div className="mt-6 space-y-1 text-[10px] text-gray-600">
+      <div className="mt-6 space-y-1 text-[10px] text-gray-500">
         {visibleCities.map((city) => (
           <p key={city.id}>
             <span className={`mr-2 rounded px-1 py-0.5 font-medium ${TIER_BADGE_CLASS[city.tier]}`}>
               T{city.tier}
             </span>
-            <span className="text-gray-500 font-medium">{city.name}: </span>
+            <span className="text-gray-600 font-medium">{city.name}: </span>
             {city.structuralContext}
           </p>
         ))}
