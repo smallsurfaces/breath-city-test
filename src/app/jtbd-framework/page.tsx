@@ -16,6 +16,7 @@
 
 import { useState, useRef, useEffect, useMemo } from "react";
 import type { City, Job, Hirer, ChainStep, MatrixCell, SupplyStatus, DemandStatus } from "@/types/jtbd";
+import { JtbdNav } from "./_components/JtbdNav";
 
 // JSON data imports — resolveJsonModule is enabled in tsconfig
 // cities.json: all three BC portfolio cities (Paris T1, CDMX T2, Accra T3)
@@ -476,7 +477,9 @@ export default function JtbdFrameworkPage() {
     <div className="min-h-screen bg-background p-6 font-mono text-foreground">
       {/* Header */}
       <div className="mb-6">
-        <div className="flex items-start gap-3">
+        {/* Shared tab navigation — active on "matrix" */}
+        <JtbdNav activeTab="matrix" />
+        <div className="flex items-start gap-3 mt-4">
           <h1 className="text-3xl font-bold text-foreground">JTBD Framework</h1>
           <span className="mt-1.5 rounded bg-yellow-100 px-2 py-0.5 text-xs text-yellow-700">
             Internal — team only
