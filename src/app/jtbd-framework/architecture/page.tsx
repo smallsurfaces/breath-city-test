@@ -411,10 +411,10 @@ export default function JtbdArchitecturePage() {
                     validated SVG string from our static diagram definition. No user
                     input reaches this path.
                     Bug 2 fix: ref={svgContainerRef} allows the bindFunctions effect
-                    above to call mermaid's post-insertion wiring on this exact element.
-                    dangerouslySetInnerHTML: SVG source is mermaid.render() output from the static
-                    DIAGRAM_DEFINITION constant. No user input path. Safe for this usage. */}
+                    above to call mermaid's post-insertion wiring on this exact element. */}
                 {svgContent && (
+                  // dangerouslySetInnerHTML: SVG source is mermaid.render() output from the static
+                  // DIAGRAM_DEFINITION constant. No user input path. Safe for this usage.
                   <div
                     ref={svgContainerRef}
                     dangerouslySetInnerHTML={{ __html: svgContent }}
