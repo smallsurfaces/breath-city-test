@@ -28,24 +28,41 @@
 
 "use client";
 
-import { useEffect, useRef, useState, useId } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ExternalLink } from "lucide-react";
+
+// ---------------------------------------------------------------------------
+// Improvement 4: Single source of truth for diagram colours.
+// DIAGRAM_PALETTE drives both the classDef block (injected into the Mermaid
+// definition below) and LEGEND_ENTRIES, eliminating the previous duplication
+// where hex values were hardcoded independently in two places.
+// ---------------------------------------------------------------------------
+const DIAGRAM_PALETTE = {
+  supply:    { fill: '#DBEAFE', stroke: '#3B82F6', color: '#1E3A5F' },
+  seed:      { fill: '#BFDBFE', stroke: '#2563EB', color: '#1E3A5F' },
+  framework: { fill: '#EDE9FE', stroke: '#7C3AED', color: '#3B0764' },
+  stimulus:  { fill: '#FEF3C7', stroke: '#D97706', color: '#451A03' },
+  workshop:  { fill: '#D1FAE5', stroke: '#059669', color: '#064E3B' },
+  interview: { fill: '#CFFAFE', stroke: '#0891B2', color: '#0E7490' },
+  evidence:  { fill: '#F3F4F6', stroke: '#6B7280', color: '#111827' },
+  brief:     { fill: '#FCE7F3', stroke: '#DB2777', color: '#500724' },
+} as const
+
+// Improvement 4: Build classDef lines from the palette so the Mermaid diagram
+// and the legend can never drift from each other.
+const CLASSDEF_LINES = (Object.entries(DIAGRAM_PALETTE) as [string, { fill: string; stroke: string; color: string }][])
+  .map(([name, t]) => `  classDef ${name} fill:${t.fill},stroke:${t.stroke},color:${t.color}`)
+  .join('\n')
 
 // ---------------------------------------------------------------------------
 // Mermaid diagram definition — the full JTBD research lifecycle graph.
 // LR layout (left to right) so the supply → framework → stimulus → convergence
 // flow reads naturally in reading order.
+// The classDef block is generated from DIAGRAM_PALETTE above.
 // ---------------------------------------------------------------------------
 const DIAGRAM_DEFINITION = `graph LR
-  classDef supply fill:#DBEAFE,stroke:#3B82F6,color:#1E3A5F
-  classDef seed fill:#BFDBFE,stroke:#2563EB,color:#1E3A5F
-  classDef framework fill:#EDE9FE,stroke:#7C3AED,color:#3B0764
-  classDef stimulus fill:#FEF3C7,stroke:#D97706,color:#451A03
-  classDef workshop fill:#D1FAE5,stroke:#059669,color:#064E3B
-  classDef interview fill:#CFFAFE,stroke:#0891B2,color:#0E7490
-  classDef evidence fill:#F3F4F6,stroke:#6B7280,color:#111827
-  classDef brief fill:#FCE7F3,stroke:#DB2777,color:#500724
+${CLASSDEF_LINES}
 
   subgraph SUPPLY["Supply Track — Product Landscape"]
     L["Product Landscape (159 products)"]:::supply
@@ -134,8 +151,8 @@ const DIAGRAM_DEFINITION = `graph LR
   W6 --> PDB`;
 
 // ---------------------------------------------------------------------------
-// Colour legend — mirrors the classDef fill/stroke values above so the legend
-// stays in sync with the rendered diagram without any logic coupling.
+// Colour legend — derived from DIAGRAM_PALETTE so legend and diagram are
+// guaranteed to stay in sync (Improvement 4).
 // ---------------------------------------------------------------------------
 /** A single legend entry describing one node category in the diagram. */
 interface LegendEntry {
@@ -144,27 +161,32 @@ interface LegendEntry {
   stroke: string;
 }
 
+// Improvement 4: LEGEND_ENTRIES now references DIAGRAM_PALETTE directly —
+// no duplicated hex literals.
 const LEGEND_ENTRIES: LegendEntry[] = [
-  { label: "Supply Track", fill: "#DBEAFE", stroke: "#3B82F6" },
-  // Bug 4 fix: "Initial Demand" now uses the distinct `seed` classDef colours
+  { label: "Supply Track",        ...DIAGRAM_PALETTE.supply    },
+  // Bug 4 fix: "Initial Demand" uses the distinct `seed` classDef colours
   // (#BFDBFE / #2563EB) instead of the `interview` teal, so the two legend
   // entries are visually distinguishable from "Interview Probes".
-  { label: "Initial Demand", fill: "#BFDBFE", stroke: "#2563EB" },
-  { label: "Framework Core", fill: "#EDE9FE", stroke: "#7C3AED" },
-  { label: "Stimulus Materials", fill: "#FEF3C7", stroke: "#D97706" },
-  { label: "Workshop Exercises", fill: "#D1FAE5", stroke: "#059669" },
-  { label: "Interview Probes", fill: "#CFFAFE", stroke: "#0891B2" },
-  { label: "Evidence Feedback", fill: "#F3F4F6", stroke: "#6B7280" },
-  { label: "Convergence to Brief", fill: "#FCE7F3", stroke: "#DB2777" },
+  { label: "Initial Demand",      ...DIAGRAM_PALETTE.seed      },
+  { label: "Framework Core",      ...DIAGRAM_PALETTE.framework },
+  { label: "Stimulus Materials",  ...DIAGRAM_PALETTE.stimulus  },
+  { label: "Workshop Exercises",  ...DIAGRAM_PALETTE.workshop  },
+  { label: "Interview Probes",    ...DIAGRAM_PALETTE.interview },
+  { label: "Evidence Feedback",   ...DIAGRAM_PALETTE.evidence  },
+  { label: "Convergence to Brief",...DIAGRAM_PALETTE.brief     },
 ];
 
 export default function JtbdArchitecturePage() {
-  // Bug 1 fix: use React's useId() for a per-mount unique diagram ID instead of
-  // a module-level constant. useId() is stable across StrictMode double-invokes
-  // for the same component instance but produces a distinct value on each fresh
-  // mount, preventing mermaid's internal render pipeline from colliding on the
-  // same ID during SPA re-navigation (unmount + remount).
-  const diagramId = useId();
+  // Improvement 1: useRef initialised once per component lifetime via a null
+  // guard. crypto.randomUUID() is guaranteed unique across mount/remount
+  // cycles, unlike useId() whose contract doesn't hard-guarantee distinct
+  // values on re-mount of the same component instance.
+  const diagramIdRef = useRef<string | null>(null)
+  if (diagramIdRef.current === null) {
+    diagramIdRef.current = 'mermaid-' + crypto.randomUUID()
+  }
+  const diagramId = diagramIdRef.current
 
   // Bug 2 fix: svgContainerRef targets the inner div that receives the rendered
   // SVG via dangerouslySetInnerHTML. bindFunctions must be called on a live DOM
@@ -202,8 +224,8 @@ export default function JtbdArchitecturePage() {
           },
         });
 
-        // Bug 1 fix: pass per-mount diagramId instead of the former module-level
-        // DIAGRAM_ID constant to avoid ID collisions on SPA re-navigation.
+        // Bug 1 fix: pass per-mount diagramId to avoid ID collisions on SPA
+        // re-navigation (unmount + remount).
         // Bug 2 fix: destructure bindFunctions from the render result so mermaid
         // can wire up any click handlers or tooltips it registers on the SVG.
         const { svg, bindFunctions: bind } = await mermaid.render(
@@ -231,8 +253,13 @@ export default function JtbdArchitecturePage() {
 
     // Cleanup: prevent setState calls if the component unmounts before the
     // async render completes (e.g. fast navigation away from the page).
+    // Improvement 2: also remove the transient measurement node mermaid injects
+    // into <body> as `<div id="d{diagramId}">` — on fast unmount or StrictMode
+    // double-invoke this node can be left behind and cause duplicate-ID errors
+    // on subsequent renders.
     return () => {
       cancelled = true;
+      document.getElementById('d' + diagramId)?.remove();
     };
   }, [diagramId]);
 
@@ -258,14 +285,16 @@ export default function JtbdArchitecturePage() {
           design brief.
         </p>
 
-        {/* Action buttons row */}
+        {/* Action buttons row
+            Improvement 5: h-14 (56px) meets JP minimum touch target of 56px.
+            Previous px-4 py-2 produced ~36–40px height. */}
         <div className="flex flex-wrap gap-3">
           {/* External link — opens FigJam board in new tab */}
           <a
             href="https://www.figma.com/board/mU5SS7GeBg58lwjGnmIrgZ"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 rounded-md bg-primary text-primary-foreground px-4 py-2 text-sm font-medium hover:opacity-90 transition-opacity"
+            className="inline-flex items-center gap-2 rounded-md bg-primary text-primary-foreground h-14 px-4 text-sm font-medium hover:opacity-90 transition-opacity"
           >
             Open in FigJam
             {/* ExternalLink icon signals this opens in a new tab */}
@@ -275,7 +304,7 @@ export default function JtbdArchitecturePage() {
           {/* Back navigation to the JTBD matrix */}
           <Link
             href="/jtbd-framework"
-            className="inline-flex items-center gap-2 rounded-md border border-border bg-background text-foreground px-4 py-2 text-sm font-medium hover:bg-muted transition-colors"
+            className="inline-flex items-center gap-2 rounded-md border border-border bg-background text-foreground h-14 px-4 text-sm font-medium hover:bg-muted transition-colors"
           >
             Framework Matrix
           </Link>
@@ -283,61 +312,75 @@ export default function JtbdArchitecturePage() {
       </div>
 
       {/* ── Diagram container ───────────────────────────────────────────────
+          Improvement 3: replaced the previous single div that combined
+          role="img" + aria-live (contradictory across AT implementations)
+          with a <figure> / <figcaption> structure:
+            - <figure> is an implicit landmark — no role attribute needed
+            - inner <div> carries aria-live="polite" and aria-busy so AT
+              announces the loading → rendered transition
+            - <figcaption className="sr-only"> provides the accessible
+              description that role="img" + aria-label previously handled
+
           overflow-x-auto enables horizontal scroll on narrow viewports so the
           LR diagram is never clipped. min-h ensures the container has space
           while mermaid is initialising.
-
-          Bug 3 fix: aria-live="polite" announces the loading → rendered
-          transition to screen readers. aria-busy signals that content is still
-          being prepared, clearing to false once the diagram is ready.
           ─────────────────────────────────────────────────────────────────── */}
-      <div
-        className="w-full overflow-x-auto rounded-lg border border-border bg-card p-4"
-        style={{ minHeight: "600px" }}
-        aria-label="JTBD research lifecycle diagram"
-        role="img"
-        aria-live="polite"
-        aria-busy={isLoading}
-      >
-        {isLoading && !renderError && (
-          <div className="flex items-center justify-center h-full min-h-[600px]">
-            <p className="text-muted-foreground text-sm">Loading diagram...</p>
-          </div>
-        )}
+      <figure className="w-full overflow-x-auto rounded-lg border border-border bg-card p-4" style={{ minHeight: "600px" }}>
+        <div
+          aria-live="polite"
+          aria-busy={isLoading}
+        >
+          {isLoading && !renderError && (
+            <div className="flex items-center justify-center h-full min-h-[600px]">
+              <p className="text-muted-foreground text-sm">Loading diagram...</p>
+            </div>
+          )}
 
-        {renderError && (
-          <div className="flex items-center justify-center h-full min-h-[600px]">
-            <p className="text-destructive text-sm">
-              Diagram failed to render: {renderError}
-            </p>
-          </div>
-        )}
+          {renderError && (
+            <div className="flex items-center justify-center h-full min-h-[600px]">
+              <p className="text-destructive text-sm">
+                Diagram failed to render: {renderError}
+              </p>
+            </div>
+          )}
 
-        {/* Side effect: inject the rendered SVG string into the DOM.
-            dangerouslySetInnerHTML is intentional here — mermaid outputs a
-            validated SVG string from our static diagram definition. No user
-            input reaches this path.
-            Bug 2 fix: ref={svgContainerRef} allows the bindFunctions effect
-            above to call mermaid's post-insertion wiring on this exact element. */}
-        {!isLoading && !renderError && (
-          <div
-            ref={svgContainerRef}
-            className="w-full"
-            dangerouslySetInnerHTML={{ __html: svgContent }}
-          />
-        )}
-      </div>
+          {/* Side effect: inject the rendered SVG string into the DOM.
+              dangerouslySetInnerHTML is intentional here — mermaid outputs a
+              validated SVG string from our static diagram definition. No user
+              input reaches this path.
+              Bug 2 fix: ref={svgContainerRef} allows the bindFunctions effect
+              above to call mermaid's post-insertion wiring on this exact element. */}
+          {!isLoading && !renderError && (
+            <div
+              ref={svgContainerRef}
+              className="w-full"
+              dangerouslySetInnerHTML={{ __html: svgContent }}
+            />
+          )}
+        </div>
+
+        {/* Accessible description for the diagram — replaces the former
+            aria-label on role="img". Screen readers surface figcaption
+            content as the figure's accessible name/description. */}
+        <figcaption className="sr-only">
+          JTBD research lifecycle diagram — how the product landscape and
+          research evidence build the framework, generate workshop and interview
+          stimuli, and converge on the product design brief
+        </figcaption>
+      </figure>
 
       {/* ── Colour legend ───────────────────────────────────────────────────
           Rendered below the diagram. Each entry shows a coloured dot matching
-          the classDef fill/stroke values in the diagram definition above.
+          the classDef fill/stroke values. Colours are now derived from
+          DIAGRAM_PALETTE (Improvement 4) — no separate hardcoded hex values.
           ─────────────────────────────────────────────────────────────────── */}
       <div className="mt-6 flex flex-wrap gap-x-6 gap-y-3">
         {LEGEND_ENTRIES.map((entry) => (
           <div key={entry.label} className="flex items-center gap-2">
-            {/* Coloured dot using inline style — hex values match classDef exactly.
-                These are diagram colours, not UI theme colours, so token mapping
-                is not applicable here. They must match the Mermaid classDef above. */}
+            {/* Coloured dot using inline style — hex values come from
+                DIAGRAM_PALETTE so they are guaranteed to match classDef.
+                These are diagram colours, not UI theme colours, so token
+                mapping is not applicable here. */}
             <span
               className="inline-block h-3 w-3 rounded-full flex-shrink-0"
               style={{
