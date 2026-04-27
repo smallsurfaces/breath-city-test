@@ -29,8 +29,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
 import { ExternalLink } from "lucide-react";
+import { JtbdNav } from "../_components/JtbdNav";
 
 // ---------------------------------------------------------------------------
 // Improvement 4: Single source of truth for diagram colours.
@@ -276,7 +276,9 @@ export default function JtbdArchitecturePage() {
     <div className="bg-background text-foreground min-h-screen p-8">
       {/* ── Page header ────────────────────────────────────────────────────── */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-3">
+        {/* Shared tab navigation — active on "architecture" */}
+        <JtbdNav activeTab="architecture" />
+        <h1 className="text-3xl font-bold mb-3 mt-4">
           JTBD Framework — Research Lifecycle
         </h1>
         <p className="text-muted-foreground text-base max-w-3xl mb-6">
@@ -287,7 +289,7 @@ export default function JtbdArchitecturePage() {
 
         {/* Action buttons row
             Improvement 5: h-14 (56px) meets JP minimum touch target of 56px.
-            Previous px-4 py-2 produced ~36–40px height. */}
+            "Framework Matrix" button removed — replaced by JtbdNav above. */}
         <div className="flex flex-wrap gap-3">
           {/* External link — opens FigJam board in new tab */}
           <a
@@ -300,14 +302,6 @@ export default function JtbdArchitecturePage() {
             {/* ExternalLink icon signals this opens in a new tab */}
             <ExternalLink className="h-4 w-4" aria-hidden="true" />
           </a>
-
-          {/* Back navigation to the JTBD matrix */}
-          <Link
-            href="/jtbd-framework"
-            className="inline-flex items-center gap-2 rounded-md border border-border bg-background text-foreground h-14 px-4 text-sm font-medium hover:bg-muted transition-colors"
-          >
-            Framework Matrix
-          </Link>
         </div>
       </div>
 
