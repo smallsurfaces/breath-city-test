@@ -1,0 +1,14 @@
+node_modules/
+dist/
+.DS_Store
+*.log
+
+# Local Netlify folder
+.netlify
+
+# Next.js
+.next/
+out/
+
+# Environment files
+.env*.local
