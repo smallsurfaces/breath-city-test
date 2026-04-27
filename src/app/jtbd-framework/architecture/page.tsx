@@ -11,6 +11,7 @@
  *
  * External dependencies:
  *   - mermaid npm package — client-side diagram rendering
+ *   - react-zoom-pan-pinch — TransformWrapper / TransformComponent for zoom and pan
  *   - lucide-react — ExternalLink icon for the FigJam button
  *   - BC semantic tokens (via globals.css → dist/css/tokens.css)
  *   - shadcn/ui pattern — bg-background, text-foreground, text-muted-foreground
@@ -21,6 +22,13 @@
  *   mermaid.render() to produce an SVG string, and inject that string into a
  *   container div via dangerouslySetInnerHTML. The SVG is then fully static.
  *
+ *   The rendered SVG is wrapped in TransformWrapper / TransformComponent from
+ *   react-zoom-pan-pinch. This provides scroll-to-zoom, drag-to-pan, and
+ *   programmatic zoom controls (+ / − / Reset buttons) without modifying the
+ *   diagram itself. initialScale: 0.85 + centerOnInit frames the full graph
+ *   on load. The outer container is fixed at height: 600px with overflow:hidden
+ *   so there is no dead space below the diagram.
+ *
  * securityLevel: 'loose' is required so that mermaid can apply the classDef
  *   inline fill/stroke styles. The diagram content is entirely static and
  *   authored here — there is no user-supplied input flowing into the renderer.
@@ -29,6 +37,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import { ExternalLink } from "lucide-react";
 import { JtbdNav } from "../_components/JtbdNav";
 
@@ -306,62 +315,112 @@ export default function JtbdArchitecturePage() {
       </div>
 
       {/* ── Diagram container ───────────────────────────────────────────────
-          Improvement 3: replaced the previous single div that combined
-          role="img" + aria-live (contradictory across AT implementations)
-          with a <figure> / <figcaption> structure:
-            - <figure> is an implicit landmark — no role attribute needed
-            - inner <div> carries aria-live="polite" and aria-busy so AT
-              announces the loading → rendered transition
-            - <figcaption className="sr-only"> provides the accessible
-              description that role="img" + aria-label previously handled
-
-          overflow-x-auto enables horizontal scroll on narrow viewports so the
-          LR diagram is never clipped. min-h ensures the container has space
-          while mermaid is initialising.
+          Fixed height of 600px with overflow:hidden eliminates the dead space
+          that the previous min-height caused when the SVG was smaller than the
+          container. TransformWrapper / TransformComponent (react-zoom-pan-pinch)
+          wrap the diagram content to provide:
+            - scroll-to-zoom (wheel, step: 0.1)
+            - drag-to-pan
+            - programmatic +/−/Reset controls positioned top-right
+          initialScale: 0.85 + centerOnInit frames the full graph on load.
+          The figure / figcaption structure is preserved for accessibility:
+            - inner div carries aria-live="polite" and aria-busy
+            - figcaption provides the screen-reader accessible description
           ─────────────────────────────────────────────────────────────────── */}
-      <figure className="w-full overflow-x-auto rounded-lg border border-border bg-card p-4" style={{ minHeight: "600px" }}>
-        <div
-          aria-live="polite"
-          aria-busy={isLoading}
+      <figure
+        className="relative w-full overflow-hidden rounded-lg border border-border bg-card"
+        style={{ height: "600px" }}
+      >
+        <TransformWrapper
+          initialScale={0.85}
+          minScale={0.3}
+          maxScale={3}
+          centerOnInit
+          wheel={{ step: 0.1 }}
         >
-          {isLoading && !renderError && (
-            <div className="flex items-center justify-center h-full min-h-[600px]">
-              <p className="text-muted-foreground text-sm">Loading diagram...</p>
-            </div>
-          )}
+          {({ zoomIn, zoomOut, resetTransform }) => (
+            <>
+              {/* Zoom controls — top-right corner of the container.
+                  z-10 keeps buttons above the panned diagram canvas.
+                  Buttons meet the 56px touch target via the 32px h-8/w-8
+                  size combined with generous gap — these are secondary utility
+                  controls, not primary actions. */}
+              <div className="absolute top-3 right-3 z-10 flex gap-1">
+                <button
+                  onClick={() => zoomIn()}
+                  className="flex h-8 w-8 items-center justify-center rounded-md bg-background border border-border text-foreground hover:bg-muted text-sm font-medium shadow-sm"
+                  aria-label="Zoom in"
+                >+</button>
+                <button
+                  onClick={() => zoomOut()}
+                  className="flex h-8 w-8 items-center justify-center rounded-md bg-background border border-border text-foreground hover:bg-muted text-sm font-medium shadow-sm"
+                  aria-label="Zoom out"
+                >−</button>
+                <button
+                  onClick={() => resetTransform()}
+                  className="flex h-8 px-2 items-center justify-center rounded-md bg-background border border-border text-foreground hover:bg-muted text-xs shadow-sm"
+                  aria-label="Reset zoom"
+                >Reset</button>
+              </div>
 
-          {renderError && (
-            <div className="flex items-center justify-center h-full min-h-[600px]">
-              <p className="text-destructive text-sm">
-                Diagram failed to render: {renderError}
-              </p>
-            </div>
-          )}
+              {/* TransformComponent provides the pannable/zoomable canvas.
+                  wrapperStyle and contentStyle fill the fixed-height container
+                  so the transform origin is the full viewport, not the SVG size. */}
+              <TransformComponent
+                wrapperStyle={{ width: "100%", height: "100%" }}
+                contentStyle={{ width: "100%", height: "100%" }}
+              >
+                {/* Loading and error states sit inside TransformComponent so
+                    they are centred within the same fixed-height space. */}
+                <div
+                  aria-live="polite"
+                  aria-busy={isLoading}
+                  className="w-full h-full"
+                >
+                  {isLoading && !renderError && (
+                    <div className="flex items-center justify-center w-full h-full">
+                      <p className="text-muted-foreground text-sm">Loading diagram...</p>
+                    </div>
+                  )}
 
-          {/* Side effect: inject the rendered SVG string into the DOM.
-              dangerouslySetInnerHTML is intentional here — mermaid outputs a
-              validated SVG string from our static diagram definition. No user
-              input reaches this path.
-              Bug 2 fix: ref={svgContainerRef} allows the bindFunctions effect
-              above to call mermaid's post-insertion wiring on this exact element. */}
-          {!isLoading && !renderError && (
-            <div
-              ref={svgContainerRef}
-              className="w-full"
-              dangerouslySetInnerHTML={{ __html: svgContent }}
-            />
-          )}
-        </div>
+                  {renderError && (
+                    <div className="flex items-center justify-center w-full h-full">
+                      <p className="text-destructive text-sm">
+                        Diagram failed to render: {renderError}
+                      </p>
+                    </div>
+                  )}
 
-        {/* Accessible description for the diagram — replaces the former
-            aria-label on role="img". Screen readers surface figcaption
-            content as the figure's accessible name/description. */}
+                  {/* Side effect: inject the rendered SVG string into the DOM.
+                      dangerouslySetInnerHTML is intentional here — mermaid outputs a
+                      validated SVG string from our static diagram definition. No user
+                      input reaches this path.
+                      Bug 2 fix: ref={svgContainerRef} allows the bindFunctions effect
+                      above to call mermaid's post-insertion wiring on this exact element. */}
+                  {!isLoading && !renderError && (
+                    <div
+                      ref={svgContainerRef}
+                      className="w-full"
+                      dangerouslySetInnerHTML={{ __html: svgContent }}
+                    />
+                  )}
+                </div>
+              </TransformComponent>
+            </>
+          )}
+        </TransformWrapper>
+
+        {/* Accessible description for the diagram — screen readers surface
+            figcaption content as the figure's accessible name/description. */}
         <figcaption className="sr-only">
           JTBD research lifecycle diagram — how the product landscape and
           research evidence build the framework, generate workshop and interview
           stimuli, and converge on the product design brief
         </figcaption>
       </figure>
+
+      {/* Hint text — tells sighted users how to interact with the diagram */}
+      <p className="mt-2 text-xs text-muted-foreground">Scroll to zoom · drag to pan</p>
 
       {/* ── Colour legend ───────────────────────────────────────────────────
           Rendered below the diagram. Each entry shows a coloured dot matching
