@@ -62,12 +62,6 @@ export interface ChainStep {
   demandNotes: string | null;
 }
 
-/** Filter state for the matrix view. Tier is multi-select (array of tier numbers, or ["all"]). */
-export interface FilterState {
-  hirerId: string | "all";
-  tiers: Array<1 | 2 | 3 | "all">;
-}
-
 /**
  * Aggregated cell data for one job × city cell in the matrix.
  * When hirerId = "all", shows worst-case supply and highest demand across all hirers.

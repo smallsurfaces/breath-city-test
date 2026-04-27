@@ -111,14 +111,21 @@ function buildMatrix(selectedHirerId: string, selectedTiers: Array<1 | 2 | 3>): 
 }
 
 /**
- * Returns true if a job is a "universal gap" — all three cities show supply = gap
- * when viewing all hirers. Used to apply the red row highlight.
+ * Returns true if a job qualifies as a "universal gap" across the visible cities.
+ * Threshold (per PM decision, bug-tester report 2026-04-27):
+ *   - No visible city is "served" AND
+ *   - At least 2 visible cities are "gap"
+ * This correctly flags "Act collectively" (2 gap + 1 partial, 0 served) while
+ * preserving accurate data. Receives the already-filtered visible cells so the
+ * threshold still works correctly when the tier filter is active.
  */
-function isUniversalGap(jobId: string, allCells: MatrixCell[]): boolean {
-  const jobCells = allCells.filter((c) => c.jobId === jobId);
-  // Must have all 3 cities represented and all must be gap
-  if (jobCells.length < 3) return false;
-  return jobCells.every((c) => c.supplyStatus === "gap");
+function isUniversalGap(jobId: string, visibleCells: MatrixCell[]): boolean {
+  const jobCells = visibleCells.filter((c) => c.jobId === jobId);
+  if (jobCells.length === 0) return false;
+  const hasServed = jobCells.some((c) => c.supplyStatus === "served");
+  if (hasServed) return false;
+  const gapCount = jobCells.filter((c) => c.supplyStatus === "gap").length;
+  return gapCount >= 2;
 }
 
 // ---------------------------------------------------------------------------
@@ -162,24 +169,36 @@ interface TooltipProps {
 /**
  * Floating tooltip shown on matrix cell hover.
  * Displays supply product, notes, demand evidence source, and confidence level.
- * Positioned absolutely relative to the page; nudges left/up near viewport edges.
+ * Positioned fixed relative to the viewport; nudges left/up near viewport edges.
+ *
+ * M4/L8 fix: position is calculated once on mount via requestAnimationFrame rather
+ * than re-running on every mouse-move pixel. The tooltip appears at entry position
+ * and stays there until the user leaves the cell — no per-pixel recalculation and
+ * no single-frame position jump at viewport edges.
  */
 function CellTooltip({ cell, selectedHirerId, x, y }: TooltipProps) {
   const ref = useRef<HTMLDivElement>(null);
-  const [pos, setPos] = useState({ left: x + 12, top: y + 12 });
+  // Start with a deliberately off-screen position so the tooltip is invisible
+  // until the rAF boundary-check runs, preventing the uncorrected-position flash.
+  const [pos, setPos] = useState({ left: -9999, top: -9999 });
 
-  // Side effect: nudge tooltip away from viewport edges after mount
+  // Side effect: calculate final position once after mount using rAF.
+  // Dependency array is intentionally empty — we only want this to run once per
+  // tooltip mount (i.e. once per cell entry), not on every mouse-move update.
   useEffect(() => {
-    if (!ref.current) return;
-    const rect = ref.current.getBoundingClientRect();
-    const vpW = window.innerWidth;
-    const vpH = window.innerHeight;
-    let left = x + 12;
-    let top = y + 12;
-    if (left + rect.width > vpW - 8) left = x - rect.width - 12;
-    if (top + rect.height > vpH - 8) top = y - rect.height - 12;
-    setPos({ left, top });
-  }, [x, y]);
+    requestAnimationFrame(() => {
+      if (!ref.current) return;
+      const rect = ref.current.getBoundingClientRect();
+      const vpW = window.innerWidth;
+      const vpH = window.innerHeight;
+      let left = x + 12;
+      let top = y + 12;
+      if (left + rect.width > vpW - 8) left = x - rect.width - 12;
+      if (top + rect.height > vpH - 8) top = y - rect.height - 12;
+      setPos({ left, top });
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const supplyDisplay = SUPPLY_DISPLAY[cell.supplyStatus];
   const demandStatus = cell.demandStatus;
@@ -209,8 +228,8 @@ function CellTooltip({ cell, selectedHirerId, x, y }: TooltipProps) {
         {relevantSteps.length === 0 ? (
           <p className="text-gray-500">No data for this hirer / city combination.</p>
         ) : (
-          relevantSteps.map((step, i) => (
-            <div key={i} className="mb-1">
+          relevantSteps.map((step) => (
+            <div key={`${step.cityId}-${step.hirerId}-${step.jobId}`} className="mb-1">
               {step.supplyProduct && (
                 <p className="text-gray-300">
                   <span className="text-gray-500">Product: </span>
@@ -238,16 +257,26 @@ function CellTooltip({ cell, selectedHirerId, x, y }: TooltipProps) {
             Demand: {demandDisplay.label}
           </span>
         </div>
-        {relevantSteps.length > 0 && relevantSteps[0].demandSource && (
-          <p className="text-gray-500">
-            Source: {relevantSteps[0].demandSource}
-          </p>
-        )}
-        {relevantSteps.length > 0 && relevantSteps[0].demandNotes && (
-          <p className="mt-0.5 text-gray-400 leading-relaxed">
-            {relevantSteps[0].demandNotes}
-          </p>
-        )}
+        {(() => {
+          // H1 fix: find the step whose demandStatus produced the best demand level,
+          // rather than always taking index 0. If multiple steps tie, take the first match.
+          const bestLevel = bestDemand(relevantSteps);
+          const bestStep = bestLevel
+            ? relevantSteps.find((s) => s.demandStatus === bestLevel) ?? null
+            : null;
+          return bestStep ? (
+            <>
+              {bestStep.demandSource && (
+                <p className="text-gray-500">Source: {bestStep.demandSource}</p>
+              )}
+              {bestStep.demandNotes && (
+                <p className="mt-0.5 text-gray-400 leading-relaxed">
+                  {bestStep.demandNotes}
+                </p>
+              )}
+            </>
+          ) : null;
+        })()}
       </div>
     </div>
   );
@@ -296,13 +325,19 @@ function MatrixCellView({ cell, selectedHirerId, onHover }: MatrixCellProps) {
   return (
     <div
       className="flex h-14 cursor-pointer flex-col items-center justify-center gap-0.5 border-b border-r border-gray-800 transition-colors hover:bg-gray-800/60"
-      onMouseMove={(e) => onHover(cell, e.clientX, e.clientY)}
+      onMouseEnter={(e) => onHover(cell, e.clientX, e.clientY)}
       onMouseLeave={() => onHover(null, 0, 0)}
     >
-      <span className={`text-base font-bold leading-none ${supply.colourClass}`}>
+      <span
+        className={`text-base font-bold leading-none ${supply.colourClass}`}
+        aria-label={`Supply: ${supply.label}`}
+      >
         {supply.symbol}
       </span>
-      <span className={`text-[10px] leading-none ${demand.colourClass}`}>
+      <span
+        className={`text-[10px] leading-none ${demand.colourClass}`}
+        aria-label={`Demand: ${demand.label}`}
+      >
         {demand.symbol}
       </span>
     </div>
@@ -349,6 +384,12 @@ export default function JtbdFrameworkPage() {
   // Tier filter — set of active tiers. Starts with all tiers active.
   const [selectedTiers, setSelectedTiers] = useState<Array<1 | 2 | 3>>([1, 2, 3]);
 
+  // isAllMode tracks whether the user explicitly activated "All" (or we restored
+  // to full set from empty). Drives "All" pill highlight independently of the
+  // selectedTiers array contents — prevents simultaneous All + individual highlighting.
+  // L7 fix: must be declared before handleTierToggle which reads and sets it.
+  const [isAllMode, setIsAllMode] = useState<boolean>(true);
+
   // Tooltip state — active cell and pointer position
   const [tooltip, setTooltip] = useState<{
     cell: MatrixCell;
@@ -358,9 +399,6 @@ export default function JtbdFrameworkPage() {
 
   // Derive visible cities from selected tiers
   const visibleCities = cities.filter((c) => selectedTiers.includes(c.tier as 1 | 2 | 3));
-
-  // Build the full matrix for all 3 cities (used for universal gap detection)
-  const allHirersAllCitiesMatrix = buildMatrix("all", [1, 2, 3]);
 
   // Build the display matrix for the current filter state
   const matrix = buildMatrix(selectedHirerId, selectedTiers);
@@ -373,26 +411,46 @@ export default function JtbdFrameworkPage() {
   }
 
   /**
-   * Toggle a tier in/out of the active set.
-   * If "All" is clicked, set all tiers active.
-   * If a tier is clicked and it's the only active tier, restore all tiers.
+   * Toggle tier filter.
+   *
+   * L7 fix: "All" and individual tier pills are mutually exclusive.
+   * - Pressing "All": always resets to all-active state ([1, 2, 3]).
+   * - Pressing an individual tier while ALL tiers are active: deactivates the
+   *   others and activates only the pressed tier (not additive from "all").
+   * - Pressing an individual tier while in partial-select mode: toggles it
+   *   in/out; if the result would be empty, restore all tiers.
+   * This means "All" pill is active only when selectedTiers has all 3 tiers AND
+   * we got there via "All" or via restoring from empty — never simultaneously
+   * with individually-active pills showing as selected.
    */
   function handleTierToggle(tier: 1 | 2 | 3 | "all") {
     if (tier === "all") {
       setSelectedTiers([1, 2, 3]);
+      setIsAllMode(true);
       return;
     }
+    setIsAllMode(false);
     setSelectedTiers((prev) => {
+      // If currently in "all" mode, pressing an individual tier switches to
+      // single-tier mode — deselect everything else, activate only this one.
+      if (isAllMode) {
+        return [tier];
+      }
       const has = prev.includes(tier);
       if (has) {
         const next = prev.filter((t) => t !== tier);
-        return next.length === 0 ? [1, 2, 3] : next;
+        if (next.length === 0) {
+          // Restore all rather than leaving nothing selected
+          setIsAllMode(true);
+          return [1, 2, 3];
+        }
+        return next;
       }
       return [...prev, tier].sort() as Array<1 | 2 | 3>;
     });
   }
 
-  const isAllTiersActive = selectedTiers.length === 3;
+  const isAllTiersActive = isAllMode;
 
   /** Tooltip callback from matrix cell hover. */
   function handleCellHover(cell: MatrixCell | null, x: number, y: number) {
@@ -457,7 +515,7 @@ export default function JtbdFrameworkPage() {
               <Pill
                 key={tier}
                 label={`T${tier}`}
-                active={selectedTiers.includes(tier)}
+                active={!isAllMode && selectedTiers.includes(tier)}
                 onClick={() => handleTierToggle(tier)}
               />
             ))}
@@ -484,15 +542,15 @@ export default function JtbdFrameworkPage() {
         <table className="w-full border-collapse text-xs">
           <thead>
             <tr>
-              {/* Sticky row-header column */}
-              <th className="sticky left-0 z-10 min-w-44 bg-gray-950 px-3 py-2 text-left text-[10px] font-semibold uppercase tracking-widest text-gray-500">
+              {/* Sticky row-header column — z-30 so it sits above both sticky city headers and sticky job column */}
+              <th className="sticky left-0 top-0 z-30 min-w-44 bg-gray-950 px-3 py-2 text-left text-[10px] font-semibold uppercase tracking-widest text-gray-500">
                 Job
               </th>
-              {/* City columns */}
+              {/* City columns — sticky top-0 so city names stay visible on vertical scroll */}
               {visibleCities.map((city) => (
                 <th
                   key={city.id}
-                  className="min-w-28 px-3 py-2 text-center text-gray-200"
+                  className="sticky top-0 z-20 min-w-28 bg-gray-950 px-3 py-2 text-center text-gray-200"
                 >
                   <div className="flex flex-col items-center gap-1">
                     <span className="font-semibold">{city.name}</span>
@@ -508,9 +566,10 @@ export default function JtbdFrameworkPage() {
           </thead>
           <tbody>
             {jobs.map((job) => {
-              // Universal gap detection — only meaningful when showing all hirers
+              // Universal gap detection — only meaningful when showing all hirers.
+              // Passes the current filtered matrix so tier-filter state is respected.
               const universalGap =
-                selectedHirerId === "all" && isUniversalGap(job.id, allHirersAllCitiesMatrix);
+                selectedHirerId === "all" && isUniversalGap(job.id, matrix);
 
               return (
                 <tr
@@ -553,9 +612,9 @@ export default function JtbdFrameworkPage() {
         </table>
       </div>
 
-      {/* City context footnotes */}
+      {/* City context footnotes — filtered to match visible cities in the matrix */}
       <div className="mt-6 space-y-1 text-[10px] text-gray-600">
-        {cities.map((city) => (
+        {visibleCities.map((city) => (
           <p key={city.id}>
             <span className={`mr-2 rounded px-1 py-0.5 font-medium ${TIER_BADGE_CLASS[city.tier]}`}>
               T{city.tier}
