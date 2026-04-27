@@ -28,7 +28,7 @@
 
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useId } from "react";
 import Link from "next/link";
 import { ExternalLink } from "lucide-react";
 
@@ -39,6 +39,7 @@ import { ExternalLink } from "lucide-react";
 // ---------------------------------------------------------------------------
 const DIAGRAM_DEFINITION = `graph LR
   classDef supply fill:#DBEAFE,stroke:#3B82F6,color:#1E3A5F
+  classDef seed fill:#BFDBFE,stroke:#2563EB,color:#1E3A5F
   classDef framework fill:#EDE9FE,stroke:#7C3AED,color:#3B0764
   classDef stimulus fill:#FEF3C7,stroke:#D97706,color:#451A03
   classDef workshop fill:#D1FAE5,stroke:#059669,color:#064E3B
@@ -51,7 +52,7 @@ const DIAGRAM_DEFINITION = `graph LR
   end
 
   subgraph SEED["Initial Demand — Phase 01"]
-    SI["Stakeholder Interviews - Round 1 - 7 sessions"]:::interview
+    SI["Stakeholder Interviews - Round 1 - 7 sessions"]:::seed
   end
 
   subgraph FRAMEWORK["JTBD Framework Core"]
@@ -145,7 +146,10 @@ interface LegendEntry {
 
 const LEGEND_ENTRIES: LegendEntry[] = [
   { label: "Supply Track", fill: "#DBEAFE", stroke: "#3B82F6" },
-  { label: "Initial Demand", fill: "#CFFAFE", stroke: "#0891B2" },
+  // Bug 4 fix: "Initial Demand" now uses the distinct `seed` classDef colours
+  // (#BFDBFE / #2563EB) instead of the `interview` teal, so the two legend
+  // entries are visually distinguishable from "Interview Probes".
+  { label: "Initial Demand", fill: "#BFDBFE", stroke: "#2563EB" },
   { label: "Framework Core", fill: "#EDE9FE", stroke: "#7C3AED" },
   { label: "Stimulus Materials", fill: "#FEF3C7", stroke: "#D97706" },
   { label: "Workshop Exercises", fill: "#D1FAE5", stroke: "#059669" },
@@ -154,15 +158,25 @@ const LEGEND_ENTRIES: LegendEntry[] = [
   { label: "Convergence to Brief", fill: "#FCE7F3", stroke: "#DB2777" },
 ];
 
-// ---------------------------------------------------------------------------
-// Unique ID for the mermaid render target — avoids collisions if the component
-// ever mounts more than once in a React tree (e.g. StrictMode double-invoke).
-// ---------------------------------------------------------------------------
-const DIAGRAM_ID = "jtbd-architecture-diagram";
-
 export default function JtbdArchitecturePage() {
-  const containerRef = useRef<HTMLDivElement>(null);
+  // Bug 1 fix: use React's useId() for a per-mount unique diagram ID instead of
+  // a module-level constant. useId() is stable across StrictMode double-invokes
+  // for the same component instance but produces a distinct value on each fresh
+  // mount, preventing mermaid's internal render pipeline from colliding on the
+  // same ID during SPA re-navigation (unmount + remount).
+  const diagramId = useId();
+
+  // Bug 2 fix: svgContainerRef targets the inner div that receives the rendered
+  // SVG via dangerouslySetInnerHTML. bindFunctions must be called on a live DOM
+  // node after the SVG is inserted, so we need a ref to that specific element.
+  const svgContainerRef = useRef<HTMLDivElement>(null);
+
+  // Bug 2 fix: store bindFunctions alongside svgContent so the second useEffect
+  // can call it once the SVG string is actually in the DOM.
   const [svgContent, setSvgContent] = useState<string>("");
+  const [bindFunctions, setBindFunctions] = useState<
+    ((element: Element | null) => void) | undefined
+  >(undefined);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [renderError, setRenderError] = useState<string>("");
 
@@ -188,10 +202,20 @@ export default function JtbdArchitecturePage() {
           },
         });
 
-        const { svg } = await mermaid.render(DIAGRAM_ID, DIAGRAM_DEFINITION);
+        // Bug 1 fix: pass per-mount diagramId instead of the former module-level
+        // DIAGRAM_ID constant to avoid ID collisions on SPA re-navigation.
+        // Bug 2 fix: destructure bindFunctions from the render result so mermaid
+        // can wire up any click handlers or tooltips it registers on the SVG.
+        const { svg, bindFunctions: bind } = await mermaid.render(
+          diagramId,
+          DIAGRAM_DEFINITION
+        );
 
         if (!cancelled) {
           setSvgContent(svg);
+          // Store bindFunctions in state so the DOM-insertion effect below can
+          // call it after React has committed the SVG to the DOM.
+          setBindFunctions(() => bind);
           setIsLoading(false);
         }
       } catch (err) {
@@ -210,7 +234,16 @@ export default function JtbdArchitecturePage() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [diagramId]);
+
+  // Bug 2 fix: second effect runs after svgContent is committed to the DOM.
+  // Calls bindFunctions with the SVG container element so mermaid can attach
+  // any click handlers or tooltips it registered during the render phase.
+  useEffect(() => {
+    if (svgContent && bindFunctions && svgContainerRef.current) {
+      bindFunctions(svgContainerRef.current);
+    }
+  }, [svgContent, bindFunctions]);
 
   return (
     <div className="bg-background text-foreground min-h-screen p-8">
@@ -253,13 +286,18 @@ export default function JtbdArchitecturePage() {
           overflow-x-auto enables horizontal scroll on narrow viewports so the
           LR diagram is never clipped. min-h ensures the container has space
           while mermaid is initialising.
+
+          Bug 3 fix: aria-live="polite" announces the loading → rendered
+          transition to screen readers. aria-busy signals that content is still
+          being prepared, clearing to false once the diagram is ready.
           ─────────────────────────────────────────────────────────────────── */}
       <div
-        ref={containerRef}
         className="w-full overflow-x-auto rounded-lg border border-border bg-card p-4"
         style={{ minHeight: "600px" }}
         aria-label="JTBD research lifecycle diagram"
         role="img"
+        aria-live="polite"
+        aria-busy={isLoading}
       >
         {isLoading && !renderError && (
           <div className="flex items-center justify-center h-full min-h-[600px]">
@@ -278,9 +316,12 @@ export default function JtbdArchitecturePage() {
         {/* Side effect: inject the rendered SVG string into the DOM.
             dangerouslySetInnerHTML is intentional here — mermaid outputs a
             validated SVG string from our static diagram definition. No user
-            input reaches this path. */}
+            input reaches this path.
+            Bug 2 fix: ref={svgContainerRef} allows the bindFunctions effect
+            above to call mermaid's post-insertion wiring on this exact element. */}
         {!isLoading && !renderError && (
           <div
+            ref={svgContainerRef}
             className="w-full"
             dangerouslySetInnerHTML={{ __html: svgContent }}
           />
