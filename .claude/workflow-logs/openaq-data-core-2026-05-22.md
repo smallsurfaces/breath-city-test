@@ -6,7 +6,42 @@
 **Last updated:** 2026-05-22
 
 ## Status
-COMPLETE (build + verification done; awaiting bug-tester -> senior-developer review chain from main context. NO PR opened, per dispatch.)
+COMPLETE — bug-fix pass done (3 medium bugs fixed + verified + committed, one commit per fix).
+tsc --noEmit clean; happy path re-verified live (london/pm25 30 stations, accra/pm25 21
+stations, Haringey still isStale:true). NO PR opened, per dispatch. Returns to bug-tester ->
+senior-developer chain from main context.
+
+## Bug-fix pass result (2026-05-22)
+Commits (one per fix, on feature/openaq-data-core):
+- 8435352 fix(openaq): isolate per-station /latest failures in mapInBatches (BUG 1)
+- 5e0ad4d fix(openaq): treat unparseable reading timestamp as stale, not fresh (BUG 2)
+- 267365d fix(openaq): drop stations whose joined reading value is non-finite (BUG 3)
+Diff: src/lib/openaq/adapter.ts only, +40/-7. No other source files touched; route.ts,
+types.ts, client.ts unchanged; prototype dir empty. No non-blocking observations fixed
+(cap-before-freshness, pagination, case-sensitive allowlist, nested null-deref) — left for
+senior-developer per dispatch scope.
+Verification: tsc --noEmit CLEAN. Throwaway guard trace confirmed both inversions fixed
+(''/'not-a-date'/undefined -> isStale:true; null/NaN value -> station dropped) then deleted.
+Live: london/pm25 200/30 (3 fresh 27 stale, all finite, Haringey ageHours~90110 isStale:true),
+accra/pm25 200/21 (17 fresh 4 stale, all finite). Counts match the original build exactly.
+Env note: bare `next dev` 500s because globals.css imports dist/css/tokens.css; the correct dev
+command is `npm run dev` (concurrently runs watch:tokens). Ran `npm run build:tokens` once to
+generate dist/css/tokens.css (gitignored artifact), then `npm run dev` -> home 200, API 200.
+Dev server stopped; port 3000 clear.
+
+## Bug-fix pass (2026-05-22) — runtime validation at OpenAQ boundary
+Root cause (all 3): upstream OpenAQ fields typed as clean but not validated at runtime. OpenAQ
+is an external API boundary, so runtime validation here is correct and in-policy.
+- BUG 1 — mapInBatches uses Promise.all; one flaky /latest rejection collapses the whole city
+  -> 502 for all stations. Fix: settle each station independently, map rejection to null, reuse
+  existing .filter(s => s !== null). Keep bounded concurrency.
+- BUG 2 — computeAgeHours: NaN from a bad/empty/undefined datetime.utc returns 0 -> isStale
+  false (a broken timestamp reads as FRESH). Fix: guard non-finite parse before the clamp; treat
+  unparseable as stale/unknown age, never fresh. Preserve clock-skew clamp for future dates.
+- BUG 3 — fetchStations copies reading.value with no finite check; OpenAQ emits null mid-
+  calibration -> NaN downstream. Fix: drop station when value is not Number.isFinite.
+BUG 2 + BUG 3 folded into one validation of the joined reading. types.ts value:number unchanged
+(fix makes the contract true at runtime). Scope: adapter.ts ONLY. No observations fixed.
 
 ## Task summary
 Build the OpenAQ v3 data-core: a server-side typed client + adapter that fetches real
