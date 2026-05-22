@@ -15,10 +15,15 @@
  *   - ../../../lib/openaq/types (PARAMETER_NAMES, ParameterName)
  *
  * Caching:
- *   `revalidate = 600` makes this a statically cached data route revalidated at most every
- *   10 minutes per unique city/parameter. Combined with the client's per-fetch revalidate,
- *   user traffic is served from cache and the OpenAQ rate limit is protected — the upstream is
- *   hit at most ~once per 10 min per city/param.
+ *   The active rate-limit protection lives in client.ts, not here. This route reads `city` and
+ *   `parameter` from the query string, which makes it a dynamic route — so the route-level
+ *   `export const revalidate = 600` below does NOT cache responses (it is a no-op for a route
+ *   that reads searchParams). What actually bounds upstream traffic is the per-fetch
+ *   `next: { revalidate: 600 }` set on every OpenAQ call in client.ts: each unique upstream URL
+ *   is served from the framework data cache for 10 minutes, so OpenAQ is hit at most ~once per
+ *   10 min per distinct upstream request regardless of how many clients ask. The route-level
+ *   export is kept as intentional documentation and a fallback: if this handler is ever
+ *   refactored to stop reading the query string, the export would then take effect.
  *
  * Errors are returned as safe JSON. Internal details and the API key are never leaked:
  *   - 400 for unknown city or parameter (with the list of valid values)
@@ -30,7 +35,11 @@ import { fetchStations } from '../../../lib/openaq/adapter'
 import { CITY_SLUGS, isKnownCity } from '../../../lib/openaq/cities'
 import { PARAMETER_NAMES, type ParameterName } from '../../../lib/openaq/types'
 
-/** Revalidate the cached response at most every 10 minutes (seconds). */
+/**
+ * No-op while this handler reads searchParams (a dynamic route ignores route-level revalidate).
+ * The real 10-minute cache is the per-fetch `next: { revalidate: 600 }` in client.ts. Kept as a
+ * documented fallback that would take effect only if the handler stops reading the query string.
+ */
 export const revalidate = 600
 
 /** Narrow an arbitrary string to a known ParameterName. */
