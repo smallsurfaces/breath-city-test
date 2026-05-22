@@ -6,10 +6,42 @@
 **Last updated:** 2026-05-22
 
 ## Status
-COMPLETE — bug-fix pass done (3 medium bugs fixed + verified + committed, one commit per fix).
-tsc --noEmit clean; happy path re-verified live (london/pm25 30 stations, accra/pm25 21
-stations, Haringey still isStale:true). NO PR opened, per dispatch. Returns to bug-tester ->
-senior-developer chain from main context.
+IN PROGRESS — polish-then-merge pass (resumed 2026-05-22). Bug-tester PASS + senior-developer
+APPROVAL to merge into dev already given. 2 cheap senior-dev follow-ups applied + committed +
+verified; merging to dev next. Earlier bug-fix pass (3 medium bugs) is done + committed.
+
+## Polish-then-merge result (2026-05-22)
+Commits (one per fix, on feature/openaq-data-core):
+- 665385d fix(openaq): represent unknown reading age as null, not +Infinity (follow-up #3)
+  -> types.ts ageHours: number -> number | null; adapter.ts computeAgeHours returns null for
+     undateable timestamp (clock-skew clamp kept for parseable future dates); isStale =
+     ageHours === null || ageHours > STALE_THRESHOLD_HOURS; comments updated to "unknown age
+     => stale". Non-finite VALUE drop unchanged. Files: types.ts (+9/-3), adapter.ts (+12/-9).
+- 0f6edca docs(openaq): correct route caching comments (follow-up #2) -> route.ts comments ONLY:
+     route reads searchParams => dynamic => route-level revalidate is a no-op; real guard is
+     per-fetch next:{revalidate:600} in client.ts. Kept `export const revalidate = 600` as
+     documented fallback. Behavior unchanged. File: route.ts (+14/-5).
+Verification: tsc --noEmit CLEAN (both fixes). Throwaway computeAgeHours trace confirmed
+''/'not-a-date'/undefined -> ageHours null + isStale true; 3h reading -> 3/fresh; +60h future ->
+0/fresh (clamp); 100h -> 100/stale. Trace deleted. Live: london/pm25 200, 30 stations, ageHours
+all clean numbers (no Infinity leak), 27 stale / 3 fresh — IDENTICAL to original build; sample
+Haringey Roadside ageHours~90113 isStale true. Dev server (npm run dev) stopped; port 3000 clear.
+NOT touched: pagination/freshness-ranked cap (getLocationsByBbox + .slice(0,30)) — deferred
+ticket. main untouched. No prototype files (direction-1-mapbox-v2/ untouched).
+
+## Polish-then-merge pass (2026-05-22) — senior-dev follow-ups #2 + #3
+Scope: exactly two follow-ups, one commit each, then PR feature/openaq-data-core -> dev and merge
+(have senior-dev sign-off). Then pull so local dev == origin/dev.
+- Fix 1 (follow-up #3): make ageHours honest. types.ts ageHours -> `number | null`;
+  computeAgeHours returns null (not +Infinity) for an undateable reading (keep clock-skew clamp
+  for parseable future dates); isStale = ageHours === null || ageHours > STALE_THRESHOLD_HOURS;
+  update comments to "unknown age => stale". Non-finite VALUE drop (BUG 3) stays as-is.
+- Fix 2 (follow-up #2): correct caching comments in route.ts ONLY (comment-only, behavior
+  unchanged). Truth: route reads searchParams => dynamic => route-level `revalidate` is a no-op;
+  real protection is per-fetch next:{revalidate:600} in client.ts. Keep the export as documented
+  fallback. Keep `export const revalidate = 600`.
+- NOT touched: pagination/freshness-ranked cap (getLocationsByBbox + .slice(0,30)) — deferred
+  ticket for before a 3rd city. main untouched. No prototype files.
 
 ## Bug-fix pass result (2026-05-22)
 Commits (one per fix, on feature/openaq-data-core):
