@@ -66,17 +66,25 @@ const LATEST_FETCH_CONCURRENCY = 6
  * Run an async mapper over `items` in sequential batches of at most `batchSize`, preserving
  * input order in the output. Used to bound concurrent /latest requests so a single city fetch
  * does not burst past the upstream rate limit. Within a batch, requests run in parallel.
+ *
+ * Failure isolation: each item is settled independently (Promise.allSettled), so a single
+ * rejected mapper call — e.g. a transient 5xx or non-429 4xx on one location's /latest — drops
+ * only that item (mapped to null) instead of rejecting the whole batch and collapsing the city.
+ * This upholds the file's "show all, flag age" policy: one bad station never loses the healthy
+ * ones. Callers filter the nulls out (the same filter that removes intentional null results).
  */
 async function mapInBatches<TItem, TResult>(
   items: TItem[],
   batchSize: number,
   mapper: (item: TItem) => Promise<TResult>,
-): Promise<TResult[]> {
-  const results: TResult[] = []
+): Promise<(TResult | null)[]> {
+  const results: (TResult | null)[] = []
   for (let start = 0; start < items.length; start += batchSize) {
     const batch = items.slice(start, start + batchSize)
-    const batchResults = await Promise.all(batch.map((item) => mapper(item)))
-    results.push(...batchResults)
+    const settled = await Promise.allSettled(batch.map((item) => mapper(item)))
+    for (const outcome of settled) {
+      results.push(outcome.status === 'fulfilled' ? outcome.value : null)
+    }
   }
   return results
 }
