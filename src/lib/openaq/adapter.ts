@@ -201,6 +201,16 @@ export async function fetchStations(
         return null
       }
 
+      // Runtime validation of the joined reading. OpenAQ types value as `number` upstream, but
+      // occasionally emits null/NaN for a sensor mid-calibration. A non-finite value violates
+      // StationParameterReading.value (and would poison downstream triangulation/AQI with NaN),
+      // and there is nothing to plot, so drop the whole station (the trailing filter removes it).
+      if (!Number.isFinite(reading.value)) {
+        return null
+      }
+
+      // A present-but-unparseable datetime is handled inside computeAgeHours: the value is kept
+      // but flagged stale/unknown age (never fresh) — only a non-finite VALUE drops the station.
       const ageHours = computeAgeHours(reading.datetime.utc, now)
       const parameterReading: StationParameterReading = {
         value: reading.value,
@@ -227,7 +237,8 @@ export async function fetchStations(
     },
   )
 
-  // Drop the nulls (locations whose parameter sensor had no reading).
+  // Drop every null: locations whose parameter sensor had no reading, whose reading value was
+  // non-finite (dropped above), or whose /latest call failed (settled to null in mapInBatches).
   return settled.filter((station): station is Station => station !== null)
 }
 
