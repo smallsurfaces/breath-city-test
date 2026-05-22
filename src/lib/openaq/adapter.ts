@@ -102,11 +102,25 @@ function findSensorForParameter(
 }
 
 /**
- * Compute how many hours ago a reading was taken, relative to `now`. Clamped at 0 so a clock
- * skew that puts the reading slightly in the future never yields a negative age.
+ * Compute how many hours ago a reading was taken, relative to `now`.
+ *
+ * Two guards, in order:
+ *   1. Unparseable timestamp guard. An empty / malformed / undefined datetime makes
+ *      Date(...).getTime() return NaN. Returning a real number here would be a silent lie: the
+ *      old `ageMs > 0 ? ... : 0` branch turned NaN into 0, labelling a reading with a broken
+ *      timestamp as brand-new — the opposite of safe. We instead return +Infinity, an unknown
+ *      age that always reads as stale (Infinity > STALE_THRESHOLD_HOURS), so a reading we cannot
+ *      date is never trusted as current. Tested for explicitly via Number.isFinite.
+ *   2. Clock-skew clamp (the legitimate original behaviour). A genuinely valid timestamp that
+ *      sits slightly in the future (upstream clock skew) yields ageMs <= 0; clamp to 0 so age is
+ *      never negative. This only fires for parseable timestamps.
  */
 function computeAgeHours(datetimeUtc: string, now: number): number {
   const readingMs = new Date(datetimeUtc).getTime()
+  if (!Number.isFinite(readingMs)) {
+    // Cannot date this reading — treat as unknown age, which always flags stale (never fresh).
+    return Number.POSITIVE_INFINITY
+  }
   const ageMs = now - readingMs
   return ageMs > 0 ? ageMs / MS_PER_HOUR : 0
 }
