@@ -160,9 +160,13 @@ export type StationParameterReading = {
   unit: string
   /** ISO-8601 UTC timestamp of this specific reading. */
   datetimeUtc: string
-  /** Hours between now and the reading timestamp. */
-  ageHours: number
-  /** True when ageHours exceeds the staleness threshold. */
+  /**
+   * Hours between now and the reading timestamp, or `null` when the timestamp could not be
+   * parsed (unknown age). `null` serializes honestly over JSON; an unknown age is always
+   * treated as stale (see `isStale`).
+   */
+  ageHours: number | null
+  /** True when the reading is stale: either its age is unknown (`null`) or it exceeds the threshold. */
   isStale: boolean
 }
 

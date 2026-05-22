@@ -102,24 +102,27 @@ function findSensorForParameter(
 }
 
 /**
- * Compute how many hours ago a reading was taken, relative to `now`.
+ * Compute how many hours ago a reading was taken, relative to `now`. Returns `null` when the
+ * reading cannot be dated.
  *
  * Two guards, in order:
  *   1. Unparseable timestamp guard. An empty / malformed / undefined datetime makes
  *      Date(...).getTime() return NaN. Returning a real number here would be a silent lie: the
  *      old `ageMs > 0 ? ... : 0` branch turned NaN into 0, labelling a reading with a broken
- *      timestamp as brand-new — the opposite of safe. We instead return +Infinity, an unknown
- *      age that always reads as stale (Infinity > STALE_THRESHOLD_HOURS), so a reading we cannot
- *      date is never trusted as current. Tested for explicitly via Number.isFinite.
+ *      timestamp as brand-new — the opposite of safe. We instead return `null` (unknown age),
+ *      which the caller always treats as stale (never fresh), so a reading we cannot date is
+ *      never trusted as current. `null` is also honest over JSON, where the old +Infinity
+ *      serialized to `null` anyway while the type still claimed `number`. Detected via
+ *      Number.isFinite.
  *   2. Clock-skew clamp (the legitimate original behaviour). A genuinely valid timestamp that
  *      sits slightly in the future (upstream clock skew) yields ageMs <= 0; clamp to 0 so age is
  *      never negative. This only fires for parseable timestamps.
  */
-function computeAgeHours(datetimeUtc: string, now: number): number {
+function computeAgeHours(datetimeUtc: string, now: number): number | null {
   const readingMs = new Date(datetimeUtc).getTime()
   if (!Number.isFinite(readingMs)) {
-    // Cannot date this reading — treat as unknown age, which always flags stale (never fresh).
-    return Number.POSITIVE_INFINITY
+    // Cannot date this reading — unknown age, which the caller always flags stale (never fresh).
+    return null
   }
   const ageMs = now - readingMs
   return ageMs > 0 ? ageMs / MS_PER_HOUR : 0
@@ -210,14 +213,16 @@ export async function fetchStations(
       }
 
       // A present-but-unparseable datetime is handled inside computeAgeHours: the value is kept
-      // but flagged stale/unknown age (never fresh) — only a non-finite VALUE drops the station.
+      // but its age comes back null (unknown) and is flagged stale (never fresh) — only a
+      // non-finite VALUE drops the station.
       const ageHours = computeAgeHours(reading.datetime.utc, now)
       const parameterReading: StationParameterReading = {
         value: reading.value,
         unit: sensor.parameter.units,
         datetimeUtc: reading.datetime.utc,
         ageHours,
-        isStale: ageHours > STALE_THRESHOLD_HOURS,
+        // Unknown age (null) is always stale; otherwise stale once past the threshold.
+        isStale: ageHours === null || ageHours > STALE_THRESHOLD_HOURS,
       }
 
       const station: Station = {
