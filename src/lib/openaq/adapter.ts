@@ -28,6 +28,7 @@
 import { getLocationLatest, getLocationsByBbox } from './client'
 import { getCity } from './cities'
 import type {
+  LocationMeta,
   OpenAQLocation,
   OpenAQSensor,
   Station,
@@ -245,6 +246,37 @@ export async function fetchStations(
   // Drop every null: locations whose parameter sensor had no reading, whose reading value was
   // non-finite (dropped above), or whose /latest call failed (settled to null in mapInBatches).
   return settled.filter((station): station is Station => station !== null)
+}
+
+/**
+ * Fetch lightweight location metadata for a city. Uses a single /locations?bbox=... call
+ * with no per-station /latest requests, making it far cheaper than fetchStations for views
+ * that only need location, ownership, and parameter metadata (e.g. roadmap city map hero
+ * with ownership coloring and legends).
+ *
+ * Returns LocationMeta[] — no readings, no staleness math, no rate-limit concern.
+ */
+export async function fetchLocationMetas(citySlug: string): Promise<LocationMeta[]> {
+  const city = getCity(citySlug)
+  if (city === undefined) {
+    throw new Error(`Unknown city slug: ${citySlug}`)
+  }
+
+  const locations = await getLocationsByBbox(city.bbox, { limit: 100 })
+
+  return locations.map((loc) => ({
+    id: loc.id,
+    name: loc.name,
+    locality: loc.locality,
+    coordinates: [loc.coordinates.longitude, loc.coordinates.latitude] as [number, number],
+    owner: loc.owner.name,
+    provider: loc.provider.name,
+    isMonitor: loc.isMonitor,
+    instruments: loc.instruments.map((i) => i.name),
+    parameters: loc.sensors.map((s) => s.parameter.displayName),
+    datetimeFirst: loc.datetimeFirst,
+    datetimeLast: loc.datetimeLast,
+  }))
 }
 
 /**

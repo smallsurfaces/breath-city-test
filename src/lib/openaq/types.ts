@@ -188,3 +188,28 @@ export type Station = {
   attribution: string | null
   parameters: Record<string, StationParameterReading>
 }
+
+// ----------------------------------------------------------------------------
+// Location metadata model (lightweight — no readings, no /latest calls)
+// ----------------------------------------------------------------------------
+
+/**
+ * Lightweight location metadata for map rendering. Fetched from a single
+ * /locations?bbox=... call without any per-station /latest requests, making it
+ * far cheaper than Station for views that only need location, ownership, and
+ * parameter metadata (e.g. the roadmap city map hero).
+ */
+export type LocationMeta = {
+  id: number
+  name: string
+  locality: string | null
+  /** [longitude, latitude] — Mapbox/GeoJSON order. */
+  coordinates: [number, number]
+  owner: string
+  provider: string
+  isMonitor: boolean
+  instruments: string[]
+  parameters: string[]
+  datetimeFirst: string | null
+  datetimeLast: string | null
+}
