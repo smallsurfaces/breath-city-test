@@ -1,19 +1,18 @@
 /**
  * Domain Detail Page — /ux-concepts/best-practice-roadmap/domain/[slug]
  *
- * Purpose: Shows a single domain with its stage badge, description, all
- * practice cards for that domain, and related domain links at the bottom.
- * Built for three domains with real data: monitoring, source-apportionment,
- * transport. Other domain slugs render a "coming soon" placeholder.
+ * Purpose: Shows a single domain with its stage badge, description, and all
+ * practice cards for that domain. Built for three domains with real data:
+ * monitoring, source-apportionment, transport. Other domain slugs render a
+ * "coming soon" placeholder.
  *
  * Key exports: default page component, generateStaticParams
- * External dependencies: shadcn Separator, roadmap-data, PracticeCardView, StageBadge
+ * External dependencies: roadmap-data, PracticeCardView, StageBadge
  */
 
 import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { Separator } from "@/components/ui/separator";
 import {
   DOMAINS,
   getDomainBySlug,
@@ -44,23 +43,6 @@ export async function generateMetadata({
   };
 }
 
-/** Identifies related domains based on stage proximity */
-function getRelatedDomains(currentId: number) {
-  const current = DOMAINS.find((d) => d.id === currentId);
-  if (!current) return [];
-
-  // Show other domains in the same stage, plus one from each adjacent stage
-  return DOMAINS.filter((d) => d.id !== currentId)
-    .sort((a, b) => {
-      // Same stage first, then by ID proximity
-      const aScore = a.stage === current.stage ? 0 : 1;
-      const bScore = b.stage === current.stage ? 0 : 1;
-      if (aScore !== bScore) return aScore - bScore;
-      return Math.abs(a.id - currentId) - Math.abs(b.id - currentId);
-    })
-    .slice(0, 4);
-}
-
 export default async function DomainDetailPage({ params }: DomainPageProps) {
   const { slug } = await params;
   const domain = getDomainBySlug(slug);
@@ -70,7 +52,6 @@ export default async function DomainDetailPage({ params }: DomainPageProps) {
   }
 
   const practices = getPracticesByDomain(domain.id);
-  const relatedDomains = getRelatedDomains(domain.id);
   const hasPractices = practices.length > 0;
 
   return (
@@ -156,31 +137,6 @@ export default async function DomainDetailPage({ params }: DomainPageProps) {
         </div>
       </section>
 
-      <Separator className="mx-auto max-w-3xl" />
-
-      {/* Related domains */}
-      <section className="px-4 py-10">
-        <div className="mx-auto max-w-3xl space-y-4">
-          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-            Related Domains
-          </h2>
-
-          <div className="grid gap-2 sm:grid-cols-2">
-            {relatedDomains.map((rd) => (
-              <Link
-                key={rd.id}
-                href={`/ux-concepts/best-practice-roadmap/domain/${rd.slug}`}
-                className="flex items-center gap-3 rounded-lg border p-3 hover:bg-muted/50 transition-colors"
-              >
-                <span className="text-sm font-medium text-foreground">
-                  {rd.shortName}
-                </span>
-                <StageBadge stage={rd.stage} />
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
     </main>
   );
 }
