@@ -131,6 +131,23 @@ export default function HomePage() {
               Live Map →
             </Link>
           </div>
+
+          <div className="flex items-center gap-3">
+            <span className="text-sm w-52 shrink-0" style={{ color: "var(--bc-semantic-text)" }}>
+              Best Practice Roadmap — UX Wireframes
+            </span>
+            <Link
+              href="/ux-concepts/best-practice-roadmap"
+              className="inline-flex items-center justify-center px-4 py-2 rounded-xl text-sm font-medium transition-colors"
+              style={{
+                backgroundColor: "var(--bc-semantic-brand)",
+                color: "var(--bc-color-white)",
+                borderRadius: "var(--bc-border-radius-md)",
+              }}
+            >
+              Open →
+            </Link>
+          </div>
         </div>
       </div>
 
