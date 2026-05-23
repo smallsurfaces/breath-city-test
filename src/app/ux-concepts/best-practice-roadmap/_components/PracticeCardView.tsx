@@ -1393,27 +1393,46 @@ export function PracticeCardTile({
   layout = "vertical",
 }: PracticeCardTileProps) {
   const city = getCityBySlug(example.citySlug);
+  const domain = getDomainById(practice.domainId);
   if (!city) return null;
 
-  /* City info block — shared between both layouts */
-  const cityInfoBlock = (
+  /* City info block — context-dependent content.
+   * linkCity=true (homepage/domain pages): city flag+name+country, population, intervention+year.
+   * linkCity=false (city pages): domain tag linking to domain page, intervention+year. */
+  const cityInfoBlock = linkCity ? (
     <div className="space-y-1">
-      {linkCity ? (
-        <Link
-          href={`/ux-concepts/best-practice-roadmap/city/${city.slug}`}
-          className="text-sm font-semibold text-foreground hover:underline"
-        >
-          {city.flag} {city.name}, {city.country}
-        </Link>
-      ) : (
-        <span className="text-sm font-semibold text-foreground">
-          {city.flag} {city.name}, {city.country}
-        </span>
-      )}
+      <Link
+        href={`/ux-concepts/best-practice-roadmap/city/${city.slug}`}
+        className="text-sm font-semibold text-foreground hover:underline"
+      >
+        {city.flag} {city.name}, {city.country}
+      </Link>
 
       <div className="text-xs text-muted-foreground">
         {city.populationLabel} population
       </div>
+
+      <div className="pt-1">
+        <div className="text-sm text-foreground">
+          {example.interventionName}
+        </div>
+        <div className="text-xs text-muted-foreground">
+          {example.introducedYear !== "ongoing"
+            ? `Introduced ${example.introducedYear}`
+            : "Ongoing"}
+        </div>
+      </div>
+    </div>
+  ) : (
+    <div className="space-y-1">
+      {/* Domain tag linking to domain page */}
+      {domain && (
+        <Link href={`/ux-concepts/best-practice-roadmap/domain/${domain.slug}`}>
+          <Badge variant="outline" className="text-xs cursor-pointer hover:bg-muted">
+            {domain.shortName}
+          </Badge>
+        </Link>
+      )}
 
       <div className="pt-1">
         <div className="text-sm text-foreground">

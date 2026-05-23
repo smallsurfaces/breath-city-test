@@ -2,7 +2,7 @@
  * City Detail Page — /ux-concepts/best-practice-roadmap/city/[slug]
  *
  * Purpose: Shows a single city's full story across the roadmap. Layout:
- * city header (flag/population/membership badge) → full-width sensor map
+ * city header (flag/population) → full-width sensor map
  * (if city has sensor data) → contributions grouped by domain with practice cards.
  *
  * Key exports: default page component, generateStaticParams
@@ -102,10 +102,6 @@ export default async function CityDetailPage({ params }: CityPageProps) {
                 <span>{city.country}</span>
                 <span>&middot;</span>
                 <span>{city.populationLabel} people</span>
-                <span>&middot;</span>
-                <Badge variant="outline" className="text-xs">
-                  BC Member
-                </Badge>
               </div>
             </div>
           </div>
