@@ -124,10 +124,10 @@ function buildMaskGeoJSON(bbox: [number, number, number, number]): GeoJSON.Featu
  * If more than MAX_DISTINCT_OWNERS unique owners, the tail is grouped as "Other".
  */
 function computeOwnerCounts(locations: LocationMeta[]): OwnerCount[] {
-  // Count stations per owner
+  // Count stations per displayLabel (the better of owner vs provider)
   const counts = new Map<string, number>()
   for (const loc of locations) {
-    counts.set(loc.owner, (counts.get(loc.owner) ?? 0) + 1)
+    counts.set(loc.displayLabel, (counts.get(loc.displayLabel) ?? 0) + 1)
   }
 
   // Sort by count descending
@@ -192,12 +192,13 @@ function locationsToGeoJSON(
         locality: loc.locality ?? '',
         owner: loc.owner,
         provider: loc.provider,
+        displayLabel: loc.displayLabel,
         isMonitor: loc.isMonitor,
         instruments: loc.instruments.join(', '),
         parameters: loc.parameters.join(', '),
         datetimeFirst: loc.datetimeFirst ?? '',
         datetimeLast: loc.datetimeLast ?? '',
-        ownerColor: ownerColorMap.get(loc.owner) ?? OTHER_COLOR,
+        ownerColor: ownerColorMap.get(loc.displayLabel) ?? OTHER_COLOR,
       },
       geometry: {
         type: 'Point',
@@ -215,6 +216,7 @@ function buildPopupHTML(properties: Record<string, unknown>): string {
   const name = String(properties.name ?? '')
   const locality = String(properties.locality ?? '')
   const owner = String(properties.owner ?? '')
+  const provider = String(properties.provider ?? '')
   const isMonitor = Boolean(properties.isMonitor)
   const parameters = String(properties.parameters ?? '')
   const instruments = String(properties.instruments ?? '')
@@ -238,6 +240,8 @@ function buildPopupHTML(properties: Record<string, unknown>): string {
   <div style="display: grid; grid-template-columns: auto 1fr; gap: 2px 8px; font-size: 12px;">
     <span style="color: #64748b;">Owner</span>
     <span>${owner}</span>
+    <span style="color: #64748b;">Provider</span>
+    <span>${provider}</span>
     <span style="color: #64748b;">Type</span>
     <span>${isMonitor ? 'Reference-grade monitor' : 'Low-cost sensor'}</span>
     <span style="color: #64748b;">Measures</span>

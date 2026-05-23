@@ -207,6 +207,12 @@ export type LocationMeta = {
   coordinates: [number, number]
   owner: string
   provider: string
+  /**
+   * The better of owner vs provider for display purposes. Uses owner when it is
+   * a real org name (e.g. "Breathe Accra"); falls back to title-cased provider
+   * when owner is generic ("Unknown Governmental Organization", etc.).
+   */
+  displayLabel: string
   isMonitor: boolean
   instruments: string[]
   parameters: string[]

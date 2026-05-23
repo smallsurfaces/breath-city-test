@@ -249,6 +249,14 @@ export async function fetchStations(
 }
 
 /**
+ * Title-case a string by capitalizing the first letter of each word.
+ * Used to clean up lowercase provider names like "london stationary" -> "London Stationary".
+ */
+function titleCase(s: string): string {
+  return s.replace(/\b\w/g, (c) => c.toUpperCase())
+}
+
+/**
  * Fetch lightweight location metadata for a city. Uses a single /locations?bbox=... call
  * with no per-station /latest requests, making it far cheaper than fetchStations for views
  * that only need location, ownership, and parameter metadata (e.g. roadmap city map hero
@@ -264,19 +272,30 @@ export async function fetchLocationMetas(citySlug: string): Promise<LocationMeta
 
   const locations = await getLocationsByBbox(city.bbox, { limit: 100 })
 
-  return locations.map((loc) => ({
-    id: loc.id,
-    name: loc.name,
-    locality: loc.locality,
-    coordinates: [loc.coordinates.longitude, loc.coordinates.latitude] as [number, number],
-    owner: loc.owner.name,
-    provider: loc.provider.name,
-    isMonitor: loc.isMonitor,
-    instruments: loc.instruments.map((i) => i.name),
-    parameters: loc.sensors.map((s) => s.parameter.displayName),
-    datetimeFirst: loc.datetimeFirst,
-    datetimeLast: loc.datetimeLast,
-  }))
+  return locations.map((loc) => {
+    // Pick the better of owner vs provider for display. Owner is often
+    // "Unknown Governmental Organization" etc. — provider has real names
+    // like "London Air Quality Network", "EEA", "Air4Thai". But for some
+    // cities (Accra), owner IS the good label ("Breathe Accra", "EPA Ghana").
+    const displayLabel = loc.owner.name.startsWith('Unknown')
+      ? titleCase(loc.provider.name)
+      : loc.owner.name
+
+    return {
+      id: loc.id,
+      name: loc.name,
+      locality: loc.locality,
+      coordinates: [loc.coordinates.longitude, loc.coordinates.latitude] as [number, number],
+      owner: loc.owner.name,
+      provider: loc.provider.name,
+      displayLabel,
+      isMonitor: loc.isMonitor,
+      instruments: loc.instruments.map((i) => i.name),
+      parameters: loc.sensors.map((s) => s.parameter.displayName),
+      datetimeFirst: loc.datetimeFirst,
+      datetimeLast: loc.datetimeLast,
+    }
+  })
 }
 
 /**
