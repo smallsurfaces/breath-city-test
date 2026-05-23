@@ -650,7 +650,7 @@ export const PRACTICE_CARDS: PracticeCard[] = [
         introducedYear: 2018,
         outcomeState: "measured",
         outcomeChange: "3M trees planted",
-        chartData: { type: "coverageRing", label: "Tree planting target reached", value: 42, unit: "%" },
+        chartData: { type: "treePlanting", existing: 20, added: 12, unit: "× 100K", headline: "3M trees planted" },
       },
       {
         citySlug: "brussels",

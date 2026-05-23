@@ -505,57 +505,136 @@ function BufferZone({ data }: { data: any }) {
 }
 
 function GreenCoverMap({ data }: { data: any }) {
-  const cols = 6;
-  const rows = 5;
-  const cellSize = 14;
-  const gap = 3;
-  const beforeGreen = [4, 9, 14, 21, 27];
-  const afterGreen = [2, 4, 7, 9, 12, 14, 17, 21, 24, 27];
+  const cols = 18;
+  const rows = 14;
+  const cellSize = 4;
+  const gap = 1.5;
 
-  const renderGrid = (greenCells: number[]) => (
-    <g>
-      {Array.from({ length: rows * cols }).map((_, i) => {
-        const col = i % cols;
-        const row = Math.floor(i / cols);
-        const isGreen = greenCells.includes(i);
+  // Warsaw-shaped mask: 1 = city area, 0 = outside
+  // Elongated N-S, wider south, river gap east-of-center
+  const mask = [
+    [0,0,0,0,0,0,1,1,1,0,1,1,0,0,0,0,0,0],
+    [0,0,0,0,0,1,1,1,1,0,1,1,1,0,0,0,0,0],
+    [0,0,0,0,1,1,1,1,1,0,1,1,1,1,0,0,0,0],
+    [0,0,0,1,1,1,1,1,1,0,1,1,1,1,0,0,0,0],
+    [0,0,0,1,1,1,1,1,1,0,1,1,1,1,1,0,0,0],
+    [0,0,1,1,1,1,1,1,1,0,1,1,1,1,1,0,0,0],
+    [0,0,1,1,1,1,1,1,1,0,1,1,1,1,1,1,0,0],
+    [0,1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,0,0],
+    [0,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,0],
+    [1,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,0],
+    [1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,1,0],
+    [0,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,0,0],
+    [0,0,1,1,1,1,1,1,0,1,1,1,1,1,1,0,0,0],
+    [0,0,0,1,1,1,1,0,0,1,1,1,1,1,0,0,0,0],
+  ];
+
+  // Flatten mask to get valid cell indices
+  const validCells: number[] = [];
+  mask.forEach((row, r) => row.forEach((v, c) => {
+    if (v === 1) validCells.push(r * cols + c);
+  }));
+
+  // Before: ~15% of valid cells green (deterministic positions — scattered)
+  const beforeGreen = [
+    3*18+5, 3*18+12, 5*18+3, 5*18+7, 5*18+13,
+    7*18+2, 7*18+8, 7*18+14, 8*18+5, 8*18+12,
+    9*18+1, 9*18+8, 10*18+4, 10*18+11, 10*18+15,
+    11*18+3, 11*18+7, 12*18+5, 12*18+12, 13*18+4,
+  ].filter(i => validCells.includes(i));
+
+  // After: all beforeGreen PLUS more (spread into previously empty areas)
+  const newGreen = [
+    1*18+7, 2*18+5, 2*18+11, 4*18+4, 4*18+10, 4*18+14,
+    6*18+3, 6*18+6, 6*18+11, 6*18+15, 7*18+5, 7*18+11,
+    8*18+3, 8*18+15, 9*18+5, 9*18+13, 10*18+2, 10*18+7,
+    10*18+13, 11*18+5, 11*18+12, 12*18+3, 12*18+10, 13*18+6,
+  ].filter(i => validCells.includes(i));
+
+  const afterGreen = [...new Set([...beforeGreen, ...newGreen])];
+
+  const renderGrid = (greenCells: number[], highlightNew?: number[]) => {
+    return mask.map((row, r) =>
+      row.map((v, c) => {
+        if (v === 0) return null;
+        const idx = r * cols + c;
+        const isGreen = greenCells.includes(idx);
+        const isNew = highlightNew?.includes(idx) ?? false;
         return (
           <rect
-            key={i}
-            x={col * (cellSize + gap)}
-            y={row * (cellSize + gap)}
+            key={idx}
+            x={c * (cellSize + gap)}
+            y={r * (cellSize + gap)}
             width={cellSize}
             height={cellSize}
-            rx={3}
+            rx={1}
             fill="currentColor"
-            className={isGreen ? "text-foreground/40" : "text-foreground/8"}
+            className={isNew ? "text-foreground/50" : isGreen ? "text-foreground/35" : "text-foreground/8"}
           />
         );
-      })}
-    </g>
-  );
+      })
+    );
+  };
 
   const gridW = cols * (cellSize + gap) - gap;
   const gridH = rows * (cellSize + gap) - gap;
-  const panelGap = 30;
+  const panelGap = 20;
   const totalW = gridW * 2 + panelGap;
+
+  // River: thin line down the gap column (col 9 area) for both panels
+  const riverX = 9 * (cellSize + gap) - gap/2;
 
   return (
     <div className="space-y-1">
-      <svg viewBox={`0 0 ${totalW} ${gridH + 22}`} className="w-full" style={{ height: 120 }}>
-        {renderGrid(beforeGreen)}
-        <text x={gridW / 2} y={gridH + 14} textAnchor="middle" fill="currentColor" className="text-muted-foreground" style={{ fontSize: 9 }}>
+      <div className="text-sm font-semibold text-foreground">{data.headline}</div>
+      <svg viewBox={`0 0 ${totalW} ${gridH + 18}`} className="w-full" style={{ height: 140 }}>
+        <g>
+          <line x1={riverX} y1={0} x2={riverX} y2={gridH} stroke="currentColor" strokeWidth={1} className="text-foreground/10" />
+          {renderGrid(beforeGreen)}
+        </g>
+        <g transform={`translate(${gridW + panelGap}, 0)`}>
+          <line x1={riverX} y1={0} x2={riverX} y2={gridH} stroke="currentColor" strokeWidth={1} className="text-foreground/10" />
+          {renderGrid(afterGreen, newGreen)}
+        </g>
+        <text x={gridW / 2} y={gridH + 12} textAnchor="middle" fill="currentColor" className="text-muted-foreground" style={{ fontSize: 8 }}>
           {data.beforeLabel} · {data.beforePct}%
         </text>
-        <g transform={`translate(${gridW + panelGap}, 0)`}>
-          {renderGrid(afterGreen)}
-          <text x={gridW / 2} y={gridH + 14} textAnchor="middle" fill="currentColor" className="text-muted-foreground" style={{ fontSize: 9 }}>
-            {data.afterLabel} · {data.afterPct}%
-          </text>
-        </g>
+        <text x={gridW + panelGap + gridW / 2} y={gridH + 12} textAnchor="middle" fill="currentColor" className="text-muted-foreground" style={{ fontSize: 8 }}>
+          {data.afterLabel} · {data.afterPct}%
+        </text>
       </svg>
-      <div className="flex items-center justify-between">
-        <span className="text-xs text-muted-foreground">{data.headline}</span>
+      <div className="flex items-center justify-end">
         <span className="text-sm font-semibold text-foreground">{data.change}</span>
+      </div>
+    </div>
+  );
+}
+
+function TreePlanting({ data }: { data: any }) {
+  // data shape: { type: "treePlanting", existing: 20, added: 12, unit: "x 100K", headline: "3M trees planted" }
+  const total = data.existing + data.added;
+
+  return (
+    <div className="space-y-2">
+      <div className="text-sm font-semibold text-foreground">{data.headline}</div>
+      <div className="flex flex-wrap gap-1">
+        {Array.from({ length: total }).map((_, i) => (
+          <span
+            key={i}
+            className={`text-base ${i < data.existing ? "opacity-25" : "opacity-80"}`}
+            style={{ lineHeight: 1 }}
+          >
+            🌳
+          </span>
+        ))}
+      </div>
+      <div className="flex items-center gap-3 text-xs text-muted-foreground">
+        <span className="flex items-center gap-1">
+          <span className="opacity-25">🌳</span> Existing ({data.existing} {data.unit})
+        </span>
+        <span className="flex items-center gap-1">
+          <span className="opacity-80">🌳</span> Added ({data.added} {data.unit})
+        </span>
       </div>
     </div>
   );
@@ -584,6 +663,8 @@ function ChartViz({ data, cityFlag }: { data: any; cityFlag?: string }) {
       return <BufferZone data={data} />;
     case "greenCoverMap":
       return <GreenCoverMap data={data} />;
+    case "treePlanting":
+      return <TreePlanting data={data} />;
     default:
       return null;
   }
