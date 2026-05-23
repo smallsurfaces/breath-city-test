@@ -78,6 +78,10 @@ const BUILDS = [
     routes: ["/ux-concepts/best-practice-roadmap"],
     folder: "src/app/ux-concepts/best-practice-roadmap",
   },
+  {
+    routes: ["/ux-concepts/jtbd-city-toolkit"],
+    folder: "src/app/ux-concepts/jtbd-city-toolkit",
+  },
 ];
 
 /**

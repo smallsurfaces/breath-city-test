@@ -1,6 +1,28 @@
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+/**
+ * BcChrome.tsx — light recreation of Breathe Cities' real site chrome
+ *
+ * A lightweight, in-prototype recreation of breathecities.org's header and
+ * footer, so the JTBD City Toolkit can be shown embedded in BC's real site IA
+ * (concept validation in-context). NOT pixel-perfect — an approximation of BC's
+ * look. Placeholder logos only — we never reproduce BC's real assets.
+ *
+ * Back-to-hub and the build identity are NOT rendered here — the standard
+ * PrototypeHeader (mounted ABOVE BcHeader in layout.tsx) owns the sole
+ * back-to-hub, the build name, and the "Updated" stamp. BcChrome rendering its
+ * own back-to-hub pill or a "Prototype · …" banner would produce a duplicate
+ * "second nav bar", so both were removed when this build was retrofitted onto
+ * PrototypeHeader (mirroring how ux-concepts/cities/_components/BcChrome.tsx was
+ * trimmed). The BC-site mock header/footer below is kept as the in-context story.
+ *
+ * Styling: BC semantic tokens (light mode). All colour via tokens — never hex.
+ *
+ * Key exports: BcHeader, BcFooter
+ * External dependencies: next/link
+ */
 
+import Link from "next/link";
+
+/** BC's real primary nav labels. Only "Toolkit" is live; the rest are inert (#). */
 const NAV = [
   { label: "Who we are", href: "#" },
   { label: "What we do", href: "#" },
@@ -11,36 +33,15 @@ const NAV = [
   { label: "News", href: "#" },
 ];
 
+/**
+ * The BC-style site header — BC logo left, primary nav, "Join us" CTA. Back-to-hub
+ * is OWNED by the standard PrototypeHeader rendered above BcHeader in layout.tsx;
+ * BcChrome no longer renders its own (it would be a duplicate "second nav bar"),
+ * and the old "Prototype · …" banner was removed for the same reason.
+ */
 export function BcHeader() {
   return (
     <>
-      <div
-        className="px-4 py-2"
-        style={{
-          backgroundColor: "var(--bc-color-light-grey)",
-          borderBottom: "1px solid var(--bc-color-steel)",
-        }}
-      >
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3">
-          <Link
-            href="/"
-            className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium"
-            style={{
-              backgroundColor: "var(--bc-color-white)",
-              color: "var(--bc-semantic-muted)",
-              border: "1px solid var(--bc-color-steel)",
-            }}
-          >
-            <ArrowLeft className="h-3.5 w-3.5" />
-            Back to hub
-          </Link>
-          <p className="text-[11px]" style={{ color: "var(--bc-semantic-muted)" }}>
-            Prototype &middot; JTBD City Toolkit &mdash; chrome is approximate,
-            not the live site.
-          </p>
-        </div>
-      </div>
-
       <header
         className="sticky top-0 z-30"
         style={{
