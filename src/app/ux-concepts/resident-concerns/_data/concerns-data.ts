@@ -79,7 +79,6 @@ export interface City {
   key: CityKey;
   name: string;
   country: string;
-  flag: string;
   populationLabel: string;
   /** One-line characterisation of the city's dominant source/lever mix. */
   mix: string;
@@ -97,7 +96,6 @@ export const CITIES: City[] = [
     key: "warsaw",
     name: "Warsaw",
     country: "Poland",
-    flag: "\u{1F1F5}\u{1F1F1}",
     populationLabel: "1.8M",
     mix: "Coal & solid-fuel home heating leads the winter pollution mix.",
     // [R3] Breathe Better report city-wide trend, 2010→2024, population-weighted.
@@ -108,7 +106,6 @@ export const CITIES: City[] = [
     key: "london",
     name: "London",
     country: "United Kingdom",
-    flag: "\u{1F1EC}\u{1F1E7}",
     populationLabel: "9.0M",
     mix: "Road transport dominates — roughly half of the city's NOx.",
     // [R3] city-wide trend.
@@ -119,7 +116,6 @@ export const CITIES: City[] = [
     key: "accra",
     name: "Accra",
     country: "Ghana",
-    flag: "\u{1F1EC}\u{1F1ED}",
     populationLabel: "5.4M",
     mix: "Household fuel, waste burning and dust/transport share the load.",
     // No published city-wide BC trend figure for Accra — kept null deliberately.

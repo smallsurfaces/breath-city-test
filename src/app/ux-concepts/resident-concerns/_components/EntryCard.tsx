@@ -177,7 +177,6 @@ export function EntryCard({ card, city, isLead }: EntryCardProps) {
             <Icon aria-hidden="true" className="h-10 w-10" />
           </span>
           <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
-            <span aria-hidden="true">{city.flag}</span>
             {city.name}
           </span>
         </div>

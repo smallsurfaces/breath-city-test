@@ -66,7 +66,6 @@ export function ConcernCardView({ card, city, isLead }: ConcernCardViewProps) {
             {card.facetLabel}
           </Badge>
           <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
-            <span aria-hidden="true">{city.flag}</span>
             {city.name}
           </span>
         </div>

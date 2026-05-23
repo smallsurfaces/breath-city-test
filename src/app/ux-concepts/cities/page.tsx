@@ -129,7 +129,7 @@ export default function CitiesIndexMock() {
               style={{ background: CITY_BLOCK[showcaseCity.key] }}
             >
               <p className="text-xs font-semibold uppercase tracking-widest text-bc-white/80">
-                {showcaseCity.flag} {showcaseCity.name} · {showcaseCard.facetLabel}
+                {showcaseCity.name} · {showcaseCard.facetLabel}
               </p>
               <span className="text-7xl font-bold leading-none tracking-tight text-bc-white">
                 {showcaseStatValue}

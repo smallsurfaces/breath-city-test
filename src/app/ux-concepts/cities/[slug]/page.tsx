@@ -263,9 +263,6 @@ export default async function CityPageMock({ params }: CityPageProps) {
               <span className="text-foreground">{city.name}</span>
             </div>
             <div className="flex items-center gap-3">
-              <span className="text-4xl" aria-hidden="true">
-                {city.flag}
-              </span>
               <h1 className="text-4xl font-bold tracking-tight text-bc-dark-blue sm:text-5xl">
                 {city.name}
               </h1>

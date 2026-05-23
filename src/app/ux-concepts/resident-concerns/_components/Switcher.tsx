@@ -17,7 +17,7 @@
 interface SwitcherOption {
   value: string;
   label: string;
-  /** Optional leading glyph (e.g. a flag emoji for cities). */
+  /** Optional leading text glyph. Unused by current callers; no emoji. */
   glyph?: string;
 }
 

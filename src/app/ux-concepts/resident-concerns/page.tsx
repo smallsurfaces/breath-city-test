@@ -109,7 +109,6 @@ export default function ResidentConcernsPage() {
             options={CITIES.map((c) => ({
               value: c.key,
               label: c.name,
-              glyph: c.flag,
             }))}
             value={cityKey}
             onChange={(v) => setCityKey(v as CityKey)}
@@ -130,7 +129,7 @@ export default function ResidentConcernsPage() {
             {concern.axisDescription}
           </p>
           <p className="max-w-3xl text-sm text-muted-foreground">
-            <span aria-hidden="true">{city.flag}</span> For{" "}
+            For{" "}
             <span className="font-semibold text-foreground">{city.name}</span>:{" "}
             {city.mix}
             {leadFacetLabel && (
@@ -185,8 +184,8 @@ export default function ResidentConcernsPage() {
           </p>
           {city.trajectory && (
             <p className="mt-3 max-w-3xl text-xs text-muted-foreground">
-              <span aria-hidden="true">{city.flag}</span> Where {city.name} is
-              heading (city-wide trend, context only): {city.trajectory}
+              Where {city.name} is heading (city-wide trend, context only):{" "}
+              {city.trajectory}
             </p>
           )}
         </section>
