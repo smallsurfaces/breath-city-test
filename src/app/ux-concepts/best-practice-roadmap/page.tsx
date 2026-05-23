@@ -33,14 +33,14 @@ const FEATURED: Record<number, { cardIndex: number; exampleIndex: number }> = {
   2: { cardIndex: 0, exampleIndex: 1 },   // Accra source analysis
   3: { cardIndex: 0, exampleIndex: 0 },   // Paris health study
   4: { cardIndex: 0, exampleIndex: 1 },   // Warsaw policy timeline
-  5: { cardIndex: 0, exampleIndex: 0 },   // London ULEZ
+  5: { cardIndex: 0, exampleIndex: 2 },   // Milan Area B
   6: { cardIndex: 0, exampleIndex: 0 },   // Warsaw fuel transition
-  7: { cardIndex: 0, exampleIndex: 3 },   // Warsaw green cover map
+  7: { cardIndex: 0, exampleIndex: 1 },   // Milan tree planting
   8: { cardIndex: 0, exampleIndex: 2 },   // Paris awareness timeline
   9: { cardIndex: 0, exampleIndex: 0 },   // Brussels governance staircase
   10: { cardIndex: 0, exampleIndex: 1 },  // Warsaw investment ROI
   11: { cardIndex: 0, exampleIndex: 2 },  // Jakarta peer network
-  12: { cardIndex: 0, exampleIndex: 0 },  // London open data sparkline
+  12: { cardIndex: 0, exampleIndex: 1 },  // Jakarta city dashboard
 };
 
 /** Four pillars displayed in order with descriptions */
