@@ -8,57 +8,8 @@
 [[plugins]]
   package = "@netlify/plugin-nextjs"
 
-# ---------------------------------------------------------------------------
-# Security response headers
-# ---------------------------------------------------------------------------
-# Implements the security-expert pre-deploy audit's required header set
-# (required action #3) before the first public hosted deploy of
-# /direction-2-live-data. Applied to all routes.
-#
-# Per-header rationale:
-#   Strict-Transport-Security  Force HTTPS for 1 year, including subdomains.
-#                              Browser refuses plain-HTTP for the lifetime.
-#   X-Frame-Options DENY       Block this site from being framed -> clickjacking
-#                              defence. (CSP frame-ancestors is the modern
-#                              equivalent; XFO kept for older-browser coverage.)
-#   X-Content-Type-Options     Stop MIME-sniffing; browser trusts the declared
-#     nosniff                  Content-Type only.
-#   Referrer-Policy            Send origin only on cross-origin nav, full URL
-#                              same-origin -> avoids leaking paths to third
-#                              parties (e.g. Mapbox telemetry).
-#
-# Content-Security-Policy is shipped as REPORT-ONLY first (per the audit): the
-# browser reports violations to the console but does NOT block them, so a wrong
-# directive cannot break Mapbox GL JS on the first deploy. Flip the header name
-# to "Content-Security-Policy" (enforced) once the live browser console is clean.
-#
-# CSP directives follow Mapbox's official CSP guidance for Mapbox GL JS
-# (https://docs.mapbox.com/mapbox-gl-js/guides/browsers-and-testing/#csp-directives):
-#   worker-src blob: / child-src blob:  Mapbox GL JS runs its WebGL renderer in
-#                                       Web Workers loaded from blob: URLs
-#                                       (child-src is the older-browser fallback).
-#   img-src 'self' data: blob: + api/tiles hosts
-#                                       Sprites, glyphs and tiles are fetched
-#                                       from Mapbox and decoded to data:/blob:.
-#   connect-src 'self' api.mapbox.com events.mapbox.com (+ tiles)
-#                                       Style/tile/glyph fetches + telemetry.
-#                                       NOTE: the OpenAQ call is SERVER-side via
-#                                       /api/stations, so the browser never
-#                                       connects to OpenAQ -> not listed here.
-#   script-src 'self'                   mapbox-gl is bundled by Next (an npm
-#                                       dependency), not loaded from a CDN, so no
-#                                       external script host is required.
-#   style-src 'self' 'unsafe-inline'    TECH-DEBT: markers/popups use inline
-#                                       style="" attributes; 'unsafe-inline' is an
-#                                       accepted prototype trade-off. Remove once
-#                                       inline styles are refactored to classes.
-# ---------------------------------------------------------------------------
-[[headers]]
-  for = "/*"
-
-  [headers.values]
-    Strict-Transport-Security = "max-age=31536000; includeSubDomains"
-    X-Frame-Options           = "DENY"
-    X-Content-Type-Options    = "nosniff"
-    Referrer-Policy           = "strict-origin-when-cross-origin"
-    Content-Security-Policy-Report-Only = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://api.mapbox.com https://*.tiles.mapbox.com; worker-src blob:; child-src blob:; connect-src 'self' https://api.mapbox.com https://events.mapbox.com https://*.tiles.mapbox.com; font-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'"
+# Security response headers now live in next.config.ts (async headers()), NOT here.
+# Reason: this is a Next.js runtime (server) deploy — netlify.toml [[headers]] only
+# cover static CDN assets (/_next/static/*), not SSR/runtime page responses. The
+# Next runtime applies headers() to all routes (SSR included). CSP is Report-Only
+# there pending live verification.
