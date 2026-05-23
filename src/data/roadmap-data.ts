@@ -164,7 +164,7 @@ export const PRACTICE_CARDS: PracticeCard[] = [
         introducedYear: "ongoing",
         outcomeState: "baseline-building",
         outcomeNote: "First consistent data",
-        chartData: { type: "phase", phase: "building", label: "First consistent hyper-local data" },
+        chartData: { type: "outcomeHighlight", value: "24", label: "sensors at schools and community centres", context: "First consistent PM2.5 monitoring — AirQo + sensors.AFRICA network" },
       },
       {
         citySlug: "accra",
@@ -173,7 +173,7 @@ export const PRACTICE_CARDS: PracticeCard[] = [
         introducedYear: "ongoing",
         outcomeState: "baseline-building",
         outcomeNote: "First consistent data",
-        chartData: { type: "phase", phase: "building", label: "Real-time PM2.5 where none existed" },
+        chartData: { type: "outcomeHighlight", value: "67", label: "sensors across 13 districts", context: "One of Africa's largest low-cost sensor networks — real-time PM2.5 where none existed" },
       },
     ],
     relatedPracticeIds: ["d2-source-apportionment", "d12-open-data"],
