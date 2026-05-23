@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 
-const SENSOR_DATA = [
+export const SENSOR_DATA = [
   {
     city: "London",
     shapeKey: "london",
@@ -92,12 +92,12 @@ const OWNERSHIP_SHADES = [
   "bg-foreground/15",
 ];
 
-function DotMap({ dots, cityShape, shapeId }: { dots: { x: number; y: number; ref: boolean }[]; cityShape: string; shapeId: string }) {
+function DotMap({ dots, cityShape, shapeId, height = 180 }: { dots: { x: number; y: number; ref: boolean }[]; cityShape: string; shapeId: string; height?: number }) {
   return (
     <svg
       viewBox="0 0 100 100"
       className="w-full"
-      style={{ height: 180 }}
+      style={{ height }}
       preserveAspectRatio="xMidYMid meet"
     >
       <defs>
@@ -133,6 +133,64 @@ function OwnershipBar({ segments }: { segments: { label: string; pct: number }[]
           style={{ width: `${seg.pct}%` }}
         />
       ))}
+    </div>
+  );
+}
+
+/**
+ * CitySensorMap — full-width sensor map for a single city's detail page.
+ * Renders the dot map at a larger height (320px) with ownership bar and legends.
+ * Returns null if the city has no sensor data.
+ */
+export function CitySensorMap({ citySlug }: { citySlug: string }) {
+  const cityData = SENSOR_DATA.find(
+    (c) => c.city.toLowerCase() === citySlug || c.shapeKey === citySlug
+  );
+  if (!cityData) return null;
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-lg font-semibold text-foreground">
+            {cityData.flag} {cityData.city}
+          </p>
+          <p className="text-sm text-muted-foreground">
+            {cityData.totalSensors} sensors — {cityData.referenceCount} reference, {cityData.lowCostCount} low-cost
+          </p>
+        </div>
+      </div>
+
+      <DotMap
+        dots={cityData.dots}
+        cityShape={CITY_SHAPES[cityData.shapeKey]}
+        shapeId={cityData.shapeKey}
+        height={320}
+      />
+
+      <OwnershipBar segments={cityData.ownership} />
+
+      <div className="flex items-center gap-6 text-sm text-muted-foreground">
+        <span className="flex items-center gap-1.5">
+          <span className="inline-block h-3 w-3 rounded-full bg-foreground/70" />
+          Reference
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="inline-block h-3 w-3 rounded-full border border-foreground/40" />
+          Low-cost
+        </span>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
+        {cityData.ownership.map((seg, i) => (
+          <span key={i} className="flex items-center gap-1.5">
+            <span
+              className={`inline-block h-2.5 w-4 rounded-sm ${OWNERSHIP_SHADES[i] ?? "bg-foreground/10"}`}
+            />
+            {seg.label}
+          </span>
+        ))}
+      </div>
     </div>
   );
 }
