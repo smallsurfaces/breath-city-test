@@ -1,14 +1,3 @@
-/**
- * PracticeCardView.tsx
- *
- * Purpose: Renders a single practice card — the atomic content unit of the
- * roadmap. Shows the practice name, domain/stage badges, description,
- * impact stats, and city examples with their outcome states.
- *
- * Key exports: PracticeCardView
- * External dependencies: shadcn Card/Badge/Progress, roadmap-data types
- */
-
 import Link from "next/link";
 import {
   Card,
@@ -30,63 +19,209 @@ import { StageBadge } from "./StageBadge";
 
 interface PracticeCardViewProps {
   practice: PracticeCard;
-  /** When true, links city names to their city pages */
   linkCities?: boolean;
-  /** Optional HTML id for scroll-to-anchor behaviour */
   anchorId?: string;
 }
 
-/** Renders the outcome state as a visual treatment appropriate to the wireframe */
-function OutcomeDisplay({ example }: { example: CityExample }) {
-  if (example.outcomeState === "measured") {
-    return (
-      <div className="mt-1.5 space-y-1">
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <span>{example.outcomeBefore}</span>
-          <span className="text-foreground font-medium">&rarr;</span>
-          <span className="text-foreground font-medium">{example.outcomeAfter}</span>
+function DeltaBar({ data }: { data: any }) {
+  const max = Math.max(data.before, data.after);
+  const beforePct = (data.before / max) * 100;
+  const afterPct = (data.after / max) * 100;
+
+  return (
+    <div className="space-y-2">
+      <div className="text-xs text-muted-foreground">{data.label}</div>
+      <div className="space-y-1.5">
+        <div>
+          <div className="text-xs text-muted-foreground mb-0.5">Before</div>
+          <div className="h-5 w-full rounded bg-muted overflow-hidden">
+            <div
+              className="h-full rounded bg-foreground/20"
+              style={{ width: `${beforePct}%` }}
+            />
+          </div>
+          <div className="text-xs text-muted-foreground mt-0.5">
+            {data.before} {data.unit}
+          </div>
         </div>
-        {example.outcomeChange && (
-          <div className="flex items-center gap-2">
-            <div className="h-2 flex-1 max-w-48 rounded-full bg-muted overflow-hidden">
-              <div
-                className="h-full bg-foreground/60 rounded-full"
-                style={{ width: "65%" }}
-              />
-            </div>
-            <span className="text-xs font-medium text-foreground">
-              {example.outcomeChange}
+        <div>
+          <div className="text-xs text-muted-foreground mb-0.5">After</div>
+          <div className="h-5 w-full rounded bg-muted overflow-hidden">
+            <div
+              className="h-full rounded bg-foreground/60"
+              style={{ width: `${afterPct}%` }}
+            />
+          </div>
+          <div className="flex items-center justify-between mt-0.5">
+            <span className="text-xs text-muted-foreground">
+              {data.after} {data.unit}
+            </span>
+            <span className="text-sm font-semibold text-foreground">
+              {data.change}
             </span>
           </div>
-        )}
-        {example.outcomeNote && (
-          <p className="text-xs text-muted-foreground">{example.outcomeNote}</p>
-        )}
+        </div>
       </div>
-    );
-  }
-
-  if (example.outcomeState === "baseline-established") {
-    return (
-      <div className="mt-1.5">
-        <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 text-xs">
-          Measuring &mdash; baseline established {example.outcomeNote}
-        </Badge>
-      </div>
-    );
-  }
-
-  // baseline-building
-  return (
-    <div className="mt-1.5">
-      <Badge variant="outline" className="bg-gray-50 text-gray-500 border-gray-200 text-xs">
-        Baseline building &mdash; first consistent data
-      </Badge>
     </div>
   );
 }
 
-/** Renders a single city example within a practice card */
+function GroupedBar({ data }: { data: any }) {
+  const isSourceBreakdown = data.metrics.every(
+    (m: any) => m.before === 0
+  );
+  const max = isSourceBreakdown
+    ? Math.max(...data.metrics.map((m: any) => m.after))
+    : Math.max(
+        ...data.metrics.flatMap((m: any) => [m.before, m.after])
+      );
+
+  return (
+    <div className="space-y-2">
+      {data.metrics.map((m: any, i: number) => (
+        <div key={i}>
+          <div className="flex items-center justify-between mb-0.5">
+            <span className="text-xs text-muted-foreground">{m.label}</span>
+            <span className="text-sm font-semibold text-foreground">
+              {m.change}
+            </span>
+          </div>
+          {isSourceBreakdown ? (
+            <div className="h-4 w-full rounded bg-muted overflow-hidden">
+              <div
+                className="h-full rounded bg-foreground/60"
+                style={{ width: `${(m.after / max) * 100}%` }}
+              />
+            </div>
+          ) : (
+            <div className="flex gap-1 h-4">
+              <div
+                className="h-full rounded bg-foreground/20"
+                style={{ width: `${(m.before / max) * 50}%` }}
+              />
+              <div
+                className="h-full rounded bg-foreground/60"
+                style={{ width: `${(m.after / max) * 50}%` }}
+              />
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function Sparkline({ data }: { data: any }) {
+  const values: number[] = data.values;
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const w = 240;
+  const h = 60;
+  const pad = 2;
+
+  const points = values.map((v: number, i: number) => {
+    const x = pad + (i / (values.length - 1)) * (w - pad * 2);
+    const y = pad + ((max - v) / (max - min)) * (h - pad * 2);
+    return `${x},${y}`;
+  });
+
+  const polyline = points.join(" ");
+  const areaPath = `M${points[0]} ${points.join(" L")} L${pad + ((values.length - 1) / (values.length - 1)) * (w - pad * 2)},${h} L${pad},${h} Z`;
+
+  return (
+    <div className="space-y-1">
+      <svg
+        viewBox={`0 0 ${w} ${h}`}
+        className="w-full"
+        style={{ height: 80 }}
+        preserveAspectRatio="none"
+      >
+        <path d={areaPath} fill="currentColor" className="text-foreground/10" />
+        <polyline
+          points={polyline}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          className="text-foreground/60"
+        />
+      </svg>
+      <div className="flex items-center justify-between">
+        <span className="text-xs text-muted-foreground">
+          {data.label} &middot; {data.years}
+        </span>
+        <span className="text-sm font-semibold text-foreground">
+          {data.change}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function CoverageRing({ data }: { data: any }) {
+  const pct = data.value;
+  return (
+    <div className="flex flex-col items-center gap-1">
+      <div
+        className="relative flex items-center justify-center"
+        style={{ width: 80, height: 80 }}
+      >
+        <div
+          className="absolute inset-0 rounded-full"
+          style={{
+            background: `conic-gradient(
+              hsl(var(--foreground) / 0.5) 0% ${pct}%,
+              hsl(var(--muted)) ${pct}% 100%
+            )`,
+          }}
+        />
+        <div className="absolute inset-2 rounded-full bg-background flex items-center justify-center">
+          <span className="text-lg font-semibold text-foreground">
+            {pct}{data.unit}
+          </span>
+        </div>
+      </div>
+      <span className="text-xs text-muted-foreground">{data.label}</span>
+    </div>
+  );
+}
+
+function PhaseIndicator({ data }: { data: any }) {
+  const filled = data.phase === "building" ? 1 : data.phase === "established" ? 2 : 3;
+  return (
+    <div className="flex flex-col items-center gap-2">
+      <div className="flex items-center gap-2">
+        {[1, 2, 3].map((step) => (
+          <div
+            key={step}
+            className={`w-4 h-4 rounded-full border-2 border-foreground/40 ${
+              step <= filled ? "bg-foreground/50" : "bg-muted"
+            }`}
+          />
+        ))}
+      </div>
+      <span className="text-xs text-muted-foreground">{data.label}</span>
+    </div>
+  );
+}
+
+function ChartViz({ data }: { data: any }) {
+  if (!data) return null;
+  switch (data.type) {
+    case "deltaBar":
+      return <DeltaBar data={data} />;
+    case "groupedBar":
+      return <GroupedBar data={data} />;
+    case "sparkline":
+      return <Sparkline data={data} />;
+    case "coverageRing":
+      return <CoverageRing data={data} />;
+    case "phase":
+      return <PhaseIndicator data={data} />;
+    default:
+      return null;
+  }
+}
+
 function CityExampleRow({
   example,
   linkCities,
@@ -104,7 +239,7 @@ function CityExampleRow({
   );
 
   return (
-    <div className="space-y-0.5">
+    <div className="space-y-2">
       <div className="flex flex-wrap items-center gap-2 text-sm">
         {linkCities ? (
           <Link
@@ -126,17 +261,22 @@ function CityExampleRow({
           {example.provenance}
         </Badge>
       </div>
+
+      {example.chartData && (
+        <div className="rounded-lg bg-muted/30 p-4">
+          <ChartViz data={example.chartData} />
+        </div>
+      )}
+
       <p className="text-sm text-muted-foreground">
         {example.interventionName}
         {example.introducedYear !== "ongoing" && `, introduced ${example.introducedYear}`}
         {example.introducedYear === "ongoing" && ", ongoing"}
       </p>
-      <OutcomeDisplay example={example} />
     </div>
   );
 }
 
-/** The full practice card component — atomic unit of the roadmap */
 export function PracticeCardView({
   practice,
   linkCities = true,
@@ -178,7 +318,7 @@ export function PracticeCardView({
 
         <Separator />
 
-        <div className="space-y-4">
+        <div className="space-y-5">
           {practice.cityExamples.map((example) => (
             <CityExampleRow
               key={example.citySlug}

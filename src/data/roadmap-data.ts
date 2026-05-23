@@ -54,6 +54,7 @@ export interface CityExample {
   outcomeChange?: string;
   outcomeNote?: string;
   link?: string;
+  chartData?: any;
 }
 
 /** A practice card — the atomic content unit */
@@ -154,6 +155,7 @@ export const PRACTICE_CARDS: PracticeCard[] = [
         outcomeAfter: "First city-scale network validated against reference monitoring",
         outcomeChange: "100+ sensors",
         outcomeNote: "Open-access data",
+        chartData: { type: "deltaBar", label: "Sensors", before: 20, after: 120, unit: "stations", change: "+100 sensors" },
       },
       {
         citySlug: "nairobi",
@@ -162,6 +164,7 @@ export const PRACTICE_CARDS: PracticeCard[] = [
         introducedYear: "ongoing",
         outcomeState: "baseline-building",
         outcomeNote: "First consistent data",
+        chartData: { type: "phase", phase: "building", label: "First consistent hyper-local data" },
       },
       {
         citySlug: "accra",
@@ -170,6 +173,7 @@ export const PRACTICE_CARDS: PracticeCard[] = [
         introducedYear: "ongoing",
         outcomeState: "baseline-building",
         outcomeNote: "First consistent data",
+        chartData: { type: "phase", phase: "building", label: "Real-time PM2.5 where none existed" },
       },
     ],
     relatedPracticeIds: ["d2-source-apportionment", "d12-open-data"],
@@ -193,6 +197,11 @@ export const PRACTICE_CARDS: PracticeCard[] = [
         outcomeBefore: "Uncertain source contribution",
         outcomeAfter: "Road transport identified as ~50% of London NOx",
         outcomeChange: "Informed ULEZ design",
+        chartData: { type: "groupedBar", metrics: [
+          { label: "Road Transport", before: 0, after: 50, change: "50%" },
+          { label: "Domestic", before: 0, after: 15, change: "15%" },
+          { label: "Industry", before: 0, after: 20, change: "20%" },
+        ]},
       },
       {
         citySlug: "accra",
@@ -203,6 +212,11 @@ export const PRACTICE_CARDS: PracticeCard[] = [
         outcomeBefore: "Limited emissions data",
         outcomeAfter: "Household solid fuel + waste burning + vehicles identified as dominant PM2.5 sources",
         outcomeChange: "Priority sectors identified",
+        chartData: { type: "groupedBar", metrics: [
+          { label: "Household fuels", before: 0, after: 40, change: "40%" },
+          { label: "Waste burning", before: 0, after: 25, change: "25%" },
+          { label: "Vehicles", before: 0, after: 20, change: "20%" },
+        ]},
       },
       {
         citySlug: "nairobi",
@@ -213,6 +227,10 @@ export const PRACTICE_CARDS: PracticeCard[] = [
         outcomeBefore: "No city-level inventory",
         outcomeAfter: "Transport + cooking/heating fuels identified as dominant PM sources",
         outcomeChange: "Priority sectors identified",
+        chartData: { type: "groupedBar", metrics: [
+          { label: "Transport", before: 0, after: 45, change: "45%" },
+          { label: "Cooking fuels", before: 0, after: 30, change: "30%" },
+        ]},
       },
     ],
     relatedPracticeIds: ["d1-sensor-deployment", "d5-lez"],
@@ -237,6 +255,7 @@ export const PRACTICE_CARDS: PracticeCard[] = [
         outcomeAfter: "NO2: -21% at roadside monitoring stations",
         outcomeChange: "-21%",
         outcomeNote: "City-wide expansion 2023",
+        chartData: { type: "deltaBar", label: "NO₂ roadside", before: 100, after: 79, unit: "index", change: "-21%" },
       },
       {
         citySlug: "paris",
@@ -247,6 +266,7 @@ export const PRACTICE_CARDS: PracticeCard[] = [
         outcomeBefore: "High near-road NO2",
         outcomeAfter: "NO2: -30% near major roads (2012-2022)",
         outcomeChange: "-30%",
+        chartData: { type: "sparkline", label: "NO₂ near major roads", values: [100, 97, 93, 88, 84, 80, 76, 74, 72, 70, 68], years: "2012–2022", change: "-30%" },
       },
       {
         citySlug: "milan",
@@ -257,6 +277,10 @@ export const PRACTICE_CARDS: PracticeCard[] = [
         outcomeBefore: "Elevated PM10 and black carbon",
         outcomeAfter: "PM10: -10%, Black carbon: -30%",
         outcomeChange: "-10% PM10, -30% BC",
+        chartData: { type: "groupedBar", metrics: [
+          { label: "PM10", before: 100, after: 90, change: "-10%" },
+          { label: "Black Carbon", before: 100, after: 70, change: "-30%" },
+        ]},
       },
     ],
     relatedPracticeIds: ["d5-vehicle-restriction", "d2-source-apportionment"],
@@ -280,6 +304,7 @@ export const PRACTICE_CARDS: PracticeCard[] = [
         outcomeBefore: "Severe traffic congestion and vehicle emissions",
         outcomeAfter: "Removes ~20% of vehicles daily",
         outcomeChange: "-20% daily vehicles",
+        chartData: { type: "coverageRing", label: "Daily vehicle reduction", value: 20, unit: "%" },
       },
     ],
     relatedPracticeIds: ["d5-lez"],
