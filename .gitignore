@@ -12,3 +12,8 @@ out/
 
 # Environment files
 .env*.local
+
+# Claude agent context + internal logs — local-only, not shared via the repo
+# (matches the other Breathe Cities repos; this repo is public)
+CLAUDE.md
+.claude/
