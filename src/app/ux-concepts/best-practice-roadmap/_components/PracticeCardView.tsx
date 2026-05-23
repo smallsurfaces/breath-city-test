@@ -169,8 +169,8 @@ function CoverageRing({ data }: { data: any }) {
           className="absolute inset-0 rounded-full"
           style={{
             background: `conic-gradient(
-              hsl(var(--foreground) / 0.5) 0% ${pct}%,
-              hsl(var(--muted)) ${pct}% 100%
+              color-mix(in srgb, var(--foreground) 50%, transparent) 0% ${pct}%,
+              var(--muted) ${pct}% 100%
             )`,
           }}
         />
@@ -193,7 +193,7 @@ function SourceDonut({ data, cityFlag }: { data: any; cityFlag?: string }) {
   const stops = segments.map((seg, i) => {
     const start = cumulativePct;
     cumulativePct += seg.value;
-    return `hsl(var(--foreground) / ${opacities[i] ?? 0.1}) ${start}% ${cumulativePct}%`;
+    return `color-mix(in srgb, var(--foreground) ${Math.round((opacities[i] ?? 0.1) * 100)}%, transparent) ${start}% ${cumulativePct}%`;
   });
 
   return (
@@ -215,7 +215,7 @@ function SourceDonut({ data, cityFlag }: { data: any; cityFlag?: string }) {
           <div key={i} className="flex items-center gap-2 text-xs">
             <span
               className="inline-block w-2.5 h-2.5 rounded-sm flex-shrink-0"
-              style={{ background: `hsl(var(--foreground) / ${opacities[i] ?? 0.1})` }}
+              style={{ background: `color-mix(in srgb, var(--foreground) ${Math.round((opacities[i] ?? 0.1) * 100)}%, transparent)` }}
             />
             <span>{seg.icon}</span>
             <span className="text-muted-foreground flex-1 truncate">{seg.label}</span>
@@ -431,7 +431,7 @@ function FuelMixShift({ data }: { data: any }) {
             className="h-full first:rounded-l last:rounded-r"
             style={{
               width: `${getPct(seg)}%`,
-              background: `hsl(var(--foreground) / ${opacities[i] ?? 0.1})`,
+              background: `color-mix(in srgb, var(--foreground) ${Math.round((opacities[i] ?? 0.1) * 100)}%, transparent)`,
             }}
           />
         ))}
@@ -451,7 +451,7 @@ function FuelMixShift({ data }: { data: any }) {
           <div key={i} className="flex items-center gap-2 text-xs">
             <span
               className="inline-block w-2.5 h-2.5 rounded-sm flex-shrink-0"
-              style={{ background: `hsl(var(--foreground) / ${opacities[i] ?? 0.1})` }}
+              style={{ background: `color-mix(in srgb, var(--foreground) ${Math.round((opacities[i] ?? 0.1) * 100)}%, transparent)` }}
             />
             <span>{seg.icon}</span>
             <span className="text-muted-foreground flex-1 truncate">{seg.label}</span>
@@ -483,7 +483,7 @@ function GreenCorridor({ data }: { data: any }) {
     <div className="space-y-2">
       <div className="text-sm font-semibold text-foreground">{data.headline}</div>
       <svg viewBox={`0 0 ${w} ${h}`} className="w-full" style={{ height: 160 }}>
-        <path d={cityOutline} fill="currentColor" opacity={0.05} stroke="hsl(var(--foreground) / 0.15)" strokeWidth="1" />
+        <path d={cityOutline} fill="currentColor" opacity={0.05} stroke="color-mix(in srgb, var(--foreground) 15%, transparent)" strokeWidth="1" />
 
         {roads.map((d, i) => (
           <path key={`green-${i}`} d={d} fill="none" stroke="currentColor" strokeWidth="6" strokeLinecap="round" className="text-foreground/25" />
