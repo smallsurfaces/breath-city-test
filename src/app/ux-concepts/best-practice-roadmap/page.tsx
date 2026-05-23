@@ -52,10 +52,9 @@ export default function RoadmapPage() {
   return (
     <main className="min-h-screen bg-background pb-0">
       <div className="max-w-6xl mx-auto px-4 py-12 space-y-16">
-        {/* Navigation */}
+        {/* Breadcrumb. The "Home" crumb link was removed (back-nav is the single
+            "Back to hub" in BcChrome above — no duplicate route home). */}
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Link href="/" className="hover:underline">Home</Link>
-          <span>/</span>
           <span>Best Practice Roadmap</span>
         </div>
 

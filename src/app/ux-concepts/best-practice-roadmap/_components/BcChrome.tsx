@@ -52,8 +52,10 @@ const NAV = [
 export function BcHeader() {
   return (
     <>
-      {/* Prototype bar -- not part of BC's real chrome; carries the back-to-hub
-          nav (required by brief) and labels this honestly as an in-context mock. */}
+      {/* Prototype bar -- not part of BC's real chrome; carries the SOLE
+          "Back to hub" back-nav for the roadmap routes (the global HomeNav is
+          suppressed on /ux-concepts/best-practice-roadmap to avoid a duplicate)
+          and labels this honestly as an in-context mock. */}
       <div className="border-b border-border bg-muted/50">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-2">
           <Link
