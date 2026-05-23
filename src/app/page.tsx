@@ -256,6 +256,39 @@ export default function HomePage() {
           </div>
         </div>
       </div>
+
+      <div className="flex flex-col items-center gap-4">
+        <p
+          className="text-xs font-semibold tracking-widest uppercase"
+          style={{ color: "var(--bc-semantic-muted)" }}
+        >
+          Mapbox / OpenAQ Integration Test
+        </p>
+
+        <div className="flex flex-col gap-3 w-full max-w-xl">
+          <div className="flex items-center gap-3">
+            <div className="flex flex-col w-52 shrink-0">
+              <span className="text-sm" style={{ color: "var(--bc-semantic-text)" }}>
+                Air Quality — Live OpenAQ Data (London / Accra)
+              </span>
+              <span className="text-xs" style={{ color: "var(--bc-semantic-muted)" }}>
+                Integration / plumbing test — live Mapbox + OpenAQ
+              </span>
+            </div>
+            <Link
+              href="/direction-2-live-data"
+              className="inline-flex items-center justify-center px-4 py-2 rounded-xl text-sm font-medium transition-colors"
+              style={{
+                backgroundColor: "var(--bc-semantic-brand)",
+                color: "var(--bc-color-white)",
+                borderRadius: "var(--bc-border-radius-md)",
+              }}
+            >
+              Live Map →
+            </Link>
+          </div>
+        </div>
+      </div>
     </main>
   );
 }
