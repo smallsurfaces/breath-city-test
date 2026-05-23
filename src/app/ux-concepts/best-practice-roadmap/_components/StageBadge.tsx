@@ -2,7 +2,7 @@
  * StageBadge.tsx
  *
  * Purpose: Renders a coloured badge for one of the three roadmap stages
- * (Seeing, Understanding, Acting, All stages). Used throughout the roadmap
+ * (Seeing, Understanding, Acting, Enabling). Used throughout the roadmap
  * wireframe to visually categorise domains and practices.
  *
  * Key exports: StageBadge

@@ -14,7 +14,7 @@
 // ---------------------------------------------------------------------------
 
 /** One of the three stages every domain belongs to */
-export type Stage = "Seeing" | "Understanding" | "Acting" | "All stages";
+export type Stage = "Seeing" | "Understanding" | "Acting" | "Enabling";
 
 /** Outcome measurement status of a city's contribution to a practice */
 export type OutcomeState = "measured" | "baseline-established" | "baseline-building";
@@ -102,10 +102,10 @@ export const DOMAINS: Domain[] = [
   { id: 5, slug: "transport", name: "Transport & Mobility", shortName: "Transport", stage: "Acting", description: "Cleaning up how cities move. Low-emission zones, vehicle restrictions, public transit investment, cycling infrastructure, and the modal shifts that reduce transport-related emissions." },
   { id: 6, slug: "clean-fuels", name: "Clean Fuels for Cooking & Heating", shortName: "Clean Fuels", stage: "Acting", description: "Transitioning households away from solid fuels. Clean cookstove programmes, LPG subsidies, and heating fuel transitions that address the indoor-outdoor pollution nexus — especially critical in the Global South." },
   { id: 7, slug: "green-infrastructure", name: "Green Infrastructure & Urban Planning", shortName: "Green Infra", stage: "Acting", description: "Designing cities that breathe. Green corridors, urban forests, low-emission building standards, and spatial planning that reduces exposure and creates natural buffers between pollution sources and people." },
-  { id: 8, slug: "awareness", name: "Raising Awareness & Community Engagement", shortName: "Awareness", stage: "All stages", description: "Making air quality visible to citizens. Public awareness campaigns, school programmes, community monitoring, and the civic engagement that builds demand for clean air and sustains political will." },
-  { id: 9, slug: "governance", name: "Multi-Level Governance & Coordination", shortName: "Governance", stage: "All stages", description: "Aligning national, regional, and municipal action. Inter-agency coordination, multi-level governance frameworks, and the institutional arrangements that prevent fragmented or contradictory policy responses." },
-  { id: 10, slug: "funding", name: "Funding, Sustainability & Progress Tracking", shortName: "Funding", stage: "All stages", description: "Financing the transition and tracking progress. Climate finance, development bank loans, municipal budgets, and the monitoring frameworks that measure whether investments are delivering cleaner air." },
-  { id: 11, slug: "lesson-sharing", name: "Lesson Sharing & Peer Learning", shortName: "Peer Learning", stage: "All stages", description: "Cities learning from cities. Study tours, peer exchanges, knowledge platforms, and the networks that accelerate adoption by letting cities learn from each other rather than starting from scratch." },
+  { id: 8, slug: "awareness", name: "Raising Awareness & Community Engagement", shortName: "Awareness", stage: "Enabling", description: "Making air quality visible to citizens. Public awareness campaigns, school programmes, community monitoring, and the civic engagement that builds demand for clean air and sustains political will." },
+  { id: 9, slug: "governance", name: "Multi-Level Governance & Coordination", shortName: "Governance", stage: "Enabling", description: "Aligning national, regional, and municipal action. Inter-agency coordination, multi-level governance frameworks, and the institutional arrangements that prevent fragmented or contradictory policy responses." },
+  { id: 10, slug: "funding", name: "Funding, Sustainability & Progress Tracking", shortName: "Funding", stage: "Enabling", description: "Financing the transition and tracking progress. Climate finance, development bank loans, municipal budgets, and the monitoring frameworks that measure whether investments are delivering cleaner air." },
+  { id: 11, slug: "lesson-sharing", name: "Lesson Sharing & Peer Learning", shortName: "Peer Learning", stage: "Enabling", description: "Cities learning from cities. Study tours, peer exchanges, knowledge platforms, and the networks that accelerate adoption by letting cities learn from each other rather than starting from scratch." },
   { id: 12, slug: "data-technology", name: "Data & Technology Infrastructure", shortName: "Data & Tech", stage: "Seeing", description: "The digital backbone. Open data platforms, APIs, forecasting models, and the technology infrastructure that turns raw sensor readings into actionable intelligence for city managers and citizens." },
 ];
 
@@ -1010,5 +1010,5 @@ export const STAGE_COLORS: Record<Stage, { bg: string; text: string }> = {
   "Seeing": { bg: "bg-blue-100", text: "text-blue-800" },
   "Understanding": { bg: "bg-amber-100", text: "text-amber-800" },
   "Acting": { bg: "bg-green-100", text: "text-green-800" },
-  "All stages": { bg: "bg-gray-100", text: "text-gray-700" },
+  "Enabling": { bg: "bg-gray-100", text: "text-gray-700" },
 };
