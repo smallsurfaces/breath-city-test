@@ -18,7 +18,9 @@
  *   - Contribution framing toward 30%-by-2030 — never implies one action moves
  *     the whole ambient number.
  *
- * Light mode. Explicit back-to-hub button (in addition to the global HomeNav).
+ * Light mode. Single in-flow "Back to hub" button is the sole back-nav for this
+ * route; the global HomeNav is suppressed here (see HomeNav SELF_NAV_PREFIXES) to
+ * avoid a duplicate.
  *
  * Key exports: default page component (Next.js App Router, client component)
  */
