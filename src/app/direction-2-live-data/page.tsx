@@ -39,6 +39,7 @@ import { NetworkStateOverlay } from './NetworkStateOverlay'
 import { MapAttribution } from './MapAttribution'
 import AnnotationLayer from '../direction-1-mapbox-v2/AnnotationLayer'
 import type { MapAdapter } from '../direction-1-mapbox-v2/AnnotationLayer.types'
+import { PrototypeHeader } from '../_components/PrototypeHeader'
 
 /** Default city slug on first load — London (brief: London active on first load). */
 const DEFAULT_CITY_SLUG = 'london'
@@ -192,8 +193,29 @@ export default function DirectionTwoLiveDataPage(): React.ReactElement {
         .dir2-popup .mapboxgl-popup-tip { display: none !important; }
       `}</style>
 
-      <div style={{ width: '100%', height: '100vh', position: 'relative', overflow: 'hidden' }}>
-        {/* Map fills the viewport. Receives the live data, fresh-only set, parameter, and city
+      {/* Flex column: standard chrome bar on top, live-data map fills the rest below it. */}
+      <div style={{ display: 'flex', flexDirection: 'column', height: '100dvh', overflow: 'hidden' }}>
+        {/* Standard prototype chrome. The AnnotationLayer is passed as commentSlot (its
+            fixed toggle still sits top-right; storageKey/adapter/callbacks unchanged so
+            saved comments + freeze behaviour are identical). The top-anchored overlays
+            below (readout, selectors, probe) are nudged down ~56px to clear this bar. */}
+        <PrototypeHeader
+          buildName="Air Quality — Live OpenAQ Data"
+          commentSlot={
+            <AnnotationLayer
+              storageKey="bc-live-data-map-v1"
+              label="Annotate"
+              mapAdapter={mapAdapter}
+              onEnterMode={handleEnterAnnotateMode}
+              onExitMode={handleExitAnnotateMode}
+              togglePosition={{ top: '1rem', right: '1rem' }}
+            />
+          }
+        />
+
+        {/* Map container — fills the remaining height below the bar (flex:1 replaces 100vh). */}
+        <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
+        {/* Map fills the container. Receives the live data, fresh-only set, parameter, and city
             framing; renders markers + probe + station popups. */}
         <MapComponent
           ref={mapHandleRef}
@@ -244,15 +266,10 @@ export default function DirectionTwoLiveDataPage(): React.ReactElement {
         {/* Pattern 5b persistent map-level credit (bottom-right) — visible in ALL states. */}
         <MapAttribution />
 
-        {/* Annotation overlay (reused from v2, unchanged) — top-right toggle. */}
-        <AnnotationLayer
-          storageKey="bc-live-data-map-v1"
-          label="Annotate"
-          mapAdapter={mapAdapter}
-          onEnterMode={handleEnterAnnotateMode}
-          onExitMode={handleExitAnnotateMode}
-          togglePosition={{ top: '1rem', right: '1rem' }}
-        />
+        {/* AnnotationLayer relocated into PrototypeHeader's commentSlot (above) — its
+            fixed-position top-right toggle is unchanged; storageKey/adapter/callbacks
+            identical so saved comments + freeze behaviour are preserved. */}
+        </div>
       </div>
     </>
   )

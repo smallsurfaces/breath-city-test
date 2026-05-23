@@ -59,6 +59,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { AlertTriangleIcon, WindIcon } from "lucide-react";
+import { PrototypeHeader } from "../_components/PrototypeHeader";
 
 // ─── Colour tokens sourced directly from dist/css/tokens.css ─────────────────
 
@@ -222,7 +223,10 @@ function Group({
 export default function DesignSystemPage() {
   return (
     <div className="min-h-screen" style={{ backgroundColor: "var(--bc-semantic-bg)" }}>
-      {/* Page header */}
+      {/* Standard prototype chrome — back-to-hub + name + updated stamp. Content below. */}
+      <PrototypeHeader buildName="Design System — Components & Tokens" />
+
+      {/* Page header (design-system specimen — stays as content) */}
       <header
         className="border-b"
         style={{

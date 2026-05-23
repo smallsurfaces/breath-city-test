@@ -42,6 +42,7 @@ import { useEffect, useRef, useState } from "react";
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import { ExternalLink } from "lucide-react";
 import { JtbdNav } from "../_components/JtbdNav";
+import { PrototypeHeader } from "../../_components/PrototypeHeader";
 
 // ---------------------------------------------------------------------------
 // Improvement 4: Single source of truth for diagram colours.
@@ -288,7 +289,11 @@ export default function JtbdArchitecturePage() {
   }, [svgContent, bindFunctions]);
 
   return (
-    <div className="bg-background text-foreground min-h-screen p-8">
+    <div className="bg-background text-foreground min-h-screen">
+      {/* Standard prototype chrome — back-to-hub + name + updated stamp. Content below. */}
+      <PrototypeHeader buildName="JTBD Framework — Research Lifecycle" />
+
+      <div className="p-8">
       {/* ── Page header ────────────────────────────────────────────────────── */}
       <div className="mb-8">
         {/* Shared tab navigation — active on "architecture" */}
@@ -460,6 +465,7 @@ export default function JtbdArchitecturePage() {
             <span className="text-xs text-muted-foreground">{entry.label}</span>
           </div>
         ))}
+      </div>
       </div>
     </div>
   );

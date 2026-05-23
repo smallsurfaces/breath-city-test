@@ -88,7 +88,8 @@ export function HeaderReadout(props: Props): React.ReactElement | null {
       aria-live="polite"
       style={{
         position: 'fixed',
-        top: '1rem',
+        // Nudged below the standard PrototypeHeader bar (~56px).
+        top: 'calc(56px + 1rem)',
         left: '1rem',
         background: 'rgba(255, 255, 255, 0.92)',
         backdropFilter: 'blur(10px)',

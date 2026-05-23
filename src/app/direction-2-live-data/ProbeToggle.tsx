@@ -88,9 +88,9 @@ export function ProbeToggle({ isActive, isAvailable, onToggle }: Props): React.R
       <div
         style={{
           // Sits below the two stacked selectors (city ~1rem, parameter ~3.6rem) so it does not
-          // overlap them.
+          // overlap them. The +56px clears the standard PrototypeHeader bar above the cluster.
           position: 'fixed',
-          top: '6.2rem',
+          top: 'calc(56px + 6.2rem)',
           left: '50%',
           transform: 'translateX(-50%)',
           zIndex: 20,

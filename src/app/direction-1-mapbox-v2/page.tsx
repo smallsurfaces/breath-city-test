@@ -33,6 +33,7 @@ import { Legend } from './Legend'
 import { ProbeToggle } from './ProbeToggle'
 import AnnotationLayer from './AnnotationLayer'
 import type { MapAdapter } from './AnnotationLayer.types'
+import { PrototypeHeader } from '../_components/PrototypeHeader'
 
 export default function DirectionOneMapboxV2Page(): React.ReactElement {
   const mapHandleRef = useRef<MapHandle>(null)
@@ -152,79 +153,44 @@ export default function DirectionOneMapboxV2Page(): React.ReactElement {
         }
       `}</style>
 
-      <div style={{ width: '100%', height: '100vh', position: 'relative', overflow: 'hidden' }}>
-        {/* Map fills the full viewport */}
-        <MapComponent
-          ref={mapHandleRef}
-          mapMode={mapMode}
-          onExitProbe={exitProbeMode}
+      {/* Flex column: standard chrome bar on top, map fills the rest below it.
+          The floating top-left wordmark pill is retired — PrototypeHeader replaces it. */}
+      <div style={{ display: 'flex', flexDirection: 'column', height: '100dvh', overflow: 'hidden' }}>
+        {/* Standard prototype chrome. The AnnotationLayer is passed as commentSlot so
+            its (position:fixed) toggle keeps sitting top-right and saved comments +
+            freeze behaviour are unchanged — props are identical to before. */}
+        <PrototypeHeader
+          buildName="Direction 01 — PM2.5 Triangulation"
+          commentSlot={
+            <AnnotationLayer
+              storageKey="bc-air-quality-map-v1"
+              label="Annotate"
+              mapAdapter={mapAdapter}
+              onEnterMode={handleEnterAnnotateMode}
+              onExitMode={handleExitAnnotateMode}
+              togglePosition={{ top: '1rem', right: '1rem' }}
+            />
+          }
         />
 
-        {/* Legend panel — bottom-left. mapMode prop drives the per-mode hint text. */}
-        <Legend mapMode={mapMode} />
-
-        {/* Header pill — top-left, gives context for the prototype */}
-        <div
-          data-slot="toggle-panel"
-          style={{
-            position: 'fixed',
-            top: '1rem',
-            left: '1rem',
-            background: 'rgba(255, 255, 255, 0.92)',
-            backdropFilter: 'blur(10px)',
-            WebkitBackdropFilter: 'blur(10px)',
-            borderRadius: '9999px',
-            padding: '8px 16px',
-            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
-            fontSize: '0.8rem',
-            fontWeight: 600,
-            color: '#0f1117',
-            boxShadow: '0 2px 10px rgba(0,0,0,0.14)',
-            zIndex: 10,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8,
-          }}
-        >
-          {/* Breathe Cities wordmark dot */}
-          <div
-            style={{
-              width: 8,
-              height: 8,
-              borderRadius: '50%',
-              background: '#0071c7',
-            }}
+        {/* Map container — fills the remaining height below the bar (flex:1 replaces 100vh). */}
+        <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
+          {/* Map fills the container */}
+          <MapComponent
+            ref={mapHandleRef}
+            mapMode={mapMode}
+            onExitProbe={exitProbeMode}
           />
-          Breathe Cities — PM2.5 Triangulation
-          <span
-            style={{
-              fontSize: '0.65rem',
-              fontWeight: 400,
-              color: '#6b7280',
-              marginLeft: 4,
-            }}
-          >
-            Vienna concept
-          </span>
+
+          {/* Legend panel — bottom-left. mapMode prop drives the per-mode hint text. */}
+          <Legend mapMode={mapMode} />
+
+          {/* Probe mode toggle — centre top, primary action button */}
+          <ProbeToggle
+            isActive={mapMode === 'probe'}
+            onToggle={handleProbeToggle}
+          />
         </div>
-
-        {/* Probe mode toggle — centre top, primary action button */}
-        <ProbeToggle
-          isActive={mapMode === 'probe'}
-          onToggle={handleProbeToggle}
-        />
-
-        {/* AnnotationLayer — spatial review overlay for Jack and Gabe.
-            storageKey is unique to this prototype view. togglePosition places
-            the pill in the top-right. */}
-        <AnnotationLayer
-          storageKey="bc-air-quality-map-v1"
-          label="Annotate"
-          mapAdapter={mapAdapter}
-          onEnterMode={handleEnterAnnotateMode}
-          onExitMode={handleExitAnnotateMode}
-          togglePosition={{ top: '1rem', right: '1rem' }}
-        />
       </div>
     </>
   )

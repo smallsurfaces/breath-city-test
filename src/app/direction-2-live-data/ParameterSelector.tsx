@@ -51,7 +51,9 @@ export function ParameterSelector({ active, onSelect }: Props): React.ReactEleme
       aria-label="Select air quality parameter"
       style={{
         position: 'fixed',
-        top: '3.6rem',
+        // Nudged below the standard PrototypeHeader bar (~56px); keeps the original
+        // 3.6rem offset below the city selector above it.
+        top: 'calc(56px + 3.6rem)',
         left: '50%',
         transform: 'translateX(-50%)',
         zIndex: 20,

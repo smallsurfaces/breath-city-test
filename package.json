@@ -8,6 +8,7 @@
     "build": "npm run build:tokens && next build",
     "start": "next start",
     "lint": "next lint",
+    "build:dates": "node scripts/gen-build-dates.mjs",
     "build:tokens": "style-dictionary build --config style-dictionary.config.js",
     "watch:tokens": "nodemon --watch tokens --ext json --exec 'npm run build:tokens'"
   },
