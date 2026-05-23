@@ -39,7 +39,7 @@ const FEATURED: Record<number, { cardIndex: number; exampleIndex: number }> = {
   8: { cardIndex: 0, exampleIndex: 3 },   // Bangkok awareness timeline
   9: { cardIndex: 0, exampleIndex: 1 },   // Warsaw governance staircase
   10: { cardIndex: 0, exampleIndex: 0 },  // London investment ROI
-  11: { cardIndex: 0, exampleIndex: 2 },  // Jakarta peer network
+  11: { cardIndex: 0, exampleIndex: 2 },  // Bangkok peer network
   12: { cardIndex: 0, exampleIndex: 3 },  // Bogota open data
 };
 
