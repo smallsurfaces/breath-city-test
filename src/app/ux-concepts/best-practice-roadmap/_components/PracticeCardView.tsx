@@ -185,6 +185,48 @@ function CoverageRing({ data }: { data: any }) {
   );
 }
 
+function SourceDonut({ data, cityFlag }: { data: any; cityFlag?: string }) {
+  const segments: { label: string; icon: string; value: number }[] = data.segments;
+  const opacities = [0.6, 0.4, 0.25, 0.15];
+
+  let cumulativePct = 0;
+  const stops = segments.map((seg, i) => {
+    const start = cumulativePct;
+    cumulativePct += seg.value;
+    return `hsl(var(--foreground) / ${opacities[i] ?? 0.1}) ${start}% ${cumulativePct}%`;
+  });
+
+  return (
+    <div className="flex flex-col items-center gap-3">
+      <div
+        className="relative flex items-center justify-center"
+        style={{ width: 100, height: 100 }}
+      >
+        <div
+          className="absolute inset-0 rounded-full"
+          style={{ background: `conic-gradient(${stops.join(", ")})` }}
+        />
+        <div className="absolute inset-5 rounded-full bg-background flex items-center justify-center">
+          <span className="text-lg">{cityFlag ?? ""}</span>
+        </div>
+      </div>
+      <div className="grid gap-1 w-full">
+        {segments.map((seg, i) => (
+          <div key={i} className="flex items-center gap-2 text-xs">
+            <span
+              className="inline-block w-2.5 h-2.5 rounded-sm flex-shrink-0"
+              style={{ background: `hsl(var(--foreground) / ${opacities[i] ?? 0.1})` }}
+            />
+            <span>{seg.icon}</span>
+            <span className="text-muted-foreground flex-1 truncate">{seg.label}</span>
+            <span className="font-semibold text-foreground">{seg.value}%</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function PhaseIndicator({ data }: { data: any }) {
   const filled = data.phase === "building" ? 1 : data.phase === "established" ? 2 : 3;
   return (
@@ -204,13 +246,15 @@ function PhaseIndicator({ data }: { data: any }) {
   );
 }
 
-function ChartViz({ data }: { data: any }) {
+function ChartViz({ data, cityFlag }: { data: any; cityFlag?: string }) {
   if (!data) return null;
   switch (data.type) {
     case "deltaBar":
       return <DeltaBar data={data} />;
     case "groupedBar":
       return <GroupedBar data={data} />;
+    case "sourceDonut":
+      return <SourceDonut data={data} cityFlag={cityFlag} />;
     case "sparkline":
       return <Sparkline data={data} />;
     case "coverageRing":
@@ -264,7 +308,7 @@ function CityExampleRow({
 
       {example.chartData && (
         <div className="rounded-lg bg-muted/30 p-4">
-          <ChartViz data={example.chartData} />
+          <ChartViz data={example.chartData} cityFlag={city.flag} />
         </div>
       )}
 
@@ -382,7 +426,7 @@ export function PracticeCardTile({
 
         {example.chartData && (
           <div className="rounded-lg bg-muted/30 p-3" style={{ minHeight: 140 }}>
-            <ChartViz data={example.chartData} />
+            <ChartViz data={example.chartData} cityFlag={city.flag} />
           </div>
         )}
 
