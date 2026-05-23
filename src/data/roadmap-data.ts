@@ -896,6 +896,70 @@ export const PRACTICE_CARDS: PracticeCard[] = [
     ],
     relatedPracticeIds: ["d4-policy-timeline", "d9-governance"],
   },
+
+  // Domain 11 — Lesson Sharing & Peer Learning
+  {
+    id: "d11-peer-learning",
+    name: "Peer Learning & Knowledge Exchange",
+    domainId: 11,
+    description: "Cities learning from cities — study tours, peer exchanges, and knowledge networks that accelerate adoption by sharing what works rather than starting from scratch.",
+    totalPopulationImpacted: "52.0M",
+    cityCount: 3,
+    cityExamples: [
+      {
+        citySlug: "london",
+        provenance: "City Achievement",
+        interventionName: "ULEZ model exported — 4 European cities adopted LEZ frameworks",
+        introducedYear: 2019,
+        outcomeState: "measured",
+        outcomeChange: "4 cities adopted",
+        chartData: {
+          type: "peerNetwork",
+          headline: "ULEZ model adopted by 4 cities",
+          peers: [
+            { flag: "\u{1F1E7}\u{1F1EA}", name: "Brussels", label: "City-wide LEZ 2018" },
+            { flag: "\u{1F1EB}\u{1F1F7}", name: "Paris", label: "ZFE expanded 2017" },
+            { flag: "\u{1F1EE}\u{1F1F9}", name: "Milan", label: "Area B launched 2019" },
+            { flag: "\u{1F1F5}\u{1F1F1}", name: "Warsaw", label: "LEZ introduced 2024" },
+          ],
+        },
+      },
+      {
+        citySlug: "paris",
+        provenance: "City Achievement",
+        interventionName: "Crit'Air vignette system — shared with Brussels and Milan",
+        introducedYear: 2017,
+        outcomeState: "measured",
+        outcomeChange: "2 cities adopted",
+        chartData: {
+          type: "peerNetwork",
+          headline: "Crit'Air model shared with 2 cities",
+          peers: [
+            { flag: "\u{1F1E7}\u{1F1EA}", name: "Brussels", label: "Vehicle labelling 2020" },
+            { flag: "\u{1F1EE}\u{1F1F9}", name: "Milan", label: "Euro class system 2019" },
+          ],
+        },
+      },
+      {
+        citySlug: "jakarta",
+        provenance: "BC Partnership",
+        interventionName: "Community monitoring model — shared via C40 and BC networks",
+        introducedYear: 2022,
+        outcomeState: "baseline-established",
+        outcomeChange: "3 cities learning",
+        chartData: {
+          type: "peerNetwork",
+          headline: "Community model shared with 3 cities",
+          peers: [
+            { flag: "\u{1F1F0}\u{1F1EA}", name: "Nairobi", label: "Citizen sensors 2023" },
+            { flag: "\u{1F1EC}\u{1F1ED}", name: "Accra", label: "AirQo expansion 2023" },
+            { flag: "\u{1F1E8}\u{1F1F4}", name: "Bogota", label: "Study tour 2024" },
+          ],
+        },
+      },
+    ],
+    relatedPracticeIds: ["d5-lez", "d8-awareness"],
+  },
 ];
 
 // ---------------------------------------------------------------------------
