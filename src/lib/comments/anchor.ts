@@ -5,8 +5,9 @@
  *   Pure-DOM (no React) capture + resolve of a durable reference to a specific DOM
  *   element, so a reviewer's comment can re-attach to the SAME element across reloads
  *   and viewport resizes. This is the single source of truth for anchoring — both the
- *   AnnotationLayer element-mode path and any future tooling import from here. The old
- *   duplicate at direction-1-mapbox/AnnotationLayer.tsx is NOT extended with this logic.
+ *   AnnotationLayer element-mode path and any future tooling import from here. (The old
+ *   direction-1-mapbox/AnnotationLayer.tsx duplicate has been removed; that route now uses
+ *   the shared direction-1-mapbox-v2/AnnotationLayer on the viewport/spatial-pin path.)
  *
  * Strategy — capture every signal we can, resolve best-first
  *   captureAnchor records a redundant set of locators. resolveAnchor then tries them in

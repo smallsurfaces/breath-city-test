@@ -1,7 +1,8 @@
 'use client'
 
 import React, { useState, useEffect, useRef, useCallback } from 'react'
-import AnnotationLayer from './AnnotationLayer'
+import AnnotationLayer from '../direction-1-mapbox-v2/AnnotationLayer'
+import type { MapAdapter } from '../direction-1-mapbox-v2/AnnotationLayer.types'
 import { PrototypeHeader } from '../_components/PrototypeHeader'
 import mapboxgl from 'mapbox-gl'
 import circle from '@turf/circle'
@@ -301,6 +302,48 @@ export default function DirectionOneMapboxPage(): React.ReactElement {
 
   const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN
 
+  // ── AnnotationLayer adapter + enter-mode handler ──────────────────────────────
+  // This page uses the shared AnnotationLayer (../direction-1-mapbox-v2/AnnotationLayer),
+  // whose map-freeze and host-clearing logic are passed in as props rather than wired
+  // inline. mapAdapter.freeze()/unfreeze() disable/re-enable the exact same 6 Mapbox
+  // interaction handlers the old inline implementation toggled — omitting any one would
+  // leave the map partially interactive during annotation mode. onEnterMode mirrors the
+  // old enterAnnotationMode side effects: remove any open desktop popup and clear the
+  // selected sensor (mobile bottom sheet). anchorMode is left unset so the layer stays on
+  // the spatial-pin (viewport) path — this is a map build, not element-anchored comments.
+
+  const mapAdapter: MapAdapter = {
+    freeze: useCallback((): void => {
+      const map = mapRef.current
+      if (map === null) return
+      map.dragPan.disable()
+      map.scrollZoom.disable()
+      map.touchZoomRotate.disable()
+      map.keyboard.disable()
+      map.doubleClickZoom.disable()
+      map.dragRotate.disable()
+    }, []),
+
+    unfreeze: useCallback((): void => {
+      const map = mapRef.current
+      if (map === null) return
+      map.dragPan.enable()
+      map.scrollZoom.enable()
+      map.touchZoomRotate.enable()
+      map.keyboard.enable()
+      map.doubleClickZoom.enable()
+      map.dragRotate.enable()
+    }, []),
+  }
+
+  // Fires when annotation mode is entered — clear the open desktop popup (if any) and the
+  // selected sensor so neither overlaps the annotation cards. (= old onClearSensor + the
+  // inline popupRef.remove() the old component ran on enter.)
+  const handleEnterAnnotateMode = useCallback((): void => {
+    popupRef.current?.remove()
+    setSelectedSensor(null)
+  }, [])
+
   // ── Responsive check ────────────────────────────────────────────────────────
 
   useEffect(() => {
@@ -540,18 +583,48 @@ export default function DirectionOneMapboxPage(): React.ReactElement {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100dvh', overflow: 'hidden' }}>
 
+      {/*
+        Inject the AnnotationLayer's --al-* token interface, mapped onto the BC --bc-*
+        semantic tokens (no hardcoded hex). The shared AnnotationLayer styles itself from
+        --al-* custom properties; map builds must inject their own block per-route
+        (PrototypeHeader only injects --al-* when no commentSlot is passed). This mirrors
+        what direction-1-mapbox-v2 and direction-2-live-data already do.
+      */}
+      <style>{`
+        :root {
+          --al-overlay-bg:     var(--bc-semantic-map-overlay);
+          --al-overlay-border: var(--bc-semantic-map-grid);
+          --al-input-bg:       var(--bc-semantic-bg);
+          --al-input-border:   var(--bc-semantic-border);
+          --al-text:           var(--bc-semantic-text);
+          --al-muted:          var(--bc-semantic-muted);
+          --al-brand:          var(--bc-semantic-brand);
+          --al-success:        var(--bc-semantic-success);
+          --al-error:          var(--bc-semantic-error);
+          --al-white:          var(--bc-color-white);
+          --al-font:           var(--bc-font-family-sans, sans-serif);
+          --al-radius-card:    8px;
+          --al-radius-input:   6px;
+          --al-radius-pill:    99px;
+        }
+      `}</style>
+
       {/* Standard prototype chrome. The old fixed top wordmark search bar was retired —
           its wordmark is now owned by this bar; its location chip was a static, non-
           functional placeholder (search was never implemented) so it was dropped rather
-          than carried below. The AnnotationLayer is passed as commentSlot with identical
-          props (mapRef/popupRef/onClearSensor) so saved comments are unchanged. */}
+          than carried below. The AnnotationLayer is the SHARED component
+          (../direction-1-mapbox-v2/AnnotationLayer) passed as commentSlot. It keeps the
+          same storage key ("bc-annotations-direction1") so existing saved comments are
+          unchanged; map freeze + popup/sensor clearing are passed via mapAdapter +
+          onEnterMode. anchorMode is left unset → the spatial-pin (viewport) path. */}
       <PrototypeHeader
         buildName="Direction 01 — Mapbox Prototype"
         commentSlot={
           <AnnotationLayer
-            mapRef={mapRef}
-            popupRef={popupRef}
-            onClearSensor={() => setSelectedSensor(null)}
+            storageKey="bc-annotations-direction1"
+            label="Annotate"
+            mapAdapter={mapAdapter}
+            onEnterMode={handleEnterAnnotateMode}
           />
         }
       />
