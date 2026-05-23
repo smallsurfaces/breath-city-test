@@ -92,7 +92,9 @@ export function ProbeToggle({ isActive, onToggle }: Props): React.ReactElement {
       <div
         style={{
           position: 'fixed',
-          top: '1rem',
+          // Nudged below the standard PrototypeHeader bar (~56px) so the centre-top
+          // toggle is not tucked under it.
+          top: 'calc(56px + 1rem)',
           left: '50%',
           transform: 'translateX(-50%)',
           zIndex: 20,

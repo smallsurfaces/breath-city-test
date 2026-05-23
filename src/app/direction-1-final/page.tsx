@@ -14,6 +14,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { direction1Light, applyTheme } from "@/themes"
+import { PrototypeHeader } from "../_components/PrototypeHeader"
 
 // ─── Token map ────────────────────────────────────────────────────────────────
 
@@ -127,7 +128,13 @@ export default function Direction1FinalPage() {
   const forecastMax = Math.max(...FORECAST.map((f) => f.aqi))
 
   return (
-    <div
+    <>
+      {/* Standard prototype chrome — rendered OUTSIDE the theme-scoped wrapper below,
+          because that wrapper locally overrides --background/--border/--foreground with
+          raw HSL triplets (DIR1_VARS) that would break the bar's semantic-token styling. */}
+      <PrototypeHeader buildName="Direction 01 — Clear Signal (Final)" />
+
+      <div
       style={{
         ...themeStyle,
         ...wrapperStyle,
@@ -887,5 +894,6 @@ export default function Direction1FinalPage() {
         </div>
       </div>
     </div>
+    </>
   )
 }

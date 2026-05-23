@@ -47,10 +47,10 @@ const NAV = [
 export function BcHeader() {
   return (
     <>
-      {/* Prototype bar — not part of BC's real chrome; carries the SOLE
-          "Back to hub" back-nav for these routes (the global HomeNav is
-          suppressed on /ux-concepts/cities to avoid a duplicate) and labels this
-          honestly as an in-context mock. */}
+      {/* Prototype bar — not part of BC's real chrome; labels this honestly as an
+          in-context mock. It keeps a back-to-hub link, but that is now redundant:
+          the standard PrototypeHeader (rendered above BcHeader in the cities
+          layout.tsx) owns the canonical back-to-hub. Kept here as harmless. */}
       <div className="border-b border-border bg-muted/50">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-2">
           <Link

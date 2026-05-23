@@ -5,9 +5,11 @@
   "description": "Design system tokens for Breathe Cities — compiles to CSS custom properties and Tailwind theme",
   "scripts": {
     "dev": "concurrently \"npm run watch:tokens\" \"next dev\"",
-    "build": "npm run build:tokens && next build",
+    "prebuild": "npm run build:dates",
+    "build": "npm run build:dates && npm run build:tokens && next build",
     "start": "next start",
     "lint": "next lint",
+    "build:dates": "node scripts/gen-build-dates.mjs",
     "build:tokens": "style-dictionary build --config style-dictionary.config.js",
     "watch:tokens": "nodemon --watch tokens --ext json --exec 'npm run build:tokens'"
   },

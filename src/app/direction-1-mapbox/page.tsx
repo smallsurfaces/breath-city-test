@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react'
 import AnnotationLayer from './AnnotationLayer'
+import { PrototypeHeader } from '../_components/PrototypeHeader'
 import mapboxgl from 'mapbox-gl'
 import circle from '@turf/circle'
 import { featureCollection } from '@turf/helpers'
@@ -537,63 +538,27 @@ export default function DirectionOneMapboxPage(): React.ReactElement {
   // ─────────────────────────────────────────────────────────────────────────────
 
   return (
-    <div style={{ position: 'relative', height: '100dvh', overflow: 'hidden' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100dvh', overflow: 'hidden' }}>
 
-      {/* ── Zone 1 — Top search bar ─────────────────────────────────────────── */}
-      <header
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          height: '56px',
-          zIndex: 50,
-          display: 'flex',
-          alignItems: 'center',
-          gap: '1rem',
-          padding: '0 1.5rem',
-          background: 'var(--bc-semantic-map-overlay)',
-          backdropFilter: 'blur(8px)',
-          WebkitBackdropFilter: 'blur(8px)',
-          borderBottom: '1px solid var(--bc-semantic-map-grid)',
-        }}
-      >
-        {/* Wordmark */}
-        <span
-          style={{
-            color: 'var(--bc-semantic-brand)',
-            fontWeight: 700,
-            fontSize: '1rem',
-            whiteSpace: 'nowrap',
-            fontFamily: 'var(--bc-font-family-sans, sans-serif)',
-          }}
-        >
-          Breathe Cities
-        </span>
+      {/* Standard prototype chrome. The old fixed top wordmark search bar was retired —
+          its wordmark is now owned by this bar; its location chip was a static, non-
+          functional placeholder (search was never implemented) so it was dropped rather
+          than carried below. The AnnotationLayer is passed as commentSlot with identical
+          props (mapRef/popupRef/onClearSensor) so saved comments are unchanged. */}
+      <PrototypeHeader
+        buildName="Direction 01 — Mapbox Prototype"
+        commentSlot={
+          <AnnotationLayer
+            mapRef={mapRef}
+            popupRef={popupRef}
+            onClearSensor={() => setSelectedSensor(null)}
+          />
+        }
+      />
 
-        {/* Location chip — intentional static state, search not yet implemented */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.375rem',
-            height: '36px',
-            padding: '0 0.875rem',
-            border: '1px solid var(--bc-semantic-border)',
-            borderRadius: '99px',
-            background: 'var(--bc-semantic-bg)',
-            color: 'var(--bc-semantic-text)',
-            fontFamily: 'var(--bc-font-family-sans, sans-serif)',
-            fontSize: '0.875rem',
-            whiteSpace: 'nowrap',
-          }}
-        >
-          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style={{ flexShrink: 0 }}>
-            <path d="M6 1C4.067 1 2.5 2.567 2.5 4.5c0 2.625 3.5 6.5 3.5 6.5s3.5-3.875 3.5-6.5C9.5 2.567 7.933 1 6 1zm0 4.75A1.25 1.25 0 1 1 6 3.25a1.25 1.25 0 0 1 0 2.5z" fill="var(--bc-semantic-muted)"/>
-          </svg>
-          Vienna, Austria
-        </div>
-      </header>
+      {/* Map column fills the remaining height below the bar (flex:1 replaces the old
+          full-bleed absolute fill against a 100dvh parent). */}
+      <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
 
       {/* ── Zone 2 — Floating toggle panel (desktop only) ──────────────────── */}
       {!isMobile && (
@@ -758,12 +723,11 @@ export default function DirectionOneMapboxPage(): React.ReactElement {
         </span>
       </footer>
 
-      {/* ── Annotation layer ────────────────────────────────────────────────── */}
-      <AnnotationLayer
-        mapRef={mapRef}
-        popupRef={popupRef}
-        onClearSensor={() => setSelectedSensor(null)}
-      />
+      {/* end map column */}
+      </div>
+
+      {/* AnnotationLayer relocated into PrototypeHeader's commentSlot (above) — its
+          fixed-position toggle still sits top-right; props unchanged. */}
 
       {/* ── Popup styles override ────────────────────────────────────────────── */}
       <style>{`

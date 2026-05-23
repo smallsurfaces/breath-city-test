@@ -17,6 +17,7 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import type { City, Job, Hirer, ChainStep, MatrixCell, SupplyStatus, DemandStatus } from "@/types/jtbd";
 import { JtbdNav } from "./_components/JtbdNav";
+import { PrototypeHeader } from "../_components/PrototypeHeader";
 
 // JSON data imports — resolveJsonModule is enabled in tsconfig
 // cities.json: all three BC portfolio cities (Paris T1, CDMX T2, Accra T3)
@@ -474,7 +475,11 @@ export default function JtbdFrameworkPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background p-6 font-mono text-foreground">
+    <div className="min-h-screen bg-background font-mono text-foreground">
+      {/* Standard prototype chrome — back-to-hub + name + updated stamp. Content below. */}
+      <PrototypeHeader buildName="JTBD Framework — Matrix" />
+
+      <div className="p-6">
       {/* Header */}
       <div className="mb-6">
         {/* Shared tab navigation — active on "matrix" */}
@@ -652,6 +657,7 @@ export default function JtbdFrameworkPage() {
           y={tooltip.y}
         />
       )}
+      </div>
     </div>
   );
 }
