@@ -1,7 +1,7 @@
 /**
  * CoverageMatrix.tsx
  *
- * Purpose: Renders the 14-city x 12-domain coverage grid — the navigation
+ * Purpose: Renders the 14-city x 11-domain coverage grid — the navigation
  * engine of the roadmap. Filled cells link to the domain page scrolled to
  * that city's example. Empty cells are visually distinct (gray).
  *

@@ -1113,88 +1113,6 @@ function InvestmentROI({ data }: { data: any }) {
   );
 }
 
-function PeerNetwork({ data }: { data: any }) {
-  // data shape: {
-  //   type: "peerNetwork",
-  //   headline: "ULEZ model exported to 4 cities",
-  //   peers: [
-  //     { flag: "BE", name: "Brussels", label: "LEZ adopted 2018" },
-  //     { flag: "FR", name: "Paris", label: "ZFE expanded 2017" },
-  //     ...
-  //   ]
-  // }
-  const peers: { flag: string; name: string; label: string }[] = data.peers;
-  const count = peers.length;
-
-  const w = 260;
-  const h = 160;
-  const cx = w / 2;
-  const cy = 65;
-  const radius = 55;
-
-  // Arrange peers in a semicircle (arc spread across upper half)
-  const startAngle = -180 + (180 / (count + 1));
-  const angleStep = 180 / (count + 1);
-
-  const peerPositions = peers.map((_, i) => {
-    const angle = (startAngle + (i + 1) * angleStep) * (Math.PI / 180);
-    return {
-      x: cx + radius * Math.cos(angle),
-      y: cy + radius * Math.sin(angle),
-    };
-  });
-
-  return (
-    <div className="space-y-2">
-      <div className="text-sm font-semibold text-foreground">{data.headline}</div>
-      <svg viewBox={`0 0 ${w} ${h}`} className="w-full" style={{ height: 160 }}>
-        {/* Connection lines from center to peers */}
-        {peerPositions.map((pos, i) => (
-          <line
-            key={`line-${i}`}
-            x1={cx} y1={cy} x2={pos.x} y2={pos.y}
-            stroke="currentColor" strokeWidth="1.5" className="text-foreground/20"
-          />
-        ))}
-
-        {/* Center node — source city */}
-        <circle
-          cx={cx} cy={cy} r={16}
-          fill="color-mix(in srgb, var(--foreground) 10%, transparent)"
-          stroke="color-mix(in srgb, var(--foreground) 30%, transparent)"
-          strokeWidth="1.5"
-        />
-
-        {/* Peer nodes */}
-        {peerPositions.map((pos, i) => (
-          <g key={`peer-${i}`}>
-            <circle
-              cx={pos.x} cy={pos.y} r={12}
-              fill="color-mix(in srgb, var(--foreground) 8%, transparent)"
-              stroke="color-mix(in srgb, var(--foreground) 25%, transparent)"
-              strokeWidth="1"
-            />
-            {/* Peer flag */}
-            <text x={pos.x} y={pos.y + 4} textAnchor="middle" style={{ fontSize: 11 }}>{peers[i].flag}</text>
-            {/* Peer name below */}
-            <text x={pos.x} y={pos.y + 24} textAnchor="middle" fill="currentColor" className="text-muted-foreground" style={{ fontSize: 7 }}>{peers[i].name}</text>
-          </g>
-        ))}
-      </svg>
-
-      {/* Legend */}
-      <div className="grid gap-0.5">
-        {peers.map((p, i) => (
-          <div key={i} className="text-xs text-muted-foreground">
-            <span className="mr-1">{p.flag}</span>
-            {p.name} — <span className="text-foreground font-medium">{p.label}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 function ChartViz({ data, cityFlag }: { data: any; cityFlag?: string }) {
   if (!data) return null;
   switch (data.type) {
@@ -1234,8 +1152,6 @@ function ChartViz({ data, cityFlag }: { data: any; cityFlag?: string }) {
       return <FundingProgression data={data} />;
     case "investmentROI":
       return <InvestmentROI data={data} />;
-    case "peerNetwork":
-      return <PeerNetwork data={data} />;
     case "outcomeHighlight":
       return <OutcomeHighlight data={data} />;
     default:

@@ -1,7 +1,7 @@
 /**
  * CoverageStrip.tsx
  *
- * Purpose: Compact horizontal strip showing which of the 12 domains a city
+ * Purpose: Compact horizontal strip showing which of the 11 domains a city
  * has acted in. Used on city detail pages as a visual summary. Each dot is
  * filled (active) or empty (not yet), with a tooltip showing the domain name.
  *
@@ -23,7 +23,7 @@ interface CoverageStripProps {
   citySlug: string;
 }
 
-/** Horizontal row of 12 dots showing domain coverage for a single city */
+/** Horizontal row of 11 dots showing domain coverage for a single city */
 export function CoverageStrip({ citySlug }: CoverageStripProps) {
   const coverage = COVERAGE_MATRIX[citySlug] ?? [];
 

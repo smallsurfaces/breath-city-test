@@ -26,7 +26,7 @@ interface DomainPageProps {
   params: Promise<{ slug: string }>;
 }
 
-/** Pre-generate pages for all 12 domain slugs */
+/** Pre-generate pages for all 11 domain slugs */
 export function generateStaticParams() {
   return DOMAINS.map((d) => ({ slug: d.slug }));
 }

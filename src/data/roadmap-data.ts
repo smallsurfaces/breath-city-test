@@ -33,7 +33,7 @@ export interface City {
   region: string;
 }
 
-/** A domain in the roadmap (the 12 thematic areas) */
+/** A domain in the roadmap (the 11 thematic areas) */
 export interface Domain {
   id: number;
   slug: string;
@@ -106,7 +106,6 @@ export const DOMAINS: Domain[] = [
   { id: 8, slug: "awareness", name: "Raising Awareness & Community Engagement", shortName: "Awareness", stage: "Enabling", description: "Making air quality visible to citizens. Public awareness campaigns, school programmes, community monitoring, and the civic engagement that builds demand for clean air and sustains political will." },
   { id: 9, slug: "governance", name: "Multi-Level Governance & Coordination", shortName: "Governance", stage: "Enabling", description: "Aligning national, regional, and municipal action. Inter-agency coordination, multi-level governance frameworks, and the institutional arrangements that prevent fragmented or contradictory policy responses." },
   { id: 10, slug: "funding", name: "Funding, Sustainability & Progress Tracking", shortName: "Funding", stage: "Enabling", description: "Financing the transition and tracking progress. Climate finance, development bank loans, municipal budgets, and the monitoring frameworks that measure whether investments are delivering cleaner air." },
-  { id: 11, slug: "lesson-sharing", name: "Lesson Sharing & Peer Learning", shortName: "Peer Learning", stage: "Enabling", description: "Cities learning from cities. Study tours, peer exchanges, knowledge platforms, and the networks that accelerate adoption by letting cities learn from each other rather than starting from scratch." },
   { id: 12, slug: "data-technology", name: "Data & Technology Infrastructure", shortName: "Data & Tech", stage: "Seeing", description: "The digital backbone. Open data platforms, APIs, forecasting models, and the technology infrastructure that turns raw sensor readings into actionable intelligence for city managers and citizens." },
 ];
 
@@ -116,20 +115,20 @@ export const DOMAINS: Domain[] = [
 // ---------------------------------------------------------------------------
 
 export const COVERAGE_MATRIX: Record<string, boolean[]> = {
-  "paris":          [true,  true,  true,  true,  true,  true,  true,  true,  true,  false, true,  true],
-  "london":         [true,  true,  true,  true,  true,  false, false, true,  true,  true,  true,  true],
-  "mexico-city":    [true,  true,  false, true,  true,  false, false, true,  true,  false, false, true],
-  "milan":          [true,  false, false, true,  true,  false, true,  true,  false, false, false, false],
-  "brussels":       [true,  false, false, true,  true,  false, true,  true,  true,  false, true,  false],
-  "jakarta":        [true,  false, true,  false, false, false, false, true,  false, false, true,  true],
-  "johannesburg":   [true,  false, false, true,  false, true,  false, false, true,  false, false, true],
-  "accra":          [true,  true,  false, false, false, false, false, false, false, false, false, false],
-  "nairobi":        [true,  true,  false, false, false, false, false, false, false, false, false, false],
-  "bangkok":        [true,  false, true,  true,  true,  false, false, true,  true,  false, true,  false],
-  "bogota":         [true,  false, false, true,  true,  false, false, true,  false, false, true,  false],
-  "rio-de-janeiro": [true,  false, false, true,  true,  false, false, true,  false, false, false, true],
-  "sofia":          [true,  false, false, true,  false, false, false, false, true,  false, false, false],
-  "warsaw":         [true,  false, false, true,  true,  true,  true,  true,  true,  true,  true,  true],
+  "paris":          [true,  true,  true,  true,  true,  true,  true,  true,  true,  false, true],
+  "london":         [true,  true,  true,  true,  true,  false, false, true,  true,  true,  true],
+  "mexico-city":    [true,  true,  false, true,  true,  false, false, true,  true,  false, true],
+  "milan":          [true,  false, false, true,  true,  false, true,  true,  false, false, false],
+  "brussels":       [true,  false, false, true,  true,  false, true,  true,  true,  false, false],
+  "jakarta":        [true,  false, true,  false, false, false, false, true,  false, false, true],
+  "johannesburg":   [true,  false, false, true,  false, true,  false, false, true,  false, true],
+  "accra":          [true,  true,  false, false, false, false, false, false, false, false, false],
+  "nairobi":        [true,  true,  false, false, false, false, false, false, false, false, false],
+  "bangkok":        [true,  false, true,  true,  true,  false, false, true,  true,  false, false],
+  "bogota":         [true,  false, false, true,  true,  false, false, true,  false, false, false],
+  "rio-de-janeiro": [true,  false, false, true,  true,  false, false, true,  false, false, true],
+  "sofia":          [true,  false, false, true,  false, false, false, false, true,  false, false],
+  "warsaw":         [true,  false, false, true,  true,  true,  true,  true,  true,  true,  true],
 };
 
 // ---------------------------------------------------------------------------
@@ -929,68 +928,6 @@ export const PRACTICE_CARDS: PracticeCard[] = [
     relatedPracticeIds: ["d4-policy-timeline", "d9-governance"],
   },
 
-  // Domain 11 — Lesson Sharing & Peer Learning
-  {
-    id: "d11-peer-learning",
-    name: "Peer Learning & Knowledge Exchange",
-    domainId: 11,
-    description: "Cities learning from cities — study tours, peer exchanges, and knowledge networks that accelerate adoption by sharing what works rather than starting from scratch.",
-    totalPopulationImpacted: "52.0M",
-    cityCount: 3,
-    cityExamples: [
-      {
-        citySlug: "london",
-        provenance: "City Achievement",
-        interventionName: "ULEZ model exported — 4 European cities adopted LEZ frameworks",
-        introducedYear: 2019,
-        outcomeState: "measured",
-        outcomeChange: "4 cities adopted",
-        chartData: {
-          type: "peerNetwork",
-          headline: "ULEZ model adopted by 4 cities",
-          peers: [
-            { flag: "BE", name: "Brussels", label: "City-wide LEZ 2018" },
-            { flag: "FR", name: "Paris", label: "ZFE expanded 2017" },
-            { flag: "IT", name: "Milan", label: "Area B launched 2019" },
-            { flag: "PL", name: "Warsaw", label: "LEZ introduced 2024" },
-          ],
-        },
-      },
-      {
-        citySlug: "paris",
-        provenance: "City Achievement",
-        interventionName: "Crit'Air vignette system — shared with Brussels and Milan",
-        introducedYear: 2017,
-        outcomeState: "measured",
-        outcomeChange: "2 cities adopted",
-        chartData: {
-          type: "peerNetwork",
-          headline: "Crit'Air model shared with 2 cities",
-          peers: [
-            { flag: "BE", name: "Brussels", label: "Vehicle labelling 2020" },
-            { flag: "IT", name: "Milan", label: "Euro class system 2019" },
-          ],
-        },
-      },
-      {
-        citySlug: "bangkok",
-        provenance: "BC Partnership",
-        interventionName: "PM2.5 crisis response model — shared across Southeast Asian cities",
-        introducedYear: 2024,
-        outcomeState: "baseline-established",
-        outcomeChange: "2 cities learning",
-        chartData: {
-          type: "peerNetwork",
-          headline: "Crisis response shared with 2 cities",
-          peers: [
-            { flag: "ID", name: "Jakarta", label: "Sensor scaling 2023" },
-            { flag: "VN", name: "Hanoi", label: "PM2.5 response 2024" },
-          ],
-        },
-      },
-    ],
-    relatedPracticeIds: ["d5-lez", "d8-awareness"],
-  },
 ];
 
 // ---------------------------------------------------------------------------
