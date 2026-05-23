@@ -841,6 +841,61 @@ export const PRACTICE_CARDS: PracticeCard[] = [
     ],
     relatedPracticeIds: ["d4-policy-timeline", "d8-awareness"],
   },
+
+  // Domain 10 — Funding, Sustainability & Progress Tracking
+  {
+    id: "d10-funding",
+    name: "AQ Investment & Returns",
+    domainId: 10,
+    description: "Financing the clean air transition — municipal budgets, national grants, EU funds, and climate finance — and tracking whether investments deliver measurable air quality improvement.",
+    totalPopulationImpacted: "10.8M",
+    cityCount: 2,
+    cityExamples: [
+      {
+        citySlug: "london",
+        provenance: "City Achievement",
+        interventionName: "£875M clean air investment — ULEZ to monitoring",
+        introducedYear: 2015,
+        outcomeState: "measured",
+        outcomeChange: "-28% NO₂",
+        chartData: {
+          type: "investmentROI",
+          investment: "£875M",
+          investmentLabel: "Total AQ investment 2015–2024",
+          allocations: [
+            { label: "ULEZ & transport infrastructure", pct: 52 },
+            { label: "Monitoring & data systems", pct: 18 },
+            { label: "Green infrastructure", pct: 15 },
+            { label: "Schools & awareness", pct: 15 },
+          ],
+          result: "-28% NO₂",
+          resultLabel: "London-wide nitrogen dioxide reduction",
+        },
+      },
+      {
+        citySlug: "warsaw",
+        provenance: "City Achievement",
+        interventionName: "PLN 2.1B heating transition + enforcement programme",
+        introducedYear: 2017,
+        outcomeState: "measured",
+        outcomeChange: "-46% PM2.5",
+        chartData: {
+          type: "investmentROI",
+          investment: "PLN 2.1B",
+          investmentLabel: "Total AQ investment 2017–2024",
+          allocations: [
+            { label: "Household heating transition", pct: 58 },
+            { label: "LEZ infrastructure", pct: 22 },
+            { label: "Monitoring expansion", pct: 12 },
+            { label: "Public engagement", pct: 8 },
+          ],
+          result: "-46% PM2.5",
+          resultLabel: "City-wide particulate matter reduction",
+        },
+      },
+    ],
+    relatedPracticeIds: ["d4-policy-timeline", "d9-governance"],
+  },
 ];
 
 // ---------------------------------------------------------------------------

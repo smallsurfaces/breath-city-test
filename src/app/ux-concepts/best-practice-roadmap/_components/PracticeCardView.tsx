@@ -942,6 +942,82 @@ function GovernanceStaircase({ data }: { data: any }) {
   );
 }
 
+function InvestmentROI({ data }: { data: any }) {
+  // data shape: {
+  //   type: "investmentROI",
+  //   investment: "€1.2B",
+  //   investmentLabel: "Total AQ investment 2015–2024",
+  //   allocations: [
+  //     { label: "Transport & LEZ infrastructure", pct: 45 },
+  //     { label: "Monitoring network", pct: 20 },
+  //     { label: "Green infrastructure", pct: 25 },
+  //     { label: "Awareness & engagement", pct: 10 },
+  //   ],
+  //   result: "-42% PM2.5",
+  //   resultLabel: "Measurable air quality improvement",
+  // }
+  const allocations: { label: string; pct: number }[] = data.allocations;
+  const opacities = [60, 45, 30, 18];
+
+  return (
+    <div className="space-y-3">
+      {/* Investment amount — big number */}
+      <div className="text-center">
+        <div className="text-2xl font-bold text-foreground">{data.investment}</div>
+        <div className="text-xs text-muted-foreground">{data.investmentLabel}</div>
+      </div>
+
+      {/* Down arrow */}
+      <div className="flex justify-center">
+        <svg width="16" height="20" viewBox="0 0 16 20">
+          <path d="M8,0 L8,14 M2,10 L8,16 L14,10" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-foreground/30" />
+        </svg>
+      </div>
+
+      {/* Allocation bar + legend */}
+      <div className="space-y-1.5">
+        <div className="flex h-5 w-full rounded overflow-hidden">
+          {allocations.map((a, i) => (
+            <div
+              key={i}
+              className="h-full"
+              style={{
+                width: `${a.pct}%`,
+                background: `color-mix(in srgb, var(--foreground) ${opacities[i] ?? 15}%, transparent)`,
+              }}
+            />
+          ))}
+        </div>
+        <div className="grid gap-0.5">
+          {allocations.map((a, i) => (
+            <div key={i} className="flex items-center gap-2 text-xs">
+              <span
+                className="inline-block w-2.5 h-2.5 rounded-sm flex-shrink-0"
+                style={{ background: `color-mix(in srgb, var(--foreground) ${opacities[i] ?? 15}%, transparent)` }}
+              />
+              <span className="text-muted-foreground flex-1 truncate">{a.label}</span>
+              <span className="font-semibold text-foreground">{a.pct}%</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Down arrow */}
+      <div className="flex justify-center">
+        <svg width="16" height="20" viewBox="0 0 16 20">
+          <path d="M8,0 L8,14 M2,10 L8,16 L14,10" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-foreground/30" />
+        </svg>
+      </div>
+
+      {/* Result — bold outcome */}
+      <div className="text-center rounded-lg p-2" style={{ background: 'color-mix(in srgb, var(--foreground) 8%, transparent)' }}>
+        <div className="text-xl font-bold text-foreground">{data.result}</div>
+        <div className="text-xs text-muted-foreground">{data.resultLabel}</div>
+      </div>
+    </div>
+  );
+}
+
 function ChartViz({ data, cityFlag }: { data: any; cityFlag?: string }) {
   if (!data) return null;
   switch (data.type) {
@@ -975,6 +1051,8 @@ function ChartViz({ data, cityFlag }: { data: any; cityFlag?: string }) {
       return <AwarenessTimeline data={data} />;
     case "governanceStaircase":
       return <GovernanceStaircase data={data} />;
+    case "investmentROI":
+      return <InvestmentROI data={data} />;
     default:
       return null;
   }
