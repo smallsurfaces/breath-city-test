@@ -93,7 +93,7 @@ function DotMap({ dots }: { dots: { x: number; y: number; ref: boolean }[] }) {
           <path d="M0 8L8 0" stroke="currentColor" strokeWidth="0.3" className="text-foreground/8" />
         </pattern>
       </defs>
-      <rect width="100" height="100" rx="4" fill="hsl(var(--muted) / 0.2)" />
+      <rect width="100" height="100" rx="4" fill="currentColor" className="text-foreground/5" />
       <rect width="100" height="100" rx="4" fill="url(#crosshatch)" />
       {dots.map((dot, i) =>
         dot.ref ? (
@@ -102,7 +102,7 @@ function DotMap({ dots }: { dots: { x: number; y: number; ref: boolean }[] }) {
             cx={dot.x}
             cy={dot.y}
             r={2.8}
-            fill="hsl(var(--foreground) / 0.7)"
+            fill="currentColor" className="text-foreground/70"
           />
         ) : (
           <circle
@@ -111,7 +111,7 @@ function DotMap({ dots }: { dots: { x: number; y: number; ref: boolean }[] }) {
             cy={dot.y}
             r={2.2}
             fill="none"
-            stroke="hsl(var(--foreground) / 0.4)"
+            stroke="currentColor" className="text-foreground/40"
             strokeWidth="0.8"
           />
         )
