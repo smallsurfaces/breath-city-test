@@ -818,6 +818,130 @@ function AwarenessTimeline({ data }: { data: any }) {
   );
 }
 
+function GovernanceStaircase({ data }: { data: any }) {
+  // data shape: {
+  //   type: "governanceStaircase",
+  //   steps: [
+  //     { year: 2015, layer: "Municipal AQ office", result: "First monitoring network" },
+  //     { year: 2017, layer: "National clean air act", result: "Enforcement powers granted" },
+  //     { year: 2019, layer: "Regional coordination", result: "Cross-boundary standards" },
+  //     { year: 2022, layer: "Community framework", result: "Citizen reporting +340%" },
+  //   ]
+  // }
+  const steps: { year: number; layer: string; result: string }[] = data.steps;
+  const count = steps.length;
+
+  const w = 320;
+  const h = 180;
+  const padL = 8;
+  const padR = 8;
+  const padT = 12;
+  const padB = 20;
+  const chartW = w - padL - padR;
+  const chartH = h - padT - padB;
+
+  const stepW = chartW / count;
+  const stepH = chartH / count;
+
+  // Build staircase path — steps going up from bottom-left to top-right
+  let pathD = `M${padL},${h - padB}`;
+  steps.forEach((_, i) => {
+    const x = padL + i * stepW;
+    const y = h - padB - (i + 1) * stepH;
+    pathD += ` L${x},${y} L${x + stepW},${y}`;
+  });
+  // Close the area back down to baseline
+  pathD += ` L${padL + chartW},${h - padB} Z`;
+
+  // Staircase outline (just the steps, no bottom close)
+  let outlineD = `M${padL},${h - padB}`;
+  steps.forEach((_, i) => {
+    const x = padL + i * stepW;
+    const y = h - padB - (i + 1) * stepH;
+    outlineD += ` L${x},${y} L${x + stepW},${y}`;
+  });
+
+  return (
+    <div className="space-y-2">
+      <svg viewBox={`0 0 ${w} ${h}`} className="w-full" style={{ height: 180 }} preserveAspectRatio="xMidYMid meet">
+        {/* Area fill */}
+        <path d={pathD} fill="currentColor" className="text-foreground/8" />
+        {/* Staircase outline */}
+        <path d={outlineD} fill="none" stroke="currentColor" strokeWidth="2" className="text-foreground/40" />
+
+        {/* Step labels */}
+        {steps.map((step, i) => {
+          const x = padL + i * stepW + stepW / 2;
+          const y = h - padB - (i + 1) * stepH;
+          return (
+            <g key={i}>
+              {/* Numbered circle at the step corner */}
+              <circle
+                cx={padL + i * stepW + 2}
+                cy={y}
+                r={8}
+                fill="currentColor"
+                className="text-foreground/70"
+              />
+              <text
+                x={padL + i * stepW + 2}
+                y={y + 3.5}
+                textAnchor="middle"
+                fill="white"
+                style={{ fontSize: 9, fontWeight: 700 }}
+              >
+                {i + 1}
+              </text>
+
+              {/* Layer name on the step */}
+              <text
+                x={x}
+                y={y + 14}
+                textAnchor="middle"
+                fill="currentColor"
+                className="text-foreground/60"
+                style={{ fontSize: 8, fontWeight: 600 }}
+              >
+                {step.layer}
+              </text>
+
+              {/* Year below the step */}
+              <text
+                x={padL + i * stepW + stepW / 2}
+                y={h - padB + 14}
+                textAnchor="middle"
+                fill="currentColor"
+                className="text-muted-foreground"
+                style={{ fontSize: 8 }}
+              >
+                {step.year}
+              </text>
+            </g>
+          );
+        })}
+
+        {/* Baseline */}
+        <line x1={padL} y1={h - padB} x2={w - padR} y2={h - padB} stroke="currentColor" strokeWidth="1" className="text-foreground/15" />
+      </svg>
+
+      {/* Result legend below */}
+      <div className="grid gap-0.5">
+        {steps.map((step, i) => (
+          <div key={i} className="text-xs text-muted-foreground">
+            <span
+              className="inline-flex items-center justify-center w-4 h-4 rounded-full text-[9px] font-bold mr-1.5 align-middle"
+              style={{ background: 'color-mix(in srgb, var(--foreground) 70%, transparent)', color: 'white' }}
+            >
+              {i + 1}
+            </span>
+            {step.layer} — <span className="text-foreground font-medium">{step.result}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function ChartViz({ data, cityFlag }: { data: any; cityFlag?: string }) {
   if (!data) return null;
   switch (data.type) {
@@ -849,6 +973,8 @@ function ChartViz({ data, cityFlag }: { data: any; cityFlag?: string }) {
       return <CommunityNetwork data={data} />;
     case "awarenessTimeline":
       return <AwarenessTimeline data={data} />;
+    case "governanceStaircase":
+      return <GovernanceStaircase data={data} />;
     default:
       return null;
   }

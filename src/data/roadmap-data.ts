@@ -750,6 +750,67 @@ export const PRACTICE_CARDS: PracticeCard[] = [
     ],
     relatedPracticeIds: ["d1-sensor-deployment", "d12-open-data"],
   },
+
+  // Domain 9 — Multi-Level Governance & Coordination
+  {
+    id: "d9-governance",
+    name: "Multi-Level Governance & Coordination",
+    domainId: 9,
+    description: "Building governance integration incrementally — each layer of coordination amplifies the last, from municipal offices to national frameworks to regional alignment and community engagement.",
+    totalPopulationImpacted: "35.4M",
+    cityCount: 3,
+    cityExamples: [
+      {
+        citySlug: "brussels",
+        provenance: "City Achievement",
+        interventionName: "Four-level governance integration — municipal to EU alignment",
+        introducedYear: 2008,
+        outcomeState: "measured",
+        outcomeChange: "4 levels coordinated",
+        chartData: {
+          type: "governanceStaircase",
+          steps: [
+            { year: 2008, layer: "Municipal AQ office", result: "First monitoring mandate" },
+            { year: 2012, layer: "Regional coordination", result: "Brussels-Capital standards" },
+            { year: 2018, layer: "National clean air plan", result: "LEZ enforcement powers" },
+            { year: 2021, layer: "EU alignment", result: "Cross-border PM2.5 targets" },
+          ],
+        },
+      },
+      {
+        citySlug: "warsaw",
+        provenance: "City Achievement",
+        interventionName: "Rapid governance build-up — municipal to national in 5 years",
+        introducedYear: 2016,
+        outcomeState: "measured",
+        outcomeChange: "3 levels in 5 years",
+        chartData: {
+          type: "governanceStaircase",
+          steps: [
+            { year: 2016, layer: "Municipal environment dept", result: "AQ monitoring expanded" },
+            { year: 2018, layer: "National anti-smog act", result: "Coal heating ban enacted" },
+            { year: 2021, layer: "Regional voivodeship plan", result: "Cross-district enforcement" },
+          ],
+        },
+      },
+      {
+        citySlug: "jakarta",
+        provenance: "BC Partnership",
+        interventionName: "Starting with two levels — municipal and community",
+        introducedYear: 2020,
+        outcomeState: "baseline-established",
+        outcomeChange: "2 levels active",
+        chartData: {
+          type: "governanceStaircase",
+          steps: [
+            { year: 2020, layer: "Municipal AQ taskforce", result: "City dashboard launched" },
+            { year: 2022, layer: "Community monitoring", result: "Citizen reporting active" },
+          ],
+        },
+      },
+    ],
+    relatedPracticeIds: ["d4-policy-timeline", "d8-awareness"],
+  },
 ];
 
 // ---------------------------------------------------------------------------
