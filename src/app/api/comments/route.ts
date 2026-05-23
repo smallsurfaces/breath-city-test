@@ -45,14 +45,21 @@ export const runtime = 'nodejs'
 /** Disable static optimisation — every request reads/writes live store state. */
 export const dynamic = 'force-dynamic'
 
-/** Minimal structural guard that a value looks like an Annotation we can store. */
+/**
+ * Minimal structural guard that a value looks like an Annotation we can store.
+ * x/y must be FINITE numbers: a non-finite coord (Infinity/NaN) passes `typeof === 'number'`
+ * but `JSON.stringify(Infinity) === "null"`, so it would be persisted as null and the pin
+ * would snap to (0,0) on render. Reject those at the boundary with a 400.
+ */
 function isAnnotation(value: unknown): value is Annotation {
   if (typeof value !== 'object' || value === null) return false
   const candidate = value as Record<string, unknown>
   return (
     typeof candidate.id === 'string' &&
     typeof candidate.x === 'number' &&
+    Number.isFinite(candidate.x) &&
     typeof candidate.y === 'number' &&
+    Number.isFinite(candidate.y) &&
     typeof candidate.text === 'string'
   )
 }
@@ -130,7 +137,10 @@ export async function POST(request: Request): Promise<NextResponse> {
     )
   }
 
-  if (typeof body !== 'object' || body === null) {
+  // Array.isArray guard: a top-level JSON array (e.g. [1,2,3]) is `typeof === 'object'` and
+  // non-null, so without this it would fall through to the buildId check and return the
+  // misleading "`buildId` is required" message. Reject it here with the correct message.
+  if (typeof body !== 'object' || body === null || Array.isArray(body)) {
     return NextResponse.json(
       { error: 'Request body must be an object.' },
       { status: 400 },

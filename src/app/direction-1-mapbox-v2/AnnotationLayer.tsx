@@ -29,6 +29,7 @@
 'use client'
 
 import React, { useState, useEffect, useCallback, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import type { Annotation, AnnotationLayerConfig, ElementAnchor } from './AnnotationLayer.types'
 import { captureAnchor, resolveAnchor } from '../../lib/comments/anchor'
 
@@ -53,6 +54,12 @@ export default function AnnotationLayer({
 
   const [isActive, setIsActive] = useState<boolean>(false)
   const [annotations, setAnnotations] = useState<Annotation[]>([])
+  // SSR/portal guard. The viewport-level UI (toggle, overlay, pins, cards) is portalled to
+  // document.body so it escapes the host <header> it is mounted inside — without this, the
+  // header's `pointer-events: none` dim rule (see <style> below) is INHERITED by the
+  // annotation UI and every real click passes straight through it. createPortal needs a real
+  // DOM node, so we render nothing on the server and flip this true after mount on the client.
+  const [mounted, setMounted] = useState<boolean>(false)
   // pendingClick stores raw viewport pixels (local only, never persisted).
   // In element mode it also carries the resolved anchor captured at click time.
   const [pendingClick, setPendingClick] = useState<{ x: number; y: number } | null>(null)
@@ -70,6 +77,15 @@ export default function AnnotationLayer({
   const editCardRef = useRef<HTMLDivElement>(null)
   const [newCardHeight, setNewCardHeight] = useState<number>(220)
   const [editCardHeight, setEditCardHeight] = useState<number>(280)
+
+  // ── Mark mounted (client only) ────────────────────────────────────────────────
+  // Gate for the document.body portal — see `mounted` declaration above. Runs once after
+  // the first client render so server output and first client render match (no portal on
+  // the server), then the portal mounts.
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   // ── Responsive check ────────────────────────────────────────────────────────
   // Side effect: attaches resize event listener to window
@@ -538,24 +554,15 @@ export default function AnnotationLayer({
 
   const pillDesktopPos = togglePosition ?? { top: '180px', right: '1rem' }
 
-  // ─── Render ──────────────────────────────────────────────────────────────────
+  // ─── Viewport UI (portalled to document.body) ─────────────────────────────────
 
-  return (
+  // The viewport-level UI is portalled to document.body (see render below). The
+  // <style> block stays in the in-tree render: it is a position-independent stylesheet, and
+  // keeping it here means the `body.annotation-active header` dim rule correctly dims ONLY
+  // the host header-bar chrome (back link / build name / updated stamp) — which the
+  // annotation UI is NO LONGER a descendant of, so the UI stays fully interactive.
+  const viewportUI = (
     <>
-      {/* ── Body class styles ──────────────────────────────────────────────── */}
-      {/* Dims host UI elements while annotation mode is active */}
-      <style>{`
-        body.annotation-active [data-slot="toggle-panel"],
-        body.annotation-active [data-slot="time-slider"] {
-          opacity: 0.5;
-          pointer-events: none;
-        }
-        body.annotation-active header {
-          opacity: 0.8;
-          pointer-events: none;
-        }
-      `}</style>
-
       {/* ── Freeze border ring ──────────────────────────────────────────────── */}
       {/* Visual signal that annotation mode is active and the viewport is frozen */}
       {isActive && (
@@ -582,6 +589,11 @@ export default function AnnotationLayer({
           right: isMobile ? '1rem' : (pillDesktopPos.right ?? '1rem'),
           left: isMobile ? undefined : pillDesktopPos.left,
           zIndex: 110,
+          // Explicit guard: the toggle must stay clickable in annotation mode. It is
+          // portalled to document.body (so it no longer inherits the host header's
+          // `pointer-events: none` dim rule), and this makes that intent robust against
+          // any future re-parenting of the layer.
+          pointerEvents: 'auto',
           borderRadius: 'var(--al-radius-pill)',
           padding: isMobile ? '10px 18px' : '6px 14px',
           height: isMobile ? '44px' : '32px',
@@ -931,6 +943,38 @@ export default function AnnotationLayer({
           })()}
         </>
       )}
+    </>
+  )
+
+  // ─── Render ──────────────────────────────────────────────────────────────────
+  // In-tree: the <style> block only (a position-independent stylesheet). Its
+  // `body.annotation-active header` rule dims the host header-bar chrome while
+  // annotating — and because the interactive UI is portalled out of <header> (below),
+  // that rule no longer disables it.
+  // Portalled to document.body: the freeze ring, toggle, click-capture overlay,
+  // highlight ring, pins, and cards. This is what fixes BUG 1 — the UI escapes the
+  // header's `pointer-events: none` inheritance and its stacking context entirely, so
+  // real clicks reach the handlers. Guarded by `mounted` for SSR (createPortal needs a
+  // real DOM node; nothing renders on the server).
+
+  return (
+    <>
+      {/* ── Body class styles ──────────────────────────────────────────────── */}
+      {/* Dims the host header-bar chrome + map panels while annotation mode is active.
+          The annotation UI is portalled to document.body, so it is NOT dimmed by this. */}
+      <style>{`
+        body.annotation-active [data-slot="toggle-panel"],
+        body.annotation-active [data-slot="time-slider"] {
+          opacity: 0.5;
+          pointer-events: none;
+        }
+        body.annotation-active header {
+          opacity: 0.8;
+          pointer-events: none;
+        }
+      `}</style>
+
+      {mounted ? createPortal(viewportUI, document.body) : null}
     </>
   )
 }

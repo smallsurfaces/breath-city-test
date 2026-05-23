@@ -14,8 +14,11 @@
  *        data. On any failure (offline, 502 under next dev), return the cached array.
  *   save(buildId, comments):
  *     1. Write the localStorage cache synchronously (never lose the user's work).
- *     2. Fire POST /api/comments (full replace). Failure is swallowed in production and
- *        warned in dev — the cache already holds the data, so we degrade, not crash.
+ *     2. Abort any POST still in flight for this build, then fire POST /api/comments (full
+ *        replace). Aborting the prior POST keeps rapid saves from landing out of order
+ *        server-side — the latest save always carries the complete state and wins. Failure
+ *        is swallowed in production and warned in dev (an intentional abort is not a failure)
+ *        — the cache already holds the data, so we degrade, not crash.
  *
  *   Because load() merges nothing — it prefers the server when reachable, else the cache —
  *   a reviewer working under `next dev` still sees their pins across reloads via the cache.
@@ -73,6 +76,14 @@ function writeCache(buildId: string, comments: Annotation[]): void {
  * `route` is sent on POST so the server record records where the build lives.
  */
 export function createApiPersistence(route: string): AnnotationPersistence {
+  // Per-build in-flight POST guard. save() always sends a FULL replace (the entire current
+  // comment list), so two rapid saves race: without sequencing, the earlier POST can land
+  // AFTER the later one and clobber the server with stale state. We keep the latest
+  // AbortController per build and abort the prior POST before firing the new one — the new
+  // POST already carries the complete latest state, so nothing is lost. (The localStorage
+  // cache is written synchronously regardless, so client state is never at risk.)
+  const inFlight = new Map<string, AbortController>()
+
   return {
     /**
      * Load annotations: cache-first for resilience, server-authoritative when reachable.
@@ -104,19 +115,35 @@ export function createApiPersistence(route: string): AnnotationPersistence {
      */
     save(buildId: string, comments: Annotation[]): void {
       writeCache(buildId, comments)
+
+      // Abort any POST still in flight for THIS build, then fire the new full-replace POST.
+      // Sequencing guarantee: the latest save always wins server-side (see inFlight above).
+      inFlight.get(buildId)?.abort()
+      const controller = new AbortController()
+      inFlight.set(buildId, controller)
+
       void fetch('/api/comments', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ buildId, route, comments }),
-      }).catch((err: unknown) => {
-        if (process.env.NODE_ENV !== 'production') {
-          // eslint-disable-next-line no-console
-          console.warn(
-            '[comments] POST /api/comments failed — comments cached locally only.',
-            err,
-          )
-        }
+        signal: controller.signal,
       })
+        .then(() => {
+          // Clear our controller once settled, but only if a newer save has not replaced it.
+          if (inFlight.get(buildId) === controller) inFlight.delete(buildId)
+        })
+        .catch((err: unknown) => {
+          // An AbortError is intentional (a newer save superseded this one) — not a failure.
+          if (err instanceof DOMException && err.name === 'AbortError') return
+          if (inFlight.get(buildId) === controller) inFlight.delete(buildId)
+          if (process.env.NODE_ENV !== 'production') {
+            // eslint-disable-next-line no-console
+            console.warn(
+              '[comments] POST /api/comments failed — comments cached locally only.',
+              err,
+            )
+          }
+        })
     },
   }
 }
