@@ -253,14 +253,10 @@ const WHO_POLLUTING: Concern = {
       facet: "Road traffic",
       facetLabel: "Traffic",
       iconKey: "car",
-      // REAL forecast figure from the LEZ phasing (NO2 −11% in-zone). Forecast, so
-      // framed as a target movement: baseline → −11%.
-      stat: {
-        kind: "progression",
-        from: "LEZ",
-        to: "−11%",
-        metric: "forecast in-zone NO₂",
-      },
+      // REAL forecast figure from the LEZ phasing (NO2 −11% in-zone). No real baseline
+      // NUMBER in the evidence to anchor a from→to pair, so rendered as a single
+      // `figure`, not a fabricated progression. (Honesty: don't dress one number as two.)
+      stat: { kind: "figure", value: "−11%", metric: "forecast in-zone NO₂ (LEZ)" },
       did: "Opened a central Low Emission Zone restricting the oldest, dirtiest vehicles.",
       how: "A 37 km² LEZ (Śródmieście + adjacent) launched July 2024; Phase 1 bans older diesel and petrol vehicles, tightening through 2032.",
       outcome:
