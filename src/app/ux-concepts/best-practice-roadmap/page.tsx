@@ -29,18 +29,18 @@ import { PracticeCardTile } from "./_components/PracticeCardView";
  * exampleIndex selects within that card's cityExamples array.
  */
 const FEATURED: Record<number, { cardIndex: number; exampleIndex: number }> = {
-  1: { cardIndex: 0, exampleIndex: 0 },   // London sensors
+  1: { cardIndex: 0, exampleIndex: 1 },   // Nairobi sensors
   2: { cardIndex: 0, exampleIndex: 1 },   // Accra source analysis
   3: { cardIndex: 0, exampleIndex: 0 },   // Paris health study
-  4: { cardIndex: 0, exampleIndex: 1 },   // Warsaw policy timeline
-  5: { cardIndex: 0, exampleIndex: 2 },   // Milan Area B
-  6: { cardIndex: 0, exampleIndex: 0 },   // Warsaw fuel transition
+  4: { cardIndex: 0, exampleIndex: 3 },   // Brussels policy timeline
+  5: { cardIndex: 1, exampleIndex: 0 },   // Mexico City vehicle restriction
+  6: { cardIndex: 0, exampleIndex: 1 },   // Johannesburg fuel transition
   7: { cardIndex: 0, exampleIndex: 1 },   // Milan tree planting
-  8: { cardIndex: 0, exampleIndex: 2 },   // Paris awareness timeline
-  9: { cardIndex: 0, exampleIndex: 0 },   // Brussels governance staircase
-  10: { cardIndex: 0, exampleIndex: 1 },  // Warsaw investment ROI
+  8: { cardIndex: 0, exampleIndex: 3 },   // Bangkok awareness timeline
+  9: { cardIndex: 0, exampleIndex: 1 },   // Warsaw governance staircase
+  10: { cardIndex: 0, exampleIndex: 0 },  // London investment ROI
   11: { cardIndex: 0, exampleIndex: 2 },  // Jakarta peer network
-  12: { cardIndex: 0, exampleIndex: 1 },  // Jakarta city dashboard
+  12: { cardIndex: 0, exampleIndex: 3 },  // Bogota open data
 };
 
 /** Four pillars displayed in order with descriptions */
