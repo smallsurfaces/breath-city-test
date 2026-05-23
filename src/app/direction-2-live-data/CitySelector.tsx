@@ -46,7 +46,8 @@ export function CitySelector({ activeSlug, onSelect }: Props): React.ReactElemen
       aria-label="Select city"
       style={{
         position: 'fixed',
-        top: '1rem',
+        // Nudged below the standard PrototypeHeader bar (~56px).
+        top: 'calc(56px + 1rem)',
         left: '50%',
         transform: 'translateX(-50%)',
         zIndex: 20,

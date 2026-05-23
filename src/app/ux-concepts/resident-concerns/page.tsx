@@ -18,9 +18,8 @@
  *   - Contribution framing toward 30%-by-2030 — never implies one action moves
  *     the whole ambient number.
  *
- * Light mode. Single in-flow "Back to hub" button is the sole back-nav for this
- * route; the global HomeNav is suppressed here (see HomeNav SELF_NAV_PREFIXES) to
- * avoid a duplicate.
+ * Light mode. Back-to-hub is owned by the standard PrototypeHeader at the top of
+ * the page (the old in-flow back button was removed); content renders below the bar.
  *
  * Key exports: default page component (Next.js App Router, client component)
  */
@@ -28,9 +27,8 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import { PrototypeHeader } from "../../_components/PrototypeHeader";
 import { Switcher } from "./_components/Switcher";
 import { EntryCard } from "./_components/EntryCard";
 import {
@@ -67,16 +65,11 @@ export default function ResidentConcernsPage() {
 
   return (
     <main className="min-h-screen bg-background">
-      <div className="mx-auto max-w-6xl space-y-10 px-4 py-12">
-        {/* Back-to-hub — explicit in-flow button (required by brief) */}
-        <Link
-          href="/"
-          className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-        >
-          <ArrowLeft className="h-3.5 w-3.5" />
-          Back to hub
-        </Link>
+      {/* Standard prototype chrome — the single back-to-hub for this route (the old
+          in-flow back button was removed; PrototypeHeader now owns back-nav). */}
+      <PrototypeHeader buildName="Resident Concerns" />
 
+      <div className="mx-auto max-w-6xl space-y-10 px-4 py-12">
         {/* Header */}
         <header className="space-y-3">
           <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">

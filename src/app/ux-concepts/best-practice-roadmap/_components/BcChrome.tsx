@@ -46,16 +46,17 @@ const NAV = [
 
 /*
  * The site header -- BC logo left, nav centre/right, "Join us" CTA. Above it,
- * a thin prototype bar carries the back-to-hub button (required: every internal
- * prototype route keeps a visible way home) and an honest "mock" marker.
+ * a thin prototype bar carries an honest "mock" marker (and a redundant-but-
+ * harmless back-to-hub link). Back-to-hub is now OWNED by the standard
+ * PrototypeHeader rendered above BcHeader in the roadmap layout.tsx.
  */
 export function BcHeader() {
   return (
     <>
-      {/* Prototype bar -- not part of BC's real chrome; carries the SOLE
-          "Back to hub" back-nav for the roadmap routes (the global HomeNav is
-          suppressed on /ux-concepts/best-practice-roadmap to avoid a duplicate)
-          and labels this honestly as an in-context mock. */}
+      {/* Prototype bar -- not part of BC's real chrome; labels this honestly as an
+          in-context mock. It also keeps a back-to-hub link, but that is now redundant:
+          the standard PrototypeHeader (rendered above BcHeader in the roadmap
+          layout.tsx) owns the canonical back-to-hub. Kept here as harmless. */}
       <div className="border-b border-border bg-muted/50">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-2">
           <Link
