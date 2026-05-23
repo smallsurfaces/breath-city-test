@@ -2,7 +2,8 @@
  * Domain Detail Page — /ux-concepts/best-practice-roadmap/domain/[slug]
  *
  * Purpose: Shows a single domain with its stage badge, description, and all
- * practice cards for that domain. Built for three domains with real data:
+ * practice cards for that domain. Sensor map visuals now live on individual
+ * city pages (CityMapHero). Built for three domains with real data:
  * monitoring, source-apportionment, transport. Other domain slugs render a
  * "coming soon" placeholder.
  *
@@ -20,7 +21,6 @@ import {
 } from "@/data/roadmap-data";
 import { PracticeCardTile } from "../../_components/PracticeCardView";
 import { StageBadge } from "../../_components/StageBadge";
-import { SensorLandscape } from "../../_components/SensorLandscape";
 
 interface DomainPageProps {
   params: Promise<{ slug: string }>;
@@ -83,27 +83,6 @@ export default async function DomainDetailPage({ params }: DomainPageProps) {
           </p>
         </div>
       </section>
-
-      {/* Sensor landscape (monitoring domain only) */}
-      {slug === "monitoring" && (
-        <section className="px-4 py-10">
-          <div className="mx-auto max-w-5xl space-y-6">
-            <div className="space-y-1">
-              <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-                Sensor Coverage Landscape
-              </h2>
-              <p className="text-sm text-muted-foreground max-w-xl">
-                How three BC cities achieve monitoring coverage through different
-                ownership models and sensor types.
-              </p>
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              <SensorLandscape />
-            </div>
-          </div>
-        </section>
-      )}
 
       {/* Practice cards */}
       <section className="px-4 py-10">

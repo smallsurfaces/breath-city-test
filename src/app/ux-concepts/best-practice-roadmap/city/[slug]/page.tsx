@@ -6,7 +6,7 @@
  * (if city has sensor data) → contributions grouped by domain with practice cards.
  *
  * Key exports: default page component, generateStaticParams
- * External dependencies: shadcn Badge, roadmap-data, CitySensorMap/SENSOR_DATA, PracticeCardView
+ * External dependencies: shadcn Badge, roadmap-data, CityMapHero, PracticeCardView
  */
 
 import Link from "next/link";
@@ -21,7 +21,7 @@ import {
   getPracticesByCity,
   getDomainById,
 } from "@/data/roadmap-data";
-import { CitySensorMap, SENSOR_DATA } from "../../_components/SensorLandscape";
+import { CityMapHero } from "../../_components/CityMapHero";
 import { PracticeCardTile } from "../../_components/PracticeCardView";
 
 interface CityPageProps {
@@ -109,14 +109,12 @@ export default async function CityDetailPage({ params }: CityPageProps) {
         </div>
       </section>
 
-      {/* Sensor map — full width if city has data */}
-      {SENSOR_DATA.some((s) => s.city.toLowerCase() === slug || s.shapeKey === slug) && (
-        <section className="px-4 py-10">
-          <div className="mx-auto max-w-5xl">
-            <CitySensorMap citySlug={slug} />
-          </div>
-        </section>
-      )}
+      {/* Sensor map hero */}
+      <section className="px-4 py-10">
+        <div className="mx-auto max-w-5xl">
+          <CityMapHero citySlug={slug} />
+        </div>
+      </section>
 
       {/* Contributions by domain */}
       <section className="px-4 py-10">
