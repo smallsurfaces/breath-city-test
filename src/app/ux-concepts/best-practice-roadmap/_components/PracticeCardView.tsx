@@ -648,6 +648,176 @@ function TreePlanting({ data }: { data: any }) {
   );
 }
 
+function ReachFunnel({ data }: { data: any }) {
+  // data shape: { type: "reachFunnel", headline: "2.1M citizens reached", steps: [
+  //   { label: "Campaign reach", value: "2.1M", pct: 100 },
+  //   { label: "Actively engaged", value: "340K", pct: 16 },
+  //   { label: "Behaviour change", value: "85K", pct: 4 },
+  // ]}
+  const steps: { label: string; value: string; pct: number }[] = data.steps;
+  const barOpacities = [60, 40, 25];
+
+  return (
+    <div className="space-y-2">
+      <div className="text-sm font-semibold text-foreground">{data.headline}</div>
+      <div className="space-y-1.5">
+        {steps.map((step, i) => (
+          <div key={i}>
+            <div className="flex items-center justify-between mb-0.5">
+              <span className="text-xs text-muted-foreground">{step.label}</span>
+              <span className="text-xs font-semibold text-foreground">{step.value}</span>
+            </div>
+            <div className="h-5 w-full rounded bg-muted/30 overflow-hidden">
+              <div
+                className="h-full rounded"
+                style={{
+                  width: `${step.pct}%`,
+                  background: `color-mix(in srgb, var(--foreground) ${barOpacities[i] ?? 20}%, transparent)`,
+                }}
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function CommunityNetwork({ data }: { data: any }) {
+  // data shape: { type: "communityNetwork", total: 30, reached: 12, headline: "1.8M engaged in community monitoring", unit: "x 100K" }
+  const total = data.total;
+  const reached = data.reached;
+
+  const Person = ({ active }: { active: boolean }) => (
+    <svg width="14" height="18" viewBox="0 0 14 18" style={{ opacity: active ? 0.7 : 0.15 }}>
+      <circle cx="7" cy="4" r="3" fill="currentColor" className="text-foreground" />
+      <path d="M1,16 C1,11 4,9 7,9 C10,9 13,11 13,16" fill="currentColor" className="text-foreground" />
+    </svg>
+  );
+
+  return (
+    <div className="space-y-2">
+      <div className="flex flex-wrap gap-0.5">
+        {Array.from({ length: total }).map((_, i) => (
+          <Person key={i} active={i < reached} />
+        ))}
+      </div>
+      <div className="text-sm font-semibold text-foreground">{data.headline}</div>
+    </div>
+  );
+}
+
+function AwarenessTimeline({ data }: { data: any }) {
+  // data shape: { type: "awarenessTimeline", metric: "Population aware", startYear: 2007, endYear: 2025,
+  //   currentPct: 68,
+  //   curve: [{ year: 2007, value: 5 }, { year: 2010, value: 12 }, ...{ year: 2025, value: 68 }],
+  //   campaigns: [{ num: 1, year: 2007, label: "Airparif public dashboard" }, ...],
+  // }
+  const w = 320;
+  const h = 180;
+  const padL = 32;
+  const padR = 12;
+  const padT = 20;
+  const padB = 28;
+  const chartW = w - padL - padR;
+  const chartH = h - padT - padB;
+
+  const yearRange = data.endYear - data.startYear;
+  const toX = (year: number) => padL + ((year - data.startYear) / yearRange) * chartW;
+
+  // Y axis: 0% at bottom, 100% at top
+  const toY = (val: number) => padT + ((100 - val) / 100) * chartH;
+
+  const curvePoints: { year: number; value: number }[] = data.curve;
+  const polyPoints = curvePoints.map((p: { year: number; value: number }) => `${toX(p.year)},${toY(p.value)}`).join(" ");
+
+  const firstPt = curvePoints[0];
+  const lastPt = curvePoints[curvePoints.length - 1];
+  const areaPath = `M${toX(firstPt.year)},${toY(firstPt.value)} ${curvePoints.map((p: { year: number; value: number }) => `L${toX(p.year)},${toY(p.value)}`).join(" ")} L${toX(lastPt.year)},${toY(0)} L${toX(firstPt.year)},${toY(0)} Z`;
+
+  const campaigns: { num: number; year: number; label: string }[] = data.campaigns;
+
+  const getCurveValueAtYear = (year: number): number => {
+    const exact = curvePoints.find((p: { year: number; value: number }) => p.year === year);
+    if (exact) return exact.value;
+    let before = curvePoints[0];
+    let after = curvePoints[curvePoints.length - 1];
+    for (let i = 0; i < curvePoints.length - 1; i++) {
+      if (curvePoints[i].year <= year && curvePoints[i + 1].year >= year) {
+        before = curvePoints[i];
+        after = curvePoints[i + 1];
+        break;
+      }
+    }
+    const t = (year - before.year) / (after.year - before.year);
+    return before.value + t * (after.value - before.value);
+  };
+
+  const markerR = 9;
+
+  const xAxisYears = [data.startYear, data.endYear];
+  const midYear = Math.round((data.startYear + data.endYear) / 2);
+  if (midYear !== data.startYear && midYear !== data.endYear) {
+    xAxisYears.splice(1, 0, midYear);
+  }
+
+  return (
+    <div className="space-y-2">
+      <div className="text-xs text-muted-foreground">{data.metric}</div>
+      <svg viewBox={`0 0 ${w} ${h}`} className="w-full" style={{ height: 180 }} preserveAspectRatio="xMidYMid meet">
+        {/* Area fill under curve */}
+        <path d={areaPath} fill="currentColor" className="text-foreground/10" />
+        {/* Curve line */}
+        <polyline points={polyPoints} fill="none" stroke="currentColor" strokeWidth="2" className="text-foreground/60" />
+
+        {/* Campaign markers on the curve */}
+        {campaigns.map((c: { num: number; year: number; label: string }) => {
+          const curveVal = getCurveValueAtYear(c.year);
+          const cx = toX(c.year);
+          const cy = toY(curveVal);
+          const markerCy = cy - markerR - 4;
+          return (
+            <g key={c.num}>
+              <line x1={cx} y1={cy} x2={cx} y2={markerCy + markerR} stroke="currentColor" strokeWidth="1" className="text-foreground/30" />
+              <circle cx={cx} cy={markerCy} r={markerR} fill="currentColor" className="text-foreground/70" />
+              <text x={cx} y={markerCy + 3.5} textAnchor="middle" fill="white" style={{ fontSize: 10, fontWeight: 700 }}>{c.num}</text>
+            </g>
+          );
+        })}
+
+        {/* X axis */}
+        <line x1={padL} y1={h - padB} x2={w - padR} y2={h - padB} stroke="currentColor" strokeWidth="1" className="text-foreground/15" />
+        {xAxisYears.map((yr: number) => (
+          <g key={yr}>
+            <line x1={toX(yr)} y1={h - padB} x2={toX(yr)} y2={h - padB + 4} stroke="currentColor" strokeWidth="1" className="text-foreground/20" />
+            <text x={toX(yr)} y={h - padB + 14} textAnchor="middle" className="text-muted-foreground" style={{ fontSize: 9 }} fill="currentColor">{yr}</text>
+          </g>
+        ))}
+
+        {/* Y axis */}
+        <line x1={padL} y1={padT} x2={padL} y2={h - padB} stroke="currentColor" strokeWidth="1" className="text-foreground/15" />
+
+        {/* Current % label at end of curve */}
+        <text x={toX(lastPt.year) + 2} y={toY(lastPt.value) - 6} textAnchor="start" fill="currentColor" className="text-foreground/60" style={{ fontSize: 10, fontWeight: 700 }}>{data.currentPct}%</text>
+      </svg>
+
+      {/* Campaign legend */}
+      <div className="grid gap-0.5">
+        {campaigns.map((c: { num: number; year: number; label: string }) => (
+          <div key={c.num} className="text-xs text-muted-foreground">
+            <span className="inline-flex items-center justify-center w-4 h-4 rounded-full text-[9px] font-bold mr-1.5 align-middle" style={{ background: 'color-mix(in srgb, var(--foreground) 70%, transparent)', color: 'white' }}>{c.num}</span>
+            {c.label} ({c.year})
+          </div>
+        ))}
+      </div>
+
+      <div className="text-xs font-semibold text-foreground pt-1">
+        {data.currentPct}% population now AQ-aware
+      </div>
+    </div>
+  );
+}
+
 function ChartViz({ data, cityFlag }: { data: any; cityFlag?: string }) {
   if (!data) return null;
   switch (data.type) {
@@ -673,6 +843,12 @@ function ChartViz({ data, cityFlag }: { data: any; cityFlag?: string }) {
       return <GreenCoverMap data={data} />;
     case "treePlanting":
       return <TreePlanting data={data} />;
+    case "reachFunnel":
+      return <ReachFunnel data={data} />;
+    case "communityNetwork":
+      return <CommunityNetwork data={data} />;
+    case "awarenessTimeline":
+      return <AwarenessTimeline data={data} />;
     default:
       return null;
   }

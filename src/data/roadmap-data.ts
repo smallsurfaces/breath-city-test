@@ -673,6 +673,83 @@ export const PRACTICE_CARDS: PracticeCard[] = [
     ],
     relatedPracticeIds: ["d4-policy-timeline", "d5-lez"],
   },
+
+  // Domain 8 — Raising Awareness & Community Engagement
+  {
+    id: "d8-awareness",
+    name: "Public Awareness & Community Engagement",
+    domainId: 8,
+    description: "Making air quality visible to citizens through campaigns, school programmes, community monitoring, and civic platforms that build sustained demand for clean air.",
+    totalPopulationImpacted: "42.0M",
+    cityCount: 3,
+    cityExamples: [
+      {
+        citySlug: "london",
+        provenance: "City Achievement",
+        interventionName: "Breathe London public awareness — schools, apps, citizen science",
+        introducedYear: 2018,
+        outcomeState: "measured",
+        outcomeChange: "2.1M reached",
+        chartData: {
+          type: "reachFunnel",
+          headline: "2.1M citizens reached",
+          steps: [
+            { label: "Campaign reach", value: "2.1M", pct: 100 },
+            { label: "Actively engaged", value: "340K", pct: 16 },
+            { label: "Behaviour change", value: "85K", pct: 4 },
+          ],
+        },
+      },
+      {
+        citySlug: "jakarta",
+        provenance: "BC Partnership",
+        interventionName: "Community air quality monitoring network — citizen engagement",
+        introducedYear: 2021,
+        outcomeState: "measured",
+        outcomeChange: "1.8M engaged",
+        chartData: {
+          type: "communityNetwork",
+          total: 30,
+          reached: 12,
+          headline: "1.8M engaged in community monitoring",
+          unit: "× 100K",
+        },
+      },
+      {
+        citySlug: "paris",
+        provenance: "City Achievement",
+        interventionName: "Progressive AQ awareness — Airparif to school alerts",
+        introducedYear: 2007,
+        outcomeState: "measured",
+        outcomeChange: "68% now AQ-aware",
+        chartData: {
+          type: "awarenessTimeline",
+          metric: "Population aware of AQ issues",
+          startYear: 2005,
+          endYear: 2025,
+          currentPct: 68,
+          curve: [
+            { year: 2005, value: 8 },
+            { year: 2007, value: 15 },
+            { year: 2010, value: 22 },
+            { year: 2013, value: 28 },
+            { year: 2015, value: 38 },
+            { year: 2017, value: 48 },
+            { year: 2020, value: 55 },
+            { year: 2022, value: 62 },
+            { year: 2025, value: 68 },
+          ],
+          campaigns: [
+            { num: 1, year: 2007, label: "Airparif public dashboard" },
+            { num: 2, year: 2015, label: "Paris Respire car-free days" },
+            { num: 3, year: 2017, label: "Crit’Air awareness campaign" },
+            { num: 4, year: 2020, label: "School AQ alert system" },
+          ],
+        },
+      },
+    ],
+    relatedPracticeIds: ["d1-sensor-deployment", "d12-open-data"],
+  },
 ];
 
 // ---------------------------------------------------------------------------
