@@ -33,6 +33,13 @@ import {
   Footprints,
   Home,
   Radar,
+  Route,
+  HandCoins,
+  Megaphone,
+  MapPin,
+  Landmark,
+  Scale,
+  ShieldCheck,
   ArrowRight,
   type LucideIcon,
 } from "lucide-react";
@@ -68,6 +75,16 @@ const ICONS: Record<IconKey, LucideIcon> = {
   commute: Footprints,
   home: Home,
   data: Radar,
+  // ACTION (what can I do?) — protect yourself / change the system
+  route: Route, // clean-air route / protective tool
+  grants: HandCoins, // a grant a resident can take up
+  campaign: Megaphone, // a civic campaign residents drove
+  // PLACE (which part of my city?) — neighbourhood comparison
+  place: MapPin,
+  // ACTOR (make the polluters stop?) — who must act
+  cityGov: Landmark, // city government acted
+  regulator: Scale, // a regulator / law banned or charged the polluter
+  national: ShieldCheck, // national government forcing function
 };
 
 /**

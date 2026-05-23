@@ -6,13 +6,34 @@
  * city officials as: "These are the concerns of your residents — and here's what
  * peer cities have done about each."
  *
- * Two concerns, each with its OWN fan-out axis:
- *   - "Who's polluting my neighbourhood?" fans by SOURCE (coal, traffic, cooking…)
- *   - "Is the air safe for my kids?" fans by SETTING / LEVER (school air, commute, home…)
+ * Five concerns (locked set, Jack 2026-05-23), each with its OWN fan-out axis:
+ *   - "Who's polluting my neighbourhood?"        fans by SOURCE  (coal, traffic, cooking…)
+ *   - "Is the air safe for my kids?"             fans by SETTING / LEVER (school air, commute, home…)
+ *   - "I know it's bad — what can I do?"         fans by ACTION  (protect yourself / change the system)
+ *   - "Which part of my city has the worst air?" fans by PLACE   (neighbourhood / sub-city)
+ *   - "Why won't anyone make the polluters stop?" fans by ACTOR  (city gov / regulator / national gov)
  *
  * Concern→answer-fit rule (critical): each card's evidence MUST answer the question
  * its concern actually asks. Under "safe for my kids" we use school-zone air /
  * children's-exposure / asthma evidence — NEVER a generic city-wide PM2.5 drop.
+ * The same rule binds the three new axes:
+ *   - ACTION cards are PROVEN RESPONSES — a real lever a peer city PROVIDED that a
+ *     resident can take up (protect-yourself), or a real civic action that worked
+ *     and that residents can push for (change-the-system). Not generic progress.
+ *   - PLACE cards demonstrate the NEIGHBOURHOOD-COMPARISON structure. The global
+ *     site is mostly city-average; real per-neighbourhood numbers are thin, so each
+ *     card carries the REAL sub-city sensing INFRASTRUCTURE a city has (what makes
+ *     the comparison possible) and renders every actual neighbourhood reading as a
+ *     [TK] — we never fabricate a neighbourhood figure. (Caveat: Jack 2026-05-23.)
+ *   - ACTOR cards answer "who must act" with a real peer city that held a polluter
+ *     accountable or enacted ENFORCEMENT — a ban, a charge, a binding programme.
+ *     Accountability framing, never individual behaviour.
+ *
+ * Cross-cutting answer-style steer (from research, Oni Theme 4): frame "is it safe?"
+ * answers as graduated / situational ("given your situation, here's what to do"),
+ * NOT binary safe/unsafe. Honoured by construction across the deck — ACTION is
+ * inherently situational, PLACE answers "where you are" not a verdict, ACTOR reframes
+ * to accountability.
  *
  * EVIDENCE DISCIPLINE — read before editing:
  *   - BC family cities ONLY (here: Warsaw, London, Accra).
@@ -132,7 +153,17 @@ export type IconKey =
   | "school"
   | "commute"
   | "home"
-  | "data";
+  | "data"
+  // "what can I do?" — ACTION (protect yourself / change the system)
+  | "route" // a clean-air route / protective tool
+  | "grants" // a subsidy/grant a resident can take up
+  | "campaign" // a civic campaign residents drove
+  // "which part of my city?" — PLACE (neighbourhood / sub-city)
+  | "place" // neighbourhood-level comparison
+  // "make the polluters stop?" — ACTOR (who must act)
+  | "cityGov" // city government acted (enforcement)
+  | "regulator" // a regulator / law banned or charged the polluter
+  | "national"; // national government forcing function
 
 /**
  * The compact headline stat shown on an entry card. Three honest shapes:
@@ -420,7 +451,308 @@ const SAFE_FOR_KIDS: Concern = {
   ],
 };
 
-export const CONCERNS: Concern[] = [WHO_POLLUTING, SAFE_FOR_KIDS];
+/* ------------------------------------------------------------------ *
+ * CONCERN 3 — "I know it's bad — what can I actually do?"  → fans by ACTION
+ * The fatalism / agency gate. Cards ARE proven responses: a real lever a peer
+ * city PROVIDED that a resident can take up (protect yourself), or a real civic
+ * action that worked and that residents can push for (change the system).
+ * Answer-fit: every card must be a thing a resident can DO or push for — never
+ * generic city progress.
+ * ------------------------------------------------------------------ */
+
+const WHAT_CAN_I_DO: Concern = {
+  key: "what-can-i-do",
+  voice: "I know it's bad — what can I actually do?",
+  axisLabel: "By action",
+  axisDescription:
+    "Each card is a proven response a resident can take up or push for — split into protecting yourself today and changing the system. Knowledge with a pathway to act, not helplessness.",
+  contribution:
+    "The turn from informed-but-helpless to acting is where a resident becomes part of the 30%-by-2030 story — protective levers cut today's exposure, and civic action is what made the hardest source policies happen in the first place. [R5]",
+  cards: [
+    // LONDON — protect-yourself: the clean-air route tool (a daily resident lever).
+    {
+      id: "do-london-route",
+      city: "london",
+      facet: "Protect yourself · cleaner routes",
+      facetLabel: "Cleaner routes",
+      iconKey: "route",
+      // Genuine gap: no published exposure-reduction % for the route tool. TK.
+      stat: { kind: "tk", metric: "exposure cut vs main-road route" },
+      did: "Gave residents a tool to choose lower-pollution walking and cycling routes.",
+      how: "The Clean Air Route Finder maps walking/cycling routes optimised for lower exposure — a quieter back-street route every morning, the choice in the resident's hands.",
+      // Genuine gap: no published exposure-reduction % for the route tool.
+      outcome: {
+        tk: "Exposure reduction on a clean-air route vs the main-road route — not published in the evidence.",
+      },
+      whyNotYou:
+        "A free, low-cost lever a resident can act on today — no policy, no waiting, the same journey on a cleaner street.",
+      source: "[R1] city-initiatives-research.md (Clean Air Route Finder)",
+    },
+    // LONDON — protect-yourself via a trusted channel: school AQ alerts (action advice).
+    {
+      id: "do-london-alerts",
+      city: "london",
+      facet: "Protect yourself · daily alerts",
+      facetLabel: "Daily alerts",
+      iconKey: "school",
+      // REAL count (3,500+ schools) — the reach of a tool residents/families act on.
+      stat: { kind: "figure", value: "3,500+", metric: "schools acting on daily alerts" },
+      did: "Put daily air-quality alerts and action advice in residents' and schools' hands.",
+      how: "School AQ Alerts (Breathe Clean) send daily forecasts plus what-to-do advice — move play indoors, change the route — so families can act on the exact bad-air days.",
+      outcome:
+        "3,500+ schools enrolled in daily AQ forecasts and action advice — a precise, trusted channel families act through.",
+      whyNotYou:
+        "Telling people what to do on the worst days, through a channel they already trust, turns a number into an action.",
+      source: "[R1] city-initiatives-research.md (School AQ Alerts / Breathe Clean)",
+    },
+    // WARSAW — change-the-system: Polish Smog Alert (residents drove the policy).
+    {
+      id: "do-warsaw-campaign",
+      city: "warsaw",
+      facet: "Change the system · citizen campaign",
+      facetLabel: "Citizen campaign",
+      iconKey: "campaign",
+      // REAL outcome: PSA credited with securing the coal ban + 14/16 regional
+      // resolutions. A campaign OUTCOME, framed collectively — not a per-intervention
+      // health claim. The "10,000 fewer deaths/yr" is national + attributed to the
+      // combined policy outcomes, so it sits in `outcome` prose, not as the headline stat.
+      stat: { kind: "figure", value: "14 / 16", metric: "regional anti-smog laws won" },
+      did: "Residents organised — and forced the bans they couldn't make alone.",
+      how: "The Polish Smog Alert, a grassroots citizen campaign, is credited with securing the national coal ban, the boiler-subsidy programme, and anti-smog resolutions in 14 of Poland's 16 regions.",
+      outcome:
+        "A citizen campaign credited with winning the coal ban and boiler programme; combined Polish smog-reduction policy is nationally attributed with ~10,000 fewer premature deaths a year.",
+      whyNotYou:
+        "The single clearest proof that residents pushing together is what made the hardest source policies actually happen.",
+      source: "[R2] city-initiatives-research-2.md (Polish Smog Alert successes)",
+    },
+    // WARSAW — protect-yourself: take up the boiler-replacement grant.
+    {
+      id: "do-warsaw-grants",
+      city: "warsaw",
+      facet: "Protect yourself · switch your boiler",
+      facetLabel: "Switch grants",
+      iconKey: "grants",
+      // REAL figures: national programme scale (~1M applications). A take-up figure.
+      stat: { kind: "figure", value: "~1M", metric: "household grant applications" },
+      did: "Paid residents to swap the coal boiler heating their own home.",
+      how: "The national Clean Air Programme offers subsidies and soft loans for boiler replacement and thermal renovation — a grant a household applies for directly.",
+      outcome:
+        "~1 million household applications nationwide to a €25bn subsidy and soft-loan programme for cleaner home heating.",
+      whyNotYou:
+        "Where the smoke is your own boiler, a grant a resident can apply for puts the fix within reach of the household.",
+      source: "[R2] city-initiatives-research-2.md (Clean Air Programme, national)",
+    },
+    // ACCRA — honest 'started' framing: community sensing residents can engage with.
+    {
+      id: "do-accra-community",
+      city: "accra",
+      facet: "Change the system · community sensing",
+      facetLabel: "Community sensing",
+      iconKey: "data",
+      // Genuine gap: no resident-action outcome figure for Accra. Honest "started" TK.
+      stat: { kind: "tk", metric: "community-sensing reach" },
+      did: "Started filling the data gaps from outside government — so residents can see, and act on, their own air.",
+      how: "AirQo low-cost sensors, deployed largely by development-sector and community bodies, give Accra its first hyperlocal picture — the base for residents to engage and push from.",
+      // Genuine gap: no resident-action outcome figure for Accra.
+      outcome: {
+        tk: "Community-sensing reach and resident-engagement figures for Accra — the network is still being built out.",
+      },
+      whyNotYou:
+        "When government coverage is thin, community-led sensing is the honest first thing residents can do: make the air visible.",
+      source: "[R1] city-initiatives-research.md + [R4] city-sensor-ownership.md (AirQo; community-led layer)",
+    },
+  ],
+};
+
+/* ------------------------------------------------------------------ *
+ * CONCERN 4 — "Which part of my city has the worst air — is it where I live?"
+ *   → fans by PLACE (neighbourhood / sub-city)
+ *
+ * GRANULARITY CAVEAT (Jack 2026-05-23): the global site is mostly city-average;
+ * real per-neighbourhood numbers are thin. So each card demonstrates the
+ * neighbourhood-COMPARISON structure by carrying the REAL sub-city sensing
+ * infrastructure the city has (what makes "which part?" answerable), and renders
+ * every actual neighbourhood reading as a [TK]. We never fabricate a neighbourhood
+ * figure — the structure shows the concept; the numbers stay honest.
+ * ------------------------------------------------------------------ */
+
+const WORST_PART: Concern = {
+  key: "worst-part",
+  voice: "Which part of my city has the worst air — is it where I live?",
+  axisLabel: "By place",
+  axisDescription:
+    "Each card shows the sub-city sensing a city has built to answer 'which part?' — the structure for comparing neighbourhoods. The global site is mostly city-average, so the actual per-neighbourhood readings are shown honestly as [TK], never invented.",
+  contribution:
+    "Moving from a city average to 'where I live' is what makes air pollution personal — and the dense neighbourhood networks that answer it are the same Seeing-stage infrastructure every city's 2030 progress is measured on. [R5]",
+  cards: [
+    // LONDON — the strongest real sub-city sensing infrastructure in the BC family.
+    {
+      id: "place-london-network",
+      city: "london",
+      facet: "Neighbourhood sensor network",
+      facetLabel: "Hyperlocal network",
+      iconKey: "place",
+      // The INFRASTRUCTURE figure is real (~290 nodes, validated, open data). The
+      // actual per-neighbourhood comparison values are NOT in the evidence → the
+      // detail outcome is a TK. Structure real, neighbourhood numbers honest.
+      stat: { kind: "figure", value: "~290", metric: "neighbourhood sensor nodes" },
+      did: "Built a validated, city-scale low-cost sensor network down to neighbourhood level — with the data open to all.",
+      how: "Breathe London adds ~290 low-cost nodes (incl. at schools and hospitals) on top of the statutory LAQN — the first validated city-scale network, publishing open data street by street.",
+      // Genuine gap: the evidence gives the network's existence, not a published
+      // worst-neighbourhood ranking. TK, never a fabricated neighbourhood number.
+      outcome: {
+        tk: "Which specific London neighbourhoods rank worst — the network can show it, but no neighbourhood ranking is in this evidence set. [structure shown; readings TK]",
+      },
+      whyNotYou:
+        "A dense, open network is how a city turns 'is the city polluted?' into the engaging question: 'is it bad where I live?'",
+      source: "[R1] city-initiatives-research.md + [R4] city-sensor-ownership.md (Breathe London ~290 nodes; LAQN)",
+    },
+    // WARSAW — real dense sub-city network (Airly), in the resident app.
+    {
+      id: "place-warsaw-airly",
+      city: "warsaw",
+      facet: "City-wide sensor grid",
+      facetLabel: "Sensor grid",
+      iconKey: "place",
+      // Real infrastructure figure (164 sensors across city + 17 municipalities).
+      // Per-neighbourhood values not published → outcome TK.
+      stat: { kind: "figure", value: "164", metric: "sensors across the city" },
+      did: "Commissioned one of Europe's largest urban sensor grids and put it in a free resident app.",
+      how: "164 Airly sensors span Warsaw and 17 neighbouring municipalities, surfacing PM and NO2 in the Warsaw 19115 app — residents can read their own district, not just the city figure.",
+      // Genuine gap: no published per-neighbourhood ranking in the evidence.
+      outcome: {
+        tk: "Warsaw's worst-affected districts ranked — the 164-sensor grid can resolve it, but no neighbourhood ranking is in this evidence set. [structure shown; readings TK]",
+      },
+      whyNotYou:
+        "Put the grid in an app residents already use and 'which part of my city?' becomes a question they can answer themselves.",
+      source: "[R2] city-initiatives-research-2.md + [R4] city-sensor-ownership.md (Airly 164; Warsaw 19115)",
+    },
+    // ACCRA — the honest sub-city coverage story: being built, gaps acknowledged.
+    {
+      id: "place-accra-coverage",
+      city: "accra",
+      facet: "Filling the coverage gaps",
+      facetLabel: "Coverage gaps",
+      iconKey: "data",
+      // Genuine gap, and the gap IS the story: ~5 statutory stations for 5.4M; the
+      // sub-city map is being filled by AirQo. No neighbourhood numbers exist. TK.
+      stat: { kind: "tk", metric: "neighbourhoods still uncovered" },
+      did: "Started filling a sparse map so the 'where I live' question can eventually be answered.",
+      how: "With only ~5 EPA reference stations for 5.4M people, AirQo's low-cost sensors are extending coverage outward — but much of the city, and the people most exposed, are still off the map.",
+      // Genuine gap: no sub-city readings for Accra; the absence is the honest point.
+      outcome: {
+        tk: "Per-neighbourhood readings for Accra — the network is still too sparse to rank districts; the honest answer is 'coverage is being built'. [structure shown; readings TK]",
+      },
+      whyNotYou:
+        "The honest version of 'where I live': naming what the map can't yet see is the first step to covering the people it misses.",
+      source: "[R1] city-initiatives-research.md + [R4] city-sensor-ownership.md (EPA ~5 stations; AirQo)",
+    },
+  ],
+};
+
+/* ------------------------------------------------------------------ *
+ * CONCERN 5 — "Why won't anyone make the polluters stop?"  → fans by ACTOR
+ * Accountability framing — NOT individual behaviour. Each card is a real peer
+ * city where an ACTOR (city government / regulator-law / national government)
+ * held a polluter accountable or enacted ENFORCEMENT — a ban, a charge, a
+ * binding programme — with the outcome. Answer-fit: who acted, and what it forced.
+ * ------------------------------------------------------------------ */
+
+const MAKE_THEM_STOP: Concern = {
+  key: "make-them-stop",
+  voice: "Why won't anyone make the polluters stop?",
+  axisLabel: "By actor",
+  axisDescription:
+    "Each card names who acted — city government, a regulator, or national government — and the enforcement they used to make a polluter stop. Accountability and binding action, not asking residents to change.",
+  contribution:
+    "Holding the biggest polluters accountable is the enforcement edge of the 2030 goal — bans and charges that make the dirtiest sources stop are what turn a target into measured cleaner air. [R5]",
+  cards: [
+    // LONDON — CITY GOVERNMENT enforced: charged the dirtiest vehicles to enter.
+    {
+      id: "stop-london-city",
+      city: "london",
+      facet: "City government · charged the polluters",
+      facetLabel: "City enforcement",
+      iconKey: "cityGov",
+      // REAL achieved enforcement outcome: −21% roadside NO2, 46k fewer vehicles/day.
+      stat: {
+        kind: "progression",
+        from: "46k fewer",
+        to: "−21%",
+        metric: "dirty vehicles/day → roadside NO₂",
+      },
+      did: "The city made the dirtiest vehicles pay to enter — and enforced it city-wide.",
+      how: "Transport for London's Ultra Low Emission Zone charges non-compliant vehicles daily, enforced by camera across all of Greater London since 2023. The city acted on the polluter, not the resident.",
+      outcome:
+        "21% reduction in roadside NO2 and ~46,000 fewer polluting vehicles in the zone each day — enforcement, measured.",
+      whyNotYou:
+        "A city can make polluters pay on a schedule it controls, instead of waiting for the fleet to clean itself up.",
+      source: "[R1] city-initiatives-research.md (ULEZ; LAEI)",
+    },
+    // WARSAW — REGULATOR / LAW enforced: a binding ban on the dirtiest fuel.
+    {
+      id: "stop-warsaw-regulator",
+      city: "warsaw",
+      facet: "Regulator · banned the dirtiest fuel",
+      facetLabel: "Regulatory ban",
+      iconKey: "regulator",
+      // REAL: a binding regional ban, in force from 1 Sept 2023, on the ~65% source.
+      stat: { kind: "figure", value: "~65%", metric: "of winter PM10 — banned by law" },
+      did: "A regulator made the biggest single source illegal.",
+      how: "The Mazovia regional anti-smog resolution bans coal and solid-fuel combustion in Warsaw — a binding law in force from 1 September 2023, extending to the wider metro by 2028.",
+      outcome:
+        "Residential solid-fuel heating — identified as ~65% of Warsaw's winter PM10 — is now banned outright, not merely discouraged.",
+      whyNotYou:
+        "When a source is big enough, a binding ban with a date does what voluntary measures can't: it stops it.",
+      source: "[R2] city-initiatives-research-2.md (Mazovia anti-smog resolution)",
+    },
+    // WARSAW — NATIONAL GOVERNMENT forcing function: state money behind the transition.
+    {
+      id: "stop-warsaw-national",
+      city: "warsaw",
+      facet: "National government · funded the switch",
+      facetLabel: "National programme",
+      iconKey: "national",
+      // REAL: €25bn national programme — the state's forcing function backing the ban.
+      stat: { kind: "figure", value: "€25bn", metric: "national clean-heating fund" },
+      did: "National government put real money behind making the ban enforceable.",
+      how: "The €25bn national Clean Air Programme funds boiler replacement and thermal renovation — so a regulator's ban isn't just a rule households can't afford to follow, but a transition the state pays to make happen.",
+      outcome:
+        "A €25bn subsidy-and-loan programme with ~1 million household applications — national backing that makes the ban stick.",
+      whyNotYou:
+        "Accountability needs a forcing function: pairing a ban with national money is how the polluting practice actually ends.",
+      source: "[R2] city-initiatives-research-2.md (Clean Air Programme, national)",
+    },
+    // ACCRA — building the accountability machinery (honest 'not yet enforcing' TK).
+    {
+      id: "stop-accra-capacity",
+      city: "accra",
+      facet: "Regulator · building the tools to act",
+      facetLabel: "Building capacity",
+      iconKey: "regulator",
+      // Genuine gap: no enforcement outcome yet — the regulator is building the
+      // inventory + AQ management plan that would ENABLE accountability. Honest TK.
+      stat: { kind: "tk", metric: "enforcement powers in progress" },
+      did: "Started building the evidence and the plan a regulator needs before it can hold polluters to account.",
+      how: "EPA Ghana and Clean Air Accra (Clean Air Fund partnership) are developing the city's first comprehensive emissions inventory and AQ management plan — the basis any enforcement has to stand on.",
+      // Genuine gap: no enforcement outcome for Accra yet.
+      outcome: {
+        tk: "Enforcement outcomes for Accra — the regulator is still building the inventory and management plan that accountability would be based on.",
+      },
+      whyNotYou:
+        "Before you can make polluters stop, you need to prove who they are: the inventory is the honest first move toward accountability.",
+      source: "[R1] city-initiatives-research.md (C40/CCAC study; Clean Air Accra)",
+    },
+  ],
+};
+
+export const CONCERNS: Concern[] = [
+  WHO_POLLUTING,
+  SAFE_FOR_KIDS,
+  WHAT_CAN_I_DO,
+  WORST_PART,
+  MAKE_THEM_STOP,
+];
 
 /**
  * Per-city facet ordering — drives localisation. When a city is active, its
@@ -429,7 +761,25 @@ export const CONCERNS: Concern[] = [WHO_POLLUTING, SAFE_FOR_KIDS];
  * leads; London → traffic leads; Accra → its own mix leads).
  */
 export const CITY_LEAD_FACET: Record<CityKey, { [concernKey: string]: string }> = {
-  warsaw: { "who-polluting": "Coal heating", "safe-for-kids": "The home" },
-  london: { "who-polluting": "Traffic", "safe-for-kids": "School air" },
-  accra: { "who-polluting": "Cooking & waste", "safe-for-kids": "Getting data" },
+  warsaw: {
+    "who-polluting": "Coal heating",
+    "safe-for-kids": "The home",
+    "what-can-i-do": "Citizen campaign", // PSA is Warsaw's signature resident action
+    "worst-part": "Sensor grid", // the Airly grid
+    "make-them-stop": "Regulatory ban", // the coal ban is Warsaw's accountability story
+  },
+  london: {
+    "who-polluting": "Traffic",
+    "safe-for-kids": "School air",
+    "what-can-i-do": "Cleaner routes", // London's resident protective tools
+    "worst-part": "Hyperlocal network", // Breathe London ~290 nodes
+    "make-them-stop": "City enforcement", // ULEZ
+  },
+  accra: {
+    "who-polluting": "Cooking & waste",
+    "safe-for-kids": "Getting data",
+    "what-can-i-do": "Community sensing",
+    "worst-part": "Coverage gaps",
+    "make-them-stop": "Building capacity",
+  },
 };
