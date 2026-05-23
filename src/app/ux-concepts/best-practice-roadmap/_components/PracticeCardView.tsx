@@ -1023,6 +1023,20 @@ function FundingProgression({ data }: { data: any }) {
   );
 }
 
+/** OutcomeHighlight — big outcome number with label and context line for outcome-focused cards */
+function OutcomeHighlight({ data }: { data: any }) {
+  // data: { type: "outcomeHighlight", value: "700", label: "...", context: "..." }
+  return (
+    <div className="flex flex-col items-center text-center gap-1.5 py-4">
+      <div className="text-3xl font-bold text-foreground">{data.value}</div>
+      <div className="text-sm text-muted-foreground max-w-[200px]">{data.label}</div>
+      {data.context && (
+        <div className="text-[10px] text-muted-foreground mt-1 max-w-[220px]">{data.context}</div>
+      )}
+    </div>
+  );
+}
+
 function InvestmentROI({ data }: { data: any }) {
   // data shape: {
   //   type: "investmentROI",
@@ -1222,6 +1236,8 @@ function ChartViz({ data, cityFlag }: { data: any; cityFlag?: string }) {
       return <InvestmentROI data={data} />;
     case "peerNetwork":
       return <PeerNetwork data={data} />;
+    case "outcomeHighlight":
+      return <OutcomeHighlight data={data} />;
     default:
       return null;
   }
