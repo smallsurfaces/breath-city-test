@@ -24,6 +24,7 @@ const SELF_NAV_PREFIXES = [
   "/ux-concepts/best-practice-roadmap",
   "/ux-concepts/cities",
   "/ux-concepts/resident-concerns",
+  "/ux-concepts/jtbd-city-toolkit",
 ];
 
 /** "/" is the destination — never show a back-nav there. */
