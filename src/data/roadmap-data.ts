@@ -641,7 +641,7 @@ export const PRACTICE_CARDS: PracticeCard[] = [
         introducedYear: 2020,
         outcomeState: "measured",
         outcomeChange: "+24% urban canopy",
-        chartData: { type: "sparkline", label: "Urban green cover %", values: [22, 23, 23, 24, 25, 26, 27, 28, 29, 31, 33], years: "2014–2024", change: "+50%" },
+        chartData: { type: "greenCoverMap", city: "paris", beforeLabel: "2014", afterLabel: "2024", beforePct: 22, afterPct: 33, change: "+50%", headline: "Urban canopy expanded" },
       },
       {
         citySlug: "milan",
@@ -650,7 +650,7 @@ export const PRACTICE_CARDS: PracticeCard[] = [
         introducedYear: 2018,
         outcomeState: "measured",
         outcomeChange: "3M trees planted",
-        chartData: { type: "treePlanting", existing: 20, added: 12, unit: "× 100K", headline: "3M trees planted" },
+        chartData: { type: "treePlanting", existing: 20, added: 12, unit: "x 100K", headline: "3M new trees planted" },
       },
       {
         citySlug: "brussels",
@@ -659,7 +659,7 @@ export const PRACTICE_CARDS: PracticeCard[] = [
         introducedYear: 2019,
         outcomeState: "measured",
         outcomeChange: "-34% roadside PM2.5",
-        chartData: { type: "bufferZone", bufferWidth: "500m", reduction: "-34%", label: "Roadside PM2.5 behind tree canopy", sourceLabel: "Road", destLabel: "Homes" },
+        chartData: { type: "greenCorridor", headline: "47 km of green corridors", label: "PM2.5 behind tree canopy", reduction: "-34%" },
       },
       {
         citySlug: "warsaw",
@@ -668,7 +668,7 @@ export const PRACTICE_CARDS: PracticeCard[] = [
         introducedYear: 2016,
         outcomeState: "measured",
         outcomeChange: "+78% green cover",
-        chartData: { type: "greenCoverMap", beforeLabel: "2010", afterLabel: "2024", beforePct: 18, afterPct: 32, change: "+78%", headline: "Urban green cover expanded" },
+        chartData: { type: "greenCoverMap", city: "warsaw", beforeLabel: "2010", afterLabel: "2024", beforePct: 18, afterPct: 32, change: "+78%", headline: "Urban green cover expanded" },
       },
     ],
     relatedPracticeIds: ["d4-policy-timeline", "d5-lez"],

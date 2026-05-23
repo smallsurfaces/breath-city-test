@@ -465,101 +465,108 @@ function FuelMixShift({ data }: { data: any }) {
   );
 }
 
-function BufferZone({ data }: { data: any }) {
+function GreenCorridor({ data }: { data: any }) {
+  const w = 240;
+  const h = 160;
+
+  const cityOutline = "M120,8 L210,45 L200,120 L40,120 L30,45 Z";
+
+  const roads = [
+    "M120,8 L120,120",
+    "M210,45 L40,120",
+    "M30,45 L200,120",
+    "M70,25 L170,115",
+    "M170,25 L70,115",
+  ];
+
   return (
-    <div className="space-y-1">
-      <svg viewBox="0 0 280 120" className="w-full" style={{ height: 120 }}>
-        <rect x="0" y="10" width="60" height="70" rx="6" fill="currentColor" className="text-foreground/10" />
-        <text x="30" y="50" textAnchor="middle" fill="currentColor" className="text-foreground/50" style={{ fontSize: 10 }}>
-          {data.sourceLabel}
-        </text>
+    <div className="space-y-2">
+      <div className="text-sm font-semibold text-foreground">{data.headline}</div>
+      <svg viewBox={`0 0 ${w} ${h}`} className="w-full" style={{ height: 160 }}>
+        <path d={cityOutline} fill="currentColor" opacity={0.05} stroke="hsl(var(--foreground) / 0.15)" strokeWidth="1" />
 
-        <rect x="80" y="0" width="120" height="90" rx="8" fill="currentColor" className="text-foreground/8" />
-        {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => (
-          <line
-            key={i}
-            x1={95 + i * 14} y1="8" x2={95 + i * 14} y2="82"
-            stroke="currentColor" strokeWidth="3" strokeLinecap="round"
-            className="text-foreground/20"
-          />
+        {roads.map((d, i) => (
+          <path key={`green-${i}`} d={d} fill="none" stroke="currentColor" strokeWidth="6" strokeLinecap="round" className="text-foreground/25" />
         ))}
-        <text x="140" y="104" textAnchor="middle" fill="currentColor" className="text-foreground/50" style={{ fontSize: 9 }}>
-          {data.bufferWidth} green corridor
-        </text>
 
-        <rect x="220" y="10" width="55" height="70" rx="6" fill="currentColor" className="text-foreground/6" />
-        <text x="247" y="50" textAnchor="middle" fill="currentColor" className="text-foreground/50" style={{ fontSize: 10 }}>
-          {data.destLabel}
-        </text>
-
-        <line x1="60" y1="45" x2="220" y2="45" stroke="currentColor" strokeWidth="1.5" strokeDasharray="5 3" className="text-foreground/30" />
-        <polygon points="215,41 220,45 215,49" fill="currentColor" className="text-foreground/30" />
-        <rect x="110" y="30" width="60" height="18" rx="4" fill="currentColor" className="text-foreground/70" />
-        <text x="140" y="43" textAnchor="middle" fill="white" style={{ fontSize: 11, fontWeight: 700 }}>
-          {data.reduction}
-        </text>
+        {roads.map((d, i) => (
+          <path key={`road-${i}`} d={d} fill="none" stroke="currentColor" strokeWidth="1.5" strokeDasharray="3 2" className="text-foreground/30" />
+        ))}
       </svg>
-      <div className="text-xs text-muted-foreground text-center">{data.label}</div>
+      <div className="text-xs text-muted-foreground">
+        {data.label} · <span className="font-semibold text-foreground">{data.reduction}</span>
+      </div>
     </div>
   );
 }
 
 function GreenCoverMap({ data }: { data: any }) {
-  const cols = 18;
-  const rows = 14;
-  const cellSize = 4;
-  const gap = 1.5;
+  const cellSize = 7;
+  const gap = 2;
 
-  // Warsaw-shaped mask: 1 = city area, 0 = outside
-  // Elongated N-S, wider south, river gap east-of-center
-  const mask = [
-    [0,0,0,0,0,0,1,1,1,0,1,1,0,0,0,0,0,0],
-    [0,0,0,0,0,1,1,1,1,0,1,1,1,0,0,0,0,0],
-    [0,0,0,0,1,1,1,1,1,0,1,1,1,1,0,0,0,0],
-    [0,0,0,1,1,1,1,1,1,0,1,1,1,1,0,0,0,0],
-    [0,0,0,1,1,1,1,1,1,0,1,1,1,1,1,0,0,0],
-    [0,0,1,1,1,1,1,1,1,0,1,1,1,1,1,0,0,0],
-    [0,0,1,1,1,1,1,1,1,0,1,1,1,1,1,1,0,0],
-    [0,1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,0,0],
-    [0,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,0],
-    [1,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,0],
-    [1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,1,0],
-    [0,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,0,0],
-    [0,0,1,1,1,1,1,1,0,1,1,1,1,1,1,0,0,0],
-    [0,0,0,1,1,1,1,0,0,1,1,1,1,1,0,0,0,0],
-  ];
+  const cityMaps: Record<string, {
+    cols: number; rows: number; riverCol: number;
+    mask: number[][]; beforeGreen: number[]; newGreen: number[];
+  }> = {
+    warsaw: {
+      cols: 12, rows: 14, riverCol: 6,
+      mask: [
+        [0,0,0,0,1,1,0,1,0,0,0,0],
+        [0,0,0,1,1,1,0,1,1,0,0,0],
+        [0,0,1,1,1,1,0,1,1,1,0,0],
+        [0,0,1,1,1,1,0,1,1,1,0,0],
+        [0,1,1,1,1,1,0,1,1,1,0,0],
+        [0,1,1,1,1,1,0,1,1,1,1,0],
+        [0,1,1,1,1,1,0,1,1,1,1,0],
+        [1,1,1,1,1,1,0,1,1,1,1,0],
+        [1,1,1,1,1,1,0,0,1,1,1,1],
+        [1,1,1,1,1,1,0,0,1,1,1,1],
+        [0,1,1,1,1,1,0,1,1,1,1,0],
+        [0,1,1,1,1,0,0,1,1,1,0,0],
+        [0,0,1,1,1,0,1,1,1,0,0,0],
+        [0,0,0,1,1,0,1,1,0,0,0,0],
+      ],
+      beforeGreen: [2*12+3, 3*12+8, 4*12+2, 5*12+4, 5*12+10, 7*12+1, 7*12+5, 7*12+9, 8*12+3, 9*12+8, 10*12+2, 10*12+9, 11*12+4, 12*12+7, 13*12+4],
+      newGreen: [1*12+4, 2*12+8, 3*12+3, 3*12+10, 4*12+4, 4*12+9, 5*12+2, 6*12+4, 6*12+8, 6*12+10, 7*12+3, 8*12+5, 8*12+10, 9*12+1, 9*12+4, 9*12+10, 10*12+4, 10*12+7, 11*12+2, 11*12+8, 12*12+3, 12*12+9],
+    },
+    paris: {
+      cols: 12, rows: 10, riverCol: -1,
+      mask: [
+        [0,0,0,0,1,1,1,1,0,0,0,0],
+        [0,0,1,1,1,1,1,1,1,1,0,0],
+        [0,1,1,1,1,1,1,1,1,1,1,0],
+        [1,1,1,1,1,1,1,1,1,1,1,0],
+        [1,1,1,1,1,1,1,1,1,1,1,1],
+        [1,1,1,1,1,1,1,1,1,1,1,1],
+        [0,1,1,1,1,1,1,1,1,1,1,0],
+        [0,1,1,1,1,1,1,1,1,1,0,0],
+        [0,0,1,1,1,1,1,1,1,0,0,0],
+        [0,0,0,0,1,1,1,0,0,0,0,0],
+      ],
+      beforeGreen: [1*12+4, 2*12+2, 2*12+9, 3*12+5, 3*12+10, 4*12+1, 4*12+7, 5*12+3, 5*12+9, 6*12+5, 7*12+2, 7*12+8, 8*12+5],
+      newGreen: [1*12+7, 2*12+5, 2*12+7, 3*12+2, 3*12+8, 4*12+4, 4*12+9, 4*12+11, 5*12+1, 5*12+6, 5*12+11, 6*12+2, 6*12+8, 6*12+10, 7*12+4, 7*12+6, 8*12+3, 8*12+7],
+    },
+  };
 
-  // Flatten mask to get valid cell indices
+  const config = cityMaps[data.city] ?? cityMaps.warsaw;
+  const { cols, rows, riverCol, mask, beforeGreen, newGreen: newGreenRaw } = config;
+
   const validCells: number[] = [];
   mask.forEach((row, r) => row.forEach((v, c) => {
     if (v === 1) validCells.push(r * cols + c);
   }));
 
-  // Before: ~15% of valid cells green (deterministic positions — scattered)
-  const beforeGreen = [
-    3*18+5, 3*18+12, 5*18+3, 5*18+7, 5*18+13,
-    7*18+2, 7*18+8, 7*18+14, 8*18+5, 8*18+12,
-    9*18+1, 9*18+8, 10*18+4, 10*18+11, 10*18+15,
-    11*18+3, 11*18+7, 12*18+5, 12*18+12, 13*18+4,
-  ].filter(i => validCells.includes(i));
-
-  // After: all beforeGreen PLUS more (spread into previously empty areas)
-  const newGreen = [
-    1*18+7, 2*18+5, 2*18+11, 4*18+4, 4*18+10, 4*18+14,
-    6*18+3, 6*18+6, 6*18+11, 6*18+15, 7*18+5, 7*18+11,
-    8*18+3, 8*18+15, 9*18+5, 9*18+13, 10*18+2, 10*18+7,
-    10*18+13, 11*18+5, 11*18+12, 12*18+3, 12*18+10, 13*18+6,
-  ].filter(i => validCells.includes(i));
-
-  const afterGreen = [...new Set([...beforeGreen, ...newGreen])];
+  const validBefore = beforeGreen.filter(i => validCells.includes(i));
+  const validNew = newGreenRaw.filter(i => validCells.includes(i));
+  const afterGreen = [...new Set([...validBefore, ...validNew])];
 
   const renderGrid = (greenCells: number[], highlightNew?: number[]) => {
-    return mask.map((row, r) =>
+    return mask.flatMap((row, r) =>
       row.map((v, c) => {
         if (v === 0) return null;
         const idx = r * cols + c;
-        const isGreen = greenCells.includes(idx);
         const isNew = highlightNew?.includes(idx) ?? false;
+        const isGreen = greenCells.includes(idx);
         return (
           <rect
             key={idx}
@@ -567,7 +574,7 @@ function GreenCoverMap({ data }: { data: any }) {
             y={r * (cellSize + gap)}
             width={cellSize}
             height={cellSize}
-            rx={1}
+            rx={2}
             fill="currentColor"
             className={isNew ? "text-foreground/50" : isGreen ? "text-foreground/35" : "text-foreground/8"}
           />
@@ -578,28 +585,37 @@ function GreenCoverMap({ data }: { data: any }) {
 
   const gridW = cols * (cellSize + gap) - gap;
   const gridH = rows * (cellSize + gap) - gap;
-  const panelGap = 20;
+  const panelGap = 24;
   const totalW = gridW * 2 + panelGap;
 
-  // River: thin line down the gap column (col 9 area) for both panels
-  const riverX = 9 * (cellSize + gap) - gap/2;
+  const renderRiver = (offsetX: number) => {
+    if (riverCol >= 0) {
+      const rx = riverCol * (cellSize + gap) + cellSize / 2;
+      return <line x1={offsetX + rx} y1={0} x2={offsetX + rx} y2={gridH} stroke="currentColor" strokeWidth={1.5} className="text-foreground/10" />;
+    }
+    if (data.city === "paris") {
+      const seineD = `M${offsetX + gridW * 0.7},${gridH * 0.15} Q${offsetX + gridW * 0.55},${gridH * 0.4} ${offsetX + gridW * 0.45},${gridH * 0.55} Q${offsetX + gridW * 0.35},${gridH * 0.7} ${offsetX + gridW * 0.25},${gridH * 0.85}`;
+      return <path d={seineD} fill="none" stroke="currentColor" strokeWidth={1.5} className="text-foreground/10" />;
+    }
+    return null;
+  };
 
   return (
     <div className="space-y-1">
       <div className="text-sm font-semibold text-foreground">{data.headline}</div>
-      <svg viewBox={`0 0 ${totalW} ${gridH + 18}`} className="w-full" style={{ height: 140 }}>
+      <svg viewBox={`0 0 ${totalW} ${gridH + 18}`} className="w-full" style={{ height: 160 }}>
         <g>
-          <line x1={riverX} y1={0} x2={riverX} y2={gridH} stroke="currentColor" strokeWidth={1} className="text-foreground/10" />
-          {renderGrid(beforeGreen)}
+          {renderRiver(0)}
+          {renderGrid(validBefore)}
         </g>
         <g transform={`translate(${gridW + panelGap}, 0)`}>
-          <line x1={riverX} y1={0} x2={riverX} y2={gridH} stroke="currentColor" strokeWidth={1} className="text-foreground/10" />
-          {renderGrid(afterGreen, newGreen)}
+          {renderRiver(0)}
+          {renderGrid(afterGreen, validNew)}
         </g>
-        <text x={gridW / 2} y={gridH + 12} textAnchor="middle" fill="currentColor" className="text-muted-foreground" style={{ fontSize: 8 }}>
+        <text x={gridW / 2} y={gridH + 12} textAnchor="middle" fill="currentColor" className="text-muted-foreground" style={{ fontSize: 9 }}>
           {data.beforeLabel} · {data.beforePct}%
         </text>
-        <text x={gridW + panelGap + gridW / 2} y={gridH + 12} textAnchor="middle" fill="currentColor" className="text-muted-foreground" style={{ fontSize: 8 }}>
+        <text x={gridW + panelGap + gridW / 2} y={gridH + 12} textAnchor="middle" fill="currentColor" className="text-muted-foreground" style={{ fontSize: 9 }}>
           {data.afterLabel} · {data.afterPct}%
         </text>
       </svg>
@@ -611,31 +627,23 @@ function GreenCoverMap({ data }: { data: any }) {
 }
 
 function TreePlanting({ data }: { data: any }) {
-  // data shape: { type: "treePlanting", existing: 20, added: 12, unit: "x 100K", headline: "3M trees planted" }
   const total = data.existing + data.added;
+
+  const Tree = ({ muted }: { muted: boolean }) => (
+    <svg width="16" height="20" viewBox="0 0 16 20" className={muted ? "text-foreground/15" : "text-foreground/60"}>
+      <polygon points="8,2 14,12 2,12" fill="currentColor" />
+      <rect x="6.5" y="12" width="3" height="6" rx="0.5" fill="currentColor" />
+    </svg>
+  );
 
   return (
     <div className="space-y-2">
-      <div className="text-sm font-semibold text-foreground">{data.headline}</div>
-      <div className="flex flex-wrap gap-1">
+      <div className="flex flex-wrap gap-0.5">
         {Array.from({ length: total }).map((_, i) => (
-          <span
-            key={i}
-            className={`text-base ${i < data.existing ? "opacity-25" : "opacity-80"}`}
-            style={{ lineHeight: 1 }}
-          >
-            🌳
-          </span>
+          <Tree key={i} muted={i < data.existing} />
         ))}
       </div>
-      <div className="flex items-center gap-3 text-xs text-muted-foreground">
-        <span className="flex items-center gap-1">
-          <span className="opacity-25">🌳</span> Existing ({data.existing} {data.unit})
-        </span>
-        <span className="flex items-center gap-1">
-          <span className="opacity-80">🌳</span> Added ({data.added} {data.unit})
-        </span>
-      </div>
+      <div className="text-sm font-semibold text-foreground">{data.headline}</div>
     </div>
   );
 }
@@ -659,8 +667,8 @@ function ChartViz({ data, cityFlag }: { data: any; cityFlag?: string }) {
       return <FuelMixShift data={data} />;
     case "phase":
       return <PhaseIndicator data={data} />;
-    case "bufferZone":
-      return <BufferZone data={data} />;
+    case "greenCorridor":
+      return <GreenCorridor data={data} />;
     case "greenCoverMap":
       return <GreenCoverMap data={data} />;
     case "treePlanting":
