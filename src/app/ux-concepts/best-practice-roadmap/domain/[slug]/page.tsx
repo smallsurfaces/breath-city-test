@@ -20,7 +20,7 @@ import {
   getDomainBySlug,
   getPracticesByDomain,
 } from "@/data/roadmap-data";
-import { PracticeCardView } from "../../_components/PracticeCardView";
+import { PracticeCardTile } from "../../_components/PracticeCardView";
 import { StageBadge } from "../../_components/StageBadge";
 
 interface DomainPageProps {
@@ -108,34 +108,25 @@ export default async function DomainDetailPage({ params }: DomainPageProps) {
 
       {/* Practice cards */}
       <section className="px-4 py-10">
-        <div className="mx-auto max-w-3xl space-y-6">
+        <div className="mx-auto max-w-5xl space-y-6">
           {hasPractices ? (
             <>
               <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
                 Practices ({practices.length})
               </h2>
 
-              <div className="space-y-4">
-                {practices.map((practice) => (
-                  <PracticeCardView
-                    key={practice.id}
-                    practice={practice}
-                    linkCities={true}
-                    anchorId={
-                      // Create anchor IDs for each city mentioned so the
-                      // coverage matrix can link directly to a city's example
-                      undefined
-                    }
-                  />
-                ))}
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {practices.flatMap((practice) =>
+                  practice.cityExamples.map((example) => (
+                    <PracticeCardTile
+                      key={`${practice.id}-${example.citySlug}`}
+                      practice={practice}
+                      example={example}
+                      linkCity={true}
+                    />
+                  ))
+                )}
               </div>
-
-              {/* Per-city anchors: render invisible anchor targets for scroll-to */}
-              {practices.flatMap((p) =>
-                p.cityExamples.map((ex) => (
-                  <div key={`${p.id}-${ex.citySlug}`} id={ex.citySlug} className="scroll-mt-16" />
-                ))
-              )}
             </>
           ) : (
             <div className="rounded-xl border border-dashed border-muted-foreground/30 p-8 text-center space-y-2">

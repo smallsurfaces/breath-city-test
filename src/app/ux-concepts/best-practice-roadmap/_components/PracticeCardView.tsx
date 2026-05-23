@@ -354,3 +354,70 @@ export function PracticeCardView({
     </Card>
   );
 }
+
+interface PracticeCardTileProps {
+  practice: PracticeCard;
+  example: CityExample;
+  linkCity?: boolean;
+}
+
+export function PracticeCardTile({
+  practice,
+  example,
+  linkCity = true,
+}: PracticeCardTileProps) {
+  const domain = getDomainById(practice.domainId);
+  const city = getCityBySlug(example.citySlug);
+  if (!city) return null;
+
+  return (
+    <Card className="flex flex-col h-full">
+      <CardContent className="flex flex-col h-full gap-3 pt-5">
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-xs text-muted-foreground truncate">
+            {practice.name}
+          </span>
+          {domain && <StageBadge stage={domain.stage} />}
+        </div>
+
+        {example.chartData && (
+          <div className="rounded-lg bg-muted/30 p-3" style={{ minHeight: 140 }}>
+            <ChartViz data={example.chartData} />
+          </div>
+        )}
+
+        <div className="mt-auto space-y-2">
+          {linkCity ? (
+            <Link
+              href={`/ux-concepts/best-practice-roadmap/city/${city.slug}`}
+              className="text-sm font-semibold text-foreground hover:underline"
+            >
+              {city.flag} {city.name}
+            </Link>
+          ) : (
+            <span className="text-sm font-semibold text-foreground">
+              {city.flag} {city.name}
+            </span>
+          )}
+
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <span>{city.populationLabel}</span>
+            <span>&middot;</span>
+            <Badge
+              variant={example.provenance === "BC Partnership" ? "outline" : "secondary"}
+              className="text-xs"
+            >
+              {example.provenance}
+            </Badge>
+          </div>
+
+          <p className="text-xs text-muted-foreground">
+            {example.interventionName}
+            {example.introducedYear !== "ongoing" && `, introduced ${example.introducedYear}`}
+            {example.introducedYear === "ongoing" && ", ongoing"}
+          </p>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}

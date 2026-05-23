@@ -17,7 +17,6 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import {
   CITIES,
-  DOMAINS,
   COVERAGE_MATRIX,
   getCityBySlug,
   getCoverageCount,
@@ -25,8 +24,7 @@ import {
   getDomainById,
 } from "@/data/roadmap-data";
 import { CoverageStrip } from "../../_components/CoverageStrip";
-import { PracticeCardView } from "../../_components/PracticeCardView";
-import { StageBadge } from "../../_components/StageBadge";
+import { PracticeCardTile } from "../../_components/PracticeCardView";
 
 interface CityPageProps {
   params: Promise<{ slug: string }>;
@@ -138,44 +136,26 @@ export default async function CityDetailPage({ params }: CityPageProps) {
 
       {/* Contributions by domain */}
       <section className="px-4 py-10">
-        <div className="mx-auto max-w-3xl space-y-8">
+        <div className="mx-auto max-w-5xl space-y-8">
           <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
             Contributions by Domain
           </h2>
 
           {practices.length > 0 ? (
-            <>
-              {Array.from(practicesByDomain.entries()).map(
-                ([domainId, domainPractices]) => {
-                  const domain = getDomainById(domainId);
-                  if (!domain) return null;
-
-                  return (
-                    <div key={domainId} className="space-y-3">
-                      <div className="flex items-center gap-2">
-                        <Link
-                          href={`/ux-concepts/best-practice-roadmap/domain/${domain.slug}`}
-                          className="text-sm font-medium text-foreground hover:underline"
-                        >
-                          {String(domain.id).padStart(2, "0")} {domain.shortName}
-                        </Link>
-                        <StageBadge stage={domain.stage} />
-                      </div>
-
-                      <div className="space-y-3">
-                        {domainPractices.map((practice) => (
-                          <PracticeCardView
-                            key={practice.id}
-                            practice={practice}
-                            linkCities={true}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  );
-                }
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {practices.flatMap((practice) =>
+                practice.cityExamples
+                  .filter((ex) => ex.citySlug === city.slug)
+                  .map((example) => (
+                    <PracticeCardTile
+                      key={`${practice.id}-${example.citySlug}`}
+                      practice={practice}
+                      example={example}
+                      linkCity={false}
+                    />
+                  ))
               )}
-            </>
+            </div>
           ) : (
             <div className="rounded-xl border border-dashed border-muted-foreground/30 p-8 text-center space-y-2">
               <p className="text-sm font-medium text-muted-foreground">
