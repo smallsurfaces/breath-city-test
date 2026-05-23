@@ -154,7 +154,7 @@ export default function HomePage() {
               Resident Concerns — Global Site Concept
             </span>
             <Link
-              href="/ux-concepts/resident-concerns"
+              href="/ux-concepts/cities"
               className="inline-flex items-center justify-center px-4 py-2 rounded-xl text-sm font-medium transition-colors"
               style={{
                 backgroundColor: "var(--bc-semantic-brand)",
