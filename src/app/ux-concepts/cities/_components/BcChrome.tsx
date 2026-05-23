@@ -14,8 +14,9 @@
  * Three pieces:
  *   - BcHeader: BC logo (left) + primary nav + "Join us" button. Nav links are
  *     inert (#) EXCEPT "Cities", which points at our index mock so the in-context
- *     story is navigable. Carries the required back-to-hub button (these are
- *     internal prototype routes — every route keeps a visible nav home).
+ *     story is navigable. Back-to-hub is NOT rendered here — the standard
+ *     PrototypeHeader (above BcHeader in layout.tsx) owns it; BcChrome rendering
+ *     its own would produce a duplicate "second nav bar".
  *   - BcFooter: email signup band + partner logos (placeholder text marks) + foot.
  *   - PartnerLogos: Clean Air Fund / C40 / Bloomberg as neutral placeholder marks.
  *
@@ -23,11 +24,10 @@
  * never hardcoded hex.
  *
  * Key exports: BcHeader, BcFooter
- * External dependencies: next/link, lucide-react
+ * External dependencies: next/link
  */
 
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
 
 /** BC's real primary nav labels (from breathecities.org). Only "Cities" is live. */
 const NAV = [
@@ -41,25 +41,20 @@ const NAV = [
 
 /**
  * The site header — BC logo left, nav centre/right, "Join us" CTA. Above it, a
- * thin prototype bar carries the back-to-hub button (required: every internal
- * prototype route keeps a visible way home) and an honest "mock" marker.
+ * thin prototype bar carries an honest "mock" marker. Back-to-hub is OWNED by
+ * the standard PrototypeHeader rendered above BcHeader in the cities layout.tsx
+ * — BcChrome no longer renders its own back-to-hub (it would be a duplicate
+ * "second nav bar").
  */
 export function BcHeader() {
   return (
     <>
       {/* Prototype bar — not part of BC's real chrome; labels this honestly as an
-          in-context mock. It keeps a back-to-hub link, but that is now redundant:
-          the standard PrototypeHeader (rendered above BcHeader in the cities
-          layout.tsx) owns the canonical back-to-hub. Kept here as harmless. */}
+          in-context mock. No back-to-hub link here: the standard PrototypeHeader
+          (rendered above BcHeader in the cities layout.tsx) owns the sole
+          back-to-hub. */}
       <div className="border-b border-border bg-muted/50">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-2">
-          <Link
-            href="/"
-            className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-background px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
-          >
-            <ArrowLeft className="h-3.5 w-3.5" />
-            Back to hub
-          </Link>
+        <div className="mx-auto flex max-w-6xl items-center justify-end gap-3 px-4 py-2">
           <p className="text-[11px] text-muted-foreground">
             Prototype · Resident Concerns shown in a light recreation of BC&rsquo;s
             site — chrome is approximate, not the live site.
