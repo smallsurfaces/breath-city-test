@@ -17,32 +17,17 @@ export default function HomePage() {
           className="text-4xl font-bold tracking-tight"
           style={{ color: "var(--bc-semantic-text)" }}
         >
-          Breathe Cities — Design System
+          Design Hub
         </h1>
 
         <p
           className="text-base max-w-md"
           style={{ color: "var(--bc-semantic-muted)" }}
         >
-          Component library and design token catalogue for the Breathe Cities
-          air quality monitoring platform.
+          Research, concepts, visual directions, the design system, and
+          integrations for Breathe Cities.
         </p>
       </div>
-
-      <nav className="flex flex-col sm:flex-row gap-4">
-        <Link
-          href="/design-system"
-          className="inline-flex items-center justify-center gap-2 px-6 py-4 rounded-xl text-base font-medium transition-colors"
-          style={{
-            backgroundColor: "var(--bc-semantic-brand)",
-            color: "var(--bc-color-white)",
-            borderRadius: "var(--bc-border-radius-md)",
-          }}
-        >
-          Design System →
-        </Link>
-
-      </nav>
 
       <div className="flex flex-col items-center gap-4">
         <p
@@ -173,7 +158,7 @@ export default function HomePage() {
           className="text-xs font-semibold tracking-widest uppercase"
           style={{ color: "var(--bc-semantic-muted)" }}
         >
-          Phase 3 — Visual Directions
+          Visual Design
         </p>
 
         <div className="flex flex-col gap-3 w-full max-w-xl">
@@ -279,7 +264,35 @@ export default function HomePage() {
           className="text-xs font-semibold tracking-widest uppercase"
           style={{ color: "var(--bc-semantic-muted)" }}
         >
-          Mapbox / OpenAQ Integration Test
+          Design System
+        </p>
+
+        <div className="flex flex-col gap-3 w-full max-w-xl">
+          <div className="flex items-center gap-3">
+            <span className="text-sm w-52 shrink-0" style={{ color: "var(--bc-semantic-text)" }}>
+              Component Library & Tokens
+            </span>
+            <Link
+              href="/design-system"
+              className="inline-flex items-center justify-center px-4 py-2 rounded-xl text-sm font-medium transition-colors"
+              style={{
+                backgroundColor: "var(--bc-semantic-brand)",
+                color: "var(--bc-color-white)",
+                borderRadius: "var(--bc-border-radius-md)",
+              }}
+            >
+              Open →
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex flex-col items-center gap-4">
+        <p
+          className="text-xs font-semibold tracking-widest uppercase"
+          style={{ color: "var(--bc-semantic-muted)" }}
+        >
+          Integrations
         </p>
 
         <div className="flex flex-col gap-3 w-full max-w-xl">
