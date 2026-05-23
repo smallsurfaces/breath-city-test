@@ -13,15 +13,25 @@
  *   (%cs = committer date, strict ISO short form YYYY-MM-DD). It writes the result
  *   to src/app/_data/build-dates.json, keyed by route path.
  *
- * Why we COMMIT the generated JSON (shallow-clone gotcha)
+ * The committed JSON is AUTHORITATIVE and hand-maintained — DO NOT auto-regenerate
+ *   src/app/_data/build-dates.json is the single source of truth for build dates and
+ *   is hand-maintained. This script is NOT wired into the build pipeline (it is a
+ *   standalone on-demand `build:dates` npm script only). Earlier it ran in `prebuild`
+ *   and the `build` chain; that was removed because regenerating at deploy time
+ *   collapses every build to the same date: any commit that touches all route folders
+ *   (e.g. a cross-cutting retrofit) makes `git log -1 -- <folder>` return that one
+ *   commit's date for every folder, destroying the honest distinct per-build dates.
+ *   Run this script ONLY when you deliberately intend to refresh dates, then review
+ *   the diff by hand and commit. A content-aware generator that derives a build's
+ *   real "last meaningfully changed" date (rather than last-touched) is tracked as
+ *   cleanup #21 — until then, edit the JSON by hand for intentional updates.
+ *
+ * Why we COMMIT the JSON rather than generate at deploy (shallow-clone gotcha)
  *   Netlify shallow-clones the repo by default (single commit, no history). Running
  *   `git log -- <folder>` at Netlify build time would therefore return empty/wrong
  *   dates for older builds — the history simply isn't present in the shallow clone.
- *   To stay robust and honest we generate this map LOCALLY against full history and
- *   commit build-dates.json. The header reads the committed JSON; the build never
- *   depends on git history being present at deploy time. Re-run this script (and
- *   commit the result) whenever build dates need refreshing — it is wired into the
- *   `build:dates` npm script and runs as part of `prebuild` locally.
+ *   The header reads the committed JSON; the build never depends on git history being
+ *   present at deploy time.
  *
  * Key exports: none — run as a Node script (`node scripts/gen-build-dates.mjs`).
  * External dependencies: node:child_process, node:fs, node:path, node:url.
