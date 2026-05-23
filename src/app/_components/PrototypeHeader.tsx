@@ -18,10 +18,12 @@
  *           build name + an optional `controls` slot (reserved for future
  *           build-level controls; empty today).
  *   RIGHT : "Updated [date]" stamp + the `commentSlot` (map builds pass their
- *           existing spatial <AnnotationLayer/> here so the spatial-annotation toggle
- *           keeps working) OR, when no commentSlot is given, the element-anchored
+ *           existing spatial <AnnotationLayer/> here; its toggle renders inline so it
+ *           lands in this bar) OR, when no commentSlot is given, the element-anchored
  *           AnnotationLayer (anchorMode="element") wired to the durable /api/comments
  *           store — so EVERY non-map build gets real, machine-readable commenting.
+ *           The bar is sticky (top-0, z-105) so it stays pinned while the page scrolls;
+ *           the z-index coordinates with the portaled annotation overlay (see render).
  *
  * Tokens
  *   shadcn-style semantic aliases only (bg-background, text-foreground,
@@ -76,8 +78,8 @@ type PrototypeHeaderProps = {
   date?: string;
   /**
    * Optional comment affordance. MAP builds pass their existing <AnnotationLayer/>
-   * here (its toggle is position:fixed, so it still sits top-right). Non-map builds
-   * omit it and get the disabled "Comments — soon" placeholder instead.
+   * here; its toggle renders inline so it lands in this bar's right slot. Non-map
+   * builds omit it and get the element-anchored AnnotationLayer (also inline) instead.
    */
   commentSlot?: ReactNode;
   /** Reserved future LEFT-slot controls. Empty for now. */
@@ -108,7 +110,19 @@ export function PrototypeHeader({
   );
 
   return (
-    <header className="flex w-full flex-shrink-0 items-center justify-between gap-3 border-b border-border bg-background px-4 py-2.5">
+    /*
+      Sticky chrome bar (CHANGE 2): stays pinned at the top of the viewport as the page
+      scrolls. z-index is load-bearing — it coordinates with the portaled AnnotationLayer
+      overlay stack (all rendered to document.body):
+        freeze ring 90 < overlay 100 < pins 101 < hover-label 102 < HEADER 105 < cards 110.
+      - HEADER z-105 sits ABOVE the click-capture overlay (100) and pins/hover-label so the
+        in-bar Comments/Done-annotating toggle stays clickable while annotation mode is active.
+      - HEADER stays BELOW comment cards (110) so an open card is never hidden behind the bar.
+      - The freeze ring (90) sits below the header so the brand ring frames the content area.
+      shadow-sm gives subtle separation from scrolling content beneath; the existing
+      border-b is retained.
+    */
+    <header className="sticky top-0 z-[105] flex w-full flex-shrink-0 items-center justify-between gap-3 border-b border-border bg-background px-4 py-2.5 shadow-sm">
       {/* LEFT — back-to-hub + build name + reserved controls slot */}
       <div className="flex min-w-0 items-center gap-3">
         <Link
@@ -140,9 +154,11 @@ export function PrototypeHeader({
         )}
 
         {/*
-          commentSlot present → map build's spatial <AnnotationLayer/> (fixed-position
-          toggle, sits top-right). Absent → the element-anchored AnnotationLayer wired to
-          the durable /api/comments store, so every non-map build has real commenting.
+          commentSlot present → map build's spatial <AnnotationLayer/> (its toggle now
+          renders inline, so it sits in this right slot automatically). Absent → the
+          element-anchored AnnotationLayer wired to the durable /api/comments store, so
+          every non-map build has real commenting. In both cases the AnnotationLayer's
+          toggle is a normal in-flow button that lands here, beside the "Updated" stamp.
         */}
         {commentSlot ?? (
           <>
@@ -150,8 +166,8 @@ export function PrototypeHeader({
               Inject the AnnotationLayer's --al-* token interface, mapped onto the BC
               --bc-* semantic tokens (NO hardcoded hex). Map builds inject their own
               --al-* block per-route; non-map builds get this BC-branded mapping here so
-              the widget is styled wherever PrototypeHeader mounts. The toggle is
-              position:fixed (top-right), so no layout slot is needed in the bar.
+              the widget is styled wherever PrototypeHeader mounts. The toggle renders
+              inline in this slot (no fixed position), so the right-slot flex below aligns it.
             */}
             <style>{`
               :root {
@@ -178,7 +194,6 @@ export function PrototypeHeader({
               persistence={persistence}
               buildId={buildId}
               route={pathname}
-              togglePosition={{ top: "1rem", right: "1rem" }}
             />
           </>
         )}

@@ -156,9 +156,9 @@ export default function DirectionOneMapboxV2Page(): React.ReactElement {
       {/* Flex column: standard chrome bar on top, map fills the rest below it.
           The floating top-left wordmark pill is retired — PrototypeHeader replaces it. */}
       <div style={{ display: 'flex', flexDirection: 'column', height: '100dvh', overflow: 'hidden' }}>
-        {/* Standard prototype chrome. The AnnotationLayer is passed as commentSlot so
-            its (position:fixed) toggle keeps sitting top-right and saved comments +
-            freeze behaviour are unchanged — props are identical to before. */}
+        {/* Standard prototype chrome. The AnnotationLayer is passed as commentSlot; its
+            toggle now renders inline so it sits in the bar's right slot. Saved comments +
+            freeze behaviour are unchanged. */}
         <PrototypeHeader
           buildName="Direction 01 — PM2.5 Triangulation"
           commentSlot={
@@ -168,7 +168,6 @@ export default function DirectionOneMapboxV2Page(): React.ReactElement {
               mapAdapter={mapAdapter}
               onEnterMode={handleEnterAnnotateMode}
               onExitMode={handleExitAnnotateMode}
-              togglePosition={{ top: '1rem', right: '1rem' }}
             />
           }
         />

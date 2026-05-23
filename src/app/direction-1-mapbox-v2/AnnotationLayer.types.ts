@@ -180,15 +180,4 @@ export type AnnotationLayerConfig = {
    * Defaults to 768.
    */
   mobileBreakpoint?: number
-
-  /**
-   * Optional. Override the toggle pill CSS position.
-   * Defaults to top: '180px', right: '1rem'.
-   */
-  togglePosition?: {
-    top?: string
-    bottom?: string
-    right?: string
-    left?: string
-  }
 }

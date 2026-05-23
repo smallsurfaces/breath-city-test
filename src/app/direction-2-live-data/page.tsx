@@ -195,10 +195,11 @@ export default function DirectionTwoLiveDataPage(): React.ReactElement {
 
       {/* Flex column: standard chrome bar on top, live-data map fills the rest below it. */}
       <div style={{ display: 'flex', flexDirection: 'column', height: '100dvh', overflow: 'hidden' }}>
-        {/* Standard prototype chrome. The AnnotationLayer is passed as commentSlot (its
-            fixed toggle still sits top-right; storageKey/adapter/callbacks unchanged so
-            saved comments + freeze behaviour are identical). The top-anchored overlays
-            below (readout, selectors, probe) are nudged down ~56px to clear this bar. */}
+        {/* Standard prototype chrome. The AnnotationLayer is passed as commentSlot; its
+            toggle now renders inline so it sits in the bar's right slot. storageKey/adapter/
+            callbacks unchanged so saved comments + freeze behaviour are identical. The
+            top-anchored overlays below (readout, selectors, probe) are nudged down ~56px to
+            clear this bar. */}
         <PrototypeHeader
           buildName="Air Quality — Live OpenAQ Data"
           commentSlot={
@@ -208,7 +209,6 @@ export default function DirectionTwoLiveDataPage(): React.ReactElement {
               mapAdapter={mapAdapter}
               onEnterMode={handleEnterAnnotateMode}
               onExitMode={handleExitAnnotateMode}
-              togglePosition={{ top: '1rem', right: '1rem' }}
             />
           }
         />
