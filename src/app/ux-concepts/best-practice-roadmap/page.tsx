@@ -8,16 +8,14 @@
  * 3. Links to full domain pages
  *
  * Key exports: default page component (Next.js App Router)
- * External dependencies: shadcn Badge/Separator, roadmap-data, PracticeCardTile
+ * External dependencies: shadcn Separator, roadmap-data, PracticeCardTile
  */
 
 import Link from "next/link";
-import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import {
   DOMAINS,
   PRACTICE_CARDS,
-  CITIES,
   STAGE_COLORS,
   type Stage,
 } from "@/data/roadmap-data";
@@ -98,13 +96,19 @@ export default function RoadmapPage() {
           return (
             <section key={pillar.stage} className="space-y-6">
               <div className="space-y-1">
-                <Badge className={`${stageColor.bg} ${stageColor.text} text-xs`}>
-                  {pillar.label}
-                </Badge>
+                <div className="flex items-center gap-2">
+                  <span
+                    className={`inline-block w-2.5 h-2.5 rounded-full ${stageColor.bg}`}
+                    aria-hidden="true"
+                  />
+                  <h2 className="text-xl font-bold text-foreground">
+                    {pillar.label}
+                  </h2>
+                </div>
                 <p className="text-sm text-muted-foreground">{pillar.description}</p>
               </div>
 
-              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
                 {pillarDomains.map((domain) => {
                   const domainCards = PRACTICE_CARDS.filter((p) => p.domainId === domain.id);
                   const featured = FEATURED[domain.id];
@@ -119,9 +123,6 @@ export default function RoadmapPage() {
                         className="block"
                       >
                         <div className="rounded-lg border border-border/50 p-4 h-full hover:border-foreground/20 transition-colors">
-                          <div className="text-xs text-muted-foreground mb-1">
-                            {String(domain.id).padStart(2, "0")}
-                          </div>
                           <div className="text-sm font-semibold text-foreground">
                             {domain.shortName}
                           </div>
@@ -139,9 +140,6 @@ export default function RoadmapPage() {
                         href={`/ux-concepts/best-practice-roadmap/domain/${domain.slug}`}
                         className="block"
                       >
-                        <div className="text-xs text-muted-foreground mb-0.5">
-                          {String(domain.id).padStart(2, "0")}
-                        </div>
                         <div className="text-sm font-semibold text-foreground hover:underline">
                           {domain.shortName}
                         </div>
@@ -150,13 +148,8 @@ export default function RoadmapPage() {
                         practice={card}
                         example={example}
                         linkCity={false}
+                        layout="horizontal"
                       />
-                      <Link
-                        href={`/ux-concepts/best-practice-roadmap/domain/${domain.slug}`}
-                        className="text-xs text-muted-foreground hover:text-foreground hover:underline"
-                      >
-                        See all {domainCards.reduce((acc, c) => acc + c.cityExamples.length, 0)} cities →
-                      </Link>
                     </div>
                   );
                 })}

@@ -7,13 +7,12 @@
  * transport. Other domain slugs render a "coming soon" placeholder.
  *
  * Key exports: default page component, generateStaticParams
- * External dependencies: shadcn Card/Badge/Separator, roadmap-data, PracticeCardView, StageBadge
+ * External dependencies: shadcn Separator, roadmap-data, PracticeCardView, StageBadge
  */
 
 import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import {
   DOMAINS,
@@ -87,13 +86,10 @@ export default async function DomainDetailPage({ params }: DomainPageProps) {
               Roadmap
             </Link>
             <span className="text-xs text-muted-foreground">/</span>
-            <span className="text-xs text-muted-foreground">Domain {domain.id}</span>
+            <span className="text-xs text-muted-foreground">{domain.shortName}</span>
           </div>
 
           <div className="flex items-center gap-3 flex-wrap">
-            <Badge variant="outline" className="text-xs tabular-nums">
-              {String(domain.id).padStart(2, "0")}
-            </Badge>
             <StageBadge stage={domain.stage} />
           </div>
 
@@ -180,9 +176,6 @@ export default async function DomainDetailPage({ params }: DomainPageProps) {
                 href={`/ux-concepts/best-practice-roadmap/domain/${rd.slug}`}
                 className="flex items-center gap-3 rounded-lg border p-3 hover:bg-muted/50 transition-colors"
               >
-                <span className="text-xs text-muted-foreground tabular-nums">
-                  {String(rd.id).padStart(2, "0")}
-                </span>
                 <span className="text-sm font-medium text-foreground">
                   {rd.shortName}
                 </span>

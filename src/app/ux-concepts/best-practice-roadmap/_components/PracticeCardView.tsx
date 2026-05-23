@@ -1173,13 +1173,6 @@ function CityExampleRow({
         )}
         <span className="text-muted-foreground">&middot;</span>
         <span className="text-xs text-muted-foreground">{city.populationLabel}</span>
-        <span className="text-muted-foreground">&middot;</span>
-        <Badge
-          variant={example.provenance === "BC Partnership" ? "outline" : "secondary"}
-          className="text-xs"
-        >
-          {example.provenance}
-        </Badge>
       </div>
 
       {example.chartData && (
@@ -1275,68 +1268,95 @@ export function PracticeCardView({
   );
 }
 
+/**
+ * PracticeCardTileProps — props for the compact tile used on homepage and domain pages.
+ * layout: "vertical" stacks city info above chart (domain pages),
+ *         "horizontal" places info left and chart right (homepage).
+ */
 interface PracticeCardTileProps {
   practice: PracticeCard;
   example: CityExample;
   linkCity?: boolean;
+  layout?: "horizontal" | "vertical";
 }
 
+/**
+ * PracticeCardTile — compact card showing one city example for a practice.
+ * Content order: city flag+name+country, population, intervention+year, chart viz.
+ * Two layout modes controlled by the layout prop.
+ */
 export function PracticeCardTile({
   practice,
   example,
   linkCity = true,
+  layout = "vertical",
 }: PracticeCardTileProps) {
-  const domain = getDomainById(practice.domainId);
   const city = getCityBySlug(example.citySlug);
   if (!city) return null;
 
+  /* City info block — shared between both layouts */
+  const cityInfoBlock = (
+    <div className="space-y-1">
+      {linkCity ? (
+        <Link
+          href={`/ux-concepts/best-practice-roadmap/city/${city.slug}`}
+          className="text-sm font-semibold text-foreground hover:underline"
+        >
+          {city.flag} {city.name}, {city.country}
+        </Link>
+      ) : (
+        <span className="text-sm font-semibold text-foreground">
+          {city.flag} {city.name}, {city.country}
+        </span>
+      )}
+
+      <div className="text-xs text-muted-foreground">
+        {city.populationLabel} population
+      </div>
+
+      <div className="pt-1">
+        <div className="text-sm text-foreground">
+          {example.interventionName}
+        </div>
+        <div className="text-xs text-muted-foreground">
+          {example.introducedYear !== "ongoing"
+            ? `Introduced ${example.introducedYear}`
+            : "Ongoing"}
+        </div>
+      </div>
+    </div>
+  );
+
+  /* Chart viz block — shared between both layouts */
+  const chartBlock = example.chartData ? (
+    <div className="rounded-lg bg-muted/30 p-3" style={{ minHeight: 140 }}>
+      <ChartViz data={example.chartData} cityFlag={city.flag} />
+    </div>
+  ) : null;
+
+  if (layout === "horizontal") {
+    return (
+      <Card className="flex flex-col h-full">
+        <CardContent className="flex flex-col sm:flex-row h-full gap-4 pt-5">
+          <div className="flex-1 min-w-0 flex flex-col justify-center">
+            {cityInfoBlock}
+          </div>
+          {chartBlock && (
+            <div className="sm:w-[280px] flex-shrink-0">
+              {chartBlock}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    );
+  }
+
+  /* Vertical layout (default) — city info on top, chart below */
   return (
     <Card className="flex flex-col h-full">
       <CardContent className="flex flex-col h-full gap-3 pt-5">
-        <div className="flex items-center justify-between gap-2">
-          <span className="text-xs text-muted-foreground truncate">
-            {practice.name}
-          </span>
-          {domain && <StageBadge stage={domain.stage} />}
-        </div>
-
-        {example.chartData && (
-          <div className="rounded-lg bg-muted/30 p-3" style={{ minHeight: 140 }}>
-            <ChartViz data={example.chartData} cityFlag={city.flag} />
-          </div>
-        )}
-
-        <div className="mt-auto space-y-2">
-          {linkCity ? (
-            <Link
-              href={`/ux-concepts/best-practice-roadmap/city/${city.slug}`}
-              className="text-sm font-semibold text-foreground hover:underline"
-            >
-              {city.flag} {city.name}
-            </Link>
-          ) : (
-            <span className="text-sm font-semibold text-foreground">
-              {city.flag} {city.name}
-            </span>
-          )}
-
-          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <span>{city.populationLabel}</span>
-            <span>&middot;</span>
-            <Badge
-              variant={example.provenance === "BC Partnership" ? "outline" : "secondary"}
-              className="text-xs"
-            >
-              {example.provenance}
-            </Badge>
-          </div>
-
-          <p className="text-xs text-muted-foreground">
-            {example.interventionName}
-            {example.introducedYear !== "ongoing" && `, introduced ${example.introducedYear}`}
-            {example.introducedYear === "ongoing" && ", ongoing"}
-          </p>
-        </div>
+        {cityInfoBlock}
+        {chartBlock}
       </CardContent>
     </Card>
   );
