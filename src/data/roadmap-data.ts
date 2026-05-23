@@ -624,6 +624,55 @@ export const PRACTICE_CARDS: PracticeCard[] = [
     ],
     relatedPracticeIds: ["d4-policy-timeline", "d2-source-apportionment"],
   },
+
+  // Domain 7 — Green Infrastructure & Urban Planning
+  {
+    id: "d7-green-infrastructure",
+    name: "Urban Green Infrastructure",
+    domainId: 7,
+    description: "Designing cities that breathe — green corridors, urban forests, tree canopy expansion, and low-emission building standards that reduce exposure and create natural buffers.",
+    totalPopulationImpacted: "16.6M",
+    cityCount: 4,
+    cityExamples: [
+      {
+        citySlug: "paris",
+        provenance: "City Achievement",
+        interventionName: "Plan Canopée — 170,000 new trees by 2030",
+        introducedYear: 2020,
+        outcomeState: "measured",
+        outcomeChange: "+24% urban canopy",
+        chartData: { type: "sparkline", label: "Urban green cover %", values: [22, 23, 23, 24, 25, 26, 27, 28, 29, 31, 33], years: "2014–2024", change: "+50%" },
+      },
+      {
+        citySlug: "milan",
+        provenance: "City Achievement",
+        interventionName: "ForestaMi — 3 million trees planted across metro area",
+        introducedYear: 2018,
+        outcomeState: "measured",
+        outcomeChange: "3M trees planted",
+        chartData: { type: "coverageRing", label: "Tree planting target reached", value: 42, unit: "%" },
+      },
+      {
+        citySlug: "brussels",
+        provenance: "City Achievement",
+        interventionName: "Green corridors along major roads — PM2.5 buffer zones",
+        introducedYear: 2019,
+        outcomeState: "measured",
+        outcomeChange: "-34% roadside PM2.5",
+        chartData: { type: "bufferZone", bufferWidth: "500m", reduction: "-34%", label: "Roadside PM2.5 behind tree canopy", sourceLabel: "Road", destLabel: "Homes" },
+      },
+      {
+        citySlug: "warsaw",
+        provenance: "City Achievement",
+        interventionName: "Urban re-greening programme — parks and pocket forests",
+        introducedYear: 2016,
+        outcomeState: "measured",
+        outcomeChange: "+78% green cover",
+        chartData: { type: "greenCoverMap", beforeLabel: "2010", afterLabel: "2024", beforePct: 18, afterPct: 32, change: "+78%", headline: "Urban green cover expanded" },
+      },
+    ],
+    relatedPracticeIds: ["d4-policy-timeline", "d5-lez"],
+  },
 ];
 
 // ---------------------------------------------------------------------------

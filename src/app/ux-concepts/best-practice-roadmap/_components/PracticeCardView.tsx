@@ -465,6 +465,102 @@ function FuelMixShift({ data }: { data: any }) {
   );
 }
 
+function BufferZone({ data }: { data: any }) {
+  return (
+    <div className="space-y-1">
+      <svg viewBox="0 0 280 120" className="w-full" style={{ height: 120 }}>
+        <rect x="0" y="10" width="60" height="70" rx="6" fill="currentColor" className="text-foreground/10" />
+        <text x="30" y="50" textAnchor="middle" fill="currentColor" className="text-foreground/50" style={{ fontSize: 10 }}>
+          {data.sourceLabel}
+        </text>
+
+        <rect x="80" y="0" width="120" height="90" rx="8" fill="currentColor" className="text-foreground/8" />
+        {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => (
+          <line
+            key={i}
+            x1={95 + i * 14} y1="8" x2={95 + i * 14} y2="82"
+            stroke="currentColor" strokeWidth="3" strokeLinecap="round"
+            className="text-foreground/20"
+          />
+        ))}
+        <text x="140" y="104" textAnchor="middle" fill="currentColor" className="text-foreground/50" style={{ fontSize: 9 }}>
+          {data.bufferWidth} green corridor
+        </text>
+
+        <rect x="220" y="10" width="55" height="70" rx="6" fill="currentColor" className="text-foreground/6" />
+        <text x="247" y="50" textAnchor="middle" fill="currentColor" className="text-foreground/50" style={{ fontSize: 10 }}>
+          {data.destLabel}
+        </text>
+
+        <line x1="60" y1="45" x2="220" y2="45" stroke="currentColor" strokeWidth="1.5" strokeDasharray="5 3" className="text-foreground/30" />
+        <polygon points="215,41 220,45 215,49" fill="currentColor" className="text-foreground/30" />
+        <rect x="110" y="30" width="60" height="18" rx="4" fill="currentColor" className="text-foreground/70" />
+        <text x="140" y="43" textAnchor="middle" fill="white" style={{ fontSize: 11, fontWeight: 700 }}>
+          {data.reduction}
+        </text>
+      </svg>
+      <div className="text-xs text-muted-foreground text-center">{data.label}</div>
+    </div>
+  );
+}
+
+function GreenCoverMap({ data }: { data: any }) {
+  const cols = 6;
+  const rows = 5;
+  const cellSize = 14;
+  const gap = 3;
+  const beforeGreen = [4, 9, 14, 21, 27];
+  const afterGreen = [2, 4, 7, 9, 12, 14, 17, 21, 24, 27];
+
+  const renderGrid = (greenCells: number[]) => (
+    <g>
+      {Array.from({ length: rows * cols }).map((_, i) => {
+        const col = i % cols;
+        const row = Math.floor(i / cols);
+        const isGreen = greenCells.includes(i);
+        return (
+          <rect
+            key={i}
+            x={col * (cellSize + gap)}
+            y={row * (cellSize + gap)}
+            width={cellSize}
+            height={cellSize}
+            rx={3}
+            fill="currentColor"
+            className={isGreen ? "text-foreground/40" : "text-foreground/8"}
+          />
+        );
+      })}
+    </g>
+  );
+
+  const gridW = cols * (cellSize + gap) - gap;
+  const gridH = rows * (cellSize + gap) - gap;
+  const panelGap = 30;
+  const totalW = gridW * 2 + panelGap;
+
+  return (
+    <div className="space-y-1">
+      <svg viewBox={`0 0 ${totalW} ${gridH + 22}`} className="w-full" style={{ height: 120 }}>
+        {renderGrid(beforeGreen)}
+        <text x={gridW / 2} y={gridH + 14} textAnchor="middle" fill="currentColor" className="text-muted-foreground" style={{ fontSize: 9 }}>
+          {data.beforeLabel} · {data.beforePct}%
+        </text>
+        <g transform={`translate(${gridW + panelGap}, 0)`}>
+          {renderGrid(afterGreen)}
+          <text x={gridW / 2} y={gridH + 14} textAnchor="middle" fill="currentColor" className="text-muted-foreground" style={{ fontSize: 9 }}>
+            {data.afterLabel} · {data.afterPct}%
+          </text>
+        </g>
+      </svg>
+      <div className="flex items-center justify-between">
+        <span className="text-xs text-muted-foreground">{data.headline}</span>
+        <span className="text-sm font-semibold text-foreground">{data.change}</span>
+      </div>
+    </div>
+  );
+}
+
 function ChartViz({ data, cityFlag }: { data: any; cityFlag?: string }) {
   if (!data) return null;
   switch (data.type) {
@@ -484,6 +580,10 @@ function ChartViz({ data, cityFlag }: { data: any; cityFlag?: string }) {
       return <FuelMixShift data={data} />;
     case "phase":
       return <PhaseIndicator data={data} />;
+    case "bufferZone":
+      return <BufferZone data={data} />;
+    case "greenCoverMap":
+      return <GreenCoverMap data={data} />;
     default:
       return null;
   }
