@@ -129,10 +129,6 @@ export default async function DomainDetailPage({ params }: DomainPageProps) {
         <div className="mx-auto max-w-5xl space-y-6">
           {hasPractices ? (
             <>
-              <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-                {slug === "monitoring" ? "Practice Cards" : `Practices (${practices.length})`}
-              </h2>
-
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {practices.flatMap((practice) =>
                   practice.cityExamples.map((example) => (
