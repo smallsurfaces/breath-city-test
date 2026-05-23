@@ -30,6 +30,7 @@ export interface City {
   flag: string;
   populationMillions: number;
   populationLabel: string;
+  region: string;
 }
 
 /** A domain in the roadmap (the 12 thematic areas) */
@@ -74,20 +75,20 @@ export interface PracticeCard {
 // ---------------------------------------------------------------------------
 
 export const CITIES: City[] = [
-  { slug: "paris", name: "Paris", country: "France", flag: "FR", populationMillions: 12.2, populationLabel: "12.2M" },
-  { slug: "london", name: "London", country: "United Kingdom", flag: "GB", populationMillions: 9.0, populationLabel: "9.0M" },
-  { slug: "mexico-city", name: "Mexico City", country: "Mexico", flag: "MX", populationMillions: 21.8, populationLabel: "21.8M" },
-  { slug: "milan", name: "Milan", country: "Italy", flag: "IT", populationMillions: 1.4, populationLabel: "1.4M" },
-  { slug: "brussels", name: "Brussels", country: "Belgium", flag: "BE", populationMillions: 1.2, populationLabel: "1.2M" },
-  { slug: "jakarta", name: "Jakarta", country: "Indonesia", flag: "ID", populationMillions: 10.6, populationLabel: "10.6M" },
-  { slug: "johannesburg", name: "Johannesburg", country: "South Africa", flag: "ZA", populationMillions: 6.0, populationLabel: "6.0M" },
-  { slug: "accra", name: "Accra", country: "Ghana", flag: "GH", populationMillions: 5.4, populationLabel: "5.4M" },
-  { slug: "nairobi", name: "Nairobi", country: "Kenya", flag: "KE", populationMillions: 4.4, populationLabel: "4.4M" },
-  { slug: "bangkok", name: "Bangkok", country: "Thailand", flag: "TH", populationMillions: 10.7, populationLabel: "10.7M" },
-  { slug: "bogota", name: "Bogota", country: "Colombia", flag: "CO", populationMillions: 7.9, populationLabel: "7.9M" },
-  { slug: "rio-de-janeiro", name: "Rio de Janeiro", country: "Brazil", flag: "BR", populationMillions: 6.7, populationLabel: "6.7M" },
-  { slug: "sofia", name: "Sofia", country: "Bulgaria", flag: "BG", populationMillions: 1.3, populationLabel: "1.3M" },
-  { slug: "warsaw", name: "Warsaw", country: "Poland", flag: "PL", populationMillions: 1.8, populationLabel: "1.8M" },
+  { slug: "paris", name: "Paris", country: "France", flag: "FR", populationMillions: 12.2, populationLabel: "12.2M", region: "Europe" },
+  { slug: "london", name: "London", country: "United Kingdom", flag: "GB", populationMillions: 9.0, populationLabel: "9.0M", region: "Europe" },
+  { slug: "mexico-city", name: "Mexico City", country: "Mexico", flag: "MX", populationMillions: 21.8, populationLabel: "21.8M", region: "Latin America" },
+  { slug: "milan", name: "Milan", country: "Italy", flag: "IT", populationMillions: 1.4, populationLabel: "1.4M", region: "Europe" },
+  { slug: "brussels", name: "Brussels", country: "Belgium", flag: "BE", populationMillions: 1.2, populationLabel: "1.2M", region: "Europe" },
+  { slug: "jakarta", name: "Jakarta", country: "Indonesia", flag: "ID", populationMillions: 10.6, populationLabel: "10.6M", region: "Asia" },
+  { slug: "johannesburg", name: "Johannesburg", country: "South Africa", flag: "ZA", populationMillions: 6.0, populationLabel: "6.0M", region: "Africa" },
+  { slug: "accra", name: "Accra", country: "Ghana", flag: "GH", populationMillions: 5.4, populationLabel: "5.4M", region: "Africa" },
+  { slug: "nairobi", name: "Nairobi", country: "Kenya", flag: "KE", populationMillions: 4.4, populationLabel: "4.4M", region: "Africa" },
+  { slug: "bangkok", name: "Bangkok", country: "Thailand", flag: "TH", populationMillions: 10.7, populationLabel: "10.7M", region: "Asia" },
+  { slug: "bogota", name: "Bogota", country: "Colombia", flag: "CO", populationMillions: 7.9, populationLabel: "7.9M", region: "Latin America" },
+  { slug: "rio-de-janeiro", name: "Rio de Janeiro", country: "Brazil", flag: "BR", populationMillions: 6.7, populationLabel: "6.7M", region: "Latin America" },
+  { slug: "sofia", name: "Sofia", country: "Bulgaria", flag: "BG", populationMillions: 1.3, populationLabel: "1.3M", region: "Europe" },
+  { slug: "warsaw", name: "Warsaw", country: "Poland", flag: "PL", populationMillions: 1.8, populationLabel: "1.8M", region: "Europe" },
 ];
 
 // ---------------------------------------------------------------------------

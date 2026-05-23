@@ -38,7 +38,7 @@ const NAV = [
   { label: "Who we are", href: "#" },
   { label: "What we do", href: "#" },
   { label: "Why we do it", href: "#" },
-  { label: "Cities", href: "#" },
+  { label: "Cities", href: "/ux-concepts/best-practice-roadmap/cities" },
   { label: "Roadmap", href: "/ux-concepts/best-practice-roadmap" },
   { label: "Voices", href: "#" },
   { label: "News", href: "#" },
