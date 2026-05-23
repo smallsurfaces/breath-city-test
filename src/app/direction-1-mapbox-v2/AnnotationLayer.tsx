@@ -30,6 +30,7 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { createPortal } from 'react-dom'
+import { MessageSquare } from 'lucide-react'
 import type { Annotation, AnnotationLayerConfig, ElementAnchor } from './AnnotationLayer.types'
 import { captureAnchor, resolveAnchor } from '../../lib/comments/anchor'
 
@@ -78,7 +79,6 @@ export default function AnnotationLayer({
   onEnterMode,
   onExitMode,
   mobileBreakpoint = 768,
-  togglePosition,
   anchorMode = 'viewport',
   persistence,
   buildId,
@@ -183,6 +183,19 @@ export default function AnnotationLayer({
     hoverPointRef.current = null
     setHover(null)
   }, [selecting])
+
+  // ── Hover rAF unmount cleanup ─────────────────────────────────────────────────
+  // The selecting-suppression effect above only cancels a queued frame when `selecting`
+  // flips false. If the component unmounts while still selecting (e.g. route change with
+  // annotation mode active), a frame could remain queued and fire its setHover after the
+  // component is gone. This dedicated unmount-only cleanup cancels any pending frame.
+  // Side effect: cancels a pending requestAnimationFrame on unmount.
+
+  useEffect(() => () => {
+    if (hoverFrameRef.current !== null) {
+      window.cancelAnimationFrame(hoverFrameRef.current)
+    }
+  }, [])
 
   // ── Load on mount ───────────────────────────────────────────────────────────
   // Two paths, selected by whether a `persistence` adapter was supplied:
@@ -653,19 +666,39 @@ export default function AnnotationLayer({
     fontFamily: 'var(--al-font)',
   }
 
-  // ── Toggle pill position ─────────────────────────────────────────────────────
-  // Defaults: desktop top 180px right 1rem, mobile bottom 148px right 1rem.
-  // togglePosition prop overrides desktop position only.
-
-  const pillDesktopPos = togglePosition ?? { top: '180px', right: '1rem' }
+  // ── Inline toggle styles ──────────────────────────────────────────────────────
+  // The toggle is no longer a position:fixed pill in the portaled viewportUI — it now
+  // renders INLINE in this component's in-tree return (see render below), so it sits
+  // naturally inside the host PrototypeHeader bar (right slot for non-map builds; the
+  // commentSlot for map builds). Styled to match the header's "Back to hub" Link
+  // aesthetic: rounded, bordered, text-xs, px-3 py-1.5. Inactive = bordered "Comments";
+  // active = filled brand "Done annotating". --al-* tokens only (no hardcoded hex).
+  const inlineToggleStyle: React.CSSProperties = {
+    display: 'inline-flex',
+    flexShrink: 0,
+    alignItems: 'center',
+    gap: '0.375rem',
+    borderRadius: 'var(--al-radius-input)',
+    padding: '0.375rem 0.75rem',
+    height: '32px',
+    fontSize: '0.75rem',
+    fontWeight: 600,
+    lineHeight: 1,
+    cursor: 'pointer',
+    fontFamily: 'var(--al-font)',
+    transition: 'background-color 120ms ease, color 120ms ease, border-color 120ms ease',
+    border: isActive ? '1px solid var(--al-brand)' : '1px solid var(--al-overlay-border)',
+    background: isActive ? 'var(--al-brand)' : 'transparent',
+    color: isActive ? 'var(--al-white)' : 'var(--al-muted)',
+  }
 
   // ─── Viewport UI (portalled to document.body) ─────────────────────────────────
 
-  // The viewport-level UI is portalled to document.body (see render below). The
-  // <style> block stays in the in-tree render: it is a position-independent stylesheet, and
-  // keeping it here means the `body.annotation-active header` dim rule correctly dims ONLY
-  // the host header-bar chrome (back link / build name / updated stamp) — which the
-  // annotation UI is NO LONGER a descendant of, so the UI stays fully interactive.
+  // The viewport-level UI is portalled to document.body (see render below). The TOGGLE is
+  // NO LONGER part of this block — it renders inline in the in-tree return so it sits inside
+  // the host PrototypeHeader bar. Everything that must escape the header's stacking context
+  // and overlay the frozen page (freeze ring, click-capture overlay, highlight ring, hover
+  // preview, pins, cards) stays here and stays portalled to document.body.
   const viewportUI = (
     <>
       {/* ── Freeze border ring ──────────────────────────────────────────────── */}
@@ -681,41 +714,6 @@ export default function AnnotationLayer({
           }}
         />
       )}
-
-      {/* ── Toggle pill ────────────────────────────────────────────────────── */}
-      {/* Mobile bottom raised to 148px to clear MobilePopup (bottom: 64px, ~80px tall).
-          Mobile touch target is 44px height for accessibility. */}
-      <button
-        onClick={isActive ? exitAnnotationMode : enterAnnotationMode}
-        style={{
-          position: 'fixed',
-          top: isMobile ? undefined : pillDesktopPos.top,
-          bottom: isMobile ? '148px' : pillDesktopPos.bottom,
-          right: isMobile ? '1rem' : (pillDesktopPos.right ?? '1rem'),
-          left: isMobile ? undefined : pillDesktopPos.left,
-          zIndex: 110,
-          // Explicit guard: the toggle must stay clickable in annotation mode. It is
-          // portalled to document.body (so it no longer inherits the host header's
-          // `pointer-events: none` dim rule), and this makes that intent robust against
-          // any future re-parenting of the layer.
-          pointerEvents: 'auto',
-          borderRadius: 'var(--al-radius-pill)',
-          padding: isMobile ? '10px 18px' : '6px 14px',
-          height: isMobile ? '44px' : '32px',
-          fontSize: '0.75rem',
-          fontWeight: 600,
-          cursor: 'pointer',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
-          backdropFilter: 'blur(8px)',
-          WebkitBackdropFilter: 'blur(8px)',
-          fontFamily: 'var(--al-font)',
-          border: isActive ? 'none' : '1px solid var(--al-overlay-border)',
-          background: isActive ? 'var(--al-brand)' : 'var(--al-overlay-bg)',
-          color: isActive ? 'var(--al-white)' : 'var(--al-text)',
-        }}
-      >
-        {isActive ? `Done annotating` : (label ?? 'Annotate')}
-      </button>
 
       {/* ── Annotation mode overlays ────────────────────────────────────────── */}
       {isActive && (
@@ -1115,32 +1113,49 @@ export default function AnnotationLayer({
   )
 
   // ─── Render ──────────────────────────────────────────────────────────────────
-  // In-tree: the <style> block only (a position-independent stylesheet). Its
-  // `body.annotation-active header` rule dims the host header-bar chrome while
-  // annotating — and because the interactive UI is portalled out of <header> (below),
-  // that rule no longer disables it.
-  // Portalled to document.body: the freeze ring, toggle, click-capture overlay,
-  // highlight ring, pins, and cards. This is what fixes BUG 1 — the UI escapes the
-  // header's `pointer-events: none` inheritance and its stacking context entirely, so
-  // real clicks reach the handlers. Guarded by `mounted` for SSR (createPortal needs a
-  // real DOM node; nothing renders on the server).
+  // In-tree (renders where this component is mounted = inside PrototypeHeader's bar):
+  //   - the <style> block (a position-independent stylesheet for dimming map panels), and
+  //   - the INLINE toggle button. Because the component is mounted in the header, the inline
+  //     toggle renders inside the bar for both build types. It is a normal in-flow button
+  //     (NOT position:fixed). The active "Done annotating" toggle now lives in the header, so
+  //     the old `body.annotation-active header` dim rule is GONE (it would have dimmed and
+  //     pointer-events:none'd the very control needed to exit annotation mode). The freeze
+  //     ring + overlay remain the annotation-mode signal.
+  // Portalled to document.body: the freeze ring, click-capture overlay, highlight ring,
+  //   hover preview, pins, and cards — everything that must overlay the frozen page and
+  //   escape the header's stacking context. Guarded by `mounted` for SSR (createPortal needs
+  //   a real DOM node; nothing renders on the server).
 
   return (
     <>
       {/* ── Body class styles ──────────────────────────────────────────────── */}
-      {/* Dims the host header-bar chrome + map panels while annotation mode is active.
-          The annotation UI is portalled to document.body, so it is NOT dimmed by this. */}
+      {/* Dims map-build floating panels (toggle-panel / time-slider) while annotation mode
+          is active so they don't compete with the frozen page. The header is intentionally
+          NOT dimmed — the active toggle lives in it and must stay clickable. The annotation
+          UI is portalled to document.body, so it is not affected by these rules. */}
       <style>{`
         body.annotation-active [data-slot="toggle-panel"],
         body.annotation-active [data-slot="time-slider"] {
           opacity: 0.5;
           pointer-events: none;
         }
-        body.annotation-active header {
-          opacity: 0.8;
-          pointer-events: none;
-        }
       `}</style>
+
+      {/* ── Inline toggle ──────────────────────────────────────────────────────
+          Renders inside the host PrototypeHeader bar (right slot / commentSlot). Normal
+          in-flow button — no portal, no fixed position. Clickable in BOTH states: enter
+          annotation mode from the bar, and "Done annotating" to exit from the bar. The
+          sticky header sits above the click-capture overlay (z-index documented in
+          PrototypeHeader), so this stays clickable while annotating. */}
+      <button
+        type="button"
+        onClick={isActive ? exitAnnotationMode : enterAnnotationMode}
+        aria-pressed={isActive}
+        style={inlineToggleStyle}
+      >
+        <MessageSquare className="h-3.5 w-3.5" aria-hidden="true" />
+        {isActive ? 'Done annotating' : (label ?? 'Comments')}
+      </button>
 
       {mounted ? createPortal(viewportUI, document.body) : null}
     </>
