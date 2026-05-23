@@ -227,6 +227,177 @@ function SourceDonut({ data, cityFlag }: { data: any; cityFlag?: string }) {
   );
 }
 
+function PolicyTimeline({ data }: { data: any }) {
+  const w = 320;
+  const h = 180;
+  const padL = 32;
+  const padR = 12;
+  const padT = 20;
+  const padB = 28;
+  const chartW = w - padL - padR;
+  const chartH = h - padT - padB;
+
+  const yearRange = data.endYear - data.startYear;
+  const toX = (year: number) => padL + ((year - data.startYear) / yearRange) * chartW;
+
+  const yMin = 40;
+  const yMax = 105;
+  const toY = (val: number) => padT + ((yMax - val) / (yMax - yMin)) * chartH;
+
+  const curvePoints: { year: number; value: number }[] = data.curve;
+  const polyPoints = curvePoints.map((p: { year: number; value: number }) => `${toX(p.year)},${toY(p.value)}`).join(" ");
+
+  const firstPt = curvePoints[0];
+  const lastPt = curvePoints[curvePoints.length - 1];
+  const areaPath = `M${toX(firstPt.year)},${toY(firstPt.value)} ${curvePoints.map((p: { year: number; value: number }) => `L${toX(p.year)},${toY(p.value)}`).join(" ")} L${toX(lastPt.year)},${toY(yMin)} L${toX(firstPt.year)},${toY(yMin)} Z`;
+
+  const targetValue = 100 - data.targetPct;
+  const targetY = toY(targetValue);
+
+  const exceeded = data.currentPct >= data.targetPct;
+
+  const policies: { num: number; year: number; label: string }[] = data.policies;
+
+  const getCurveValueAtYear = (year: number): number => {
+    const exact = curvePoints.find((p: { year: number; value: number }) => p.year === year);
+    if (exact) return exact.value;
+    let before = curvePoints[0];
+    let after = curvePoints[curvePoints.length - 1];
+    for (let i = 0; i < curvePoints.length - 1; i++) {
+      if (curvePoints[i].year <= year && curvePoints[i + 1].year >= year) {
+        before = curvePoints[i];
+        after = curvePoints[i + 1];
+        break;
+      }
+    }
+    const t = (year - before.year) / (after.year - before.year);
+    return before.value + t * (after.value - before.value);
+  };
+
+  const markerR = 9;
+
+  const xAxisYears = [data.startYear, data.endYear];
+  const midYear = Math.round((data.startYear + data.endYear) / 2);
+  if (midYear !== data.startYear && midYear !== data.endYear) {
+    xAxisYears.splice(1, 0, midYear);
+  }
+
+  return (
+    <div className="space-y-2">
+      <div className="text-xs text-muted-foreground">
+        {data.metric} {data.unit}
+      </div>
+      <svg viewBox={`0 0 ${w} ${h}`} className="w-full" style={{ height: 180 }} preserveAspectRatio="xMidYMid meet">
+        <line
+          x1={padL} y1={targetY} x2={w - padR} y2={targetY}
+          stroke="currentColor" strokeWidth="1" strokeDasharray="4 4"
+          className="text-foreground/30"
+        />
+        <text
+          x={w - padR} y={targetY - 4}
+          textAnchor="end"
+          className="text-foreground/40"
+          style={{ fontSize: 8 }}
+          fill="currentColor"
+        >
+          2030 target
+        </text>
+
+        <path d={areaPath} fill="currentColor" className="text-foreground/10" />
+        <polyline
+          points={polyPoints}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          className="text-foreground/60"
+        />
+
+        {policies.map((p: { num: number; year: number; label: string }) => {
+          const curveVal = getCurveValueAtYear(p.year);
+          const cx = toX(p.year);
+          const cy = toY(curveVal);
+          const markerCy = cy - markerR - 4;
+          return (
+            <g key={p.num}>
+              <line
+                x1={cx} y1={cy} x2={cx} y2={markerCy + markerR}
+                stroke="currentColor" strokeWidth="1"
+                className="text-foreground/30"
+              />
+              <circle
+                cx={cx} cy={markerCy} r={markerR}
+                fill="currentColor"
+                className="text-foreground/70"
+              />
+              <text
+                x={cx} y={markerCy + 3.5}
+                textAnchor="middle"
+                fill="white"
+                style={{ fontSize: 10, fontWeight: 700 }}
+              >
+                {p.num}
+              </text>
+            </g>
+          );
+        })}
+
+        <line
+          x1={padL} y1={h - padB} x2={w - padR} y2={h - padB}
+          stroke="currentColor" strokeWidth="1"
+          className="text-foreground/15"
+        />
+        {xAxisYears.map((yr: number) => (
+          <g key={yr}>
+            <line
+              x1={toX(yr)} y1={h - padB} x2={toX(yr)} y2={h - padB + 4}
+              stroke="currentColor" strokeWidth="1"
+              className="text-foreground/20"
+            />
+            <text
+              x={toX(yr)} y={h - padB + 14}
+              textAnchor="middle"
+              className="text-muted-foreground"
+              style={{ fontSize: 9 }}
+              fill="currentColor"
+            >
+              {yr}
+            </text>
+          </g>
+        ))}
+
+        <line
+          x1={padL} y1={padT} x2={padL} y2={h - padB}
+          stroke="currentColor" strokeWidth="1"
+          className="text-foreground/15"
+        />
+      </svg>
+
+      <div className="grid gap-0.5">
+        {policies.map((p: { num: number; year: number; label: string }) => (
+          <div key={p.num} className="text-xs text-muted-foreground">
+            <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-foreground/70 text-background text-[9px] font-bold mr-1.5 align-middle">
+              {p.num}
+            </span>
+            {p.label} ({p.year})
+          </div>
+        ))}
+      </div>
+
+      <div className="text-xs text-muted-foreground pt-1">
+        {exceeded ? (
+          <span className="font-semibold text-foreground">
+            Current: -{data.currentPct}% · Target: -{data.targetPct}% by 2030 · Target exceeded
+          </span>
+        ) : (
+          <span>
+            Current: -{data.currentPct}% · Target: -{data.targetPct}% by 2030
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function PhaseIndicator({ data }: { data: any }) {
   const filled = data.phase === "building" ? 1 : data.phase === "established" ? 2 : 3;
   return (
@@ -259,6 +430,8 @@ function ChartViz({ data, cityFlag }: { data: any; cityFlag?: string }) {
       return <Sparkline data={data} />;
     case "coverageRing":
       return <CoverageRing data={data} />;
+    case "policyTimeline":
+      return <PolicyTimeline data={data} />;
     case "phase":
       return <PhaseIndicator data={data} />;
     default:
