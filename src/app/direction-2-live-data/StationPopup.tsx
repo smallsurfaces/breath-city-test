@@ -29,6 +29,7 @@ import React from 'react'
 import type { Station } from '../../lib/openaq/types'
 import {
   classifyAqi,
+  formatReading,
   PARAMETER_META,
   resolveTierColor,
   type ParameterKey,
@@ -129,7 +130,8 @@ export function StationPopup({ station, parameter, onClose }: Props): React.Reac
         )}
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginTop: 8 }}>
           <span style={{ fontSize: '1.6rem', fontWeight: 700, color: headerText, lineHeight: 1 }}>
-            {reading.value}
+            {/* Raw upstream float rounded for display at the parameter's precision; data stays raw. */}
+            {formatReading(reading.value, parameter)}
           </span>
           <span style={{ fontSize: '0.78rem', fontWeight: 400, color: headerText, opacity: 0.9 }}>
             {reading.unit}

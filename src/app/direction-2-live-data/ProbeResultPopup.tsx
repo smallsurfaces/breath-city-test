@@ -36,6 +36,7 @@ import React from 'react'
 import type { TriangulationResult } from '../direction-1-mapbox-v2/triangulation'
 import {
   classifyAqi,
+  formatReading,
   PARAMETER_META,
   resolveTierColor,
   type ParameterKey,
@@ -224,7 +225,9 @@ export function ProbeResultPopup({
                     marginLeft: 8,
                   }}
                 >
-                  {sensor.pm25}
+                  {/* Raw per-sensor float rounded for display at the parameter's precision; the
+                      triangulated average above is already rounded by triangulate() and untouched. */}
+                  {formatReading(sensor.pm25, parameter)}
                 </div>
               </li>
             )

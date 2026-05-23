@@ -225,25 +225,61 @@ function formatRange(lowerDisplay: number, upper: number | null, decimals: numbe
 }
 
 /**
+ * Display decimal precision for a parameter's concentration values — the SINGLE source of the
+ * per-parameter precision signal. Inferred from the breakpoint edges: a parameter whose EPA edges
+ * carry a fractional part (PM2.5, e.g. 35.4) is shown to 1 dp; one whose edges are whole numbers
+ * (PM10, e.g. 154) is shown to 0 dp. Both the legend ranges (getAqiBands) and any rendered reading
+ * (formatReading) read precision from here, so they can never disagree.
+ *
+ * Returns 0 for an unavailable parameter (NO2 has no table) — it is never classified or rendered,
+ * so the value is moot, but 0 is the safe default rather than throwing on a precision lookup.
+ */
+function displayDecimals(parameter: ParameterKey): number {
+  const bands = PARAMETER_BANDS[parameter]
+  if (bands === null) {
+    return 0
+  }
+  const hasFractionalEdge = bands.some(
+    (band) => band.upper !== null && !Number.isInteger(band.upper),
+  )
+  return hasFractionalEdge ? 1 : 0
+}
+
+/**
+ * Format a raw concentration reading for DISPLAY at the active parameter's precision (PM2.5 -> 1 dp,
+ * PM10 -> 0 dp; see displayDecimals). This is the one place a raw upstream float (e.g.
+ * 46.17916615804037) becomes a human-facing string — applied at the render sites only (station
+ * popup value, probe per-sensor list, marker hover title). The DATA LAYER keeps the full-precision
+ * value untouched; rounding is presentation, never mutation, so classification/triangulation always
+ * operate on the raw number.
+ *
+ * Non-finite input returns an em dash rather than "NaN"/"Infinity" — a defensive last line; the
+ * data-core already drops non-finite readings, so this only guards programmer error.
+ */
+export function formatReading(value: number, parameter: ParameterKey): string {
+  if (!Number.isFinite(value)) {
+    return '—'
+  }
+  return value.toFixed(displayDecimals(parameter))
+}
+
+/**
  * Build the parameter's legend bands (tier + formatted range). Returns an empty array for an
  * unavailable parameter (NO2) — the caller decides how to present "scale not available yet".
  *
  * The displayed lower edge of each band is derived from the previous band's upper edge plus a
  * one-step increment matching the table's decimal precision (0.1 for PM2.5, 1 for PM10), so the
- * legend ranges are contiguous and never overlap. Precision is inferred from whether any edge
- * has a fractional part — PM2.5 edges do (e.g. 35.4), PM10 edges do not.
+ * legend ranges are contiguous and never overlap. Precision comes from displayDecimals — the same
+ * per-parameter signal formatReading uses — so legend ranges and rendered readings always agree.
  */
 export function getAqiBands(parameter: ParameterKey): AqiLegendBand[] {
   const bands = PARAMETER_BANDS[parameter]
   if (bands === null) {
     return []
   }
-  // Infer display precision from the edges: fractional edges (PM2.5) -> 1 dp, else 0 dp.
-  const hasFractionalEdge = bands.some(
-    (band) => band.upper !== null && !Number.isInteger(band.upper),
-  )
-  const decimals = hasFractionalEdge ? 1 : 0
-  const step = hasFractionalEdge ? 0.1 : 1
+  // Display precision + the contiguity step both follow the shared per-parameter signal.
+  const decimals = displayDecimals(parameter)
+  const step = decimals === 1 ? 0.1 : 1
 
   const result: AqiLegendBand[] = []
   let previousUpper = 0

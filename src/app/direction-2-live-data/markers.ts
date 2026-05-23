@@ -33,6 +33,7 @@
 import type { Station } from '../../lib/openaq/types'
 import {
   classifyAqi,
+  formatReading,
   resolveMutedColor,
   resolveTierColor,
   type ParameterKey,
@@ -155,9 +156,11 @@ export function createStationMarkerElement(
 
   el.style.width = `${size}px`
   el.style.height = `${size}px`
+  // Side effect: sets the hover title. The reading is rounded for display at the parameter's
+  // precision (formatReading); the underlying station data stays at full precision.
   el.setAttribute(
     'title',
-    `${station.name} — ${reading.value} ${reading.unit} · ${station.quality} · ${fresh ? 'live' : 'stale'}`,
+    `${station.name} — ${formatReading(reading.value, parameter)} ${reading.unit} · ${station.quality} · ${fresh ? 'live' : 'stale'}`,
   )
   el.innerHTML = isTriangle ? triangleSVG(size, fresh, hue) : circleSVG(size, fresh, hue)
   return el
