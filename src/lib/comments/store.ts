@@ -16,6 +16,14 @@
  *   falls back to localStorage. This module surfaces failure by throwing — it does not
  *   swallow errors, so the route can return a 502.
  *
+ * Consistency
+ *   The store is opened with consistency:'strong' on BOTH the auto-wired and explicit
+ *   (siteID/token) paths. Netlify Blobs defaults to EVENTUAL consistency, where a read
+ *   can lag a write by up to ~60s. That breaks this feature: the route's append path is
+ *   read-modify-write (getComments → push → putComments) and would silently drop comments
+ *   under stale reads, and reviewer reloads / agent pulls read-after-write would miss
+ *   recent comments. Strong consistency makes every read reflect the latest write.
+ *
  * Key exports: getComments, putComments
  * External dependencies: @netlify/blobs (getStore), CommentStoreRecord type
  */
@@ -38,10 +46,10 @@ function commentsStore(): ReturnType<typeof getStore> {
   const siteID = process.env.NETLIFY_BLOBS_SITE_ID
   const token = process.env.NETLIFY_BLOBS_TOKEN
   if (siteID !== undefined && token !== undefined) {
-    return getStore({ name: STORE_NAME, siteID, token })
+    return getStore({ name: STORE_NAME, siteID, token, consistency: 'strong' })
   }
   // Auto-wired path (standard under @netlify/plugin-nextjs runtime).
-  return getStore(STORE_NAME)
+  return getStore({ name: STORE_NAME, consistency: 'strong' })
 }
 
 /**
