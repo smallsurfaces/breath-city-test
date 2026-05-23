@@ -3,7 +3,7 @@
  *
  * Recreates Breathe Cities' REAL city-page IA (light) for one BC-family city, so
  * our Resident Concerns component can be validated IN CONTEXT — embedded where
- * BC's own layout invites it. Data-driven for warsaw / london / accra
+ * BC's own layout invites it. Data-driven for warsaw / london / bangkok
  * (Warsaw is the showcase). Server component; the flattened concern stack is a
  * nested client component (CityConcernStack).
  *
@@ -158,48 +158,54 @@ const CITY_PAGE: Record<
       "Breathe London adds ~290 validated neighbourhood sensor nodes on top of the statutory LAQN — open data.",
     ],
   },
-  accra: {
+  bangkok: {
     subline:
-      "Greater Accra — 5.4 million people, where household fuel, waste burning and dust share the load, and the first job is being able to see the air at all.",
+      "Bangkok Metropolitan Region — 10.5 million people, where traffic, industrial combustion and seasonal burning drive the mix, and a growing multi-lever programme is starting to bite.",
     quote:
-      "“We know the air is bad. What we don't yet have is the map that shows us where, and how bad.”",
+      "“On the bad days the smart signs on the road show the number. Now I check it before the children walk to school.”",
     keyStat: {
-      value: "~5",
+      value: "~68",
       label:
-        "EPA reference stations for 5.4 million people — the coverage gap is the starting point.",
-      source: "EPA Ghana / AirQo (city-initiatives-research)",
+        "reference-grade monitoring stations across the city, feeding a public real-time dashboard.",
+      source: "PCD/BMA monitoring network (city-initiatives-research-2)",
     },
     challengeIntro:
-      "Accra's challenge is the honest one many cities start from: the monitoring base is sparse, so the city is still building the picture it needs before it can target the worst sources. Seeing comes first.",
+      "Bangkok built the picture before it acted: a 2024 multi-sector emissions inventory apportioned PM2.5 across the city and surrounding provinces, and a dense reference network puts the readings in public view. Naming the sources is the turn from seeing to acting.",
     challengeStats: [
       {
-        value: "~5",
-        label: "EPA reference-grade stations for 5.4 million people",
-        source: "EPA Ghana monitoring",
+        value: "~68",
+        label: "reference-grade stations measuring PM2.5, PM10, NO2, O3 and CO",
+        source: "PCD/BMA monitoring network",
       },
       {
-        value: null,
-        label: "per-source % split (household fuel / waste / transport)",
-        source: "inventory in progress — C40/CCAC study named the sources, not shares",
+        value: "−19%",
+        label: "PM2.5 from industrial furnaces and boilers (2024 emissions inventory)",
+        source: "2024 Air Pollution Emissions Inventory",
+      },
+      {
+        value: "−15.6%",
+        label: "PM2.5 inside the truck low-emission-zone pilot vs surrounding areas",
+        source: "LEZ pilot (404 trucks/day restricted)",
       },
       {
         value: null,
         label: "city-wide PM2.5 trend / WHO-guideline multiple",
-        source: "no published city-wide BC trend figure for Accra",
+        source: "no published city-wide BC trend figure for Bangkok",
       },
     ],
     doingIntro:
-      "Accra is filling the gaps from both inside and outside government — extending low-cost sensing and building the first comprehensive inventory and management plan that any future enforcement has to stand on.",
+      "Bangkok pairs evidence with enforcement and clean alternatives: an emissions inventory to target sources, a low-emission zone and Euro 5 standards to restrict the dirtiest vehicles, an electric bus fleet residents can ride, and a public dashboard so families can see the air for themselves.",
     doingBullets: [
-      "AirQo low-cost PM2.5 sensors extending coverage outward from the sparse reference network.",
-      "C40 / CCAC source-apportionment study identified household fuel, waste burning and vehicles as dominant.",
-      "Clean Air Accra (Clean Air Fund partnership) developing the city's first emissions inventory and AQ management plan.",
-      "A US Embassy reference monitor and open OpenAQ data give the city its first real-time benchmarks.",
+      "2024 Air Pollution Emissions Inventory — multi-sector apportionment; industrial-furnace PM2.5 down 19%.",
+      "Truck Low Emission Zone pilot — 404 trucks/day restricted; PM2.5 down 15.6% in-zone; expansion to 50 districts planned.",
+      "Euro 5 vehicle and fuel standards (2024) and a PM2.5 Control Zone declaration (2025) handing authorities tighter enforcement powers.",
+      "Bangkok E-Bus Programme — 2,350+ electric buses across 124 routes.",
+      "~68 PCD/BMA reference stations on the airbkk public dashboard, with PM2.5 fed onto smart traffic signs city-wide.",
     ],
   },
 };
 
-const VALID_SLUGS: CityKey[] = ["warsaw", "london", "accra"];
+const VALID_SLUGS: CityKey[] = ["warsaw", "london", "bangkok"];
 
 /** Pre-generate the three BC-family city pages this prototype covers. */
 export function generateStaticParams() {

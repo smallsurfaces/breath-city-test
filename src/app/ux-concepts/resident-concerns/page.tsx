@@ -9,7 +9,7 @@
  *   1. Concern switcher (2 concerns) — each fans out on its OWN axis:
  *        "Who's polluting my neighbourhood?" → by SOURCE
  *        "Is the air safe for my kids?"      → by SETTING / LEVER
- *   2. City switcher (Warsaw / London / Accra) — reorders the deck so the active
+ *   2. City switcher (Warsaw / London / Bangkok) — reorders the deck so the active
  *      city's dominant facet leads (localisation).
  *
  * Honesty discipline rendered in the UI:

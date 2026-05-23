@@ -36,7 +36,7 @@
  * to accountability.
  *
  * EVIDENCE DISCIPLINE — read before editing:
- *   - BC family cities ONLY (here: Warsaw, London, Accra).
+ *   - BC family cities ONLY (here: Warsaw, London, Bangkok).
  *   - NEVER fabricate a figure. Every numeric/policy claim traces to a research file
  *     (see `source` on each card). Where the evidence has a genuine gap, the field is
  *     a Placeholder (`{ tk: "..." }`) rendered as a visible [figure TK] chip — never
@@ -63,8 +63,8 @@
  *   as a `figure`, never a fabricated progression.
  *
  * Sources (files under design/globalsite/concepts/best-practice-roadmap/):
- *   [R1] city-initiatives-research.md          (London, Accra)
- *   [R2] city-initiatives-research-2.md         (Warsaw)
+ *   [R1] city-initiatives-research.md          (London)
+ *   [R2] city-initiatives-research-2.md         (Warsaw, Bangkok)
  *   [R3] breathe-better-report-domain-mapping.md
  *   [R4] city-sensor-ownership.md
  *   [R5] brief.md (BC published anchors: 30%-by-2030; 55K deaths / $147B; 10,000+ children asthma)
@@ -73,7 +73,7 @@
  */
 
 /** The three BC-family cities this prototype covers. */
-export type CityKey = "warsaw" | "london" | "accra";
+export type CityKey = "warsaw" | "london" | "bangkok";
 
 export interface City {
   key: CityKey;
@@ -85,7 +85,7 @@ export interface City {
   /**
    * City-wide trajectory context — used ONLY as a "where the city is heading"
    * caption, never as a per-card outcome. `null` where no published city-wide
-   * BC figure exists for this city (Accra), to avoid implying one.
+   * BC figure exists for this city (Bangkok), to avoid implying one.
    */
   trajectory: string | null;
   trajectorySource: string | null;
@@ -113,12 +113,13 @@ export const CITIES: City[] = [
     trajectorySource: "[R3] breathe-better-report-domain-mapping.md",
   },
   {
-    key: "accra",
-    name: "Accra",
-    country: "Ghana",
-    populationLabel: "5.4M",
-    mix: "Household fuel, waste burning and dust/transport share the load.",
-    // No published city-wide BC trend figure for Accra — kept null deliberately.
+    key: "bangkok",
+    name: "Bangkok",
+    country: "Thailand",
+    populationLabel: "10.5M",
+    mix: "Traffic, industrial combustion and seasonal burning drive the mix.",
+    // No published city-wide BC trend figure for Bangkok — kept null deliberately.
+    // (Programme is mostly recent pilots; no city-scale before→after trend in evidence.)
     trajectory: null,
     trajectorySource: null,
   },
@@ -315,24 +316,23 @@ const WHO_POLLUTING: Concern = {
         "Apportion first, then act: London targeted the source the inventory proved was biggest, not the one that was loudest.",
       source: "[R1] city-initiatives-research.md (LAEI; ULEZ)",
     },
-    // ACCRA — household fuel / waste burning / transport share the load.
+    // BANGKOK — a multi-sector emissions inventory named the sources and cut one.
     {
-      id: "who-accra-household",
-      city: "accra",
-      facet: "Household fuel & waste burning",
-      facetLabel: "Cooking & waste",
-      iconKey: "cooking",
-      // Genuine gap: no per-source % published for Accra. TK, never invented.
-      stat: { kind: "tk", metric: "per-source split (inventory in progress)" },
-      did: "Ran a source apportionment study that named household fuel, waste burning and vehicles as the dominant sources.",
-      how: "A C40 / CCAC urban air-quality assessment identified the dominant PM2.5 sources; Clean Air Accra (Clean Air Fund partnership) is now building the city's first comprehensive emissions inventory and AQ management plan.",
-      // Genuine gap: no per-source % published for Accra in the evidence.
-      outcome: {
-        tk: "Per-source % split for Accra — being established by the in-progress emissions inventory.",
-      },
+      id: "who-bangkok-inventory",
+      city: "bangkok",
+      facet: "Industrial furnaces & boilers",
+      facetLabel: "Industry & furnaces",
+      iconKey: "factory",
+      // REAL achieved figure: industrial furnaces/boilers PM2.5 −19% per the 2024
+      // inventory. A single achieved cut, not a published before→after pair → `figure`.
+      stat: { kind: "figure", value: "−19%", metric: "PM2.5 from industrial furnaces" },
+      did: "Built a multi-sector emissions inventory that named its sources — then cut the one it could move first.",
+      how: "Bangkok's 2024 Air Pollution Emissions Inventory apportioned PM2.5 across sectors for the city and surrounding provinces, underpinning a vulnerability-mapping tool across 50 districts.",
+      outcome:
+        "PM2.5 from industrial furnaces and boilers fell 19% as the inventory turned a named source into targeted action.",
       whyNotYou:
-        "You don't need a mature network to start: a source study tells you where to aim before the readings are dense.",
-      source: "[R1] city-initiatives-research.md (C40/CCAC study; Clean Air Accra)",
+        "Apportion first, then act: a sector inventory tells a city which source to aim at before it spends on the wrong one.",
+      source: "[R2] city-initiatives-research-2.md (2024 Air Pollution Emissions Inventory)",
     },
   ],
 };
@@ -424,25 +424,27 @@ const SAFE_FOR_KIDS: Concern = {
         "Cleaning home heating protects the youngest where they spend the most hours: indoors, at home.",
       source: "[R2] city-initiatives-research-2.md (anti-smog resolution; Clean Air Programme)",
     },
-    // ACCRA — honest 'started' framing; kids-specific evidence is genuinely sparse.
+    // BANGKOK — honest 'seeing' framing: a public real-time dashboard families act on.
+    // The dashboard is REAL; no Bangkok kids-specific exposure figure exists in the
+    // evidence, so the headline stat stays an honest TK rather than a fabricated number.
     {
-      id: "kids-accra-sensing",
-      city: "accra",
-      facet: "Seeing children's exposure",
+      id: "kids-bangkok-dashboard",
+      city: "bangkok",
+      facet: "Checking before the school run",
       facetLabel: "Getting data",
       iconKey: "data",
-      // Genuine gap: no kids-specific exposure figure for Accra — the monitoring base
-      // is still being built. Honest "started" framing as a TK.
+      // Genuine gap: no kids-specific exposure figure for Bangkok. The tool families
+      // use is real, but the children's-exposure number isn't published → TK.
       stat: { kind: "tk", metric: "children's-exposure baseline" },
-      did: "Started filling the data gaps so children's exposure can be seen before it can be acted on.",
-      how: "AirQo low-cost PM2.5 sensors and a US Embassy reference monitor give Accra its first real-time picture; Clean Air Accra is building the AQ management plan that would target children's settings.",
-      // Genuine gap: no kids-specific exposure figure for Accra.
+      did: "Put real-time air-quality data where families can see it — and decide before the children go out.",
+      how: "The BMA airbkk dashboard publishes live station data and AQI city-wide, and feeds PM2.5 onto smart traffic signs — so a parent can check the air on a bad-air morning and choose whether to keep play indoors.",
+      // Genuine gap: no kids-specific exposure figure for Bangkok in the evidence.
       outcome: {
-        tk: "Children's-exposure figures for Accra — the monitoring base to measure them is still being built.",
+        tk: "A Bangkok children's-exposure figure — the public dashboard makes the air visible, but no kids-specific number is published in this evidence set.",
       },
       whyNotYou:
-        "Seeing comes first: even a sparse sensor layer is the honest start every city's kids-safety story is built on.",
-      source: "[R1] city-initiatives-research.md + [R4] city-sensor-ownership.md (AirQo; Embassy monitor)",
+        "Seeing comes first: a public real-time feed turns 'is it safe today?' into a decision a parent can actually make.",
+      source: "[R2] city-initiatives-research-2.md (BMA airbkk real-time dashboard)",
     },
   ],
 };
@@ -538,24 +540,23 @@ const WHAT_CAN_I_DO: Concern = {
         "Where the smoke is your own boiler, a grant a resident can apply for puts the fix within reach of the household.",
       source: "[R2] city-initiatives-research-2.md (Clean Air Programme, national)",
     },
-    // ACCRA — honest 'started' framing: community sensing residents can engage with.
+    // BANGKOK — protect-yourself: ride the clean fleet, and check the air first.
     {
-      id: "do-accra-community",
-      city: "accra",
-      facet: "Change the system · community sensing",
-      facetLabel: "Community sensing",
-      iconKey: "data",
-      // Genuine gap: no resident-action outcome figure for Accra. Honest "started" TK.
-      stat: { kind: "tk", metric: "community-sensing reach" },
-      did: "Started filling the data gaps from outside government — so residents can see, and act on, their own air.",
-      how: "AirQo low-cost sensors, deployed largely by development-sector and community bodies, give Accra its first hyperlocal picture — the base for residents to engage and push from.",
-      // Genuine gap: no resident-action outcome figure for Accra.
-      outcome: {
-        tk: "Community-sensing reach and resident-engagement figures for Accra — the network is still being built out.",
-      },
+      id: "do-bangkok-ebus",
+      city: "bangkok",
+      facet: "Protect yourself · ride the clean fleet",
+      facetLabel: "Clean transit",
+      iconKey: "route",
+      // REAL achieved figures: 2,350+ electric buses across 124 routes. A take-up /
+      // reach figure residents can act on, not a fabricated before→after → `figure`.
+      stat: { kind: "figure", value: "2,350+", metric: "electric buses · 124 routes" },
+      did: "Gave residents a clean way to move — an electric bus network they can choose today, plus a live feed to check the air first.",
+      how: "Bangkok's E-Bus Programme runs 2,350+ electric buses across 124 routes; paired with the airbkk dashboard, a resident can swap a polluting trip for a clean one and time it around the worst air.",
+      outcome:
+        "2,350+ electric buses across 124 routes — a zero-tailpipe option a resident can take instead of adding to the traffic.",
       whyNotYou:
-        "When government coverage is thin, community-led sensing is the honest first thing residents can do: make the air visible.",
-      source: "[R1] city-initiatives-research.md + [R4] city-sensor-ownership.md (AirQo; community-led layer)",
+        "A clean fleet a resident can ride today is agency, not waiting: every swapped trip is one less tailpipe on the street.",
+      source: "[R2] city-initiatives-research-2.md (Bangkok E-Bus Programme; airbkk dashboard)",
     },
   ],
 };
@@ -623,25 +624,29 @@ const WORST_PART: Concern = {
         "Put the grid in an app residents already use and 'which part of my city?' becomes a question they can answer themselves.",
       source: "[R2] city-initiatives-research-2.md + [R4] city-sensor-ownership.md (Airly 164; Warsaw 19115)",
     },
-    // ACCRA — the honest sub-city coverage story: being built, gaps acknowledged.
+    // BANGKOK — a real reference-grade network feeding a public city-wide dashboard.
+    // The INFRASTRUCTURE figure is real (~68 reference stations). Per-neighbourhood
+    // ranking values are NOT in the evidence → the detail outcome stays a TK. This is
+    // the C1 hero pick on the cities index, so its `stat` is real (no [TK] in any hero).
     {
-      id: "place-accra-coverage",
-      city: "accra",
-      facet: "Filling the coverage gaps",
-      facetLabel: "Coverage gaps",
-      iconKey: "data",
-      // Genuine gap, and the gap IS the story: ~5 statutory stations for 5.4M; the
-      // sub-city map is being filled by AirQo. No neighbourhood numbers exist. TK.
-      stat: { kind: "tk", metric: "neighbourhoods still uncovered" },
-      did: "Started filling a sparse map so the 'where I live' question can eventually be answered.",
-      how: "With only ~5 EPA reference stations for 5.4M people, AirQo's low-cost sensors are extending coverage outward — but much of the city, and the people most exposed, are still off the map.",
-      // Genuine gap: no sub-city readings for Accra; the absence is the honest point.
+      id: "place-bangkok-network",
+      city: "bangkok",
+      facet: "Reference-grade station network",
+      facetLabel: "Station network",
+      iconKey: "place",
+      // Real infrastructure figure: ~68 PCD/BMA reference-grade stations across the
+      // city. Per-neighbourhood readings not published → outcome TK, never invented.
+      stat: { kind: "figure", value: "~68", metric: "reference-grade stations" },
+      did: "Built a city-wide reference-grade station network and put its readings on a public dashboard — and on the street.",
+      how: "PCD and BMA run ~68 reference-grade stations measuring PM2.5, PM10, NO2, O3 and CO; the airbkk dashboard surfaces them in real time and feeds PM2.5 onto smart traffic signs city-wide — so a resident can read their own area, not just the city figure.",
+      // Genuine gap: the evidence gives the network's scale, not a published
+      // worst-neighbourhood ranking. TK, never a fabricated neighbourhood number.
       outcome: {
-        tk: "Per-neighbourhood readings for Accra — the network is still too sparse to rank districts; the honest answer is 'coverage is being built'. [structure shown; readings TK]",
+        tk: "Which specific Bangkok areas rank worst — the ~68-station network can resolve it, but no neighbourhood ranking is in this evidence set. [structure shown; readings TK]",
       },
       whyNotYou:
-        "The honest version of 'where I live': naming what the map can't yet see is the first step to covering the people it misses.",
-      source: "[R1] city-initiatives-research.md + [R4] city-sensor-ownership.md (EPA ~5 stations; AirQo)",
+        "A dense reference network on a public dashboard is how a city turns 'is the city polluted?' into 'is it bad where I live?'",
+      source: "[R2] city-initiatives-research-2.md (PCD/BMA monitoring network; airbkk dashboard)",
     },
   ],
 };
@@ -719,25 +724,22 @@ const MAKE_THEM_STOP: Concern = {
         "Accountability needs a forcing function: pairing a ban with national money is how the polluting practice actually ends.",
       source: "[R2] city-initiatives-research-2.md (Clean Air Programme, national)",
     },
-    // ACCRA — building the accountability machinery (honest 'not yet enforcing' TK).
+    // BANGKOK — CITY GOVERNMENT enforced: a truck low-emission zone with a measured cut.
     {
-      id: "stop-accra-capacity",
-      city: "accra",
-      facet: "Regulator · building the tools to act",
-      facetLabel: "Building capacity",
-      iconKey: "regulator",
-      // Genuine gap: no enforcement outcome yet — the regulator is building the
-      // inventory + AQ management plan that would ENABLE accountability. Honest TK.
-      stat: { kind: "tk", metric: "enforcement powers in progress" },
-      did: "Started building the evidence and the plan a regulator needs before it can hold polluters to account.",
-      how: "EPA Ghana and Clean Air Accra (Clean Air Fund partnership) are developing the city's first comprehensive emissions inventory and AQ management plan — the basis any enforcement has to stand on.",
-      // Genuine gap: no enforcement outcome for Accra yet.
-      outcome: {
-        tk: "Enforcement outcomes for Accra — the regulator is still building the inventory and management plan that accountability would be based on.",
-      },
+      id: "stop-bangkok-city",
+      city: "bangkok",
+      facet: "City government · restricted the dirtiest trucks",
+      facetLabel: "City enforcement",
+      iconKey: "cityGov",
+      // REAL achieved enforcement outcome: PM2.5 −15.6% in-zone in the LEZ pilot.
+      stat: { kind: "figure", value: "−15.6%", metric: "PM2.5 in the truck LEZ zone" },
+      did: "The city restricted the dirtiest trucks from a low-emission zone — and measured the result.",
+      how: "Bangkok's Low Emission Zone pilot restricted access for 404 trucks/day; alongside Euro 5 vehicle/fuel standards (2024) and a PM2.5 Control Zone declaration (2025) that hands authorities tighter enforcement powers.",
+      outcome:
+        "PM2.5 fell 15.6% inside the pilot zone versus surrounding areas — enforcement on the polluter, measured, with expansion to 50 districts planned.",
       whyNotYou:
-        "Before you can make polluters stop, you need to prove who they are: the inventory is the honest first move toward accountability.",
-      source: "[R1] city-initiatives-research.md (C40/CCAC study; Clean Air Accra)",
+        "A city can restrict the dirtiest vehicles in a zone it controls and measure the cut, instead of waiting for the fleet to clean itself up.",
+      source: "[R2] city-initiatives-research-2.md (LEZ pilot; Euro 5 standards; PM2.5 Control Zone)",
     },
   ],
 };
@@ -754,7 +756,7 @@ export const CONCERNS: Concern[] = [
  * Per-city facet ordering — drives localisation. When a city is active, its
  * dominant facets lead the deck for each concern; other cities' cards follow.
  * This is what makes the city switcher visibly reorder the deck (Warsaw → coal
- * leads; London → traffic leads; Accra → its own mix leads).
+ * leads; London → traffic leads; Bangkok → its own mix leads).
  */
 export const CITY_LEAD_FACET: Record<CityKey, { [concernKey: string]: string }> = {
   warsaw: {
@@ -771,11 +773,11 @@ export const CITY_LEAD_FACET: Record<CityKey, { [concernKey: string]: string }> 
     "worst-part": "Hyperlocal network", // Breathe London ~290 nodes
     "make-them-stop": "City enforcement", // ULEZ
   },
-  accra: {
-    "who-polluting": "Cooking & waste",
+  bangkok: {
+    "who-polluting": "Industry & furnaces",
     "safe-for-kids": "Getting data",
-    "what-can-i-do": "Community sensing",
-    "worst-part": "Coverage gaps",
-    "make-them-stop": "Building capacity",
+    "what-can-i-do": "Clean transit",
+    "worst-part": "Station network",
+    "make-them-stop": "City enforcement",
   },
 };
