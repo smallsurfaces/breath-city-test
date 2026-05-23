@@ -91,8 +91,9 @@ function StatViz({ stat }: { stat: EntryStat }) {
 
   if (stat.kind === "figure") {
     return (
-      <div className="flex flex-col items-start gap-0.5">
-        <span className="text-2xl font-bold leading-none tracking-tight text-foreground">
+      <div className="flex flex-col items-start gap-1">
+        {/* ~2x headline number (Jack 2026-05-23) — card reads as data-viz at a glance */}
+        <span className="text-5xl font-bold leading-none tracking-tight text-foreground">
           {stat.value}
         </span>
         <span className="text-xs leading-snug text-muted-foreground">
@@ -104,16 +105,17 @@ function StatViz({ stat }: { stat: EntryStat }) {
 
   // progression — before → after, both real
   return (
-    <div className="flex flex-col items-start gap-0.5">
-      <span className="inline-flex items-center gap-1.5">
-        <span className="text-sm font-medium text-muted-foreground">
+    <div className="flex flex-col items-start gap-1">
+      <span className="inline-flex items-center gap-2">
+        {/* `from` and arrow scaled up to stay balanced with the ~2x `to` value */}
+        <span className="text-base font-medium text-muted-foreground">
           {stat.from}
         </span>
         <ArrowRight
           aria-hidden="true"
-          className="h-3.5 w-3.5 shrink-0 text-muted-foreground/70"
+          className="h-5 w-5 shrink-0 text-muted-foreground/70"
         />
-        <span className="text-2xl font-bold leading-none tracking-tight text-foreground">
+        <span className="text-5xl font-bold leading-none tracking-tight text-foreground">
           {stat.to}
         </span>
       </span>
@@ -151,10 +153,11 @@ export function EntryCard({ card, city, isLead }: EntryCardProps) {
           />
         }
       >
-        {/* Top row: icon + city/lead */}
+        {/* Top row: icon + city. Icon ~2x (Jack 2026-05-23) so the card reads as
+            a data-viz at a glance; city label stays as-is, top-aligned. */}
         <div className="flex items-start justify-between gap-2">
-          <span className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-muted text-foreground">
-            <Icon aria-hidden="true" className="h-5 w-5" />
+          <span className="inline-flex h-20 w-20 items-center justify-center rounded-xl bg-muted text-foreground">
+            <Icon aria-hidden="true" className="h-10 w-10" />
           </span>
           <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
             <span aria-hidden="true">{city.flag}</span>
@@ -167,16 +170,14 @@ export function EntryCard({ card, city, isLead }: EntryCardProps) {
           <StatViz stat={card.stat} />
         </div>
 
-        {/* Minimal label: facet chip + lead marker */}
+        {/* Minimal label: facet chip only. The "Leads {city}" textual marker was
+            removed (Jack 2026-05-23) — redundant with the city label and ambiguous.
+            Lead is now conveyed by POSITION (the per-city reorder in page.tsx) plus
+            the `isLead` ring on the card; no textual marker. */}
         <div className="mt-4 flex flex-wrap items-center gap-2">
           <Badge variant="outline" className="text-xs">
             {card.facetLabel}
           </Badge>
-          {isLead && (
-            <span className="inline-flex items-center rounded bg-foreground/5 px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
-              Leads {city.name}
-            </span>
-          )}
         </div>
       </DialogTrigger>
 
