@@ -18,9 +18,10 @@
  *           build name + an optional `controls` slot (reserved for future
  *           build-level controls; empty today).
  *   RIGHT : "Updated [date]" stamp + the `commentSlot` (map builds pass their
- *           existing <AnnotationLayer/> here so the spatial-annotation toggle keeps
- *           working) OR, when no commentSlot is given, a disabled "Comments — soon"
- *           affordance (Phase-2 comments are not built here).
+ *           existing spatial <AnnotationLayer/> here so the spatial-annotation toggle
+ *           keeps working) OR, when no commentSlot is given, the element-anchored
+ *           AnnotationLayer (anchorMode="element") wired to the durable /api/comments
+ *           store — so EVERY non-map build gets real, machine-readable commenting.
  *
  * Tokens
  *   shadcn-style semantic aliases only (bg-background, text-foreground,
@@ -35,16 +36,34 @@
  *
  * Key exports: PrototypeHeader (named)
  * External dependencies: next/link, next/navigation (usePathname),
- *   lucide-react (ArrowLeft, MessageSquare), ../_data/build-date
+ *   lucide-react (ArrowLeft), ../_data/build-date,
+ *   ../direction-1-mapbox-v2/AnnotationLayer, ../../lib/comments/client
  */
 
 "use client";
 
-import type { ReactNode } from "react";
+import { useMemo, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ArrowLeft, MessageSquare } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { buildDateForPath, formatBuildDate } from "../_data/build-date";
+import AnnotationLayer from "../direction-1-mapbox-v2/AnnotationLayer";
+import { createApiPersistence } from "../../lib/comments/client";
+
+/**
+ * Derive a stable build slug from a route pathname — used as the Blobs store key and the
+ * localStorage cache key for a build's comments. Deterministic across reloads:
+ *   "/ux-concepts/resident-concerns" → "ux-concepts-resident-concerns"
+ *   "/jtbd-framework"                → "jtbd-framework"
+ *   "/"                              → "hub-home"
+ * Strips leading/trailing slashes, lowercases, and replaces path separators + unsafe
+ * characters with hyphens so the key is filesystem/URL safe.
+ */
+function pathToBuildId(pathname: string): string {
+  const trimmed = pathname.replace(/^\/+|\/+$/g, "");
+  if (trimmed === "") return "hub-home";
+  return trimmed.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+}
 
 /** Props for PrototypeHeader. */
 type PrototypeHeaderProps = {
@@ -79,6 +98,15 @@ export function PrototypeHeader({
   // Prefer an explicitly-passed date; otherwise resolve from the current route.
   const iso = date ?? buildDateForPath(pathname);
 
+  // Stable build slug + the /api/comments persistence adapter for the element-anchored
+  // comment widget. Memoised on pathname so the adapter identity is stable across renders
+  // (re-creating it each render would re-trigger AnnotationLayer's load effect).
+  const buildId = useMemo(() => pathToBuildId(pathname), [pathname]);
+  const persistence = useMemo(
+    () => createApiPersistence(pathname),
+    [pathname],
+  );
+
   return (
     <header className="flex w-full flex-shrink-0 items-center justify-between gap-3 border-b border-border bg-background px-4 py-2.5">
       {/* LEFT — back-to-hub + build name + reserved controls slot */}
@@ -112,19 +140,47 @@ export function PrototypeHeader({
         )}
 
         {/*
-          commentSlot present → map build's <AnnotationLayer/> (fixed-position toggle,
-          sits top-right). Absent → disabled "Comments — soon" placeholder; Phase-2
-          comments are not built here.
+          commentSlot present → map build's spatial <AnnotationLayer/> (fixed-position
+          toggle, sits top-right). Absent → the element-anchored AnnotationLayer wired to
+          the durable /api/comments store, so every non-map build has real commenting.
         */}
         {commentSlot ?? (
-          <span
-            aria-disabled="true"
-            title="Comments — coming soon"
-            className="inline-flex cursor-not-allowed items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground/60"
-          >
-            <MessageSquare className="h-3.5 w-3.5" aria-hidden="true" />
-            Comments — soon
-          </span>
+          <>
+            {/*
+              Inject the AnnotationLayer's --al-* token interface, mapped onto the BC
+              --bc-* semantic tokens (NO hardcoded hex). Map builds inject their own
+              --al-* block per-route; non-map builds get this BC-branded mapping here so
+              the widget is styled wherever PrototypeHeader mounts. The toggle is
+              position:fixed (top-right), so no layout slot is needed in the bar.
+            */}
+            <style>{`
+              :root {
+                --al-overlay-bg:     var(--bc-semantic-map-overlay);
+                --al-overlay-border: var(--bc-semantic-border);
+                --al-input-bg:       var(--bc-color-white);
+                --al-input-border:   var(--bc-semantic-border);
+                --al-text:           var(--bc-semantic-text);
+                --al-muted:          var(--bc-semantic-muted);
+                --al-brand:          var(--bc-semantic-brand);
+                --al-success:        var(--bc-semantic-success);
+                --al-error:          var(--bc-semantic-error);
+                --al-white:          var(--bc-color-white);
+                --al-font:           var(--bc-font-family-sans);
+                --al-radius-card:    var(--bc-border-radius-md);
+                --al-radius-input:   var(--bc-border-radius-sm);
+                --al-radius-pill:    var(--bc-border-radius-pill);
+              }
+            `}</style>
+            <AnnotationLayer
+              storageKey={`bc-comments-${buildId}`}
+              label="Comments"
+              anchorMode="element"
+              persistence={persistence}
+              buildId={buildId}
+              route={pathname}
+              togglePosition={{ top: "1rem", right: "1rem" }}
+            />
+          </>
         )}
       </div>
     </header>

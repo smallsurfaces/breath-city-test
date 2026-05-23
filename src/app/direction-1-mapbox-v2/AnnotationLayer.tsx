@@ -13,15 +13,24 @@
  * - Map freeze: pass mapAdapter to disable/re-enable map interaction handlers
  *
  * Ported from: design/prototypes/air-quality-map/src/lib/AnnotationLayer.tsx
- * Changes from prototype: 'use client' directive already present; no other changes needed.
+ *
+ * Stage 1 generalisation (element-anchored, machine-readable comments):
+ * - Pluggable persistence: pass `persistence` to swap the storage backend. DEFAULT is the
+ *   original localStorage load/save, so MAP builds (which omit it) are unchanged.
+ * - anchorMode='element': clicks anchor a comment to the DOM element under the cursor; the
+ *   pin renders from the resolved element's LIVE rect and re-anchors on reload/resize.
+ *   Falls back to a muted "last-known-position" pin when the element can't be re-found.
+ * - Default anchorMode='viewport' preserves the legacy normalised-fraction behaviour.
  *
  * @see AnnotationLayer.types.ts for prop types
+ * @see ../../lib/comments/anchor for captureAnchor/resolveAnchor (single source)
  */
 
 'use client'
 
 import React, { useState, useEffect, useCallback, useRef } from 'react'
-import type { Annotation, AnnotationLayerConfig } from './AnnotationLayer.types'
+import type { Annotation, AnnotationLayerConfig, ElementAnchor } from './AnnotationLayer.types'
+import { captureAnchor, resolveAnchor } from '../../lib/comments/anchor'
 
 // ─── AnnotationLayer ──────────────────────────────────────────────────────────
 
@@ -33,15 +42,28 @@ export default function AnnotationLayer({
   onExitMode,
   mobileBreakpoint = 768,
   togglePosition,
+  anchorMode = 'viewport',
+  persistence,
+  buildId,
+  route,
 }: AnnotationLayerConfig): React.ReactElement {
+  // True when this instance anchors comments to DOM elements (non-map builds).
+  // Map builds omit anchorMode → 'viewport' → all element-mode branches are inert.
+  const elementMode = anchorMode === 'element'
+
   const [isActive, setIsActive] = useState<boolean>(false)
   const [annotations, setAnnotations] = useState<Annotation[]>([])
-  // pendingClick stores raw viewport pixels (local only, never persisted)
+  // pendingClick stores raw viewport pixels (local only, never persisted).
+  // In element mode it also carries the resolved anchor captured at click time.
   const [pendingClick, setPendingClick] = useState<{ x: number; y: number } | null>(null)
+  const pendingAnchorRef = useRef<ElementAnchor | null>(null)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [draftText, setDraftText] = useState<string>('')
   const [draftName, setDraftName] = useState<string>('')
   const [isMobile, setIsMobile] = useState<boolean>(false)
+  // Re-render trigger for element-mode pins: their on-screen position derives from a LIVE
+  // getBoundingClientRect, so we bump this on scroll/resize to recompute pin positions.
+  const [, setLiveTick] = useState<number>(0)
 
   // Measured card heights to prevent overflow-guard using hardcoded estimates
   const newCardRef = useRef<HTMLDivElement>(null)
@@ -61,12 +83,56 @@ export default function AnnotationLayer({
     return () => window.removeEventListener('resize', check)
   }, [mobileBreakpoint])
 
-  // ── localStorage load on mount ──────────────────────────────────────────────
-  // Side effect: reads from localStorage using storageKey prop.
-  // Migrates legacy pixel-coordinate entries to normalised fractions (0–1).
-  // Legacy entries have x > 1 or y > 1 (raw pixels don't fit in 0–1 range).
+  // ── Live-rect re-render for element-anchored pins ─────────────────────────────
+  // Element pins are positioned from a LIVE getBoundingClientRect, so they must be
+  // recomputed when the page scrolls or resizes. Only wired while annotation mode is
+  // active in element mode (no listeners on map builds / when inactive).
+  // Side effect: attaches scroll (capture) + resize listeners to window.
 
   useEffect(() => {
+    if (!elementMode || !isActive) return
+    const bump = (): void => setLiveTick((t) => t + 1)
+    // capture:true catches scrolls on nested scroll containers, not just window.
+    window.addEventListener('scroll', bump, true)
+    window.addEventListener('resize', bump)
+    return () => {
+      window.removeEventListener('scroll', bump, true)
+      window.removeEventListener('resize', bump)
+    }
+  }, [elementMode, isActive])
+
+  // ── Load on mount ───────────────────────────────────────────────────────────
+  // Two paths, selected by whether a `persistence` adapter was supplied:
+  //   - persistence present (non-map builds): load via the adapter, keyed by buildId.
+  //     Side effect: async adapter call (which itself reads localStorage cache + network).
+  //   - persistence absent (DEFAULT — map builds): the original localStorage logic, keyed
+  //     by storageKey, including legacy pixel→fraction migration. Behaviour unchanged.
+  // `hasLoaded` gates the save effect so the initial load does not immediately echo back.
+  const [hasLoaded, setHasLoaded] = useState<boolean>(false)
+
+  useEffect(() => {
+    let cancelled = false
+
+    if (persistence !== undefined && buildId !== undefined) {
+      // Adapter path — async. Guarded against unmount/build change via `cancelled`.
+      persistence
+        .load(buildId)
+        .then((loaded) => {
+          if (cancelled) return
+          setAnnotations(loaded)
+          setHasLoaded(true)
+        })
+        .catch(() => {
+          if (cancelled) return
+          // Adapter load failed entirely — start empty rather than crash.
+          setHasLoaded(true)
+        })
+      return () => {
+        cancelled = true
+      }
+    }
+
+    // Default path — localStorage, keyed by storageKey (map-build behaviour, unchanged).
     try {
       const raw = localStorage.getItem(storageKey)
       if (raw) {
@@ -82,15 +148,27 @@ export default function AnnotationLayer({
         setAnnotations(migrated)
       }
     } catch { /* ignore corrupt data */ }
-  }, [storageKey])
+    setHasLoaded(true)
+    return () => {
+      cancelled = true
+    }
+  }, [storageKey, persistence, buildId])
 
-  // ── localStorage persist on change ─────────────────────────────────────────
-  // Side effect: writes to localStorage on every annotations state change.
-  // Wrapped in try/catch because Safari private browsing throws QuotaExceededError
-  // on any setItem call. On failure, annotations remain in React state for the
-  // current session but will not survive a page reload — acceptable degradation.
+  // ── Persist on change ───────────────────────────────────────────────────────
+  // Mirror of the load split. Skipped until the initial load completes so we never
+  // overwrite stored data with the empty initial state.
+  //   - persistence present: delegate to the adapter (fire-and-forget; it caches + POSTs).
+  //   - persistence absent (DEFAULT — map builds): original localStorage write, unchanged.
+  //     Wrapped in try/catch (Safari private mode throws QuotaExceededError on setItem).
 
   useEffect(() => {
+    if (!hasLoaded) return
+
+    if (persistence !== undefined && buildId !== undefined) {
+      persistence.save(buildId, annotations)
+      return
+    }
+
     try {
       localStorage.setItem(storageKey, JSON.stringify(annotations))
     } catch (err) {
@@ -99,7 +177,7 @@ export default function AnnotationLayer({
         console.warn('[AnnotationLayer] localStorage.setItem failed — annotations will not persist across sessions.', err)
       }
     }
-  }, [annotations, storageKey])
+  }, [annotations, storageKey, persistence, buildId, hasLoaded])
 
   // ── Body class toggle for freeze state ─────────────────────────────────────
   // Side effect: adds/removes 'annotation-active' class on document.body.
@@ -137,6 +215,7 @@ export default function AnnotationLayer({
 
   const handleCancel = useCallback((): void => {
     setPendingClick(null)
+    pendingAnchorRef.current = null
     setEditingId(null)
     setDraftText('')
     setDraftName('')
@@ -186,6 +265,22 @@ export default function AnnotationLayer({
       handleCancel()
       return
     }
+
+    // Element mode: find the DOM element under the cursor and capture a durable anchor.
+    // The overlay sits above the page, so temporarily hide it from hit-testing via
+    // elementsFromPoint (which returns the stack) and pick the first non-overlay element.
+    if (elementMode) {
+      const stack = document.elementsFromPoint(e.clientX, e.clientY)
+      const target = stack.find(
+        (node) => node instanceof HTMLElement && node.getAttribute('data-al-overlay') === null,
+      )
+      if (target === undefined || !(target instanceof HTMLElement)) {
+        // Nothing meaningful under the cursor — ignore the click rather than pin to nothing.
+        return
+      }
+      pendingAnchorRef.current = captureAnchor(target)
+    }
+
     setPendingClick({ x: e.clientX, y: e.clientY })
     setDraftText('')
     setDraftName('')
@@ -196,7 +291,10 @@ export default function AnnotationLayer({
 
   const handleSave = (): void => {
     if (pendingClick === null || draftText.trim() === '') return
-    setAnnotations(prev => [...prev, {
+
+    // Common normalised click position — used directly for viewport pins and kept on
+    // element pins as a positional backstop alongside the anchor.
+    const base: Annotation = {
       id: Date.now().toString(),
       // Normalise raw pixel click position to 0–1 viewport fraction
       x: pendingClick.x / window.innerWidth,
@@ -205,8 +303,29 @@ export default function AnnotationLayer({
       authorName: draftName.trim(),
       createdAt: Date.now(),
       resolved: false,
-    }])
+    }
+
+    // Element mode: attach the durable anchor captured at click time + Stage-1 metadata.
+    if (elementMode && pendingAnchorRef.current !== null) {
+      const anchor = pendingAnchorRef.current
+      const elementAnnotation: Annotation = {
+        ...base,
+        kind: 'element',
+        anchor,
+        buildId,
+        route,
+        capturedText: anchor.nearbyText,
+        viewport: { w: window.innerWidth, h: window.innerHeight },
+        schemaVersion: 2,
+      }
+      setAnnotations(prev => [...prev, elementAnnotation])
+    } else {
+      // Viewport / legacy behaviour (map builds) — unchanged shape.
+      setAnnotations(prev => [...prev, base])
+    }
+
     setPendingClick(null)
+    pendingAnchorRef.current = null
     setDraftText('')
     setDraftName('')
   }
@@ -235,6 +354,61 @@ export default function AnnotationLayer({
     setEditingId(null)
     setDraftText('')
     setDraftName('')
+  }
+
+  // ── Live pin position resolver ────────────────────────────────────────────────
+  // Resolves where a pin should currently draw, in raw viewport pixels.
+  //  - element pins: resolveAnchor → live rect centre when the element is re-found
+  //    (resolved:true, el set so the card can draw a highlight ring). When the element
+  //    cannot be re-found, falls back to the stored normalised box centre, else stored
+  //    x/y (resolved:false → render a MUTED "last-known-position" pin).
+  //  - viewport/legacy pins: stored normalised x/y → pixels (always resolved:true).
+  // Wrapped so a single bad anchor never throws during render.
+
+  type PinPosition = { x: number; y: number; resolved: boolean; el: HTMLElement | null }
+
+  function getPinPosition(annotation: Annotation): PinPosition {
+    // Legacy / viewport pins: normalised fraction → pixels. Always positioned.
+    if (annotation.kind !== 'element' || annotation.anchor === undefined) {
+      return {
+        x: annotation.x * window.innerWidth,
+        y: annotation.y * window.innerHeight,
+        resolved: true,
+        el: null,
+      }
+    }
+
+    try {
+      const el = resolveAnchor(annotation.anchor)
+      if (el !== null) {
+        const rect = el.getBoundingClientRect()
+        return {
+          x: rect.left + rect.width / 2,
+          y: rect.top + rect.height / 2,
+          resolved: true,
+          el,
+        }
+      }
+    } catch {
+      /* fall through to last-known-position fallback below */
+    }
+
+    // Element not found — last-known-position from stored box, else stored x/y.
+    const box = annotation.anchor.box
+    if (box !== undefined) {
+      return {
+        x: (box.x + box.w / 2) * window.innerWidth,
+        y: (box.y + box.h / 2) * window.innerHeight,
+        resolved: false,
+        el: null,
+      }
+    }
+    return {
+      x: annotation.x * window.innerWidth,
+      y: annotation.y * window.innerHeight,
+      resolved: false,
+      el: null,
+    }
   }
 
   // ── Card position helper ────────────────────────────────────────────────────
@@ -429,8 +603,11 @@ export default function AnnotationLayer({
       {/* ── Annotation mode overlays ────────────────────────────────────────── */}
       {isActive && (
         <>
-          {/* Click capture overlay — z-index 100, below pins (101) and toggle pill (110) */}
+          {/* Click capture overlay — z-index 100, below pins (101) and toggle pill (110).
+              data-al-overlay marks it so element-mode hit-testing (elementsFromPoint)
+              can see PAST the overlay to the real page element under the cursor. */}
           <div
+            data-al-overlay=""
             onClick={handleOverlayClick}
             style={{
               position: 'fixed',
@@ -440,68 +617,109 @@ export default function AnnotationLayer({
             }}
           />
 
-          {/* Pins — convert normalised fractions back to viewport pixels for rendering */}
-          {annotations.map((annotation, index) => (
-            <div
-              key={annotation.id}
-              onClick={(e: React.MouseEvent<HTMLDivElement>) => {
-                e.stopPropagation()
-                setEditingId(annotation.id)
-                setPendingClick(null)
-                setDraftText(annotation.text)
-                setDraftName(annotation.authorName ?? '')
-              }}
-              style={{
-                position: 'fixed',
-                // Convert normalised fractions back to viewport pixels for rendering
-                left: annotation.x * window.innerWidth - 14,
-                top: annotation.y * window.innerHeight - 36,
-                zIndex: 101,
-                cursor: 'pointer',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                transform: 'scale(1)',
-                transition: 'transform 120ms ease',
-                opacity: annotation.resolved ? 0.4 : 1,
-              }}
-              onMouseEnter={(e: React.MouseEvent<HTMLDivElement>) => {
-                e.currentTarget.style.transform = 'scale(1.15)'
-              }}
-              onMouseLeave={(e: React.MouseEvent<HTMLDivElement>) => {
-                e.currentTarget.style.transform = 'scale(1)'
-              }}
-            >
-              {/* Circle — resolved state uses muted colour at 0.4 opacity on parent */}
+          {/* ── Highlight ring (element mode) ──────────────────────────────────────
+              While an element pin's card is open and its element is re-found, draw a ring
+              around the live element rect so the reviewer sees exactly what is anchored.
+              Reuses the brand colour; muted treatment is handled on the pin itself. */}
+          {elementMode && editingId !== null && (() => {
+            const editing = annotations.find(a => a.id === editingId)
+            if (editing === undefined || editing.kind !== 'element') return null
+            const pos = getPinPosition(editing)
+            if (pos.el === null) return null
+            const rect = pos.el.getBoundingClientRect()
+            return (
               <div
+                aria-hidden="true"
                 style={{
-                  width: 28,
-                  height: 28,
-                  borderRadius: '50%',
-                  background: annotation.resolved ? 'var(--al-muted)' : 'var(--al-brand)',
-                  border: '2px solid var(--al-white)',
-                  boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: 11,
-                  fontWeight: 700,
-                  color: 'var(--al-white)',
-                  fontFamily: 'var(--al-font)',
-                }}
-              >
-                {index + 1}
-              </div>
-              {/* Stem — reflects resolved state */}
-              <div
-                style={{
-                  width: 1,
-                  height: 8,
-                  background: annotation.resolved ? 'var(--al-muted)' : 'var(--al-brand)',
+                  position: 'fixed',
+                  left: rect.left - 3,
+                  top: rect.top - 3,
+                  width: rect.width + 6,
+                  height: rect.height + 6,
+                  border: '2px solid var(--al-brand)',
+                  borderRadius: 'var(--al-radius-input)',
+                  // Neutral soft glow (matches the file's rgba(0,0,0,...) shadow convention);
+                  // the brand colour is carried by the border, which uses the --al-brand token.
+                  boxShadow: '0 0 0 3px rgba(0,0,0,0.10)',
+                  pointerEvents: 'none',
+                  zIndex: 100,
                 }}
               />
-            </div>
-          ))}
+            )
+          })()}
+
+          {/* Pins — position derives from getPinPosition (live element rect when element
+              mode + resolved; stored normalised coords otherwise). Unresolved element
+              pins render MUTED as a "last-known-position" marker. */}
+          {annotations.map((annotation, index) => {
+            const pos = getPinPosition(annotation)
+            // A pin is muted when the comment is resolved OR (element mode) its anchor
+            // could not be re-found — both reuse the muted token + reduced opacity.
+            const lostAnchor = annotation.kind === 'element' && !pos.resolved
+            const muted = annotation.resolved || lostAnchor
+            return (
+              <div
+                key={annotation.id}
+                onClick={(e: React.MouseEvent<HTMLDivElement>) => {
+                  e.stopPropagation()
+                  setEditingId(annotation.id)
+                  setPendingClick(null)
+                  pendingAnchorRef.current = null
+                  setDraftText(annotation.text)
+                  setDraftName(annotation.authorName ?? '')
+                }}
+                style={{
+                  position: 'fixed',
+                  // Live (element) or stored (viewport) position, centred on the pin head.
+                  left: pos.x - 14,
+                  top: pos.y - 36,
+                  zIndex: 101,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  transform: 'scale(1)',
+                  transition: 'transform 120ms ease',
+                  opacity: muted ? 0.4 : 1,
+                }}
+                onMouseEnter={(e: React.MouseEvent<HTMLDivElement>) => {
+                  e.currentTarget.style.transform = 'scale(1.15)'
+                }}
+                onMouseLeave={(e: React.MouseEvent<HTMLDivElement>) => {
+                  e.currentTarget.style.transform = 'scale(1)'
+                }}
+              >
+                {/* Circle — muted (resolved or lost anchor) uses the muted token. */}
+                <div
+                  style={{
+                    width: 28,
+                    height: 28,
+                    borderRadius: '50%',
+                    background: muted ? 'var(--al-muted)' : 'var(--al-brand)',
+                    border: '2px solid var(--al-white)',
+                    boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: 11,
+                    fontWeight: 700,
+                    color: 'var(--al-white)',
+                    fontFamily: 'var(--al-font)',
+                  }}
+                >
+                  {index + 1}
+                </div>
+                {/* Stem — reflects muted state */}
+                <div
+                  style={{
+                    width: 1,
+                    height: 8,
+                    background: muted ? 'var(--al-muted)' : 'var(--al-brand)',
+                  }}
+                />
+              </div>
+            )
+          })}
 
           {/* Comment input card (new) */}
           {/* ref attached — measured height passed to getCardPosition for overflow guard */}
@@ -567,11 +785,11 @@ export default function AnnotationLayer({
             if (ann === undefined) return null
             // Derive pin number from array index for display in header
             const editIndex = annotations.findIndex(a => a.id === editingId)
-            const pos = getCardPosition(
-              ann.x * window.innerWidth,
-              ann.y * window.innerHeight,
-              editCardHeight,
-            )
+            // Position the card at the pin's LIVE location (element rect when resolved),
+            // so an element comment's card tracks its element rather than the stored click.
+            const pinPos = getPinPosition(ann)
+            const lostAnchor = ann.kind === 'element' && !pinPos.resolved
+            const pos = getCardPosition(pinPos.x, pinPos.y, editCardHeight)
             return (
               <div
                 ref={editCardRef}
@@ -601,6 +819,21 @@ export default function AnnotationLayer({
                 >
                   {formatDate(ann.createdAt)}
                 </div>
+                {/* Graceful-degradation note: the anchored element could not be re-found,
+                    so the pin is showing its last-known position. */}
+                {lostAnchor && (
+                  <div
+                    style={{
+                      fontSize: '0.7rem',
+                      color: 'var(--al-error)',
+                      marginBottom: '0.5rem',
+                      fontFamily: 'var(--al-font)',
+                      lineHeight: 1.35,
+                    }}
+                  >
+                    Element not found — showing last known position.
+                  </div>
+                )}
                 <input
                   type="text"
                   value={draftName}
