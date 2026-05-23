@@ -256,7 +256,7 @@ function SourceDonut({ data, cityFlag }: { data: any; cityFlag?: string }) {
           style={{ background: `conic-gradient(${stops.join(", ")})` }}
         />
         <div className="absolute inset-5 rounded-full bg-background flex items-center justify-center">
-          <span className="text-lg">{cityFlag ?? ""}</span>
+          <span className="text-xs font-bold text-muted-foreground">{cityFlag ?? ""}</span>
         </div>
       </div>
       <div className="grid gap-1 w-full">
@@ -266,7 +266,7 @@ function SourceDonut({ data, cityFlag }: { data: any; cityFlag?: string }) {
               className="inline-block w-2.5 h-2.5 rounded-sm flex-shrink-0"
               style={{ background: `color-mix(in srgb, var(--foreground) ${Math.round((opacities[i] ?? 0.1) * 100)}%, transparent)` }}
             />
-            <span>{seg.icon}</span>
+            {seg.icon && <span>{seg.icon}</span>}
             <span className="text-muted-foreground flex-1 truncate">{seg.label}</span>
             <span className="font-semibold text-foreground">{seg.value}%</span>
           </div>
@@ -1118,8 +1118,8 @@ function PeerNetwork({ data }: { data: any }) {
   //   type: "peerNetwork",
   //   headline: "ULEZ model exported to 4 cities",
   //   peers: [
-  //     { flag: "🇧🇪", name: "Brussels", label: "LEZ adopted 2018" },
-  //     { flag: "🇫🇷", name: "Paris", label: "ZFE expanded 2017" },
+  //     { flag: "BE", name: "Brussels", label: "LEZ adopted 2018" },
+  //     { flag: "FR", name: "Paris", label: "ZFE expanded 2017" },
   //     ...
   //   ]
   // }
