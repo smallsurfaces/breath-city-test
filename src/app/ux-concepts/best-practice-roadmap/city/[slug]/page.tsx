@@ -134,6 +134,7 @@ export default async function CityDetailPage({ params }: CityPageProps) {
                       practice={practice}
                       example={example}
                       linkCity={false}
+                      showDomainTag={true}
                     />
                   ))
               )}

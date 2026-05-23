@@ -1378,6 +1378,7 @@ interface PracticeCardTileProps {
   practice: PracticeCard;
   example: CityExample;
   linkCity?: boolean;
+  showDomainTag?: boolean;
   layout?: "horizontal" | "vertical";
 }
 
@@ -1390,6 +1391,7 @@ export function PracticeCardTile({
   practice,
   example,
   linkCity = true,
+  showDomainTag = false,
   layout = "vertical",
 }: PracticeCardTileProps) {
   const city = getCityBySlug(example.citySlug);
@@ -1397,20 +1399,19 @@ export function PracticeCardTile({
   if (!city) return null;
 
   /* City info block — context-dependent content.
-   * linkCity=true (homepage/domain pages): city flag+name+country, population, intervention+year.
-   * linkCity=false (city pages): domain tag linking to domain page, intervention+year. */
-  const cityInfoBlock = linkCity ? (
+   * showDomainTag=true (city pages): domain tag linking to domain page, intervention+year.
+   * showDomainTag=false (default, homepage/domain pages): city flag+name+country, population,
+   *   intervention+year. linkCity controls whether the city name is a clickable link. */
+  const cityInfoBlock = showDomainTag ? (
     <div className="space-y-1">
-      <Link
-        href={`/ux-concepts/best-practice-roadmap/city/${city.slug}`}
-        className="text-sm font-semibold text-foreground hover:underline"
-      >
-        {city.flag} {city.name}, {city.country}
-      </Link>
-
-      <div className="text-xs text-muted-foreground">
-        {city.populationLabel} population
-      </div>
+      {/* Domain tag linking to domain page */}
+      {domain && (
+        <Link href={`/ux-concepts/best-practice-roadmap/domain/${domain.slug}`}>
+          <Badge variant="outline" className="text-xs cursor-pointer hover:bg-muted">
+            {domain.shortName}
+          </Badge>
+        </Link>
+      )}
 
       <div className="pt-1">
         <div className="text-sm text-foreground">
@@ -1425,14 +1426,22 @@ export function PracticeCardTile({
     </div>
   ) : (
     <div className="space-y-1">
-      {/* Domain tag linking to domain page */}
-      {domain && (
-        <Link href={`/ux-concepts/best-practice-roadmap/domain/${domain.slug}`}>
-          <Badge variant="outline" className="text-xs cursor-pointer hover:bg-muted">
-            {domain.shortName}
-          </Badge>
+      {linkCity ? (
+        <Link
+          href={`/ux-concepts/best-practice-roadmap/city/${city.slug}`}
+          className="text-sm font-semibold text-foreground hover:underline"
+        >
+          {city.flag} {city.name}, {city.country}
         </Link>
+      ) : (
+        <span className="text-sm font-semibold text-foreground">
+          {city.flag} {city.name}, {city.country}
+        </span>
       )}
+
+      <div className="text-xs text-muted-foreground">
+        {city.populationLabel} population
+      </div>
 
       <div className="pt-1">
         <div className="text-sm text-foreground">
