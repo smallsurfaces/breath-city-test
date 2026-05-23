@@ -30,7 +30,7 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Switcher } from "./_components/Switcher";
-import { ConcernCardView } from "./_components/ConcernCardView";
+import { EntryCard } from "./_components/EntryCard";
 import {
   CONCERNS,
   CITIES,
@@ -144,10 +144,16 @@ export default function ResidentConcernsPage() {
           </p>
         </section>
 
-        {/* The deck */}
-        <section className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {/* Scan hint — the deck is now a grid of compact, tappable entry cards */}
+        <p className="text-xs text-muted-foreground">
+          Each card leads with one real headline figure. Tap any card for the
+          full story — what the city did, the outcome, and the provenance.
+        </p>
+
+        {/* The deck — compact graphical entry cards; tap to open full detail */}
+        <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {orderedCards.map((card) => (
-            <ConcernCardView
+            <EntryCard
               key={card.id}
               card={card}
               city={CITIES.find((c) => c.key === card.city) ?? CITIES[0]}

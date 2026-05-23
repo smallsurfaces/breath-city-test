@@ -25,6 +25,22 @@
  *     This mirrors BC's own published methodology (the Breathe Better report explicitly
  *     declines single-intervention attribution).
  *
+ * ENTRY-CARD STAT DISCIPLINE — the data-viz layer (added 2026-05-23):
+ *   Each card carries a compact `stat` for the scannable entry-card grid. The stat is
+ *   the card's single most representative REAL number, lifted from its own detail below.
+ *   It obeys the SAME no-fabrication rule as `outcome`:
+ *     - kind "progression"  → before → after, BOTH values real (e.g. London NO2 −21%).
+ *       Only used where the evidence actually contains a before→after movement.
+ *     - kind "figure"       → one real achieved figure / share (e.g. "3,500+ schools",
+ *       "~65% of winter PM10"). Used where the evidence has a real number but NOT a
+ *       published before→after pair — we do NOT invent a target year or "→ X%" to
+ *       manufacture a progression that isn't in the evidence.
+ *     - kind "tk"           → a styled [TK] placeholder where there is no real headline
+ *       number yet. Same visible-gap honesty as the outcome placeholders.
+ *   Cautionary tale honoured: Warsaw coal ~65% is a real SHARE, not a "65% → 25% by
+ *   2030" target — no such coal target exists in the evidence, so we render the share
+ *   as a `figure`, never a fabricated progression.
+ *
  * Sources (files under design/globalsite/concepts/best-practice-roadmap/):
  *   [R1] city-initiatives-research.md          (London, Accra)
  *   [R2] city-initiatives-research-2.md         (Warsaw)
@@ -100,6 +116,54 @@ export function isPlaceholder(v: unknown): v is Placeholder {
   return typeof v === "object" && v !== null && "tk" in v;
 }
 
+/**
+ * Semantic icon key for an entry card. Maps to a lucide-react icon in the
+ * EntryCard component (kept out of the data layer so the data stays
+ * presentation-agnostic). One key per source/setting facet.
+ */
+export type IconKey =
+  // "who's polluting" — sources
+  | "coal"
+  | "factory"
+  | "car"
+  | "cooking"
+  | "dust"
+  // "safe for my kids" — settings
+  | "school"
+  | "commute"
+  | "home"
+  | "data";
+
+/**
+ * The compact headline stat shown on an entry card. Three honest shapes:
+ *   - progression: before → after, BOTH real (only where the evidence has a movement)
+ *   - figure:      one real achieved figure / share (no fabricated target)
+ *   - tk:          a styled [TK] placeholder where no real headline number exists yet
+ * See ENTRY-CARD STAT DISCIPLINE in the file header.
+ */
+export type EntryStat =
+  | {
+      kind: "progression";
+      /** The starting value, e.g. "50% of NOx" or "Coal-led". */
+      from: string;
+      /** The achieved/target value, e.g. "−21%". Real, never invented. */
+      to: string;
+      /** Tiny caption under the viz, e.g. "roadside NO₂". */
+      metric: string;
+    }
+  | {
+      kind: "figure";
+      /** A single real figure or share, e.g. "3,500+" or "~65%". */
+      value: string;
+      /** Tiny caption, e.g. "schools enrolled" or "of winter PM10". */
+      metric: string;
+    }
+  | {
+      kind: "tk";
+      /** Tiny caption naming what the figure WOULD be, e.g. "per-source split". */
+      metric: string;
+    };
+
 export interface ConcernCard {
   /** Stable id, unique within a concern. */
   id: string;
@@ -112,6 +176,14 @@ export interface ConcernCard {
   facet: string;
   /** Short label for the facet chip (e.g. "Coal heating", "Air outside schools"). */
   facetLabel: string;
+  /** Icon shown on the compact entry card — semantic source/setting key. */
+  iconKey: IconKey;
+  /**
+   * The compact headline stat for the entry-card grid. The card's single most
+   * representative REAL number, lifted from the detail below. Obeys the
+   * no-fabrication rule (see ENTRY-CARD STAT DISCIPLINE).
+   */
+  stat: EntryStat;
   /** The peer-city response, in plain language: what the city did. */
   did: string;
   /** How they did it — the mechanism. */
@@ -163,6 +235,10 @@ const WHO_POLLUTING: Concern = {
       city: "warsaw",
       facet: "Coal & solid-fuel home heating",
       facetLabel: "Coal heating",
+      iconKey: "coal",
+      // REAL share (~65% of winter PM10). NOT a "65% → 25%" target — no coal target
+      // figure exists in the evidence, so this is a `figure`, never a progression.
+      stat: { kind: "figure", value: "~65%", metric: "of winter PM10 — now banned" },
       did: "Banned coal and solid-fuel combustion across the city, and pays households to switch their boilers.",
       how: "A Mazovia regional anti-smog resolution banned coal/solid-fuel heating in Warsaw from 1 Sept 2023; the national Clean Air Programme provides subsidy and soft loans for boiler replacement and thermal renovation.",
       outcome:
@@ -176,6 +252,15 @@ const WHO_POLLUTING: Concern = {
       city: "warsaw",
       facet: "Road traffic",
       facetLabel: "Traffic",
+      iconKey: "car",
+      // REAL forecast figure from the LEZ phasing (NO2 −11% in-zone). Forecast, so
+      // framed as a target movement: baseline → −11%.
+      stat: {
+        kind: "progression",
+        from: "LEZ",
+        to: "−11%",
+        metric: "forecast in-zone NO₂",
+      },
       did: "Opened a central Low Emission Zone restricting the oldest, dirtiest vehicles.",
       how: "A 37 km² LEZ (Śródmieście + adjacent) launched July 2024; Phase 1 bans older diesel and petrol vehicles, tightening through 2032.",
       outcome:
@@ -190,6 +275,15 @@ const WHO_POLLUTING: Concern = {
       city: "london",
       facet: "Road transport",
       facetLabel: "Traffic",
+      iconKey: "car",
+      // REAL achieved figure: ~50% of NOx was road transport (LAEI) → 21% roadside
+      // NO2 reduction after ULEZ. A genuine before→after movement in the evidence.
+      stat: {
+        kind: "progression",
+        from: "~50% of NOx",
+        to: "−21%",
+        metric: "roadside NO₂ after ULEZ",
+      },
       did: "Apportioned its emissions, found traffic was the dominant source, then charged the dirtiest vehicles to enter.",
       how: "The London Atmospheric Emissions Inventory (LAEI) attributed ~50% of NOx to road transport; that evidence shaped the Ultra Low Emission Zone (ULEZ), expanded city-wide in 2023.",
       outcome:
@@ -204,6 +298,9 @@ const WHO_POLLUTING: Concern = {
       city: "accra",
       facet: "Household fuel & waste burning",
       facetLabel: "Cooking & waste",
+      iconKey: "cooking",
+      // Genuine gap: no per-source % published for Accra. TK, never invented.
+      stat: { kind: "tk", metric: "per-source split (inventory in progress)" },
       did: "Ran a source apportionment study that named household fuel, waste burning and vehicles as the dominant sources.",
       how: "A C40 / CCAC urban air-quality assessment identified the dominant PM2.5 sources; Clean Air Accra (Clean Air Fund partnership) is now building the city's first comprehensive emissions inventory and AQ management plan.",
       // Genuine gap: no per-source % published for Accra in the evidence.
@@ -238,6 +335,10 @@ const SAFE_FOR_KIDS: Concern = {
       city: "london",
       facet: "Air outside schools",
       facetLabel: "School air",
+      iconKey: "school",
+      // REAL count (3,500+ schools enrolled). A reach figure, not a %-progression —
+      // rendered as `figure`, not a fabricated before→after.
+      stat: { kind: "figure", value: "3,500+", metric: "schools on daily AQ alerts" },
       did: "Enrolled thousands of schools in daily air-quality alerts with action advice for children.",
       how: "The School Air Quality Alerts (Breathe Clean) programme sends schools daily AQ forecasts plus advice — moving play indoors, changing routes — on high-pollution days.",
       outcome:
@@ -251,6 +352,9 @@ const SAFE_FOR_KIDS: Concern = {
       city: "london",
       facet: "The walk / cycle to school",
       facetLabel: "The commute",
+      iconKey: "commute",
+      // Genuine gap: no published exposure-reduction % for the route tool. TK.
+      stat: { kind: "tk", metric: "exposure cut vs main-road route" },
       did: "Published lower-pollution walking and cycling routes so families can avoid the dirtiest streets.",
       how: "The Clean Air Route Finder maps walking/cycling routes optimised for lower exposure — a back-street route can cut a child's dose versus the main-road route.",
       // Genuine gap: no published exposure-reduction % for the route tool.
@@ -267,6 +371,9 @@ const SAFE_FOR_KIDS: Concern = {
       city: "warsaw",
       facet: "Streets around schools",
       facetLabel: "School streets",
+      iconKey: "school",
+      // Genuine gap: no measured school-zone AQ outcome published for Warsaw. TK.
+      stat: { kind: "tk", metric: "measured school-gate AQ change" },
       did: "Ran 'Streets for Kids' — reclaiming the streets outside schools for children and clean-air campaigning.",
       how: "Streets for Kids and LEZ-linked community campaigns (cited in BC's awareness pillar) mobilise parents and schools around the air children breathe near the school gate.",
       // Genuine gap: no measured school-zone AQ outcome published for Warsaw.
@@ -282,6 +389,10 @@ const SAFE_FOR_KIDS: Concern = {
       city: "warsaw",
       facet: "Air at home",
       facetLabel: "The home",
+      iconKey: "home",
+      // REAL share (~65% of winter PM10 — same coal source as who-warsaw-coal).
+      // A share, not a target: `figure`, never an invented progression.
+      stat: { kind: "figure", value: "~65%", metric: "of winter PM10, at the source" },
       did: "Removed coal heating from homes — cutting the smoke children breathe indoors and on their own street.",
       how: "The coal/solid-fuel ban plus Clean Air Programme boiler-replacement grants take the dirtiest combustion out of residential neighbourhoods where children live and play.",
       outcome:
@@ -296,6 +407,10 @@ const SAFE_FOR_KIDS: Concern = {
       city: "accra",
       facet: "Seeing children's exposure",
       facetLabel: "Getting data",
+      iconKey: "data",
+      // Genuine gap: no kids-specific exposure figure for Accra — the monitoring base
+      // is still being built. Honest "started" framing as a TK.
+      stat: { kind: "tk", metric: "children's-exposure baseline" },
       did: "Started filling the data gaps so children's exposure can be seen before it can be acted on.",
       how: "AirQo low-cost PM2.5 sensors and a US Embassy reference monitor give Accra its first real-time picture; Clean Air Accra is building the AQ management plan that would target children's settings.",
       // Genuine gap: no kids-specific exposure figure for Accra.
