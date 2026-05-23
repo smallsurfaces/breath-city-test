@@ -551,6 +551,79 @@ export const PRACTICE_CARDS: PracticeCard[] = [
     ],
     relatedPracticeIds: ["d5-lez", "d2-source-apportionment"],
   },
+
+  // Domain 6 — Clean Fuels for Cooking & Heating
+  {
+    id: "d6-clean-fuels",
+    name: "Household Fuel Transition",
+    domainId: 6,
+    description: "Transitioning households from coal, biomass, and oil to clean alternatives — gas networks, electric heat pumps, district heating — reducing the indoor-outdoor pollution nexus at scale.",
+    totalPopulationImpacted: "15.2M",
+    cityCount: 3,
+    cityExamples: [
+      {
+        citySlug: "warsaw",
+        provenance: "City Achievement",
+        interventionName: "Coal heating ban — 340,000 households transitioned",
+        introducedYear: 2018,
+        outcomeState: "measured",
+        outcomeChange: "-46% PM2.5",
+        chartData: {
+          type: "fuelMixShift",
+          beforeLabel: "2015",
+          afterLabel: "2024",
+          headline: "340K households off coal",
+          segments: [
+            { label: "Coal", icon: "⚫", beforePct: 65, afterPct: 5 },
+            { label: "Gas", icon: "\u{1F535}", beforePct: 20, afterPct: 50 },
+            { label: "Electric/heat pump", icon: "⚡", beforePct: 10, afterPct: 35 },
+            { label: "Other", icon: "\u{1F4CA}", beforePct: 5, afterPct: 10 },
+          ],
+        },
+      },
+      {
+        citySlug: "johannesburg",
+        provenance: "City Achievement",
+        interventionName: "Electrification programme — coal and paraffin reduction",
+        introducedYear: 2016,
+        outcomeState: "measured",
+        outcomeChange: "-25% household PM",
+        chartData: {
+          type: "fuelMixShift",
+          beforeLabel: "2012",
+          afterLabel: "2023",
+          headline: "1.2M homes electrified",
+          segments: [
+            { label: "Coal", icon: "⚫", beforePct: 45, afterPct: 20 },
+            { label: "Paraffin", icon: "\u{1F56F}\u{FE0F}", beforePct: 20, afterPct: 8 },
+            { label: "Electric", icon: "⚡", beforePct: 30, afterPct: 65 },
+            { label: "Other", icon: "\u{1F4CA}", beforePct: 5, afterPct: 7 },
+          ],
+        },
+      },
+      {
+        citySlug: "paris",
+        provenance: "City Achievement",
+        interventionName: "District heating expansion + oil boiler phase-out",
+        introducedYear: 2015,
+        outcomeState: "measured",
+        outcomeChange: "-38% heating emissions",
+        chartData: {
+          type: "fuelMixShift",
+          beforeLabel: "2012",
+          afterLabel: "2024",
+          headline: "Oil boilers phased out",
+          segments: [
+            { label: "Oil/gas boilers", icon: "\u{1F6E2}\u{FE0F}", beforePct: 55, afterPct: 20 },
+            { label: "District heating", icon: "\u{1F3ED}", beforePct: 25, afterPct: 45 },
+            { label: "Electric/heat pump", icon: "⚡", beforePct: 15, afterPct: 30 },
+            { label: "Other", icon: "\u{1F4CA}", beforePct: 5, afterPct: 5 },
+          ],
+        },
+      },
+    ],
+    relatedPracticeIds: ["d4-policy-timeline", "d2-source-apportionment"],
+  },
 ];
 
 // ---------------------------------------------------------------------------

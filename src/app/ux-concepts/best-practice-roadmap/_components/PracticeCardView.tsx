@@ -417,6 +417,54 @@ function PhaseIndicator({ data }: { data: any }) {
   );
 }
 
+function FuelMixShift({ data }: { data: any }) {
+  const segments = data.segments;
+  const opacities = [0.6, 0.4, 0.25, 0.15];
+
+  const renderBar = (label: string, getPct: (seg: any) => number) => (
+    <div>
+      <div className="text-xs text-muted-foreground mb-1">{label}</div>
+      <div className="flex h-6 w-full rounded overflow-hidden">
+        {segments.map((seg: any, i: number) => (
+          <div
+            key={i}
+            className="h-full first:rounded-l last:rounded-r"
+            style={{
+              width: `${getPct(seg)}%`,
+              background: `hsl(var(--foreground) / ${opacities[i] ?? 0.1})`,
+            }}
+          />
+        ))}
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="space-y-3">
+      <div className="text-sm font-semibold text-foreground">{data.headline}</div>
+      <div className="space-y-2">
+        {renderBar(data.beforeLabel, (seg: any) => seg.beforePct)}
+        {renderBar(data.afterLabel, (seg: any) => seg.afterPct)}
+      </div>
+      <div className="grid gap-1 w-full">
+        {segments.map((seg: any, i: number) => (
+          <div key={i} className="flex items-center gap-2 text-xs">
+            <span
+              className="inline-block w-2.5 h-2.5 rounded-sm flex-shrink-0"
+              style={{ background: `hsl(var(--foreground) / ${opacities[i] ?? 0.1})` }}
+            />
+            <span>{seg.icon}</span>
+            <span className="text-muted-foreground flex-1 truncate">{seg.label}</span>
+            <span className="font-semibold text-foreground">
+              {seg.beforePct}% → {seg.afterPct}%
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function ChartViz({ data, cityFlag }: { data: any; cityFlag?: string }) {
   if (!data) return null;
   switch (data.type) {
@@ -432,6 +480,8 @@ function ChartViz({ data, cityFlag }: { data: any; cityFlag?: string }) {
       return <CoverageRing data={data} />;
     case "policyTimeline":
       return <PolicyTimeline data={data} />;
+    case "fuelMixShift":
+      return <FuelMixShift data={data} />;
     case "phase":
       return <PhaseIndicator data={data} />;
     default:
