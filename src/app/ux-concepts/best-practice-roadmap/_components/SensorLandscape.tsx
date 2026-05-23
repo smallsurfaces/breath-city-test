@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 const SENSOR_DATA = [
   {
     city: "London",
+    shapeKey: "london",
     flag: "\u{1F1EC}\u{1F1E7}",
     totalSensors: 122,
     referenceCount: 18,
@@ -32,6 +33,7 @@ const SENSOR_DATA = [
   },
   {
     city: "Nairobi",
+    shapeKey: "nairobi",
     flag: "\u{1F1F0}\u{1F1EA}",
     totalSensors: 24,
     referenceCount: 3,
@@ -54,6 +56,7 @@ const SENSOR_DATA = [
   },
   {
     city: "Accra",
+    shapeKey: "accra",
     flag: "\u{1F1EC}\u{1F1ED}",
     totalSensors: 14,
     referenceCount: 2,
@@ -73,6 +76,15 @@ const SENSOR_DATA = [
   },
 ];
 
+const CITY_SHAPES: Record<string, string> = {
+  // London: wider E-W blob following rough M25 ring, slight Thames indent on south
+  london: "M50,5 C65,3 80,10 88,20 C95,30 97,45 92,55 C88,65 82,72 75,78 C68,84 58,88 50,90 C42,88 32,84 25,78 C18,72 12,65 8,55 C3,45 5,30 12,20 C20,10 35,3 50,5 Z",
+  // Nairobi: compact oval, slightly wider N-S
+  nairobi: "M50,8 C68,8 82,22 85,40 C88,55 82,70 72,80 C62,88 42,90 32,82 C22,74 15,60 14,45 C13,28 25,12 42,8 C45,7 48,8 50,8 Z",
+  // Accra: coastal city — flat bottom (coast), rounded top
+  accra: "M15,85 C12,70 10,55 15,40 C20,28 30,18 42,12 C52,8 62,8 72,14 C82,20 88,32 90,45 C92,58 90,72 88,85 L15,85 Z",
+};
+
 const OWNERSHIP_SHADES = [
   "bg-foreground/60",
   "bg-foreground/40",
@@ -80,42 +92,33 @@ const OWNERSHIP_SHADES = [
   "bg-foreground/15",
 ];
 
-function DotMap({ dots }: { dots: { x: number; y: number; ref: boolean }[] }) {
+function DotMap({ dots, cityShape, shapeId }: { dots: { x: number; y: number; ref: boolean }[]; cityShape: string; shapeId: string }) {
   return (
     <svg
       viewBox="0 0 100 100"
-      className="w-full rounded-lg border border-border/50"
+      className="w-full"
       style={{ height: 180 }}
       preserveAspectRatio="xMidYMid meet"
     >
       <defs>
-        <pattern id="crosshatch" width="8" height="8" patternUnits="userSpaceOnUse">
+        <pattern id={`crosshatch-${shapeId}`} width="8" height="8" patternUnits="userSpaceOnUse">
           <path d="M0 8L8 0" stroke="currentColor" strokeWidth="0.3" className="text-foreground/8" />
         </pattern>
+        <clipPath id={`city-clip-${shapeId}`}>
+          <path d={cityShape} />
+        </clipPath>
       </defs>
-      <rect width="100" height="100" rx="4" fill="currentColor" className="text-foreground/5" />
-      <rect width="100" height="100" rx="4" fill="url(#crosshatch)" />
-      {dots.map((dot, i) =>
-        dot.ref ? (
-          <circle
-            key={i}
-            cx={dot.x}
-            cy={dot.y}
-            r={2.8}
-            fill="currentColor" className="text-foreground/70"
-          />
-        ) : (
-          <circle
-            key={i}
-            cx={dot.x}
-            cy={dot.y}
-            r={2.2}
-            fill="none"
-            stroke="currentColor" className="text-foreground/40"
-            strokeWidth="0.8"
-          />
-        )
-      )}
+      <g clipPath={`url(#city-clip-${shapeId})`}>
+        <path d={cityShape} fill="currentColor" className="text-foreground/5" />
+        <path d={cityShape} fill={`url(#crosshatch-${shapeId})`} />
+        {dots.map((dot, i) =>
+          dot.ref ? (
+            <circle key={i} cx={dot.x} cy={dot.y} r={2.8} fill="currentColor" className="text-foreground/70" />
+          ) : (
+            <circle key={i} cx={dot.x} cy={dot.y} r={2.2} fill="none" stroke="currentColor" strokeWidth="0.8" className="text-foreground/40" />
+          )
+        )}
+      </g>
     </svg>
   );
 }
@@ -149,7 +152,11 @@ export function SensorLandscape() {
               </p>
             </div>
 
-            <DotMap dots={city.dots} />
+            <DotMap
+              dots={city.dots}
+              cityShape={CITY_SHAPES[city.shapeKey]}
+              shapeId={city.shapeKey}
+            />
 
             <OwnershipBar segments={city.ownership} />
 
