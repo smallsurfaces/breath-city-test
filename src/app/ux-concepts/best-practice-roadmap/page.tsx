@@ -27,7 +27,7 @@ import { PracticeCardTile } from "./_components/PracticeCardView";
  * exampleIndex selects within that card's cityExamples array.
  */
 const FEATURED: Record<number, { cardIndex: number; exampleIndex: number }> = {
-  1: { cardIndex: 0, exampleIndex: 1 },   // Nairobi sensors
+  1: { cardIndex: 0, exampleIndex: 0 },   // London sensors
   2: { cardIndex: 0, exampleIndex: 1 },   // Accra source analysis
   3: { cardIndex: 0, exampleIndex: 0 },   // Paris health study
   4: { cardIndex: 0, exampleIndex: 3 },   // Brussels policy timeline
@@ -36,7 +36,7 @@ const FEATURED: Record<number, { cardIndex: number; exampleIndex: number }> = {
   7: { cardIndex: 0, exampleIndex: 1 },   // Milan tree planting
   8: { cardIndex: 0, exampleIndex: 3 },   // Bangkok awareness timeline
   9: { cardIndex: 0, exampleIndex: 1 },   // Warsaw governance staircase
-  10: { cardIndex: 0, exampleIndex: 0 },  // London investment ROI
+  10: { cardIndex: 0, exampleIndex: 1 },  // Warsaw investment
   11: { cardIndex: 0, exampleIndex: 2 },  // Bangkok peer network
   12: { cardIndex: 0, exampleIndex: 3 },  // Bogota open data
 };

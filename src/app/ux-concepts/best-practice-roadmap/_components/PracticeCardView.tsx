@@ -157,6 +157,52 @@ function Sparkline({ data }: { data: any }) {
   );
 }
 
+function DoubleRing({ data }: { data: any }) {
+  // data: { type: "doubleRing", label: "...", before: 4, after: 20, unit: "stations", change: "+400%" }
+  const beforePct = Math.round((data.before / data.after) * 100);
+
+  return (
+    <div className="flex flex-col items-center gap-2">
+      <div className="text-xs text-muted-foreground">{data.label}</div>
+      <div className="relative" style={{ width: 120, height: 120 }}>
+        {/* Outer ring — after */}
+        <div
+          className="absolute inset-0 rounded-full"
+          style={{
+            background: `conic-gradient(color-mix(in srgb, var(--foreground) 50%, transparent) 100%, transparent 100%)`,
+            mask: 'radial-gradient(circle, transparent 38px, black 39px, black 58px, transparent 59px)',
+            WebkitMask: 'radial-gradient(circle, transparent 38px, black 39px, black 58px, transparent 59px)',
+          }}
+        />
+        {/* Inner ring — before */}
+        <div
+          className="absolute inset-0 rounded-full"
+          style={{
+            background: `conic-gradient(color-mix(in srgb, var(--foreground) 25%, transparent) ${beforePct}%, transparent ${beforePct}%)`,
+            mask: 'radial-gradient(circle, transparent 18px, black 19px, black 36px, transparent 37px)',
+            WebkitMask: 'radial-gradient(circle, transparent 18px, black 19px, black 36px, transparent 37px)',
+          }}
+        />
+        {/* Center text */}
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <div className="text-lg font-bold text-foreground">{data.after}</div>
+          <div className="text-[10px] text-muted-foreground">{data.unit}</div>
+        </div>
+      </div>
+      <div className="flex items-center gap-3 text-xs text-muted-foreground">
+        <span className="flex items-center gap-1">
+          <span className="inline-block w-2.5 h-2.5 rounded-full" style={{ background: 'color-mix(in srgb, var(--foreground) 25%, transparent)' }} />
+          Before ({data.before})
+        </span>
+        <span className="flex items-center gap-1">
+          <span className="inline-block w-2.5 h-2.5 rounded-full" style={{ background: 'color-mix(in srgb, var(--foreground) 50%, transparent)' }} />
+          After ({data.after})
+        </span>
+      </div>
+    </div>
+  );
+}
+
 function CoverageRing({ data }: { data: any }) {
   const pct = data.value;
   return (
@@ -181,6 +227,9 @@ function CoverageRing({ data }: { data: any }) {
         </div>
       </div>
       <span className="text-xs text-muted-foreground">{data.label}</span>
+      {data.sublabel && (
+        <div className="text-xs font-semibold text-foreground">{data.sublabel}</div>
+      )}
     </div>
   );
 }
@@ -424,7 +473,7 @@ function FuelMixShift({ data }: { data: any }) {
   const renderBar = (label: string, getPct: (seg: any) => number) => (
     <div>
       <div className="text-xs text-muted-foreground mb-1">{label}</div>
-      <div className="flex h-6 w-full rounded overflow-hidden">
+      <div className="flex h-8 w-full rounded overflow-hidden">
         {segments.map((seg: any, i: number) => (
           <div
             key={i}
@@ -441,19 +490,18 @@ function FuelMixShift({ data }: { data: any }) {
 
   return (
     <div className="space-y-3">
-      <div className="text-sm font-semibold text-foreground">{data.headline}</div>
+      <div className="text-base font-bold text-foreground">{data.headline}</div>
       <div className="space-y-2">
         {renderBar(data.beforeLabel, (seg: any) => seg.beforePct)}
         {renderBar(data.afterLabel, (seg: any) => seg.afterPct)}
       </div>
       <div className="grid gap-1 w-full">
         {segments.map((seg: any, i: number) => (
-          <div key={i} className="flex items-center gap-2 text-xs">
+          <div key={i} className="flex items-center gap-2 text-sm">
             <span
               className="inline-block w-2.5 h-2.5 rounded-sm flex-shrink-0"
               style={{ background: `color-mix(in srgb, var(--foreground) ${Math.round((opacities[i] ?? 0.1) * 100)}%, transparent)` }}
             />
-            <span>{seg.icon}</span>
             <span className="text-muted-foreground flex-1 truncate">{seg.label}</span>
             <span className="font-semibold text-foreground">
               {seg.beforePct}% → {seg.afterPct}%
@@ -893,18 +941,6 @@ function GovernanceStaircase({ data }: { data: any }) {
                 {i + 1}
               </text>
 
-              {/* Layer name on the step */}
-              <text
-                x={x}
-                y={y + 14}
-                textAnchor="middle"
-                fill="currentColor"
-                className="text-foreground/60"
-                style={{ fontSize: 8, fontWeight: 600 }}
-              >
-                {step.layer}
-              </text>
-
               {/* Year below the step */}
               <text
                 x={padL + i * stepW + stepW / 2}
@@ -1111,6 +1147,8 @@ function ChartViz({ data, cityFlag }: { data: any; cityFlag?: string }) {
       return <SourceDonut data={data} cityFlag={cityFlag} />;
     case "sparkline":
       return <Sparkline data={data} />;
+    case "doubleRing":
+      return <DoubleRing data={data} />;
     case "coverageRing":
       return <CoverageRing data={data} />;
     case "policyTimeline":
