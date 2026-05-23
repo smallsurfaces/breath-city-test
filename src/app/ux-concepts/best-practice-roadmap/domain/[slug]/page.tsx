@@ -55,7 +55,7 @@ export default async function DomainDetailPage({ params }: DomainPageProps) {
   const hasPractices = practices.length > 0;
 
   return (
-    <main className="min-h-screen bg-background pb-16">
+    <main className="min-h-screen bg-background pb-0">
       {/* Header */}
       <section className="border-b bg-muted/30 px-4 pt-16 pb-10">
         <div className="mx-auto max-w-3xl space-y-4">

@@ -50,7 +50,7 @@ const PILLAR_ORDER: { stage: Stage; label: string; description: string }[] = [
 
 export default function RoadmapPage() {
   return (
-    <main className="min-h-screen bg-background">
+    <main className="min-h-screen bg-background pb-0">
       <div className="max-w-6xl mx-auto px-4 py-12 space-y-16">
         {/* Navigation */}
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
