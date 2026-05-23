@@ -978,6 +978,51 @@ function GovernanceStaircase({ data }: { data: any }) {
   );
 }
 
+/** FundingProgression — horizontal step flow showing how domain achievements built the case for investment */
+function FundingProgression({ data }: { data: any }) {
+  // data: { type: "fundingProgression", steps: [{ pillar: "Seeing", label: "...", year: 2013 }, ...], outcome: "..." }
+  const PILLAR_COLORS: Record<string, string> = {
+    "Seeing": "color-mix(in srgb, var(--foreground) 60%, transparent)",
+    "Understanding": "color-mix(in srgb, var(--foreground) 45%, transparent)",
+    "Acting": "color-mix(in srgb, var(--foreground) 30%, transparent)",
+  };
+
+  const steps: { pillar: string; label: string; year: number }[] = data.steps;
+
+  return (
+    <div className="space-y-3">
+      {/* Horizontal step flow */}
+      <div className="flex items-stretch gap-1">
+        {steps.map((step, i) => (
+          <div key={i} className="flex-1 flex flex-col">
+            <div
+              className="h-2 rounded-full mb-2"
+              style={{ background: PILLAR_COLORS[step.pillar] ?? 'color-mix(in srgb, var(--foreground) 20%, transparent)' }}
+            />
+            <div className="text-[10px] font-semibold text-foreground">{step.pillar}</div>
+            <div className="text-[10px] text-muted-foreground leading-tight mt-0.5">{step.label}</div>
+            <div className="text-[10px] text-muted-foreground mt-auto pt-1">{step.year}</div>
+          </div>
+        ))}
+        {/* Final "funding" step */}
+        <div className="flex-1 flex flex-col">
+          <div
+            className="h-2 rounded-full mb-2"
+            style={{ background: 'color-mix(in srgb, var(--foreground) 15%, transparent)' }}
+          />
+          <div className="text-[10px] font-semibold text-foreground">→ Funding</div>
+          <div className="text-[10px] text-muted-foreground leading-tight mt-0.5">Investment follows results</div>
+        </div>
+      </div>
+
+      {/* Outcome line */}
+      <div className="text-xs text-muted-foreground border-t pt-2" style={{ borderColor: 'color-mix(in srgb, var(--foreground) 10%, transparent)' }}>
+        {data.outcome}
+      </div>
+    </div>
+  );
+}
+
 function InvestmentROI({ data }: { data: any }) {
   // data shape: {
   //   type: "investmentROI",
@@ -1171,6 +1216,8 @@ function ChartViz({ data, cityFlag }: { data: any; cityFlag?: string }) {
       return <AwarenessTimeline data={data} />;
     case "governanceStaircase":
       return <GovernanceStaircase data={data} />;
+    case "fundingProgression":
+      return <FundingProgression data={data} />;
     case "investmentROI":
       return <InvestmentROI data={data} />;
     case "peerNetwork":

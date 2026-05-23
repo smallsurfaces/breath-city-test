@@ -36,8 +36,7 @@ const FEATURED: Record<number, { cardIndex: number; exampleIndex: number }> = {
   7: { cardIndex: 0, exampleIndex: 1 },   // Milan tree planting
   8: { cardIndex: 0, exampleIndex: 3 },   // Bangkok awareness timeline
   9: { cardIndex: 0, exampleIndex: 1 },   // Warsaw governance staircase
-  10: { cardIndex: 0, exampleIndex: 1 },  // Warsaw investment
-  11: { cardIndex: 0, exampleIndex: 2 },  // Bangkok peer network
+  10: { cardIndex: 0, exampleIndex: 1 },  // Warsaw funding progression
   12: { cardIndex: 0, exampleIndex: 3 },  // Bogota open data
 };
 
@@ -109,7 +108,7 @@ export default function RoadmapPage() {
               </div>
 
               <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
-                {pillarDomains.map((domain) => {
+                {pillarDomains.filter((d) => FEATURED[d.id]).map((domain) => {
                   const domainCards = PRACTICE_CARDS.filter((p) => p.domainId === domain.id);
                   const featured = FEATURED[domain.id];
                   const card = domainCards[featured?.cardIndex ?? 0];
