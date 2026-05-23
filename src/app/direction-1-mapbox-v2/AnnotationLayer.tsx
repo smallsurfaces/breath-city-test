@@ -33,6 +33,42 @@ import { createPortal } from 'react-dom'
 import type { Annotation, AnnotationLayerConfig, ElementAnchor } from './AnnotationLayer.types'
 import { captureAnchor, resolveAnchor } from '../../lib/comments/anchor'
 
+// ─── Element-mode hit-test helper ─────────────────────────────────────────────
+
+/** Max characters of element text shown in the live capture label (UI cue only). */
+const HOVER_LABEL_TEXT_MAX = 40
+
+/**
+ * Resolve the real page element under a pointer position, seeing PAST the annotation
+ * click-capture overlay. The overlay is a fixed full-viewport div marked with
+ * `data-al-overlay`; elementsFromPoint returns the full hit-test stack, so we skip the
+ * overlay (and anything else carrying that marker) and return the first underlying
+ * HTMLElement. Single source of truth so the hover highlight and the click capture always
+ * agree on which element is targeted. Pure DOM read; returns null when nothing meaningful
+ * sits under the cursor.
+ */
+function resolveOverlayTarget(clientX: number, clientY: number): HTMLElement | null {
+  const stack = document.elementsFromPoint(clientX, clientY)
+  const target = stack.find(
+    (node) => node instanceof HTMLElement && node.getAttribute('data-al-overlay') === null,
+  )
+  return target instanceof HTMLElement ? target : null
+}
+
+/**
+ * Build the live capture label for a hovered element, e.g. `p · "Poland's capital…"`.
+ * Text is derived from the element's textContent (whitespace-collapsed, trimmed) and
+ * clamped, consistent with how anchor.ts builds the stored nearbyText — so the label
+ * previews what the saved comment will record. No emoji; caller styles with --al-* tokens.
+ */
+function buildHoverLabel(el: HTMLElement): string {
+  const tag = el.tagName.toLowerCase()
+  const text = (el.textContent ?? '').replace(/\s+/g, ' ').trim()
+  if (text === '') return tag
+  const clamped = text.length > HOVER_LABEL_TEXT_MAX ? `${text.slice(0, HOVER_LABEL_TEXT_MAX)}…` : text
+  return `${tag} · "${clamped}"`
+}
+
 // ─── AnnotationLayer ──────────────────────────────────────────────────────────
 
 export default function AnnotationLayer({
@@ -71,6 +107,17 @@ export default function AnnotationLayer({
   // Re-render trigger for element-mode pins: their on-screen position derives from a LIVE
   // getBoundingClientRect, so we bump this on scroll/resize to recompute pin positions.
   const [, setLiveTick] = useState<number>(0)
+
+  // Live hover preview (element mode only). While the reviewer is actively selecting — mode
+  // active, no card open — we draw a highlight box around the element under the cursor and a
+  // label naming what will be captured. `hover` holds the current box rect + label; null when
+  // nothing is hovered or hover is suppressed. Map builds never set this (gated by elementMode).
+  const [hover, setHover] = useState<{ rect: DOMRect; label: string } | null>(null)
+  // rAF throttle for mousemove: latest pointer coords live in a ref and a single animation
+  // frame is scheduled per burst, so elementsFromPoint + rect reads run at most once per frame
+  // rather than on every raw mousemove event (which would thrash layout).
+  const hoverFrameRef = useRef<number | null>(null)
+  const hoverPointRef = useRef<{ x: number; y: number } | null>(null)
 
   // Measured card heights to prevent overflow-guard using hardcoded estimates
   const newCardRef = useRef<HTMLDivElement>(null)
@@ -116,6 +163,26 @@ export default function AnnotationLayer({
       window.removeEventListener('resize', bump)
     }
   }, [elementMode, isActive])
+
+  // ── Hover-preview suppression + rAF cleanup ───────────────────────────────────
+  // The hover preview is only valid while actively selecting: element mode, mode active, and
+  // no card open. Whenever that stops being true (mode exits, a card opens, build is not an
+  // element build), cancel any queued animation frame and clear the box. This covers state
+  // changes that happen without a mouse event firing (e.g. opening a card by clicking a pin),
+  // so a stale highlight can never persist behind a card.
+  // Side effect: cancels a pending requestAnimationFrame.
+
+  const selecting = elementMode && isActive && pendingClick === null && editingId === null
+
+  useEffect(() => {
+    if (selecting) return
+    if (hoverFrameRef.current !== null) {
+      window.cancelAnimationFrame(hoverFrameRef.current)
+      hoverFrameRef.current = null
+    }
+    hoverPointRef.current = null
+    setHover(null)
+  }, [selecting])
 
   // ── Load on mount ───────────────────────────────────────────────────────────
   // Two paths, selected by whether a `persistence` adapter was supplied:
@@ -235,6 +302,9 @@ export default function AnnotationLayer({
     setEditingId(null)
     setDraftText('')
     setDraftName('')
+    // Drop any live hover preview so it never lingers after a card is dismissed/escaped.
+    setHover(null)
+    hoverPointRef.current = null
   }, [])
 
   // ── Escape key listener ─────────────────────────────────────────────────────
@@ -283,14 +353,11 @@ export default function AnnotationLayer({
     }
 
     // Element mode: find the DOM element under the cursor and capture a durable anchor.
-    // The overlay sits above the page, so temporarily hide it from hit-testing via
-    // elementsFromPoint (which returns the stack) and pick the first non-overlay element.
+    // resolveOverlayTarget sees PAST the click-capture overlay (shared with the hover
+    // highlight, so the box the reviewer saw and the element captured are the same one).
     if (elementMode) {
-      const stack = document.elementsFromPoint(e.clientX, e.clientY)
-      const target = stack.find(
-        (node) => node instanceof HTMLElement && node.getAttribute('data-al-overlay') === null,
-      )
-      if (target === undefined || !(target instanceof HTMLElement)) {
+      const target = resolveOverlayTarget(e.clientX, e.clientY)
+      if (target === null) {
         // Nothing meaningful under the cursor — ignore the click rather than pin to nothing.
         return
       }
@@ -300,7 +367,45 @@ export default function AnnotationLayer({
     setPendingClick({ x: e.clientX, y: e.clientY })
     setDraftText('')
     setDraftName('')
+    // Selecting is done — drop the live hover preview while the card is open.
+    setHover(null)
+    hoverPointRef.current = null
   }
+
+  // ── handleOverlayMouseMove (element mode only) ──────────────────────────────
+  // Live hover preview: as the cursor moves over the frozen page, highlight the element it
+  // would pin to and show a label naming what will be captured. Throttled to one compute per
+  // animation frame — elementsFromPoint + getBoundingClientRect on every raw mousemove would
+  // thrash layout. The latest pointer coords are stashed in a ref; a single rAF is scheduled
+  // per burst and reads those coords when it runs (so we always resolve the freshest point).
+  // Inert unless element mode is active and no card is open (selecting, not editing).
+
+  const handleOverlayMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>): void => {
+    if (!elementMode) return
+    hoverPointRef.current = { x: e.clientX, y: e.clientY }
+    if (hoverFrameRef.current !== null) return // a frame is already queued for this burst
+    hoverFrameRef.current = window.requestAnimationFrame(() => {
+      hoverFrameRef.current = null
+      const point = hoverPointRef.current
+      if (point === null) return
+      const target = resolveOverlayTarget(point.x, point.y)
+      if (target === null) {
+        setHover(null)
+        return
+      }
+      // Live rect so the box tracks the element exactly (mirrors the pin/edit-ring approach).
+      setHover({ rect: target.getBoundingClientRect(), label: buildHoverLabel(target) })
+    })
+  }, [elementMode])
+
+  // ── handleOverlayMouseLeave ─────────────────────────────────────────────────
+  // Clear the hover preview the moment the cursor leaves the capture overlay so a stale box
+  // never lingers off-target.
+
+  const handleOverlayMouseLeave = useCallback((): void => {
+    setHover(null)
+    hoverPointRef.current = null
+  }, [])
 
   // ── handleSave (new annotation) ─────────────────────────────────────────────
   // Store x/y as normalised viewport fractions (0–1) so pin positions survive resize.
@@ -621,6 +726,10 @@ export default function AnnotationLayer({
           <div
             data-al-overlay=""
             onClick={handleOverlayClick}
+            // Hover handlers only in element mode — map/viewport builds attach neither, so
+            // they are entirely unchanged (no mousemove work, no behaviour difference).
+            onMouseMove={elementMode ? handleOverlayMouseMove : undefined}
+            onMouseLeave={elementMode ? handleOverlayMouseLeave : undefined}
             style={{
               position: 'fixed',
               inset: 0,
@@ -657,6 +766,65 @@ export default function AnnotationLayer({
                   zIndex: 100,
                 }}
               />
+            )
+          })()}
+
+          {/* ── Live hover highlight + capture label (element mode) ──────────────────
+              While actively selecting (no card open), draw a box around the element under
+              the cursor and a label naming what will be captured, so the reviewer can
+              pinpoint exactly what they are about to pin BEFORE they click. The box reuses
+              the on-open edit-ring visual (same --al-brand border, ±3/±6 inset). Both the
+              box and label are pointer-events:none so they never intercept the click. */}
+          {selecting && hover !== null && (() => {
+            const { rect, label } = hover
+            // Label sits just above the box; flip below when the box hugs the top edge so it
+            // never clips off-screen. Horizontal start clamps to the viewport left margin.
+            const labelAbove = rect.top - 3 >= 24
+            const labelLeft = Math.max(8, rect.left - 3)
+            return (
+              <React.Fragment>
+                <div
+                  aria-hidden="true"
+                  style={{
+                    position: 'fixed',
+                    left: rect.left - 3,
+                    top: rect.top - 3,
+                    width: rect.width + 6,
+                    height: rect.height + 6,
+                    border: '2px solid var(--al-brand)',
+                    borderRadius: 'var(--al-radius-input)',
+                    boxShadow: '0 0 0 3px rgba(0,0,0,0.10)',
+                    pointerEvents: 'none',
+                    zIndex: 100,
+                  }}
+                />
+                <div
+                  aria-hidden="true"
+                  style={{
+                    position: 'fixed',
+                    left: labelLeft,
+                    top: labelAbove ? rect.top - 3 - 22 : rect.top - 3 + rect.height + 6 + 4,
+                    maxWidth: 'min(360px, 70vw)',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    background: 'var(--al-brand)',
+                    color: 'var(--al-white)',
+                    border: '1px solid var(--al-overlay-border)',
+                    borderRadius: 'var(--al-radius-input)',
+                    padding: '2px 8px',
+                    fontSize: '0.7rem',
+                    fontWeight: 600,
+                    fontFamily: 'var(--al-font)',
+                    lineHeight: 1.4,
+                    boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
+                    pointerEvents: 'none',
+                    zIndex: 102,
+                  }}
+                >
+                  {label}
+                </div>
+              </React.Fragment>
             )
           })()}
 
