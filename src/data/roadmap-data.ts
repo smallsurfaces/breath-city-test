@@ -191,12 +191,12 @@ export const PRACTICE_CARDS: PracticeCard[] = [
       {
         citySlug: "london",
         provenance: "City Achievement",
-        interventionName: "London Atmospheric Emissions Inventory (LAEI)",
+        interventionName: "LAEI identified road transport as 50% of NOx → directly informed ULEZ design → NO₂ down 28%",
         introducedYear: 2013,
         outcomeState: "measured",
         outcomeBefore: "Uncertain source contribution",
-        outcomeAfter: "Road transport identified as ~50% of London NOx",
-        outcomeChange: "Informed ULEZ design",
+        outcomeAfter: "ULEZ implemented based on LAEI evidence — NO₂ reduced 28% London-wide, on track to 30% target by 2030",
+        outcomeChange: "→ ULEZ → -28% NO₂",
         chartData: { type: "sourceDonut", segments: [
           { label: "Road transport", icon: "\u{1F697}", value: 50 },
           { label: "Domestic", icon: "\u{1F3E0}", value: 15 },
@@ -207,12 +207,12 @@ export const PRACTICE_CARDS: PracticeCard[] = [
       {
         citySlug: "accra",
         provenance: "BC Partnership",
-        interventionName: "C40/CCAC emissions study",
+        interventionName: "Emissions study identified road transport as dominant → targeting vehicle standards and cookstove transition",
         introducedYear: 2020,
         outcomeState: "measured",
         outcomeBefore: "Limited emissions data",
-        outcomeAfter: "Road transport (39%), household fuels, and waste burning identified as dominant PM2.5 sources",
-        outcomeChange: "Priority sectors identified",
+        outcomeAfter: "Priority sectors identified — vehicle emission standards and clean cookstove programmes now in design phase",
+        outcomeChange: "→ Transport + cookstove policy in design",
         chartData: { type: "sourceDonut", segments: [
           { label: "Road transport", icon: "\u{1F697}", value: 39 },
           { label: "Household fuels", icon: "\u{1F525}", value: 28 },
@@ -223,12 +223,12 @@ export const PRACTICE_CARDS: PracticeCard[] = [
       {
         citySlug: "nairobi",
         provenance: "BC Partnership",
-        interventionName: "CCAC emissions inventory",
+        interventionName: "Inventory identified transport + cooking fuels → clean cooking programme launched, transport policy in development",
         introducedYear: 2021,
         outcomeState: "measured",
         outcomeBefore: "No city-level inventory",
-        outcomeAfter: "Transport + cooking/heating fuels identified as dominant PM sources",
-        outcomeChange: "Priority sectors identified",
+        outcomeAfter: "Evidence now informing Nairobi's first clean air action plan — clean cooking transition underway",
+        outcomeChange: "→ Clean air action plan underway",
         chartData: { type: "sourceDonut", segments: [
           { label: "Transport", icon: "\u{1F697}", value: 45 },
           { label: "Cooking fuels", icon: "\u{1F373}", value: 30 },
