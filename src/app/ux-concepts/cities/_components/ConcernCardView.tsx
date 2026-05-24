@@ -9,7 +9,7 @@
  *   §4 framing  — the card is headed "Here's how {City} answered their residents' question",
  *                 and the content runs in order:
  *                   category (icon + facet) → stat → lead (did) → detail (how + what it changed)
- *                   → CTA ("See the full story in {City} →") → source.
+ *                   → Close action → source.
  *                 (The old "question-left / answer-right" split is superseded: the question now
  *                 lives in the page header, and the card is the answer.)
  *   §7 infographic — the popup carries the infographic, not text only: the category ICON and the
@@ -20,15 +20,15 @@
  * styled [figure TK] chip — the visible-gap discipline: a missing figure is shown honestly, never
  * invented. The "why not you?" peer-learning nudge is preserved.
  *
- * CTA note: the §4 spec's "See the full story in {City} →" CTA pointed at the per-city page, which
- * the restructure RETIRED. The full story now lives on the concern page this popup opens from, so
- * the CTA is rendered as an honest INERT affordance (no dead-end link) — the §4 content order is
- * preserved without inventing a destination.
+ * Action note: the §4 spec's "See the full story in {City} →" CTA pointed at the per-city page,
+ * which the restructure RETIRED. The full story now lives on the concern page this popup opens
+ * from, so the action slot is a plain Close button (wired to the dialog via DialogClose) instead
+ * of a dead-end link — the §4 content order is preserved without inventing a destination.
  *
  * Functional colour only (AQI-moderate token for the gap chip), light mode, no emoji.
  *
  * Key exports: ConcernCardView
- * External dependencies: shadcn Card/Badge, lucide-react, concern-visuals, concerns-data types
+ * External dependencies: shadcn Card/Badge/Button/DialogClose, concern-visuals, concerns-data types
  */
 
 import {
@@ -37,7 +37,8 @@ import {
   CardContent,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { DialogClose } from "@/components/ui/dialog";
 import { ConcernIcon, StatViz } from "./concern-visuals";
 import {
   type ConcernCard,
@@ -159,26 +160,13 @@ export function ConcernCardView({ card, city }: ConcernCardViewProps) {
           </p>
         </div>
 
-        {/* §4 CTA — kept in the content order. The per-city page it pointed at was retired in
-            the concern-centric restructure, so this is an honest INERT affordance (no dead-end
-            link): the full story is this concern page. */}
+        {/* Action slot — a plain Close button that dismisses the dialog. The §4 spec's
+            "See the full story in {City}" CTA pointed at the per-city page, which the
+            concern-centric restructure RETIRED; the full story is this concern page, so the
+            dead-end affordance is gone and the slot now just closes the popup. DialogClose reads
+            the surrounding EntryCard Dialog context. */}
         <div>
-          <span
-            aria-disabled="true"
-            className="inline-flex w-fit cursor-default items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold"
-            style={{
-              backgroundColor:
-                "color-mix(in srgb, var(--bc-semantic-brand) 12%, transparent)",
-              color: "var(--bc-semantic-brand)",
-            }}
-          >
-            See the full story in {city.name}
-            <ArrowRight aria-hidden="true" className="h-4 w-4" />
-          </span>
-          <p className="mt-1 text-[11px] text-muted-foreground/80">
-            The full {city.name} story lives on this concern page — per-city deep-dive pages were
-            retired in the concern-centric restructure.
-          </p>
+          <DialogClose render={<Button variant="outline" />}>Close</DialogClose>
         </div>
 
         {/* source — provenance, always shown, keeps the evidence honest */}
