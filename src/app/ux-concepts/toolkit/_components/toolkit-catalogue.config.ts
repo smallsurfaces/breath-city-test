@@ -144,7 +144,6 @@ export const GUIDANCE_ENTRIES: readonly CatalogueEntry[] = [
  * owned by the PrototypeHeader above this chrome, so no live "Dev hub" nav item is needed here.
  */
 export const TOOLKIT_CHROME: BcChromeConfig = {
-  conceptLabel: 'City AQ Toolkit',
   logoHref: TOOLKIT_ROUTE,
   nav: TOOLKIT_NAV,
 }

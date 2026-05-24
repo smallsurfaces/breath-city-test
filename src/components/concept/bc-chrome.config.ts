@@ -34,13 +34,11 @@ export type BcChromeNavItem = {
 }
 
 /**
- * Per-concept chrome configuration. Carries the concept's display label, where the brand mark
- * (logo) links, and the primary-nav set (with the concept's own home in the live slot). One
- * config drives both the header and the mobile overlay; the footer is static and takes none.
+ * Per-concept chrome configuration. Carries where the brand mark (logo) links and the
+ * primary-nav set (with the concept's own home in the live slot). One config drives both the
+ * header and the mobile overlay; the footer is static and takes none.
  */
 export type BcChromeConfig = {
-  /** Short concept label (used for the honest in-context "prototype" framing line). */
-  conceptLabel: string
   /** Where the brand logo links — the concept's own home route. */
   logoHref: string
   /** The primary-nav set; the concept's home occupies the live "Cities" slot. */
@@ -53,7 +51,6 @@ export type BcChromeConfig = {
  * home; every other BC label stays inert (`#`) so the chrome still reads as BC's real IA.
  */
 export const AQ_NETWORK_CHROME: BcChromeConfig = {
-  conceptLabel: 'AQ Network',
   logoHref: '/ux-concepts/aq-network-v2',
   nav: [
     { label: 'Who we are', href: '#' },

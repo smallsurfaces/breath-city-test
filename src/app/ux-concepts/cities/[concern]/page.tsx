@@ -26,7 +26,8 @@
  * Chrome: rendered PER-PAGE (the shared BcHeader/BcFooter from @/components/concept, driven by the
  * co-located CITIES_CHROME config) — NOT in the layout, matching the Cities concept's structural
  * pattern. The PrototypeHeader tooling bar (with the sole back-to-hub) is added above by the cities
- * layout. The breadcrumb back to the concern landing keeps in-concept navigation alive.
+ * layout, and is the page's back-nav. (The redundant top-of-page "Resident Concerns / …"
+ * breadcrumb was removed in the declutter close-out.)
  *
  * EVIDENCE DISCIPLINE: cities and cards come straight from concerns-data — only cities with a real
  * answer are shown, gaps are never padded, and each card preserves concern→answer-fit, the [TK]
@@ -34,7 +35,7 @@
  * Inferred-voice labelling is explicit. No BC photography, no fabricated figures.
  *
  * Key exports: default page component, generateStaticParams, generateMetadata
- * External dependencies: next/link, next/navigation, @/components/concept (BcHeader, BcFooter,
+ * External dependencies: next/navigation, @/components/concept (BcHeader, BcFooter,
  *   ConceptSectionHeader, ConceptCard), the app-local ConceptHeroPlain (eyebrow-less hero) and
  *   InfoTooltip (the "i" affordance holding the inferred-voice note), the co-located CITIES_CHROME
  *   config + EntryCard, concerns-data (CONCERNS, concernByKey, citiesWithAnswersFor).
@@ -42,7 +43,6 @@
  * Route: /ux-concepts/cities/[concern]
  */
 
-import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import {
@@ -118,18 +118,6 @@ export default async function ConcernPage({ params }: ConcernPageProps) {
       {/* ── (1) The shared challenge ─────────────────────────────────────────── */}
       <section className="border-b border-border">
         <div className="mx-auto max-w-6xl px-4 py-14 lg:py-20">
-          {/* Breadcrumb back to the concern landing — keeps in-concept navigation alive. */}
-          <div className="mb-6 flex items-center gap-2 text-sm text-muted-foreground">
-            <Link
-              href="/ux-concepts/cities"
-              className="transition-colors hover:text-primary"
-            >
-              Resident Concerns
-            </Link>
-            <span>/</span>
-            <span className="text-foreground">The shared challenge</span>
-          </div>
-
           {/* Eyebrow-less hero (ConceptHeroPlain): the resident question + why it's universal. */}
           <ConceptHeroPlain
             headline={`“${concern.voice}”`}

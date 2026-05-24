@@ -336,10 +336,7 @@ export function BcFooter() {
 
       {/* Foot strip */}
       <div className="border-t border-border bg-muted/40 px-4 py-6">
-        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-2 text-center text-xs text-muted-foreground sm:flex-row sm:text-left">
-          <span>
-            Light recreation of breathecities.org · internal prototype, not the live site.
-          </span>
+        <div className="mx-auto flex max-w-6xl items-center justify-center text-center text-xs text-muted-foreground">
           <span>Breathe Cities — 30% cleaner air by 2030.</span>
         </div>
       </div>
