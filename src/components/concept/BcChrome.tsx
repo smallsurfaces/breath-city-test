@@ -76,8 +76,9 @@ function NavLink({
  * The site header — brand mark (left) → primary nav → "Join us" CTA, with a mobile hamburger that
  * opens a full-screen overlay. Driven entirely by `config`: the logo links to `config.logoHref`,
  * and each `config.nav` item renders live (a NavLink) or inert (a non-clickable muted span) based
- * on `href !== '#'`. A thin honest "prototype" bar sits above the chrome. Back-to-hub is owned by
- * the PrototypeHeader rendered above this in the concept layout (not duplicated here).
+ * on `href !== '#'`. No prototype/disclaimer bar is rendered here — the single GENERIC wireframe
+ * disclaimer is owned by the PrototypeHeader above this in the concept layout (which also owns the
+ * sole back-to-hub), so the prototype shows exactly one disclaimer row. BcHeader is the SITE nav only.
  */
 export function BcHeader({ config }: { config: BcChromeConfig }) {
   const [menuOpen, setMenuOpen] = useState(false)
@@ -96,16 +97,9 @@ export function BcHeader({ config }: { config: BcChromeConfig }) {
 
   return (
     <>
-      {/* Prototype bar — not part of BC's real chrome; labels this honestly as an in-context
-          mock. No back-to-hub link here (the PrototypeHeader above owns the sole back-to-hub). */}
-      <div className="border-b border-border bg-muted/50">
-        <div className="mx-auto flex max-w-6xl items-center justify-end gap-3 px-4 py-2">
-          <p className="text-[11px] text-muted-foreground">
-            Prototype · {config.conceptLabel} shown in a light recreation of BC&rsquo;s site —
-            chrome is approximate, not the live site.
-          </p>
-        </div>
-      </div>
+      {/* No prototype/disclaimer bar here. The wireframe framing is single-sourced in the
+          PrototypeHeader above (the GENERIC "Concept wireframe…" line), so BcHeader renders only
+          BC's recreated site chrome — exactly one disclaimer row across the whole prototype. */}
 
       {/* BC-style header — sticky + backdrop blur (preserved from the source). */}
       <header className="sticky top-0 z-30 border-b border-border bg-background/90 backdrop-blur">
