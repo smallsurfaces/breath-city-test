@@ -5,8 +5,8 @@
  *   Synchronised v2 copy of the JTBD City Toolkit. SAME structure, data, and city-switch
  *   interaction as v1 — the only differences are skin-level:
  *     - The page canvas is white (`bg-background`) instead of the v1 `--bc-color-light-grey`.
- *     - The hero uses `<ConceptHero>` (left-aligned, shared primitive) instead of inline
- *       centred markup.
+ *     - The hero uses `<ConceptHeroPlain>` (left-aligned eyebrow-less hero) instead of inline
+ *       centred markup. (The eyebrow was dropped in the concept-housekeeping pass.)
  *     - The sensor density strip uses `<ConceptCard>` surface (border-border, rounded-2xl,
  *       shadow-sm) instead of the v1 steel border / white fill.
  *     - The city selector label and select styling use shadcn bridged semantics where possible.
@@ -16,7 +16,8 @@
  * Route: /ux-concepts/jtbd-city-toolkit-v2
  *
  * Key exports: ToolkitV2Page (default)
- * External dependencies: toolkit-data, ToolPanels, ToolCard, ConceptHero, ConceptCard
+ * External dependencies: toolkit-data, ToolPanels, ToolCard, ConceptCard,
+ *   ../../_components/ConceptHeroPlain (eyebrow-less hero)
  */
 
 'use client'
@@ -24,7 +25,8 @@
 import { useState } from 'react'
 import { CITIES, TOOL_LABELS } from '@/data/toolkit-data'
 import type { CityData, ToolId } from '@/data/toolkit-data'
-import { ConceptHero, ConceptCard } from '@/components/concept'
+import { ConceptCard } from '@/components/concept'
+import { ConceptHeroPlain } from '../../_components/ConceptHeroPlain'
 import { ToolCard } from './_components/ToolCard'
 import {
   MonitoringPanel,
@@ -72,9 +74,9 @@ export default function ToolkitV2Page() {
     // V2 skin change: white canvas (bg-background) instead of v1's var(--bc-color-light-grey).
     <main className="min-h-screen bg-background px-4 py-10">
       <div className="mx-auto max-w-6xl">
-        {/* ---- Page hero — V2 skin: ConceptHero (left-aligned shared primitive). ---- */}
-        <ConceptHero
-          eyebrow="JTBD City Toolkit · concept"
+        {/* ---- Page hero — eyebrow-less ConceptHeroPlain (eyebrow dropped this pass). Same
+                left-aligned type scale as ConceptHero; city selector lives in the children slot. ---- */}
+        <ConceptHeroPlain
           headline="City Air Quality Toolkit"
           body="8 digital tools that together form the complete air quality infrastructure a city needs. Select a city to see which tools are available today — and where the gaps are."
         >
@@ -100,7 +102,7 @@ export default function ToolkitV2Page() {
               ))}
             </select>
           </div>
-        </ConceptHero>
+        </ConceptHeroPlain>
 
         {/* ---- Sensor density strip — V2 skin: ConceptCard surface. ---- */}
         <ConceptCard className="mb-8 mt-6 text-center">

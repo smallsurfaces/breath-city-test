@@ -15,12 +15,17 @@
  *
  * Key exports: JtbdV2Layout (default)
  * External dependencies: PrototypeHeader, @/components/concept (BcHeader, BcFooter),
- *   ./_components/jtbd-chrome.config (JTBD_CHROME)
+ *   ./_components/jtbd-chrome.config (JTBD_CHROME), the concept registry (CONCEPTS).
+ *
+ * Note: this older JTBD per-city-audit route was de-listed from the hub in the housekeeping pass,
+ *   but still builds. Its bar carries the toolkit concept title from the registry per the rename
+ *   table, so v1 and v2 of the old route read the SAME name as the new toolkit build and the hub.
  */
 
 import { PrototypeHeader } from '../../_components/PrototypeHeader'
 import { BcHeader, BcFooter } from '@/components/concept'
 import { JTBD_CHROME } from './_components/jtbd-chrome.config'
+import { CONCEPTS } from '../../_data/concept-registry'
 
 export default function JtbdV2Layout({
   children,
@@ -29,8 +34,9 @@ export default function JtbdV2Layout({
 }) {
   return (
     <>
-      {/* Tooling bar (back-to-hub + comments + "Updated" stamp) ABOVE the BC-site recreation. */}
-      <PrototypeHeader buildName="JTBD City Toolkit v2 — concept" />
+      {/* Tooling bar (back-to-hub + comments + "Updated" stamp) ABOVE the BC-site recreation.
+          Title from the concept registry so v2 reads the SAME name as v1 and the hub. */}
+      <PrototypeHeader buildName={CONCEPTS.toolkit.title} />
       {/* BC site nav — the SHARED chrome, configured for JTBD City Toolkit (v2 routes). */}
       <BcHeader config={JTBD_CHROME} />
       {children}

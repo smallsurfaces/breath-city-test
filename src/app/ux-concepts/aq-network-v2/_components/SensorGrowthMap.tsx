@@ -48,7 +48,8 @@
  *   note appears while scrubbed into an estimated year).
  *
  * Key exports: SensorGrowthMap (named)
- * External dependencies: react, mapbox-gl, lucide-react (icons), ../_data/sensor-snapshots/types.
+ * External dependencies: react, mapbox-gl, lucide-react (icons), ../_data/sensor-snapshots/types,
+ *   ../../../_components/InfoTooltip (the "i" affordance hiding the provenance/methodology copy).
  *
  * Side effects (all cleaned up on unmount / re-run):
  *   - Creates a Mapbox GL map instance in the container ref.
@@ -67,7 +68,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactElement } from 'react'
 import mapboxgl from 'mapbox-gl'
-import { Radar, CircleDot, MapPin, Users, Play, RotateCcw } from 'lucide-react'
+import { Radar, MapPin, Users, Play, RotateCcw } from 'lucide-react'
 import {
   ConceptCard,
   ConceptStat,
@@ -76,6 +77,7 @@ import {
   SENSOR_TIER_FALLBACK_HEX,
   SENSOR_TIER_STROKE_HEX,
 } from '@/components/concept'
+import { InfoTooltip } from '../../../_components/InfoTooltip'
 import type {
   SensorSnapshot,
   SnapshotSensor,
@@ -540,24 +542,29 @@ export function SensorGrowthMap({
         </div>
       </div>
 
-      {/* Honest framing line. The base sentence is always shown. The modelled-growth note is
-          conditional on the data: it appears only if the scrubbed year's sensor count is itself
-          guesstimated — which happens only when a snapshot is captured with a pre-data runway
-          (RUNWAY_YEARS > 0 in the capture script). Accra has no runway, so it stays hidden; the
-          guard keeps the component correct for any city that does use one. */}
-      <p className="text-xs text-muted-foreground">
-        <CircleDot className="mr-1 inline h-3 w-3 align-[-1px]" aria-hidden="true" />
-        Sensor positions and type are real OpenAQ data, captured once (not fetched live).
-        Districts covered and people within range are estimates derived from the network&rsquo;s
-        spread.
-        {yearData.isEstimate && (
-          <>
-            {' '}
-            For {selectedYear}, the sensor count is a modelled early-growth estimate (OpenAQ
-            has little data this far back).
-          </>
-        )}
-      </p>
+      {/* Honest framing / methodology — KEPT (load-bearing for data-attribution-traceability)
+          but moved BEHIND an "i" tooltip in the concept-housekeeping pass (the inline descriptive
+          paragraph was hidden). The base sentence is always in the tooltip; the modelled-growth
+          note is still conditional on the data (it appears only if the scrubbed year's sensor
+          count is itself guesstimated — a pre-data runway, RUNWAY_YEARS > 0 in the capture
+          script). Accra has no runway, so it stays hidden; the guard keeps any runway city correct. */}
+      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+        <InfoTooltip label="Data sources and methodology">
+          <span>
+            Sensor positions and type are real OpenAQ data, captured once (not fetched live).
+            Districts covered and people within range are estimates derived from the network&rsquo;s
+            spread.
+            {yearData.isEstimate && (
+              <>
+                {' '}
+                For {selectedYear}, the sensor count is a modelled early-growth estimate (OpenAQ
+                has little data this far back).
+              </>
+            )}
+          </span>
+        </InfoTooltip>
+        <span>Data &amp; methodology</span>
+      </div>
     </div>
   )
 }

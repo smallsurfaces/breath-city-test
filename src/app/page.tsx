@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { CONCEPTS } from "./_data/concept-registry";
 
 export default function HomePage() {
   return (
@@ -117,9 +118,14 @@ export default function HomePage() {
             </Link>
           </div>
 
+          {/* Concept catalogue entries. Display titles come from the single-source concept
+              registry (src/app/_data/concept-registry.ts) so the hub label and the per-concept
+              PrototypeHeader bar always read the same name. Only the toolkit consolidated to ONE
+              link this pass (the new component-catalogue build); roadmap / resident-concerns /
+              aq-network keep their existing Open→ + v2→ pair, just relabelled. */}
           <div className="flex items-center gap-3">
             <span className="text-sm w-52 shrink-0" style={{ color: "var(--bc-semantic-text)" }}>
-              Best Practice Roadmap — UX Wireframes
+              {CONCEPTS.roadmap.title}
             </span>
             <Link
               href="/ux-concepts/best-practice-roadmap"
@@ -147,7 +153,7 @@ export default function HomePage() {
 
           <div className="flex items-center gap-3">
             <span className="text-sm w-52 shrink-0" style={{ color: "var(--bc-semantic-text)" }}>
-              Resident Concerns — Global Site Concept
+              {CONCEPTS.residentConcerns.title}
             </span>
             <Link
               href="/ux-concepts/cities"
@@ -173,37 +179,15 @@ export default function HomePage() {
             </Link>
           </div>
 
+          {/* Toolkit — CONSOLIDATED to a SINGLE entry pointing at the new component-catalogue
+              build (/ux-concepts/toolkit). The old JTBD per-city-audit links (jtbd-city-toolkit
+              + -v2) and the separate "Component Catalogue" row were removed this pass.
+              FLAG: this leaves a visible inconsistency — toolkit has ONE link while the other
+              three concepts show two (Open→ / v2→). Left as-is per the brief (toolkit was the
+              only concept to consolidate this pass); raised for Jack/design review. */}
           <div className="flex items-center gap-3">
             <span className="text-sm w-52 shrink-0" style={{ color: "var(--bc-semantic-text)" }}>
-              JTBD City Toolkit — Digital AQ Infrastructure
-            </span>
-            <Link
-              href="/ux-concepts/jtbd-city-toolkit"
-              className="inline-flex items-center justify-center px-4 py-2 rounded-xl text-sm font-medium transition-colors"
-              style={{
-                backgroundColor: "var(--bc-semantic-brand)",
-                color: "var(--bc-color-white)",
-                borderRadius: "var(--bc-border-radius-md)",
-              }}
-            >
-              Open →
-            </Link>
-            <Link
-              href="/ux-concepts/jtbd-city-toolkit-v2"
-              className="inline-flex items-center justify-center px-4 py-2 rounded-xl text-sm font-medium transition-colors"
-              style={{
-                backgroundColor: "var(--bc-color-light-grey)",
-                color: "var(--bc-semantic-text)",
-                borderRadius: "var(--bc-border-radius-md)",
-              }}
-            >
-              v2 — synchronised →
-            </Link>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <span className="text-sm w-52 shrink-0" style={{ color: "var(--bc-semantic-text)" }}>
-              City AQ Toolkit — Component Catalogue
+              {CONCEPTS.toolkit.title}
             </span>
             <Link
               href="/ux-concepts/toolkit"
@@ -216,22 +200,11 @@ export default function HomePage() {
             >
               Open →
             </Link>
-            <Link
-              href="/ux-concepts/toolkit/real-time-monitoring"
-              className="inline-flex items-center justify-center px-4 py-2 rounded-xl text-sm font-medium transition-colors"
-              style={{
-                backgroundColor: "var(--bc-color-light-grey)",
-                color: "var(--bc-semantic-text)",
-                borderRadius: "var(--bc-border-radius-md)",
-              }}
-            >
-              Real-time Monitoring →
-            </Link>
           </div>
 
           <div className="flex items-center gap-3">
             <span className="text-sm w-52 shrink-0" style={{ color: "var(--bc-semantic-text)" }}>
-              AQ Network — Member Profile Concept
+              {CONCEPTS.aqNetwork.title}
             </span>
             <Link
               href="/ux-concepts/aq-network"

@@ -18,11 +18,12 @@
  *
  * Key exports: AqNetworkV2Layout (default)
  * External dependencies: PrototypeHeader, @/components/concept (BcHeader, BcFooter,
- *   AQ_NETWORK_CHROME)
+ *   AQ_NETWORK_CHROME), the single-source concept registry (CONCEPTS) for the bar title.
  */
 
 import { PrototypeHeader } from "../../_components/PrototypeHeader";
 import { BcHeader, BcFooter, AQ_NETWORK_CHROME } from "@/components/concept";
+import { CONCEPTS } from "../../_data/concept-registry";
 
 export default function AqNetworkV2Layout({
   children,
@@ -31,8 +32,9 @@ export default function AqNetworkV2Layout({
 }) {
   return (
     <>
-      {/* Tooling bar (back-to-hub + comments) ABOVE the BC-site recreation. */}
-      <PrototypeHeader buildName="AQ Network v2 — concept" />
+      {/* Tooling bar (back-to-hub + comments) ABOVE the BC-site recreation. Title from the
+          concept registry so v2 reads the SAME name as v1 and the hub (no "vN — concept"). */}
+      <PrototypeHeader buildName={CONCEPTS.aqNetwork.title} />
       {/* BC site nav -- the SHARED chrome, configured for AQ Network (v2 routes). */}
       <BcHeader config={AQ_NETWORK_CHROME} />
       {children}

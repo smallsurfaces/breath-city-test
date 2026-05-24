@@ -23,10 +23,11 @@
  * only, BcHeader/BcFooter rendered per-page below — is unchanged.
  *
  * Key exports: CitiesV2Layout (default)
- * External dependencies: PrototypeHeader
+ * External dependencies: PrototypeHeader, the single-source concept registry (CONCEPTS).
  */
 
 import { PrototypeHeader } from "../../_components/PrototypeHeader";
+import { CONCEPTS } from "../../_data/concept-registry";
 
 export default function CitiesV2Layout({
   children,
@@ -36,8 +37,9 @@ export default function CitiesV2Layout({
   return (
     <>
       {/* Standard prototype chrome ABOVE the BC-site recreation. Content (incl. each
-          page's own BcHeader/BcFooter) renders below. */}
-      <PrototypeHeader buildName="Resident Concerns v2 — concept" />
+          page's own BcHeader/BcFooter) renders below. Title from the concept registry so v2
+          reads the SAME name as v1 and the hub (no "vN — concept"). */}
+      <PrototypeHeader buildName={CONCEPTS.residentConcerns.title} />
       {children}
     </>
   );

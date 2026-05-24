@@ -20,11 +20,13 @@
  *   bar's label is the build, not the page.
  *
  * Key exports: AqNetworkLayout (default)
- * External dependencies: PrototypeHeader, BcChrome (BcHeader, BcFooter)
+ * External dependencies: PrototypeHeader, BcChrome (BcHeader, BcFooter), the single-source
+ *   concept registry (CONCEPTS) for the bar title.
  */
 
 import { PrototypeHeader } from "../../_components/PrototypeHeader";
 import { BcHeader, BcFooter } from "./_components/BcChrome";
+import { CONCEPTS } from "../../_data/concept-registry";
 
 export default function AqNetworkLayout({
   children,
@@ -33,8 +35,9 @@ export default function AqNetworkLayout({
 }) {
   return (
     <>
-      {/* Tooling bar (back-to-hub + comments) ABOVE the BC-site recreation. */}
-      <PrototypeHeader buildName="AQ Network — concept" />
+      {/* Tooling bar (back-to-hub + comments) ABOVE the BC-site recreation. Title from the
+          concept registry so the bar matches the hub label (no "concept" suffix). */}
+      <PrototypeHeader buildName={CONCEPTS.aqNetwork.title} />
       {/* BC site nav -- makes the prototype navigable. */}
       <BcHeader />
       {children}

@@ -5,8 +5,9 @@
  *   The synchronised v2 copy of the AQ Network homepage. SAME structure, content, data, and
  *   interactions as v1 — exactly three sections (sensor map / globe, member-city grid, collective
  *   goal & impact). The ONLY differences from v1 are skin-level:
- *     - the hero and the two section headers now render via the SHARED concept primitives
- *       (ConceptHero, ConceptSectionHeader) instead of inline header markup, and
+ *     - the hero renders via ConceptHeroPlain (eyebrow-less hero; the eyebrow was dropped in the
+ *       concept-housekeeping pass) and the two section headers via the shared ConceptSectionHeader,
+ *       instead of inline header markup, and
  *     - all internal links (member-city links) point at the v2 route so v2 is self-contained.
  *
  *   Both the globe AND the grid are sourced from the programme snapshot's `cities` (the canonical
@@ -20,16 +21,18 @@
  *   network pops against dark space); see NetworkGlobe. No emoji.
  *
  * Key exports: default page component, metadata.
- * External dependencies: next/link, next (Metadata), @/components/concept (ConceptHero,
- *   ConceptSectionHeader), NetworkGlobe, CollectiveGoalImpact, the programme snapshot loader,
- *   the profile-slug registry in ./_data/cities. Chrome is owned by aq-network-v2/layout.tsx.
+ * External dependencies: next/link, next (Metadata), @/components/concept (ConceptSectionHeader),
+ *   ../../_components/ConceptHeroPlain (eyebrow-less hero), NetworkGlobe, CollectiveGoalImpact, the
+ *   programme snapshot loader, the profile-slug registry in ./_data/cities. Chrome is owned by
+ *   aq-network-v2/layout.tsx.
  *
  * Route: /ux-concepts/aq-network-v2
  */
 
 import Link from 'next/link'
 import type { Metadata } from 'next'
-import { ConceptHero, ConceptSectionHeader } from '@/components/concept'
+import { ConceptSectionHeader } from '@/components/concept'
+import { ConceptHeroPlain } from '../../_components/ConceptHeroPlain'
 import { NetworkGlobe } from './_components/NetworkGlobe'
 import { CollectiveGoalImpact } from './_components/CollectiveGoalImpact'
 import { getProgrammeSnapshot } from './_data/sensor-snapshots/programme'
@@ -66,8 +69,8 @@ export default function AqNetworkV2Index() {
     // Chrome (PrototypeHeader + shared BcHeader/BcFooter) is rendered by aq-network-v2/layout.tsx.
     <main className="min-h-screen bg-background">
         <div className="mx-auto max-w-5xl px-4 py-12 sm:py-16">
-          <ConceptHero
-            eyebrow="AQ Network · concept"
+          {/* Eyebrow dropped this pass (Jack's decision) — eyebrow-less ConceptHeroPlain. */}
+          <ConceptHeroPlain
             headline={`One air-quality network, ${programme.counts.cities} cities, worldwide.`}
             body={`Every Breathe Cities member is part of one growing sensor network. Spin the globe to see where the ${programme.counts.sensors.toLocaleString()} sensors are, and play the timeline to watch the network grow.`}
           />
@@ -119,10 +122,9 @@ export default function AqNetworkV2Index() {
             </ul>
           </section>
 
-          <p className="mt-8 text-xs text-muted-foreground">
-            The globe above already shows every member city&rsquo;s sensors. More city profiles
-            will go live here as they land.
-          </p>
+          {/* Descriptive meta line ("The globe above already shows… More city profiles will go
+              live here as they land.") was HIDDEN in the concept-housekeeping pass — purely
+              descriptive, not load-bearing. */}
 
           {/* SECTION 3 — COLLECTIVE GOAL & IMPACT. The shared 2030 goal card + the collective
                 health-impact card, stacked, in their own standalone section AFTER the grid.

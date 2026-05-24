@@ -36,6 +36,11 @@
  *   route via build-date.ts (longest-prefix match against the committed
  *   build-dates.json). Renders no stamp when no build owns the path.
  *
+ * Wireframe disclaimer
+ *   Below the bar row sits a thin, full-width disclaimer banner shown on EVERY build that mounts
+ *   this header (so the framing is single-sourced, not per-concept). The copy is deliberately
+ *   GENERIC — it names no concept — so it reads correctly everywhere. See WIREFRAME_DISCLAIMER.
+ *
  * Key exports: PrototypeHeader (named)
  * External dependencies: next/link, next/navigation (usePathname),
  *   lucide-react (ArrowLeft), ../_data/build-date,
@@ -66,6 +71,13 @@ function pathToBuildId(pathname: string): string {
   if (trimmed === "") return "hub-home";
   return trimmed.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
 }
+
+/**
+ * The single, GENERIC wireframe disclaimer shown beneath the bar on every build. Named no concept
+ * on purpose — it must read correctly on all of them. Locked copy (do not edit without a decision).
+ */
+const WIREFRAME_DISCLAIMER =
+  "Concept wireframe — no visual design applied yet. Review the UX and the high-level concept, not the visual design.";
 
 /** Props for PrototypeHeader. */
 type PrototypeHeaderProps = {
@@ -122,7 +134,9 @@ export function PrototypeHeader({
       shadow-sm gives subtle separation from scrolling content beneath; the existing
       border-b is retained.
     */
-    <header className="sticky top-0 z-[105] flex w-full flex-shrink-0 items-center justify-between gap-3 border-b border-border bg-background px-4 py-2.5 shadow-sm">
+    <header className="sticky top-0 z-[105] flex w-full flex-shrink-0 flex-col border-b border-border bg-background shadow-sm">
+      {/* Row 1 — the bar: back-to-hub + build name on the left, updated stamp + comments on the right. */}
+      <div className="flex w-full items-center justify-between gap-3 px-4 py-2.5">
       {/* LEFT — back-to-hub + build name + reserved controls slot */}
       <div className="flex min-w-0 items-center gap-3">
         <Link
@@ -197,6 +211,20 @@ export function PrototypeHeader({
             />
           </>
         )}
+      </div>
+      </div>
+
+      {/*
+        Row 2 — the GENERIC wireframe disclaimer. Single-sourced here so it shows identically on
+        every build that mounts this header; it names no concept. Quiet muted styling on a subtle
+        muted fill so it reads as framing, not as a loud warning. role="note" so assistive tech
+        treats it as an aside, not an alert.
+      */}
+      <div
+        role="note"
+        className="w-full border-t border-border bg-muted/40 px-4 py-1.5 text-center text-[11px] leading-snug text-muted-foreground"
+      >
+        {WIREFRAME_DISCLAIMER}
       </div>
     </header>
   );

@@ -20,18 +20,25 @@
  * PrototypeHeader sits ABOVE BcHeader in this same layout.
  *
  * Key exports: ToolkitLayout (default)
- * External dependencies: PrototypeHeader, BcChrome (BcHeader, BcFooter)
+ * External dependencies: PrototypeHeader, BcChrome (BcHeader, BcFooter), the concept registry
+ *   (CONCEPTS) for the bar title.
+ *
+ * Note: this older JTBD per-city-audit route was de-listed from the hub in the housekeeping pass
+ *   (the toolkit concept now leads with /ux-concepts/toolkit), but the route still builds. Its bar
+ *   carries the toolkit concept title from the registry per the rename table (JTBD City Toolkit →
+ *   "Global Site Concept - BC City AQ Toolkit").
  */
 
 import { PrototypeHeader } from "../../_components/PrototypeHeader";
 import { BcHeader, BcFooter } from "./_components/BcChrome";
+import { CONCEPTS } from "../../_data/concept-registry";
 
 export default function ToolkitLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
       {/* Standard prototype chrome ABOVE the BC-site recreation. Owns back-to-hub,
           the build name, the "Updated" stamp, and element-mode commenting. */}
-      <PrototypeHeader buildName="JTBD City Toolkit" />
+      <PrototypeHeader buildName={CONCEPTS.toolkit.title} />
       <BcHeader />
       {children}
       <BcFooter />

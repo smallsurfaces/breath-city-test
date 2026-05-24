@@ -19,12 +19,14 @@
  * Route: /ux-concepts/toolkit/real-time-monitoring
  *
  * Key exports: ToolkitRtMonitoringPage (default)
- * External dependencies: next/link, @/components/concept (ConceptHero, ConceptCard,
- *   ConceptSectionHeader), ./_components/MapDemo, ./_components/AdoptionGuide.
+ * External dependencies: next/link, @/components/concept (ConceptCard, ConceptSectionHeader),
+ *   ../../../_components/ConceptHeroPlain (eyebrow-less hero), ./_components/MapDemo,
+ *   ./_components/AdoptionGuide.
  */
 
 import Link from 'next/link'
-import { ConceptHero, ConceptCard, ConceptSectionHeader } from '@/components/concept'
+import { ConceptCard, ConceptSectionHeader } from '@/components/concept'
+import { ConceptHeroPlain } from '../../../_components/ConceptHeroPlain'
 import MapDemo from './_components/MapDemo'
 import { AdoptionGuide } from './_components/AdoptionGuide'
 
@@ -32,9 +34,8 @@ export default function ToolkitRtMonitoringPage() {
   return (
     <main className="min-h-screen bg-background px-4 py-10">
       <div className="mx-auto max-w-6xl space-y-12">
-        {/* ── 1. Intro ────────────────────────────────────────────────────────── */}
-        <ConceptHero
-          eyebrow="City AQ Toolkit · component"
+        {/* ── 1. Intro (eyebrow dropped this pass — eyebrow-less ConceptHeroPlain) ─────── */}
+        <ConceptHeroPlain
           headline="Real-time monitoring"
           body="A live map of a city's air-quality sensors — what is measuring, what each station is reading right now, and how fresh that reading is. It is the foundation component of the toolkit: every other capability (benchmarking, forecasting, health alerts, open data) builds on a trustworthy, current picture of the network."
         />

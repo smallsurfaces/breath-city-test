@@ -74,10 +74,9 @@ export default function AqNetworkIndex() {
     // Chrome (PrototypeHeader + BcHeader/BcFooter) is rendered by aq-network/layout.tsx.
     <main className="min-h-screen bg-background">
         <div className="mx-auto max-w-5xl px-4 py-12 sm:py-16">
+          {/* Eyebrow ("AQ Network · concept") dropped this pass (Jack's decision) — the hero now
+              opens straight on the h1. */}
           <header className="space-y-3">
-            <p className="text-xs font-semibold uppercase tracking-widest text-bc-blue">
-              AQ Network · concept
-            </p>
             <h1 className="text-3xl font-bold tracking-tight text-bc-dark-blue sm:text-4xl">
               One air-quality network, {programme.counts.cities} cities, worldwide.
             </h1>
@@ -137,10 +136,9 @@ export default function AqNetworkIndex() {
             </ul>
           </section>
 
-          <p className="mt-8 text-xs text-muted-foreground">
-            The globe above already shows every member city&rsquo;s sensors. More city profiles
-            will go live here as they land.
-          </p>
+          {/* Descriptive meta line ("The globe above already shows… More city profiles will go
+              live here as they land.") was HIDDEN in the concept-housekeeping pass — purely
+              descriptive, not load-bearing. */}
 
           {/* SECTION 3 — COLLECTIVE GOAL & IMPACT. The shared 2030 goal card + the collective
                 health-impact card, stacked, in their own standalone section AFTER the grid. These
