@@ -22,17 +22,23 @@
  *      city grade), DERIVED from the timeline (city-level support pillars only).
  *   3b. Lesson sharing — the city's peer-network participation strand (gave/received). NOT
  *      on the radar; an early-learner city renders an honest near-empty state.
- *   4. Sensors & coverage — programme deployed figure vs LIVE OpenAQ count (honest gap).
+ *   4. Sensors & coverage — the interactive SENSOR-GROWTH MAP (the concept centrepiece): a
+ *      light basemap with markers by sensor TYPE (reference vs low-cost, not air quality), a
+ *      timeline scrubber driving sensor existence over time, and three scrubber-linked
+ *      counters (sensors deployed · districts covered · people within range — the last an
+ *      estimate). Renders from a committed OpenAQ snapshot, never a per-load API call.
  *   5. 2030 trajectory + problem/health context (hypothetical health line labelled a projection).
- *   6. Population within sensor range — labelled an estimate (guesstimate).
+ *   (The former standalone section 6, "Population within sensor range", was folded into the
+ *    section-4 counters — population belongs under Sensors & coverage.)
  *
  * Chrome: PrototypeHeader (back-to-hub + comments + "Updated" stamp) — every hub build uses it.
  * Theme: light (the repo default; Jack's standing preference). No emoji anywhere.
  *
  * Key exports: default page component, generateStaticParams, generateMetadata.
  * External dependencies: next (notFound, Metadata), lucide-react (icons), the registry +
- *   types in ../_data, and the section components in ../_components. SensorsLive is a client
- *   component; everything else here is server-rendered.
+ *   types in ../_data, the sensor-snapshot loader in ../_data/sensor-snapshots, and the
+ *   section components in ../_components. SensorGrowthMap is a client component (it owns a
+ *   Mapbox map); everything else here is server-rendered.
  *
  * Route: /ux-concepts/aq-network/[city]
  */
@@ -53,7 +59,8 @@ import {
 import { PillarRadar } from '../_components/PillarRadar'
 import { AchievementTimeline } from '../_components/AchievementTimeline'
 import { LessonSharing } from '../_components/LessonSharing'
-import { SensorsLive } from '../_components/SensorsLive'
+import { SensorGrowthMap } from '../_components/SensorGrowthMap'
+import { getSensorSnapshot } from '../_data/sensor-snapshots'
 
 /**
  * DERIVE the per-pillar counts from the achievement timeline — the concept's central rule.
@@ -119,6 +126,11 @@ export default async function AqNetworkCityProfile({
   }
 
   const counts = pillarCounts(profile)
+
+  // The committed OpenAQ sensor snapshot for this city (positions + type + per-year growth +
+  // map framing). Keyed by the same openaqCitySlug the profile uses. May be undefined for a
+  // city whose snapshot hasn't been captured yet — the section renders a graceful fallback.
+  const sensorSnapshot = getSensorSnapshot(profile.sensorProgramme.openaqCitySlug)
 
   return (
     <>
@@ -272,17 +284,30 @@ export default async function AqNetworkCityProfile({
             </div>
           </section>
 
-          {/* ── 4. Sensors & coverage (programme vs live OpenAQ) ────────────── */}
+          {/* ── 4. Sensors & coverage — the interactive sensor-growth map (the concept's
+                  centrepiece). Scrub the timeline to watch the network grow; markers are
+                  styled by sensor TYPE (reference vs low-cost), not air quality. The three
+                  counters (sensors / districts / people in range) move with the scrubber —
+                  the population-in-range figure (an estimate) lives here now. Renders from a
+                  one-time OpenAQ snapshot, never a per-load API call. */}
           <section className="mt-14">
             <h2 className="text-2xl font-bold tracking-tight text-foreground">
               Sensors &amp; coverage
             </h2>
             <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-              What the programme has put on the ground, and what is reporting live to
-              OpenAQ right now.
+              How {profile.name}&rsquo;s sensor network was built — scrub the timeline to watch
+              it grow. Markers show each sensor by type: reference-grade monitors and low-cost
+              sensors.
             </p>
             <div className="mt-6">
-              <SensorsLive programme={profile.sensorProgramme} />
+              {sensorSnapshot !== undefined ? (
+                <SensorGrowthMap snapshot={sensorSnapshot} />
+              ) : (
+                // Graceful fallback: a city profile may exist before its snapshot is captured.
+                <div className="rounded-2xl border border-border bg-muted/40 p-6 text-sm text-muted-foreground">
+                  Sensor-growth map for {profile.name} is not available yet.
+                </div>
+              )}
             </div>
           </section>
 
@@ -357,32 +382,11 @@ export default async function AqNetworkCityProfile({
             </div>
           </section>
 
-          {/* ── 6. Population within sensor range (guesstimate) ─────────────── */}
-          <section className="mt-14">
-            <div className="rounded-2xl border border-border bg-background p-6">
-              <div className="flex flex-wrap items-baseline justify-between gap-2">
-                <h2 className="text-base font-bold tracking-tight text-foreground">
-                  People within sensor range
-                </h2>
-                <span
-                  className="rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide"
-                  style={{
-                    backgroundColor:
-                      'color-mix(in srgb, var(--bc-color-yellow) 30%, var(--bc-color-white))',
-                    color: 'var(--bc-semantic-text)',
-                  }}
-                >
-                  Estimate
-                </span>
-              </div>
-              <p className="mt-2 text-3xl font-bold tracking-tight text-foreground">
-                ~{profile.populationInRange.approxPeople.toLocaleString()}
-              </p>
-              <p className="mt-1 text-xs text-muted-foreground">
-                {profile.populationInRange.basisNote}
-              </p>
-            </div>
-          </section>
+          {/* Section 6 (standalone "People within sensor range") was removed: the
+              population-in-range figure now lives inside the Sensors & coverage map as one of
+              the three scrubber-linked counters (per the brief — it belongs under Sensors &
+              coverage). profile.populationInRange still feeds the snapshot's present-day
+              calibration; it is no longer rendered as its own section. */}
         </div>
       </main>
     </>
