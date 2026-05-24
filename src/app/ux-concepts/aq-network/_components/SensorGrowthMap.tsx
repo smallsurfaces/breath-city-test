@@ -18,17 +18,29 @@
  *     - Three counters that reflect the scrubbed year: Sensors deployed · Districts covered ·
  *       People within sensor range. People-in-range keeps its "Estimate" label (guesstimate).
  *
- * Reuse
- *   The map shell + slider pattern is repurposed from src/app/direction-1-mapbox/page.tsx
- *   (light-v11 style, custom HTML markers via mapboxgl.Marker, a selectedYear state that
- *   re-renders markers, and a range-slider footer). Here the slider drives EXISTENCE
- *   (firstSeenYear) instead of AQI history, and markers are typed not AQI-coloured.
+ * Rendering (reuses the proven CityMapHero structure)
+ *   The map's rendering is rebuilt on the pattern that renders reliably on the deployed hub —
+ *   src/app/ux-concepts/best-practice-roadmap/_components/CityMapHero.tsx. Two things from
+ *   that component are the reason it renders (and the reason this one previously went blank):
+ *     1. CONTAINER: the map div is a NORMAL-FLOW child `<div className="w-full h-full" />`
+ *        inside an explicit-height `relative` wrapper — NOT `absolute inset-0`. An
+ *        absolutely-positioned map div can initialise before the container has a measured
+ *        size, leaving the WebGL canvas 0×0 and blank. A loading skeleton (absolute inset-0,
+ *        animate-pulse) sits over the wrapper until the map's load event fires.
+ *     2. MARKERS: sensors are a single GeoJSON source + `circle` LAYER with data-driven colour
+ *        by sensor TYPE — NOT per-sensor mapboxgl.Marker DOM elements. Scrubbing the timeline
+ *        updates the layer via source.setData(geojsonForYear) instead of tearing down and
+ *        recreating DOM markers each tick (far cheaper, and it shares CityMapHero's path).
+ *   NOTE: CityMapHero fetches /api/locations live — we deliberately do NOT copy that. This
+ *   component stays snapshot-driven (decision #7, no per-load OpenAQ call).
  *
  * Data-driven
  *   Everything comes from the SensorSnapshot passed in (keyed by OpenAQ slug upstream), so
  *   this component renders any city by data alone — London is a snapshot drop-in, no edit here.
+ *   The circle layer's colour is data-driven on each feature's `type` property, so other
+ *   cities' snapshots colour correctly with no component change.
  *
- * Client component: it creates a Mapbox map and manages markers via DOM side effects.
+ * Client component: it creates a Mapbox map and manages a GeoJSON layer via side effects.
  *
  * Honesty
  *   Sensor positions + type are real OpenAQ data. The population counter is always labelled
@@ -40,10 +52,11 @@
  *
  * Side effects (all cleaned up on unmount / re-run):
  *   - Creates a Mapbox GL map instance in the container ref.
- *   - Calls map.resize() on load + via a ResizeObserver on the container (robust fix for the
- *     classic mid-page Mapbox blank-canvas sizing/timing bug); the observer is disconnected
- *     on cleanup.
- *   - Adds/removes mapboxgl.Marker DOM elements as the scrubbed year changes.
+ *   - On the map's load event: adds a GeoJSON source ('sensors') + a circle layer
+ *     ('sensors-circle') with data-driven colour by type, and flips mapLoaded → true (hides
+ *     the skeleton). Calls map.resize() once on load as harmless belt-and-braces.
+ *   - As the scrubbed year changes, updates the circle layer's data via
+ *     source.setData(geojsonForYear) — no DOM marker churn.
  *   - Runs a play-timeline interval (setInterval) that advances selectedYear start→end once;
  *     the interval is cleared on unmount and when the user manually scrubs.
  *   - Reads process.env.NEXT_PUBLIC_MAPBOX_TOKEN (client-exposed token).
@@ -77,21 +90,24 @@ const LIGHT_BASEMAP_STYLE = 'mapbox://styles/mapbox/light-v11'
 const PLAY_STEP_MS = 700
 
 /**
- * Marker colours read from BC tokens at runtime (no hardcoded hex in the component logic;
- * these are resolved from CSS custom properties so they track the design system). Reference
- * markers use the brand ink; low-cost markers use a muted tone. These are TYPE colours, not
- * air-quality colours — the whole point of this map.
+ * Sensor circle-layer colours by TYPE. These are HEX LITERALS on purpose: Mapbox GL paint
+ * expressions cannot read CSS custom properties (the basemap canvas is WebGL, not the DOM), so
+ * the data-driven `circle-color` match must use literal hex — this is the documented Mapbox
+ * exception to the no-hardcoded-hex rule, and CityMapHero does exactly the same (OWNER_PALETTE).
+ * The values mirror the BC tokens: brand ink for reference-grade, muted slate for low-cost.
+ * These encode TYPE, never air quality — the whole point of this map.
  */
-const REFERENCE_FALLBACK = '#003574' // bc dark-blue ink — fallback if the CSS var can't be read
-const LOWCOST_FALLBACK = '#5b6b7a' // muted slate — fallback if the CSS var can't be read
+const REFERENCE_HEX = '#003574' // bc dark-blue ink — reference-grade monitors
+const LOWCOST_HEX = '#5b6b7a' // muted slate — low-cost / community sensors
+const TYPE_FALLBACK_HEX = '#9ca3af' // grey — any feature whose type doesn't match (defensive)
 
 /**
- * White contrast ring on map markers. This is map-marker styling (Mapbox markers are built
- * imperatively as DOM elements over the basemap — "Mapbox styling is its own thing"), not UI
- * chrome, so a literal white ring is appropriate here; it matches the existing direction-1/2
- * marker treatment. Named so the intent is explicit rather than a bare inline literal.
+ * White contrast ring on the sensor circles (circle-stroke-color). This is map-layer styling
+ * over a light WebGL basemap — "Mapbox styling is its own thing" — not UI chrome, so a literal
+ * white stroke is appropriate here; it matches CityMapHero's circle stroke. Named so the intent
+ * is explicit rather than a bare inline literal.
  */
-const MARKER_RING = '#ffffff'
+const CIRCLE_STROKE = '#ffffff'
 
 /** Props for SensorGrowthMap. */
 type SensorGrowthMapProps = {
@@ -103,58 +119,32 @@ type SensorGrowthMapProps = {
 }
 
 /**
- * Resolve a BC token colour from a CSS custom property, falling back to a literal when the
- * variable isn't readable (SSR/edge cases). Keeps marker colours tied to the design tokens
- * without hardcoding hex in the render path.
+ * Convert the snapshot sensors that exist by the scrubbed year into a GeoJSON FeatureCollection
+ * for the circle layer. Each feature carries `properties.type` so the layer's `circle-color`
+ * match expression can colour it data-drivenly (reference vs low-cost) with no per-feature
+ * styling. `name` is carried for potential future popups/tooltips. Coordinates are [lng, lat]
+ * (Mapbox order). This replaces the old per-sensor DOM-marker construction: one source + one
+ * layer renders the whole set, and scrubbing just swaps the data (source.setData).
  */
-function resolveTokenColor(varName: string, fallback: string): string {
-  if (typeof window === 'undefined') {
-    return fallback
+function sensorsToGeoJSON(
+  sensors: SnapshotSensor[],
+): GeoJSON.FeatureCollection<GeoJSON.Point> {
+  return {
+    type: 'FeatureCollection',
+    features: sensors.map((sensor) => ({
+      type: 'Feature',
+      properties: {
+        id: sensor.id,
+        name: sensor.name,
+        // 'reference' | 'low-cost' — the ONLY thing the layer colour encodes (not air quality).
+        type: sensor.type,
+      },
+      geometry: {
+        type: 'Point',
+        coordinates: [sensor.lng, sensor.lat],
+      },
+    })),
   }
-  const value = getComputedStyle(document.documentElement)
-    .getPropertyValue(varName)
-    .trim()
-  return value.length > 0 ? value : fallback
-}
-
-/**
- * Build the DOM element for a sensor marker, styled by TYPE.
- *   reference  → filled diamond in brand ink (regulatory-grade reads as the "anchor" tier)
- *   low-cost   → smaller hollow dot (the dense community layer)
- * No air-quality colour anywhere — type is the only thing encoded.
- */
-function createTypeMarkerElement(
-  sensor: SnapshotSensor,
-  referenceColor: string,
-  lowCostColor: string,
-): HTMLElement {
-  const el = document.createElement('div')
-  el.style.cursor = 'pointer'
-  el.setAttribute(
-    'title',
-    `${sensor.name} — ${sensor.type === 'reference' ? 'Reference-grade monitor' : 'Low-cost sensor'}`,
-  )
-
-  if (sensor.type === 'reference') {
-    // Filled diamond (rotated square), 16px, brand ink with a white ring for contrast on light ground.
-    el.style.width = '16px'
-    el.style.height = '16px'
-    el.style.background = referenceColor
-    el.style.border = `2px solid ${MARKER_RING}`
-    el.style.transform = 'rotate(45deg)'
-    el.style.borderRadius = '3px'
-    el.style.boxShadow = '0 1px 4px rgba(0,0,0,0.30)'
-  } else {
-    // Hollow dot, 11px, muted ring — the dense low-cost layer sits visually behind the anchors.
-    el.style.width = '11px'
-    el.style.height = '11px'
-    el.style.borderRadius = '50%'
-    el.style.background = MARKER_RING
-    el.style.border = `2.5px solid ${lowCostColor}`
-    el.style.boxShadow = '0 1px 3px rgba(0,0,0,0.20)'
-  }
-
-  return el
 }
 
 /**
@@ -210,10 +200,9 @@ export function SensorGrowthMap({
 }: SensorGrowthMapProps): ReactElement {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<mapboxgl.Map | null>(null)
-  const markersRef = useRef<mapboxgl.Marker[]>([])
-  const mapReadyRef = useRef<boolean>(false)
-  // Force a re-render once the map has loaded so the first marker paint runs.
-  const [, setMapReady] = useState<boolean>(false)
+  // True once the map's load event has fired — hides the loading skeleton AND gates the
+  // scrub effect (the circle source/layer only exist after load). Mirrors CityMapHero.
+  const [mapLoaded, setMapLoaded] = useState<boolean>(false)
 
   // ── Scrubbed year — the single source of truth. Starts at the present day (endYear) so the
   //    section opens on the full, current network; scrubbing back plays the growth in reverse. ──
@@ -228,12 +217,6 @@ export function SensorGrowthMap({
   // Distinct from the year check: on first load selectedYear already equals endYear (section opens
   // on the present-day network), so we must NOT show "Replay" until a play actually finished.
   const [hasPlayed, setHasPlayed] = useState<boolean>(false)
-
-  // Resolved token colours for markers (computed once on mount; tokens don't change at runtime).
-  const colorsRef = useRef<{ reference: string; lowCost: string }>({
-    reference: REFERENCE_FALLBACK,
-    lowCost: LOWCOST_FALLBACK,
-  })
 
   /**
    * The snapshot timeline row for the scrubbed year — drives the three counters. Falls back to
@@ -250,7 +233,10 @@ export function SensorGrowthMap({
     [snapshot.sensors, selectedYear],
   )
 
-  // ── Map initialisation — runs once on mount. ──────────────────────────────────
+  // ── Map initialisation — runs once on mount. Mirrors CityMapHero's proven init: create the
+  //    map, and on the load event add a GeoJSON source + circle layer (data-driven colour by
+  //    type) seeded with the present-day network. The flow-child container (see render) is the
+  //    real fix for the blank canvas; map.resize() on load is kept only as belt-and-braces. ──
   useEffect(() => {
     if (containerRef.current === null) {
       return
@@ -258,12 +244,6 @@ export function SensorGrowthMap({
     if (MAPBOX_TOKEN === undefined || MAPBOX_TOKEN.length === 0) {
       // Token guard handled in render; nothing to init.
       return
-    }
-
-    // Resolve marker token colours now that we're in the browser.
-    colorsRef.current = {
-      reference: resolveTokenColor('--bc-color-dark-blue', REFERENCE_FALLBACK),
-      lowCost: resolveTokenColor('--bc-semantic-muted', LOWCOST_FALLBACK),
     }
 
     mapboxgl.accessToken = MAPBOX_TOKEN
@@ -282,77 +262,77 @@ export function SensorGrowthMap({
     mapRef.current = map
 
     map.on('load', () => {
-      mapReadyRef.current = true
-      // Resize fix (1/3): force a resize once the style/canvas is ready. A mid-page Mapbox map
-      // can initialise before its container has its final measured size, which leaves the WebGL
-      // canvas sized 0×0 and rendering blank. Resizing on load makes Mapbox re-measure the now
-      // laid-out container. Harmless (a no-op) if the canvas was already sized correctly.
+      // Belt-and-braces resize once the style/canvas is ready. With the flow-child container the
+      // canvas is already sized correctly, so this is a no-op; harmless to keep.
       map.resize()
-      // Trigger the marker-paint effect (it waits on map readiness).
-      setMapReady(true)
+
+      // Side effect: add the sensor GeoJSON source, seeded with the present-day network
+      // (selectedYear starts at endYear). Subsequent scrubs swap the data via setData below.
+      map.addSource('sensors', {
+        type: 'geojson',
+        data: sensorsToGeoJSON(
+          snapshot.sensors.filter((s) => s.firstSeenYear <= snapshot.endYear),
+        ),
+      })
+
+      // Side effect: add the circle layer with DATA-DRIVEN colour by sensor type. GL paint can't
+      // read CSS vars, so these are hex literals (documented Mapbox exception). reference → brand
+      // ink, low-cost → muted slate, anything else → grey fallback. White stroke for contrast on
+      // the light basemap (matches CityMapHero).
+      map.addLayer({
+        id: 'sensors-circle',
+        type: 'circle',
+        source: 'sensors',
+        paint: {
+          'circle-radius': 6,
+          'circle-color': [
+            'match',
+            ['get', 'type'],
+            'reference',
+            REFERENCE_HEX,
+            'low-cost',
+            LOWCOST_HEX,
+            TYPE_FALLBACK_HEX,
+          ],
+          'circle-opacity': 0.85,
+          'circle-stroke-width': 1.5,
+          'circle-stroke-color': CIRCLE_STROKE,
+        },
+      })
+
+      // Flip mapLoaded → hides the skeleton AND lets the scrub effect run setData.
+      setMapLoaded(true)
     })
 
-    // Resize fix (2/3, belt-and-braces): one more resize on the next animation frame after init,
-    // covering the case where layout settles a tick after the map is constructed but before/around
-    // the load event. Also a no-op if the size is already correct.
-    const rafId = requestAnimationFrame(() => {
-      map.resize()
-    })
-
-    // Resize fix (3/3): observe the container for ANY later size change (responsive breakpoints,
-    // sibling content reflow, the section scrolling into a sized layout) and resize the map each
-    // time. This is the robust catch-all for the blank-canvas sizing/timing bug. Side effect:
-    // attaches a ResizeObserver to the container DOM node; disconnected in cleanup below.
-    const resizeObserver = new ResizeObserver(() => {
-      // Guard: only resize while the map still exists (cleanup may have nulled it).
-      if (mapRef.current !== null) {
-        mapRef.current.resize()
-      }
-    })
-    if (containerRef.current !== null) {
-      resizeObserver.observe(containerRef.current)
-    }
-
-    // Side effect cleanup: cancel the pending rAF, disconnect the ResizeObserver, remove markers
-    // + the map instance on unmount.
+    // Side effect cleanup: remove the map instance on unmount (the source/layer go with it).
     return () => {
-      cancelAnimationFrame(rafId)
-      resizeObserver.disconnect()
-      for (const m of markersRef.current) {
-        m.remove()
-      }
-      markersRef.current = []
       map.remove()
       mapRef.current = null
-      mapReadyRef.current = false
     }
-    // The map initialises once per mount; snapshot.center/zoom are stable for that mount.
+    // The map initialises once per mount; snapshot.center/zoom/sensors are stable for that mount.
+    // The seeded data uses endYear (present day); all later years are applied by the scrub effect.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // ── Paint markers for the visible (scrubbed-year) sensors. Re-runs whenever the visible
-  //    set changes (i.e. the year moves) or once the map becomes ready. Clears + re-adds. ──
+  // ── Update the sensor layer for the visible (scrubbed-year) set. Re-runs whenever the visible
+  //    set changes (the year moves via scrub or play) or once the map finishes loading. Instead
+  //    of recreating DOM markers, it swaps the GeoJSON source's data — the circle layer re-paints
+  //    itself from the new features (data-driven colour by type is already in the paint). ──
   useEffect(() => {
     const map = mapRef.current
-    if (map === null || !mapReadyRef.current) {
+    // Gate on mapLoaded: the 'sensors' source/layer are only added in the load handler.
+    if (map === null || !mapLoaded) {
       return
     }
 
-    // Side effect: clear existing markers before re-adding the current year's set.
-    for (const m of markersRef.current) {
-      m.remove()
+    const source = map.getSource('sensors') as mapboxgl.GeoJSONSource | undefined
+    if (source === undefined) {
+      return
     }
-    markersRef.current = []
 
-    const { reference, lowCost } = colorsRef.current
-    for (const sensor of visibleSensors) {
-      const el = createTypeMarkerElement(sensor, reference, lowCost)
-      const marker = new mapboxgl.Marker({ element: el, anchor: 'center' })
-        .setLngLat([sensor.lng, sensor.lat])
-        .addTo(map)
-      markersRef.current.push(marker)
-    }
-  }, [visibleSensors])
+    // Side effect: swap the layer's data to the current year's visible sensors.
+    source.setData(sensorsToGeoJSON(visibleSensors))
+  }, [visibleSensors, mapLoaded])
 
   /**
    * Stop any running playback: clear the interval and flip `playing` off. Safe to call when
@@ -478,9 +458,18 @@ export function SensorGrowthMap({
 
       {/* ── The map + its legend + the timeline scrubber. ───────────────────── */}
       <div className="overflow-hidden rounded-2xl border border-border bg-background">
-        {/* Map canvas. Fixed height so the section sits in the page flow (not full-screen). */}
+        {/* Map canvas. Explicit-height RELATIVE wrapper; the map div is a NORMAL-FLOW child
+            (w-full h-full), NOT absolute inset-0 — this is the structure that renders reliably
+            (CityMapHero). An absolutely-positioned map div can init before the container is
+            measured, leaving the WebGL canvas 0×0 and blank. */}
         <div className="relative h-[420px] w-full">
-          <div ref={containerRef} className="absolute inset-0" data-slot="sensor-growth-map" />
+          {/* Loading skeleton — visible until the map's load event fires (mapLoaded). */}
+          {!mapLoaded && (
+            <div className="absolute inset-0 z-[5] animate-pulse bg-muted" />
+          )}
+
+          {/* Map container — flow child, fills the relative wrapper. */}
+          <div ref={containerRef} className="h-full w-full" data-slot="sensor-growth-map" />
 
           {/* Type legend — reference vs low-cost (NOT air quality). Top-left, over the map. */}
           <div
