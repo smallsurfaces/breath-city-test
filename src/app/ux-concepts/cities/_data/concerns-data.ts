@@ -69,7 +69,14 @@
  *   [R4] city-sensor-ownership.md
  *   [R5] brief.md (BC published anchors: 30%-by-2030; 55K deaths / $147B; 10,000+ children asthma)
  *
- * Key exports: CONCERNS, CITIES, type Concern, type ConcernCard, type CityKey
+ * Key exports: CONCERNS, CITIES, concernByKey, citiesWithAnswersFor,
+ *   type Concern, type ConcernCard, type CityKey, type City
+ *
+ * Concern-centric note (restructure 2026-05-25): the concept is now organised by
+ * CONCERN, not by city. The per-city localisation map (CITY_LEAD_FACET) and the
+ * city switcher it drove have been retired — the concern is the organising unit,
+ * so the deck no longer reorders per active city. The cards remain tagged by city
+ * (`card.city`); concern pages group them with `citiesWithAnswersFor`.
  */
 
 /** The three BC-family cities this prototype covers. */
@@ -753,31 +760,21 @@ export const CONCERNS: Concern[] = [
 ];
 
 /**
- * Per-city facet ordering — drives localisation. When a city is active, its
- * dominant facets lead the deck for each concern; other cities' cards follow.
- * This is what makes the city switcher visibly reorder the deck (Warsaw → coal
- * leads; London → traffic leads; Bangkok → its own mix leads).
+ * Look up a single concern by its key. Used by the concern page
+ * (/ux-concepts/cities/[concern]) to resolve the route param to its content.
+ * Returns undefined for an unknown key so the page can 404 honestly.
  */
-export const CITY_LEAD_FACET: Record<CityKey, { [concernKey: string]: string }> = {
-  warsaw: {
-    "who-polluting": "Coal heating",
-    "safe-for-kids": "The home",
-    "what-can-i-do": "Citizen campaign", // PSA is Warsaw's signature resident action
-    "worst-part": "Sensor grid", // the Airly grid
-    "make-them-stop": "Regulatory ban", // the coal ban is Warsaw's accountability story
-  },
-  london: {
-    "who-polluting": "Traffic",
-    "safe-for-kids": "School air",
-    "what-can-i-do": "Cleaner routes", // London's resident protective tools
-    "worst-part": "Hyperlocal network", // Breathe London ~290 nodes
-    "make-them-stop": "City enforcement", // ULEZ
-  },
-  bangkok: {
-    "who-polluting": "Industry & furnaces",
-    "safe-for-kids": "Getting data",
-    "what-can-i-do": "Clean transit",
-    "worst-part": "Station network",
-    "make-them-stop": "City enforcement",
-  },
-};
+export function concernByKey(key: string): Concern | undefined {
+  return CONCERNS.find((c) => c.key === key);
+}
+
+/**
+ * The cities that actually have a documented answer for a concern, in CITIES
+ * order. This is the concern-centric "some cities, not all" rule made concrete:
+ * a concern page shows only the cities whose evidence holds a card for it, so
+ * gaps never read as holes. Cities with no card for the concern are absent.
+ */
+export function citiesWithAnswersFor(concern: Concern): City[] {
+  const answered = new Set(concern.cards.map((card) => card.city));
+  return CITIES.filter((city) => answered.has(city.key));
+}

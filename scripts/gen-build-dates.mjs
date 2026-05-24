@@ -67,6 +67,10 @@ const BUILDS = [
     folder: "src/app/jtbd-framework/architecture",
   },
   {
+    // Resident Concerns concept (concern-centric). Index "/ux-concepts/cities" also covers the
+    // dynamic concern route "/ux-concepts/cities/[concern]" via longest-prefix lookup at render
+    // time. (The v1/v2 split and the old per-city "[slug]" route were retired in the
+    // concern-centric restructure.)
     routes: ["/ux-concepts/cities"],
     folder: "src/app/ux-concepts/cities",
   },
@@ -101,13 +105,6 @@ const BUILDS = [
     // Synchronised v2 skin of the JTBD City Toolkit concept.
     routes: ["/ux-concepts/jtbd-city-toolkit-v2"],
     folder: "src/app/ux-concepts/jtbd-city-toolkit-v2",
-  },
-  {
-    // Synchronised v2 skin of the Resident Concerns (Cities) concept.
-    // Index "/ux-concepts/cities-v2" also covers the dynamic city route
-    // "/ux-concepts/cities-v2/[slug]" via longest-prefix lookup at render time.
-    routes: ["/ux-concepts/cities-v2"],
-    folder: "src/app/ux-concepts/cities-v2",
   },
 ];
 

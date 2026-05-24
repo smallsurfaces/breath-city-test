@@ -1,307 +1,160 @@
 /**
- * Cities index mock — /ux-concepts/cities
+ * Resident Concerns — concern landing (/ux-concepts/cities)
  *
- * Recreates Breathe Cities' REAL cities-index IA (light) so our Resident
- * Concerns concept can be shown in context. Server component.
+ * The CANONICAL Resident Concerns concept landing, after the concern-centric restructure
+ * (2026-05-25). The concept used to be city-centric (a city index → per-city pages with a city
+ * switcher). It is now CONCERN-centric: this landing frames the FIVE resident concerns as a common
+ * collective challenge shared across Breathe Cities, and each one links to its own concern page.
  *
- * BC's real cities-index structure (from breathecities.org/cities/), light:
- *   - Header (BcChrome) + hero: banner + intro line + the 30%-by-2030 mission.
- *   - A responsive card grid of cities — each a full-bleed image with the city
- *     name overlaid. We don't have BC's photos, so cards use coloured blocks.
- *   - Email signup + partner logos + footer (BcChrome).
+ * Server component. The v1/v2 split is collapsed — this single build at /ux-concepts/cities is the
+ * one canonical cities concept, carrying the on-standard concept composition layer
+ * (ConceptHero / ConceptSectionHeader / ConceptCard from @/components/concept).
  *
- * Our concept insertion (where it earns its place on an index page):
- *   - A concern-led HERO SHOWCASE STACK — FIVE full-size heros stacked vertically,
- *     one per concern (Jack's locked call, 2026-05-23). Each is a full hero with
- *     the same structure and scale as the others (NOT compacted): a brand-gradient
- *     stat panel + the "here's how it was answered" narrative + a "See the full
- *     story in {city}" CTA. The five concerns, each paired with the STRONGEST real
- *     answer in the deck, with the CITY VARIED across the stack so it reads as a
- *     family showcase (Warsaw / London / Warsaw / Bangkok / London):
- *       A1 who-polluting   → Warsaw   who-warsaw-coal       (~65% winter PM10, banned)
- *       B1 safe-for-kids   → London   kids-london-school    (3,500+ schools on alerts)
- *       D1 what-can-i-do   → Warsaw   do-warsaw-grants      (~1M switch-grant applications)
- *       C1 worst-part      → Bangkok  place-bangkok-network (~68 reference stations — REAL)
- *       A3 make-them-stop  → London   stop-london-city      (46k fewer/day → −21% NO₂)
- *     All pulled straight from concerns-data, never re-typed. Every hero now carries
- *     a REAL headline figure — there is no [TK] in any hero.
- *   - The city directory is scoped to OUR three BC-family cities (London / Warsaw
- *     / Bangkok), each linking to its /ux-concepts/cities/[slug] page.
+ * Page structure (top to bottom):
+ *   - Chrome (BcHeader, per-page) — the in-context BC-site recreation.
+ *   - Hero: the collective challenge framing — five questions every city's residents ask, and the
+ *     30%-by-2030 mission. (No banner image placeholder — §5: the layout reads cleanly without
+ *     images; the retired Cities banner placeholder is gone.)
+ *   - The five CONCERN cards: each names the resident question (inferred voice), a one-line "why
+ *     it's universal", how many BC cities have a documented answer, and a link to its concern page.
+ *   - Footer (BcFooter, per-page).
  *
- * EVIDENCE DISCIPLINE: every showcase figure is the real `stat` from its data card.
- * No fabricated figures, and — after the Bangkok swap — no [TK] in any hero, because
- * Bangkok's C1 answer carries a real ~68-reference-station figure. The [TK] fallback
- * in ConcernHero is retained for honesty if a future pick has a genuine gap. No real
- * BC photography (coloured blocks as placeholders).
+ * Chrome: rendered PER-PAGE (the shared BcHeader/BcFooter from @/components/concept, driven by the
+ * co-located CITIES_CHROME config) — NOT in the layout. This is the Cities concept's deliberate
+ * structural pattern: the in-context BC-site recreation IS the build, so the pages own the chrome.
+ * The PrototypeHeader tooling bar (with the sole back-to-hub) is added above by cities/layout.tsx.
+ *
+ * EVIDENCE DISCIPLINE: the per-concern "cities answered" count is derived from the data
+ * (citiesWithAnswersFor) — only cities with a real card are counted ("some cities, not all").
+ * Inferred-voice labelling is explicit. No fabricated figures, no BC photography.
  *
  * Key exports: default page component, metadata
- * External dependencies: BcChrome, concerns-data (CONCERNS, CITIES)
+ * External dependencies: next/link, lucide-react, @/components/concept (BcHeader, BcFooter,
+ *   ConceptHero, ConceptSectionHeader, ConceptCard), the co-located CITIES_CHROME config,
+ *   concerns-data (CONCERNS, citiesWithAnswersFor).
+ *
+ * Route: /ux-concepts/cities
  */
 
 import Link from "next/link";
 import type { Metadata } from "next";
 import { ArrowRight } from "lucide-react";
-import { BcHeader, BcFooter } from "./_components/BcChrome";
 import {
-  CONCERNS,
-  CITIES,
-  type Concern,
-  type ConcernCard,
-  type City,
-  type CityKey,
-} from "./_data/concerns-data";
+  BcHeader,
+  BcFooter,
+  ConceptHero,
+  ConceptSectionHeader,
+  ConceptCard,
+} from "@/components/concept";
+import { CITIES_CHROME } from "./_components/bc-chrome.config";
+import { CONCERNS, citiesWithAnswersFor } from "./_data/concerns-data";
 
 export const metadata: Metadata = {
-  title: "Cities — Breathe Cities (concept mock)",
+  title: "Resident Concerns — Breathe Cities (concept mock)",
 };
 
 /**
- * The concern-led showcase stack: FIVE picks, one per concern, in Jack's locked
- * order (2026-05-23). Each pick names the concern and the single strongest real
- * answer for it, with the CITY deliberately VARIED across the five so the stack
- * reads as a family showcase, not five Warsaw heros. Resolved from the data (not
- * hardcoded copy) so every figure stays in sync with concerns-data.
- *
- * C1 (worst-part) picks Bangkok's reference-station card: its ~68-station network is
- * a REAL infrastructure figure, so this hero now shows a real headline stat — there
- * is no [TK] in any hero. (Per-neighbourhood readings stay [TK] inside the card's
- * detail, but the hero stat is the real network figure.)
+ * One line per concern on why the worry is universal across cities — the "shared challenge"
+ * framing for the landing. Kept here (page chrome copy) rather than in the data layer, which holds
+ * the resident voice, the axis, and the contribution line. Authored, not a figure.
  */
-const SHOWCASE_PICKS: { concernKey: string; cardId: string }[] = [
-  { concernKey: "who-polluting", cardId: "who-warsaw-coal" }, // A1 → Warsaw
-  { concernKey: "safe-for-kids", cardId: "kids-london-school" }, // B1 → London
-  { concernKey: "what-can-i-do", cardId: "do-warsaw-grants" }, // D1 → Warsaw
-  { concernKey: "worst-part", cardId: "place-bangkok-network" }, // C1 → Bangkok (~68 stations, REAL)
-  { concernKey: "make-them-stop", cardId: "stop-london-city" }, // A3 → London
-];
-
-/** A per-city placeholder block colour (we have no BC photography). */
-const CITY_BLOCK: Record<CityKey, string> = {
-  london: "linear-gradient(135deg, var(--bc-color-dark-blue), var(--bc-color-blue))",
-  warsaw: "linear-gradient(135deg, var(--bc-color-blue), var(--bc-color-teal))",
-  bangkok: "linear-gradient(135deg, var(--bc-color-teal), var(--bc-color-light-blue))",
+const UNIVERSALITY: Record<string, string> = {
+  "who-polluting":
+    "Every city's residents want to know what is actually fouling their own street — and no city cuts pollution before it names the source.",
+  "safe-for-kids":
+    "Parents everywhere ask the same thing about the air their children breathe at school, on the way there, and at home.",
+  "what-can-i-do":
+    "The gap between knowing the air is bad and feeling able to do anything about it is common to every city.",
+  "worst-part":
+    "A city average hides the truth residents live with: the air where I am is not the air across town.",
+  "make-them-stop":
+    "In every city, residents ask why the burden falls on them rather than on the biggest polluters.",
 };
 
-/** BC's real region filter labels (inert in the mock — shown for IA fidelity). */
-const REGIONS = ["All regions", "Europe", "Africa", "Asia", "Latin America"];
-
-/** Directory order for our three cities (London / Warsaw / Bangkok per brief). */
-const DIRECTORY_ORDER: CityKey[] = ["london", "warsaw", "bangkok"];
-
-/**
- * One full-size concern hero. Identical structure and scale for every concern in
- * the stack (no compaction): a brand-gradient stat panel on the left, the
- * "here's how it was answered" narrative + CTA on the right. The stat panel
- * renders the card's real headline figure, or — where the evidence has a genuine
- * gap (a `tk` stat) — a visible [TK] chip. The figure is never invented. After the
- * Bangkok swap no current pick is `tk`, but the fallback is retained for honesty.
- */
-function ConcernHero({
-  concern,
-  card,
-  city,
-}: {
-  concern: Concern;
-  card: ConcernCard;
-  city: City;
-}) {
-  // The headline value for the gradient panel. A figure shows its value; a
-  // progression shows its achieved (`to`) value; a `tk` stat has no real number,
-  // so the panel falls back to an honest [TK] chip rather than a fabricated one.
-  // Retained honesty fallback: if a future pick has a genuine gap, the panel shows a
-  // [TK] chip rather than a fabricated number. After the Bangkok swap, no current hero
-  // hits this branch — every showcase pick carries a real figure or progression.
-  const isTk = card.stat.kind === "tk";
-  const statValue =
-    card.stat.kind === "figure"
-      ? card.stat.value
-      : card.stat.kind === "progression"
-        ? card.stat.to
-        : null;
-  // `metric` is present on every EntryStat variant, so it reads uniformly here.
-  const statMetric = card.stat.metric;
-
+export default function ResidentConcernsLanding() {
   return (
-    <div className="grid gap-8 overflow-hidden rounded-3xl border border-border lg:grid-cols-2">
-      {/* Lead visual — the showcase stat on a brand-gradient block */}
-      <div
-        className="flex flex-col justify-center gap-3 p-10 lg:p-12"
-        style={{ background: CITY_BLOCK[city.key] }}
-      >
-        <p className="text-xs font-semibold uppercase tracking-widest text-bc-white/80">
-          {city.name} · {card.facetLabel}
-        </p>
-        {isTk ? (
-          // Honest gap fallback: if a pick has no real headline figure, show a [TK]
-          // chip, never an invented number. No current hero hits this after the
-          // Bangkok swap — kept for honesty if a future pick has a genuine gap.
-          <span className="w-fit rounded-lg bg-bc-white/20 px-3 py-1.5 font-mono text-3xl font-bold leading-none tracking-tight text-bc-white">
-            [TK]
-          </span>
-        ) : (
-          <span className="text-7xl font-bold leading-none tracking-tight text-bc-white">
-            {statValue}
-          </span>
-        )}
-        <p className="text-base font-medium text-bc-white/90">{statMetric}</p>
-      </div>
-
-      {/* The "here's how it was answered" narrative — pulled from the card */}
-      <div className="flex flex-col justify-center gap-4 p-10 lg:p-12">
-        <p className="text-xs font-semibold uppercase tracking-widest text-bc-blue">
-          Here&rsquo;s how a resident&rsquo;s question was answered
-        </p>
-        <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-          &ldquo;{concern.voice}&rdquo;
-        </h2>
-        <p className="text-base text-muted-foreground">{card.did}</p>
-        <p className="text-sm text-muted-foreground">{card.how}</p>
-        <Link
-          href={`/ux-concepts/cities/${city.key}`}
-          className="inline-flex w-fit items-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold text-bc-white transition-opacity hover:opacity-90"
-          style={{ backgroundColor: "var(--bc-semantic-brand)" }}
-        >
-          See the full story in {city.name}
-          <ArrowRight className="h-4 w-4" />
-        </Link>
-        <p className="text-[11px] text-muted-foreground/80">
-          Source: {card.source}
-        </p>
-      </div>
-    </div>
-  );
-}
-
-export default function CitiesIndexMock() {
-  // Resolve the five showcase picks from the data — concern, its chosen card, and
-  // that card's city. Any pick that can't resolve is skipped (defensive), so the
-  // stack only ever renders real, in-data heros.
-  const showcaseHeros = SHOWCASE_PICKS.map(({ concernKey, cardId }) => {
-    const concern = CONCERNS.find((c) => c.key === concernKey);
-    const card = concern?.cards.find((c) => c.id === cardId);
-    const city = card ? CITIES.find((c) => c.key === card.city) : undefined;
-    if (!concern || !card || !city) return null;
-    return { concern, card, city };
-  }).filter((h): h is { concern: Concern; card: ConcernCard; city: City } =>
-    Boolean(h),
-  );
-
-  return (
+    // Chrome is rendered per-page (the Cities concept's structural pattern): the shared
+    // BcHeader/BcFooter, driven by the co-located CITIES_CHROME config. The PrototypeHeader
+    // tooling bar sits above, added by cities/layout.tsx.
     <main className="min-h-screen bg-background">
-      <BcHeader />
+      <BcHeader config={CITIES_CHROME} />
 
-      {/* ── Hero: intro + 30%-by-2030 mission ────────────────────────────── */}
+      {/* ── Hero: the collective challenge framing + the 30%-by-2030 mission ─── */}
       <section className="border-b border-border">
         <div className="mx-auto max-w-6xl px-4 py-16 lg:py-20">
-          {/* Banner placeholder */}
-          <div
-            className="mb-10 flex aspect-[16/5] items-center justify-center rounded-2xl"
-            style={{
-              background:
-                "linear-gradient(120deg, var(--bc-color-dark-blue), var(--bc-color-blue) 55%, var(--bc-color-teal))",
-            }}
-          >
-            <span className="px-6 text-center text-sm font-medium text-bc-white/85">
-              Cities banner — image placeholder (no BC photography in the prototype)
-            </span>
-          </div>
-          <div className="max-w-3xl space-y-4">
-            <p className="text-xs font-semibold uppercase tracking-widest text-bc-blue">
-              Cities
-            </p>
-            <h1 className="text-4xl font-bold tracking-tight text-bc-dark-blue sm:text-5xl">
-              A network of cities cutting air pollution.
-            </h1>
-            <p className="text-lg text-muted-foreground">
-              Breathe Cities is working with city governments and local partners to
-              deliver{" "}
-              <span className="font-semibold text-foreground">
-                30% cleaner air by 2030
-              </span>{" "}
-              (against a 2019 baseline) — with modelled projections of ~55,000
-              premature deaths prevented and ~$147B in avoided health costs across
-              the family.
-            </p>
-          </div>
+          <ConceptHero
+            eyebrow="Resident Concerns"
+            headline="A challenge every city's residents share — and how some Breathe Cities answered it."
+            body="Across the Breathe Cities family, residents keep asking the same five questions about the air they breathe. They are a common challenge, not a local one. For each, here is how some cities in the network have already answered — working toward 30% cleaner air by 2030 (against a 2019 baseline), with modelled projections of ~55,000 premature deaths prevented and ~$147B in avoided health costs."
+          />
+          {/* Honest framing of the inferred voice, once, up front. */}
+          <p className="mt-6 max-w-2xl rounded-lg bg-muted/60 px-3 py-2 text-xs text-muted-foreground">
+            These five concerns are <span className="font-semibold">inferred</span> — worries
+            commonly raised by communities, voiced in residents&rsquo; words. They are a framing
+            device, not a survey.
+          </p>
         </div>
       </section>
 
-      {/* ── Concern-led HERO SHOWCASE STACK (five full-size heros) ────────── */}
+      {/* ── The five concern cards ───────────────────────────────────────────── */}
       <section className="px-4 py-16">
-        <div className="mx-auto max-w-6xl space-y-8">
-          {showcaseHeros.map(({ concern, card, city }) => (
-            <ConcernHero
-              key={concern.key}
-              concern={concern}
-              card={card}
-              city={city}
-            />
-          ))}
-        </div>
-      </section>
-
-      {/* ── City directory (BC-style image+name cards) ───────────────────── */}
-      <section className="px-4 pb-16">
         <div className="mx-auto max-w-6xl space-y-6">
-          <div className="space-y-2">
-            <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-              Explore the cities
-            </h2>
-            <p className="max-w-2xl text-base text-muted-foreground">
-              Each city has its own concerns and its own response. (This prototype
-              covers three of the Breathe Cities family.)
-            </p>
-          </div>
+          <ConceptSectionHeader
+            heading="The five concerns"
+            body="Each is a question residents ask across the network. Open one to see how some Breathe Cities answered it, the outcomes, and how those answers ladder toward the 2030 goal."
+          />
 
-          {/* Region filter labels — inert, shown for IA fidelity */}
-          <div className="flex flex-wrap gap-2">
-            {REGIONS.map((region, i) => (
-              <span
-                key={region}
-                className={[
-                  "rounded-full border px-4 py-1.5 text-sm font-medium",
-                  i === 0
-                    ? "border-transparent bg-bc-dark-blue text-bc-white"
-                    : "border-border text-muted-foreground",
-                ].join(" ")}
-              >
-                {region}
-              </span>
-            ))}
-          </div>
-
-          {/* The card grid — full-bleed coloured block with city name overlaid */}
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {DIRECTORY_ORDER.map((key) => {
-              const city = CITIES.find((c) => c.key === key);
-              if (!city) return null;
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+            {CONCERNS.map((concern, idx) => {
+              const answeredCities = citiesWithAnswersFor(concern);
+              const cityList = answeredCities.map((c) => c.name).join(", ");
               return (
                 <Link
-                  key={key}
-                  href={`/ux-concepts/cities/${key}`}
-                  className="group relative flex aspect-[4/3] items-end overflow-hidden rounded-2xl"
-                  style={{ background: CITY_BLOCK[key] }}
+                  key={concern.key}
+                  href={`/ux-concepts/cities/${concern.key}`}
+                  // Hover uses the shadcn-bridged `primary` token (globals.css maps
+                  // --primary → --bc-semantic-brand = brand blue), so the hover is brand blue
+                  // via a bridged semantic — keeping this a server component.
+                  className="group flex h-full flex-col rounded-2xl border border-border bg-background p-6 shadow-sm transition-colors hover:border-primary"
                 >
-                  {/* Bottom scrim so the overlaid name reads on any block */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/45 to-transparent" />
-                  <div className="relative z-10 flex w-full items-end justify-between gap-2 p-5">
-                    <div>
-                      <span className="text-2xl font-bold tracking-tight text-bc-white">
-                        {city.name}
-                      </span>
-                      <span className="mt-0.5 block text-xs text-bc-white/80">
-                        {city.country}
-                      </span>
-                    </div>
-                    <ArrowRight className="h-5 w-5 text-bc-white opacity-0 transition-opacity group-hover:opacity-100" />
-                  </div>
+                  <span
+                    className="text-sm font-semibold tabular-nums"
+                    style={{
+                      color:
+                        "color-mix(in srgb, var(--bc-color-blue) 70%, transparent)",
+                    }}
+                  >
+                    {String(idx + 1).padStart(2, "0")}
+                  </span>
+                  {/* The resident question — the door into the concern. */}
+                  <h3 className="mt-2 text-xl font-bold tracking-tight text-foreground transition-colors group-hover:text-primary">
+                    &ldquo;{concern.voice}&rdquo;
+                  </h3>
+                  {/* Why it's universal across cities. */}
+                  <p className="mt-3 flex-1 text-sm leading-relaxed text-muted-foreground">
+                    {UNIVERSALITY[concern.key]}
+                  </p>
+                  {/* How many BC cities have a documented answer — "some cities, not all". */}
+                  <p className="mt-4 text-xs text-muted-foreground">
+                    Answered so far by{" "}
+                    <span className="font-semibold text-foreground">
+                      {answeredCities.length}{" "}
+                      {answeredCities.length === 1 ? "city" : "cities"}
+                    </span>{" "}
+                    in the network ({cityList}).
+                  </p>
+                  <span className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-foreground transition-colors group-hover:text-primary">
+                    See how cities answered
+                    <ArrowRight className="h-4 w-4" />
+                  </span>
                 </Link>
               );
             })}
           </div>
           <p className="text-xs text-muted-foreground">
-            City photography is BC&rsquo;s on the live site; coloured blocks stand
-            in here — we never reproduce real assets in the prototype.
+            Only cities with a documented, sourced answer appear under a concern — gaps are not
+            padded with fabricated examples. This prototype draws on three Breathe Cities (London,
+            Warsaw, Bangkok); more can be added per concern under the same evidence discipline.
           </p>
         </div>
       </section>

@@ -120,9 +120,10 @@ export default function HomePage() {
 
           {/* Concept catalogue entries. Display titles come from the single-source concept
               registry (src/app/_data/concept-registry.ts) so the hub label and the per-concept
-              PrototypeHeader bar always read the same name. Only the toolkit consolidated to ONE
-              link this pass (the new component-catalogue build); roadmap / resident-concerns /
-              aq-network keep their existing Open→ + v2→ pair, just relabelled. */}
+              PrototypeHeader bar always read the same name. Toolkit and Resident Concerns each
+              consolidated to ONE link (toolkit → the component-catalogue build; Resident Concerns
+              → the concern-centric build at /ux-concepts/cities, after its v1/v2 collapse).
+              Roadmap / aq-network keep their existing Open→ + v2→ pair. */}
           <div className="flex items-center gap-3">
             <span className="text-sm w-52 shrink-0" style={{ color: "var(--bc-semantic-text)" }}>
               {CONCEPTS.roadmap.title}
@@ -151,6 +152,10 @@ export default function HomePage() {
             </Link>
           </div>
 
+          {/* Resident Concerns — CONSOLIDATED to a SINGLE entry pointing at the concern-centric
+              build (/ux-concepts/cities). The v1/v2 split was collapsed in the concern-centric
+              restructure: there is now one canonical cities concept, so the old "v2 — synchronised"
+              link was removed. */}
           <div className="flex items-center gap-3">
             <span className="text-sm w-52 shrink-0" style={{ color: "var(--bc-semantic-text)" }}>
               {CONCEPTS.residentConcerns.title}
@@ -165,17 +170,6 @@ export default function HomePage() {
               }}
             >
               Open →
-            </Link>
-            <Link
-              href="/ux-concepts/cities-v2"
-              className="inline-flex items-center justify-center px-4 py-2 rounded-xl text-sm font-medium transition-colors"
-              style={{
-                backgroundColor: "var(--bc-color-light-grey)",
-                color: "var(--bc-semantic-text)",
-                borderRadius: "var(--bc-border-radius-md)",
-              }}
-            >
-              v2 — synchronised →
             </Link>
           </div>
 
