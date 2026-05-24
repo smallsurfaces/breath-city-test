@@ -55,7 +55,7 @@ import { createApiPersistence } from "../../lib/comments/client";
 /**
  * Derive a stable build slug from a route pathname — used as the Blobs store key and the
  * localStorage cache key for a build's comments. Deterministic across reloads:
- *   "/ux-concepts/resident-concerns" → "ux-concepts-resident-concerns"
+ *   "/ux-concepts/cities"            → "ux-concepts-cities"
  *   "/jtbd-framework"                → "jtbd-framework"
  *   "/"                              → "hub-home"
  * Strips leading/trailing slashes, lowercases, and replaces path separators + unsafe

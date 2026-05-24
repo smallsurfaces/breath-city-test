@@ -49,7 +49,7 @@ import {
   type ConcernCard,
   type City,
   type CityKey,
-} from "../resident-concerns/_data/concerns-data";
+} from "./_data/concerns-data";
 
 export const metadata: Metadata = {
   title: "Cities — Breathe Cities (concept mock)",
