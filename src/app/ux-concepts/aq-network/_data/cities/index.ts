@@ -26,13 +26,17 @@
 
 import type { CityProfile } from '../types'
 import { accraProfile } from './accra'
+import { londonProfile } from './london'
 import { assertOpenaqSlugsExist } from './validate-slugs'
 
 /**
  * Every AQ Network member profile, in the order they should appear on the index.
  * NEXT CITY = import its profile above and add it to this array. That is the whole change.
  */
-export const CITY_PROFILES: readonly CityProfile[] = [accraProfile] as const
+export const CITY_PROFILES: readonly CityProfile[] = [
+  accraProfile,
+  londonProfile,
+] as const
 
 // Build-time side effect: validate every profile's OpenAQ slug against the OpenAQ registry.
 // Runs at module evaluation (build/SSG time via the route's import chain) and throws — aborting

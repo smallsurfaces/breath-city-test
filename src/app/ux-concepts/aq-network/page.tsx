@@ -10,13 +10,15 @@
  *   The directory reads the SAME registry the dynamic route uses, so when the next city is
  *   registered it appears here automatically with no edit to this file.
  *
- * Chrome: PrototypeHeader (back-to-hub + comments + "Updated" stamp). Page theme: light. The
- *   globe canvas itself is dark (deliberate — the network pops against dark space); see
- *   NetworkGlobe. No emoji.
+ * Chrome: provided by aq-network/layout.tsx — the PrototypeHeader (back-to-hub + comments +
+ *   "Updated" stamp) AND the BcHeader/BcFooter site nav. This page therefore no longer renders
+ *   its own PrototypeHeader (it would be a duplicate). Page theme: light. The globe canvas
+ *   itself is dark (deliberate — the network pops against dark space); see NetworkGlobe. No emoji.
  *
  * Key exports: default page component, metadata.
  * External dependencies: next/link, next (Metadata), lucide-react (ArrowRight),
- *   PrototypeHeader, NetworkGlobe, the programme snapshot loader, the registry in ./_data/cities.
+ *   NetworkGlobe, the programme snapshot loader, the registry in ./_data/cities. Chrome
+ *   (PrototypeHeader + BcHeader/BcFooter) is owned by aq-network/layout.tsx.
  *
  * Route: /ux-concepts/aq-network
  */
@@ -24,7 +26,6 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
 import { ArrowRight } from 'lucide-react'
-import { PrototypeHeader } from '../../_components/PrototypeHeader'
 import { NetworkGlobe } from './_components/NetworkGlobe'
 import { getProgrammeSnapshot } from './_data/sensor-snapshots/programme'
 import { CITY_PROFILES } from './_data/cities'
@@ -43,10 +44,8 @@ export default function AqNetworkIndex() {
   const programme = getProgrammeSnapshot()
 
   return (
-    <>
-      <PrototypeHeader buildName="AQ Network — concept" />
-
-      <main className="min-h-screen bg-background">
+    // Chrome (PrototypeHeader + BcHeader/BcFooter) is rendered by aq-network/layout.tsx.
+    <main className="min-h-screen bg-background">
         <div className="mx-auto max-w-5xl px-4 py-12 sm:py-16">
           <header className="space-y-3">
             <p className="text-xs font-semibold uppercase tracking-widest text-bc-blue">
@@ -108,6 +107,5 @@ export default function AqNetworkIndex() {
           </p>
         </div>
       </main>
-    </>
   )
 }
