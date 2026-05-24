@@ -2,19 +2,21 @@
  * page.tsx — AQ Network homepage, /ux-concepts/aq-network.
  *
  * Purpose
- *   The AQ Network homepage. Above the globe it carries the COLLECTIVE health headline — the
- *   shared prize if the whole network hits 30% cleaner air by 2030 (Breathe Cities' published
- *   per-decade figures: childhood-asthma cases + dollars saved leading, premature deaths present;
- *   labelled estimates, attributed via DataSource). Its centrepiece is an interactive 3D GLOBE
- *   (NetworkGlobe) showing the WHOLE Breathe Cities sensor network worldwide, driven by a
- *   committed programme snapshot (no live OpenAQ call). Below the globe it shows a COMPACT grid of
- *   all member city NAMES — cities with a registered profile are live links; the rest are inert
- *   (muted) so there are no dead-ends. This keeps the dynamic [city] route discoverable.
+ *   The AQ Network homepage. Its centrepiece (the hero) is an interactive 3D GLOBE (NetworkGlobe)
+ *   showing the WHOLE Breathe Cities sensor network worldwide, driven by a committed programme
+ *   snapshot (no live OpenAQ call). Below the globe it carries the NETWORK JOURNEY TIMELINE
+ *   (NetworkTimeline) — the network's version of a member profile's achievement spine: the 14
+ *   member CITIES are the network's achievements, ordered oldest → newest by join year (the
+ *   network assembling over time), flowing into a shared 2030-goal node and a collective
+ *   health-payoff node (the shared prize — Breathe Cities' published per-decade figures, labelled
+ *   estimates, attributed via DataSource). The member page and this homepage therefore rhyme as
+ *   ONE visual system. Below the timeline it shows a COMPACT grid of all member city NAMES — cities
+ *   with a registered profile are live links; the rest are inert (muted) so there are no dead-ends.
  *
- *   The grid is sourced from the programme snapshot's `cities` (the canonical member list) and
- *   gated against the SAME profile registry the dynamic route uses (CITY_PROFILE_SLUGS), so a new
- *   member city appears automatically and becomes a live link the moment its profile is registered
- *   — no edit to this file.
+ *   Both the timeline nodes AND the grid are sourced from the programme snapshot's `cities` (the
+ *   canonical member list) and gated against the SAME profile registry the dynamic route uses
+ *   (CITY_PROFILE_SLUGS), so a new member city appears automatically and becomes a live link the
+ *   moment its profile is registered — no edit to this file.
  *
  * Chrome: provided by aq-network/layout.tsx — the PrototypeHeader (back-to-hub + comments +
  *   "Updated" stamp) AND the BcHeader/BcFooter site nav. This page therefore no longer renders
@@ -22,18 +24,18 @@
  *   itself is dark (deliberate — the network pops against dark space); see NetworkGlobe. No emoji.
  *
  * Key exports: default page component, metadata.
- * External dependencies: next/link, next (Metadata), lucide-react (icons for the shared-prize
- *   headline), NetworkGlobe, the programme snapshot loader, the profile-slug registry in
- *   ./_data/cities. Chrome (PrototypeHeader + BcHeader/BcFooter) is owned by aq-network/layout.tsx.
+ * External dependencies: next/link, next (Metadata), NetworkGlobe, NetworkTimeline, the programme
+ *   snapshot loader, the profile-slug registry in ./_data/cities. Chrome (PrototypeHeader +
+ *   BcHeader/BcFooter) is owned by aq-network/layout.tsx.
  *
  * Route: /ux-concepts/aq-network
  */
 
 import Link from 'next/link'
 import type { Metadata } from 'next'
-import { HeartPulse, PiggyBank, ShieldCheck } from 'lucide-react'
 import { NetworkGlobe } from './_components/NetworkGlobe'
-import { DataSource } from './_components/DataSource'
+import { NetworkTimeline } from './_components/NetworkTimeline'
+import type { NetworkTimelineCity } from './_components/NetworkTimeline'
 import { getProgrammeSnapshot } from './_data/sensor-snapshots/programme'
 import { CITY_PROFILE_SLUGS } from './_data/cities'
 
@@ -42,21 +44,38 @@ export const metadata: Metadata = {
 }
 
 /**
- * The homepage. Renders the concept framing, the interactive network globe (the centrepiece),
- * then a compact grid of all member city names. The globe reads the committed programme snapshot;
- * the grid is sourced from the snapshot's city list and gated against CITY_PROFILE_SLUGS so it
- * grows automatically with the registry (live links for cities that have a profile, inert otherwise).
+ * The homepage. Renders the concept framing, the interactive network globe (the hero), the network
+ * journey timeline (the member cities → shared goal → collective prize), then a compact grid of all
+ * member city names. The globe and both the timeline + grid read the committed programme snapshot;
+ * both city lists are gated against CITY_PROFILE_SLUGS so they grow automatically with the registry
+ * (live links for cities that have a profile, inert otherwise).
  */
 export default function AqNetworkIndex() {
   // Programme snapshot is bundled JSON — read synchronously on the server, passed to the globe.
   const programme = getProgrammeSnapshot()
 
-  // The compact member grid lists ALL member cities from the snapshot (the canonical 14), sorted
-  // by name for a tidy grid. Cities that have a profile page (CITY_PROFILE_SLUGS — today accra +
-  // london) render as live links; the rest are shown but inert (muted, not links) so there are no
-  // dead-ends. Sourcing from the snapshot means new member cities appear here automatically, and a
-  // city becomes a live link the moment its profile is registered — no edit to this file.
+  // Both city lists are gated against the profile registry (CITY_PROFILE_SLUGS — today accra +
+  // london): cities with a profile become live links, the rest stay inert (muted) so there are no
+  // dead-ends. Sourcing both from the snapshot means new member cities appear automatically, and a
+  // city goes live the moment its profile is registered — no edit to this file.
   const profileSlugs = new Set<string>(CITY_PROFILE_SLUGS)
+
+  // TIMELINE order: the member cities oldest → newest by JOIN year (the network assembling over
+  // time toward the shared goal). joinedYear is the real earliest-sensor year from the snapshot
+  // (approximate — flagged in the timeline). Name is the deterministic tiebreaker within a year
+  // (e.g. the 2016 founding cohort) so the spine order is stable across builds.
+  const timelineCities: NetworkTimelineCity[] = [...programme.cities]
+    .sort((a, b) => a.joinedYear - b.joinedYear || a.name.localeCompare(b.name))
+    .map((city) => ({
+      slug: city.slug,
+      name: city.name,
+      joinedYear: city.joinedYear,
+      sensorCount: city.sensorCount,
+      hasProfile: profileSlugs.has(city.slug),
+    }))
+
+  // The compact member grid lists ALL member cities from the snapshot, sorted by name for a tidy
+  // name grid (a different ordering from the timeline, which is by join year on purpose).
   const memberCities = [...programme.cities].sort((a, b) =>
     a.name.localeCompare(b.name),
   )
@@ -79,108 +98,39 @@ export default function AqNetworkIndex() {
             </p>
           </header>
 
-          {/* ── Collective health headline — the SHARED PRIZE of the whole network hitting the
-                  30%-by-2030 goal. Sits directly above the globe counters as the collective payoff
-                  (the globe shows the network; this is what the network is FOR). Leads with the
-                  most relatable figures — childhood asthma + dollars saved — with premature deaths
-                  present. Breathe Cities' own published figures (per decade); labelled estimates,
-                  attributed to Breathe Cities. ADDITIVE — the globe section below is untouched. */}
-          <section className="mt-10">
-            <div
-              className="rounded-2xl border p-6"
-              style={{
-                borderColor:
-                  'color-mix(in srgb, var(--bc-semantic-brand) 22%, var(--bc-color-white))',
-                backgroundColor:
-                  'color-mix(in srgb, var(--bc-semantic-brand) 6%, var(--bc-color-white))',
-              }}
-            >
-              <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-                The shared prize · if the network hits 30% cleaner air by 2030
-              </p>
-              <div className="mt-4 grid gap-5 sm:grid-cols-3">
-                {/* Lead 1 — childhood asthma (the most relatable). */}
-                <div>
-                  <span
-                    aria-hidden="true"
-                    className="flex h-9 w-9 items-center justify-center rounded-full"
-                    style={{
-                      backgroundColor:
-                        'color-mix(in srgb, var(--bc-semantic-brand) 16%, var(--bc-color-white))',
-                      color: 'var(--bc-semantic-brand)',
-                    }}
-                  >
-                    <HeartPulse className="h-4 w-4" aria-hidden="true" />
-                  </span>
-                  <p className="mt-3 text-3xl font-bold tracking-tight tabular-nums text-foreground">
-                    ~79,000
-                  </p>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    new childhood-asthma cases avoided per decade
-                  </p>
-                </div>
-
-                {/* Lead 2 — money saved (relatable, tangible). */}
-                <div>
-                  <span
-                    aria-hidden="true"
-                    className="flex h-9 w-9 items-center justify-center rounded-full"
-                    style={{
-                      backgroundColor:
-                        'color-mix(in srgb, var(--bc-semantic-brand) 16%, var(--bc-color-white))',
-                      color: 'var(--bc-semantic-brand)',
-                    }}
-                  >
-                    <PiggyBank className="h-4 w-4" aria-hidden="true" />
-                  </span>
-                  <p className="mt-3 text-3xl font-bold tracking-tight tabular-nums text-foreground">
-                    ~$107 billion
-                  </p>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    in economic savings
-                  </p>
-                </div>
-
-                {/* Present — premature deaths avoided. */}
-                <div>
-                  <span
-                    aria-hidden="true"
-                    className="flex h-9 w-9 items-center justify-center rounded-full"
-                    style={{
-                      backgroundColor:
-                        'color-mix(in srgb, var(--bc-semantic-brand) 16%, var(--bc-color-white))',
-                      color: 'var(--bc-semantic-brand)',
-                    }}
-                  >
-                    <ShieldCheck className="h-4 w-4" aria-hidden="true" />
-                  </span>
-                  <p className="mt-3 text-3xl font-bold tracking-tight tabular-nums text-foreground">
-                    ~39,000
-                  </p>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    premature deaths avoided per decade
-                  </p>
-                </div>
-              </div>
-
-              {/* Honesty: these are Breathe Cities' published projections, not measured outcomes. */}
-              <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-1.5 border-t border-border pt-4">
-                <span className="text-xs text-muted-foreground">
-                  Breathe Cities&rsquo; published estimates for the collective 30%-by-2030 goal — a
-                  projection of the prize, not a measured result.
-                </span>
-                <DataSource
-                  variant="attribution"
-                  name="Breathe Cities"
-                  href="https://breathecities.org"
-                />
-              </div>
-            </div>
-          </section>
-
-          {/* The centrepiece — interactive 3D network globe. */}
+          {/* The hero — interactive 3D network globe, ABOVE the journey timeline. */}
           <section className="mt-10">
             <NetworkGlobe snapshot={programme} />
+          </section>
+
+          {/* ── The NETWORK JOURNEY TIMELINE — the network's version of a member profile's
+                  achievement spine. The member CITIES are the network's achievements: each one
+                  joining over time and working together toward the shared 2030 goal, with the
+                  collective health payoff (the shared prize) as the final node. This is where the
+                  former standalone "shared prize" block now lives — MOVED onto the spine, not
+                  duplicated. Visually consistent with the member AchievementTimeline so the two
+                  pages read as one system. */}
+          <header className="mt-16 space-y-2">
+            <h2 className="text-2xl font-bold tracking-tight text-bc-dark-blue">
+              The network&rsquo;s journey
+            </h2>
+            <p className="max-w-2xl text-base text-muted-foreground">
+              The member cities are the achievement. One by one they joined the network, and
+              they&rsquo;re working together toward a single shared goal — with a collective prize
+              for reaching it.
+            </p>
+          </header>
+
+          <section className="mt-6">
+            <NetworkTimeline
+              cities={timelineCities}
+              goalLabel="30% cleaner air by 2030"
+              payoff={{
+                asthmaCases: '~79,000',
+                economicSavings: '~$107 billion',
+                deathsAvoided: '~39,000',
+              }}
+            />
           </section>
 
           {/* Member directory — a COMPACT grid of all member city NAMES. Cities with a profile
