@@ -19,6 +19,9 @@ import type { SensorSnapshot } from './types'
 // Each city's committed snapshot JSON (captured once from OpenAQ; not fetched at page load).
 // Plain JSON import (resolveJsonModule) — matches the repo's existing build-dates.json import.
 import accra from './accra.json'
+// London: 100 reference-grade OpenAQ locations (the dense /locations page cap), real firstSeen
+// on every sensor → growth 2016 (18) → 2026 (100). Captured via the per-city snapshot script.
+import london from './london.json'
 
 /**
  * The snapshot registry. JSON imports are typed as the broad inferred shape, so each entry is
@@ -27,6 +30,7 @@ import accra from './accra.json'
  */
 const SNAPSHOTS: Readonly<Record<string, SensorSnapshot>> = {
   accra: accra as SensorSnapshot,
+  london: london as SensorSnapshot,
 }
 
 /** All slugs that have a committed snapshot — convenient for validation/iteration. */

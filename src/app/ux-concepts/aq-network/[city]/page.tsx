@@ -34,14 +34,17 @@
  *   (The former standalone "Population within sensor range" section was folded into the Sensors
  *    & coverage counters — population belongs under Sensors & coverage.)
  *
- * Chrome: PrototypeHeader (back-to-hub + comments + "Updated" stamp) — every hub build uses it.
- * Theme: light (the repo default; Jack's standing preference). No emoji anywhere.
+ * Chrome: provided by aq-network/layout.tsx — the PrototypeHeader (back-to-hub + comments +
+ *   "Updated" stamp) AND the BcHeader/BcFooter site nav. This page no longer renders its own
+ *   PrototypeHeader (it would duplicate the layout's). Theme: light (the repo default; Jack's
+ *   standing preference). No emoji anywhere.
  *
  * Key exports: default page component, generateStaticParams, generateMetadata.
  * External dependencies: next (notFound, Metadata), lucide-react (icons), the registry +
  *   types in ../_data, the sensor-snapshot loader in ../_data/sensor-snapshots, and the
  *   section components in ../_components. SensorGrowthMap is a client component (it owns a
- *   Mapbox map); everything else here is server-rendered.
+ *   Mapbox map); everything else here is server-rendered. Chrome is owned by
+ *   aq-network/layout.tsx.
  *
  * Route: /ux-concepts/aq-network/[city]
  */
@@ -49,7 +52,6 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { BadgeCheck, MapPin } from 'lucide-react'
-import { PrototypeHeader } from '../../../_components/PrototypeHeader'
 import {
   getCityProfile,
   CITY_PROFILE_SLUGS,
@@ -137,10 +139,8 @@ export default async function AqNetworkCityProfile({
   const sensorSnapshot = getSensorSnapshot(profile.sensorProgramme.openaqCitySlug)
 
   return (
-    <>
-      <PrototypeHeader buildName={`AQ Network — ${profile.name}`} />
-
-      <main className="min-h-screen bg-background">
+    // Chrome (PrototypeHeader + BcHeader/BcFooter) is rendered by aq-network/layout.tsx.
+    <main className="min-h-screen bg-background">
         <div className="mx-auto max-w-5xl px-4 py-10 sm:py-14">
           {/* ── 1. Identity header ─────────────────────────────────────────── */}
           <header className="space-y-4">
@@ -396,6 +396,5 @@ export default async function AqNetworkCityProfile({
               calibration; it is no longer rendered as its own section. */}
         </div>
       </main>
-    </>
   )
 }
