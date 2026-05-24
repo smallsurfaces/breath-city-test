@@ -36,9 +36,20 @@
  * How to run (ONE-TIME, on demand — NOT wired into the build):
  *   node scripts/capture-aq-network-snapshot.mjs            # default city: accra
  *   node scripts/capture-aq-network-snapshot.mjs london     # any registered city slug
+ *   node scripts/capture-aq-network-snapshot.mjs --programme # ALL cities → programme.json
  *   Reads OPENAQ_API_KEY from .env.local (Node does not auto-load env files).
- *   Writes src/app/ux-concepts/aq-network/_data/sensor-snapshots/<slug>.json.
+ *   Writes src/app/ux-concepts/aq-network/_data/sensor-snapshots/<slug>.json (per-city)
+ *   or .../programme.json (--programme, the network-wide globe snapshot).
  *   Review the diff by hand and commit the JSON. The committed JSON is what ships.
+ *
+ * Programme mode (--programme) — the AQ Network globe homepage data source
+ *   Fetches EVERY city in PROGRAMME_CITIES (mirrors src/lib/openaq/cities.ts), tags each
+ *   sensor with its city slug + member flag, and aggregates a network-wide per-year curve
+ *   {year, cities, sensors, population}. Population-in-range per city is a documented
+ *   guesstimate (PROGRAMME_CITIES[].populationInRange); the per-year population scales with
+ *   the cumulative sensors deployed that year, so the curve reads as the programme growing.
+ *   All cities here are Breathe Cities member cities (isMember=true) — the flag exists so the
+ *   globe can EMPHASISE members vs any future non-member reference sensors without a code change.
  *
  * Why committed, not generated at deploy: Netlify shallow-clones and we must not hit
  *   OpenAQ at build/deploy time (rate limit + decision #7). The snapshot is source data.
@@ -342,8 +353,210 @@ function buildSnapshot(slug, city, locations, presentDistricts, presentPeople) {
   }
 }
 
+/**
+ * Programme city registry for the GLOBE (network-wide) snapshot. Mirrors
+ * src/lib/openaq/cities.ts (kept inline so this standalone script keeps zero app-import
+ * dependency), plus two fields the per-city CITIES map doesn't carry:
+ *   - isMember:          true for Breathe Cities member cities. Today every entry is a member;
+ *                        the flag lets the globe emphasise members without a future code change.
+ *   - populationInRange: a DOCUMENTED guesstimate of people living within sensor range at the
+ *                        present day (order-of-magnitude city-scale figures, NOT a measured
+ *                        catchment). Flagged as an estimate in the snapshot's estimateNotes.
+ * bbox order is [minLon, minLat, maxLon, maxLat] (OpenAQ /locations order).
+ */
+const PROGRAMME_CITIES = {
+  paris: { name: 'Paris', center: [2.349, 48.864], bbox: [2.22, 48.81, 2.47, 48.92], isMember: true, populationInRange: 2100000 },
+  london: { name: 'London', center: [-0.118, 51.509], bbox: [-0.51, 51.287, 0.334, 51.692], isMember: true, populationInRange: 8900000 },
+  'mexico-city': { name: 'Mexico City', center: [-99.133, 19.432], bbox: [-99.35, 19.15, -98.95, 19.65], isMember: true, populationInRange: 9200000 },
+  milan: { name: 'Milan', center: [9.190, 45.464], bbox: [9.05, 45.38, 9.35, 45.55], isMember: true, populationInRange: 1400000 },
+  brussels: { name: 'Brussels', center: [4.352, 50.847], bbox: [4.25, 50.78, 4.48, 50.92], isMember: true, populationInRange: 1200000 },
+  jakarta: { name: 'Jakarta', center: [106.845, -6.208], bbox: [106.65, -6.40, 107.05, -6.05], isMember: true, populationInRange: 10500000 },
+  johannesburg: { name: 'Johannesburg', center: [28.047, -26.204], bbox: [27.85, -26.40, 28.25, -26.00], isMember: true, populationInRange: 5600000 },
+  accra: { name: 'Accra', center: [-0.187, 5.604], bbox: [-0.35, 5.45, 0.1, 5.85], isMember: true, populationInRange: 2500000 },
+  nairobi: { name: 'Nairobi', center: [36.817, -1.286], bbox: [36.65, -1.45, 37.00, -1.10], isMember: true, populationInRange: 4400000 },
+  bangkok: { name: 'Bangkok', center: [100.501, 13.756], bbox: [100.30, 13.55, 100.75, 13.95], isMember: true, populationInRange: 8300000 },
+  bogota: { name: 'Bogota', center: [-74.072, 4.711], bbox: [-74.25, 4.50, -73.90, 4.85], isMember: true, populationInRange: 7400000 },
+  'rio-de-janeiro': { name: 'Rio de Janeiro', center: [-43.173, -22.907], bbox: [-43.45, -23.10, -42.90, -22.70], isMember: true, populationInRange: 6700000 },
+  sofia: { name: 'Sofia', center: [23.321, 42.698], bbox: [23.15, 42.60, 23.50, 42.80], isMember: true, populationInRange: 1300000 },
+  warsaw: { name: 'Warsaw', center: [21.012, 52.230], bbox: [20.85, 52.10, 21.20, 52.35], isMember: true, populationInRange: 1800000 },
+}
+
+/**
+ * Build the network-wide GLOBE snapshot from all programme cities' raw OpenAQ locations.
+ *
+ * `cityResults` is an array of { slug, city, locations } (one per programme city). Each sensor
+ * is flattened into a single global list, tagged with its city slug + member flag, with the
+ * SAME per-sensor honesty model as the per-city snapshot (real type + firstSeen, median-year
+ * fallback flagged firstSeenEstimated).
+ *
+ * The aggregated per-year timeline carries exactly what the globe homepage counters read:
+ *   - cities:     count of member cities that had >=1 sensor deployed by that year (REAL —
+ *                 derived from the earliest sensor firstSeenYear per city).
+ *   - sensors:    cumulative count of all sensors deployed network-wide by that year (REAL).
+ *   - population: people-in-range network-wide, scaled by the fraction of each city's sensors
+ *                 deployed by that year (DERIVED/GUESSTIMATE; lands on the curated present-day
+ *                 sum at endYear). Flagged estimate.
+ * Early/thin years are flagged isEstimate where the sensor curve is sparse so the UI can label
+ * the modelled lead-in.
+ */
+function buildProgrammeSnapshot(cityResults) {
+  // ── Flatten every city's sensors into one global list (REAL type + firstSeen). ──
+  // First pass: collect all real firstSeen years across the whole programme for the median fallback.
+  const allRealYears = []
+  for (const { locations } of cityResults) {
+    for (const loc of locations) {
+      const y = yearOf(readFirstSeen(loc.datetimeFirst))
+      if (y !== null) {
+        allRealYears.push(y)
+      }
+    }
+  }
+  const programmeMedianYear = median(allRealYears) ?? TIMELINE_END_YEAR
+
+  const sensors = []
+  for (const { slug, city, locations } of cityResults) {
+    for (const loc of locations) {
+      const firstSeenIso = readFirstSeen(loc.datetimeFirst)
+      const realYear = yearOf(firstSeenIso)
+      const firstSeenEstimated = realYear === null
+      sensors.push({
+        id: `${slug}-${loc.id}`,
+        name: loc.name ?? `Location ${loc.id}`,
+        city: slug,
+        cityName: city.name,
+        isMember: city.isMember,
+        // [lng, lat] — Mapbox/GeoJSON order (OpenAQ gives {latitude, longitude}).
+        lng: loc.coordinates.longitude,
+        lat: loc.coordinates.latitude,
+        type: loc.isMonitor ? 'reference' : 'low-cost',
+        firstSeenYear: realYear ?? programmeMedianYear,
+        firstSeen: firstSeenIso,
+        firstSeenEstimated,
+      })
+    }
+  }
+
+  // ── Per-city present-day figures + the year that city first appears (earliest sensor). ──
+  const perCity = cityResults.map(({ slug, city }) => {
+    const citySensors = sensors.filter((s) => s.city === slug)
+    const cityRealYears = citySensors
+      .map((s) => s.firstSeenYear)
+      .filter((y) => Number.isFinite(y))
+    const joinedYear = cityRealYears.length > 0 ? Math.min(...cityRealYears) : programmeMedianYear
+    return {
+      slug,
+      name: city.name,
+      center: city.center,
+      isMember: city.isMember,
+      populationInRange: city.populationInRange,
+      sensorCount: citySensors.length,
+      joinedYear,
+    }
+  })
+
+  const earliestYear = Math.min(...perCity.map((c) => c.joinedYear))
+  const startYear = earliestYear
+  const presentSensors = sensors.length
+  const presentCities = perCity.length
+  const presentPopulation = perCity.reduce((sum, c) => sum + c.populationInRange, 0)
+
+  // ── Aggregated per-year curve. ─────────────────────────────────────────────────
+  const timeline = []
+  for (let year = startYear; year <= TIMELINE_END_YEAR; year += 1) {
+    // Cities that had at least one sensor deployed by this year (REAL).
+    const citiesByYear = perCity.filter((c) => c.joinedYear <= year).length
+    // Cumulative sensors network-wide by this year (REAL).
+    const sensorsByYear = sensors.filter((s) => s.firstSeenYear <= year).length
+    // Population-in-range network-wide: sum over cities of (city pop × fraction of that city's
+    // sensors deployed by this year). DERIVED/GUESSTIMATE — lands on the curated sum at endYear.
+    let population = 0
+    for (const c of perCity) {
+      const deployedInCity = sensors.filter(
+        (s) => s.city === c.slug && s.firstSeenYear <= year,
+      ).length
+      const fraction = c.sensorCount > 0 ? deployedInCity / c.sensorCount : 0
+      population += c.populationInRange * fraction
+    }
+    timeline.push({
+      year,
+      cities: citiesByYear,
+      sensors: sensorsByYear,
+      population: Math.round(population),
+      // Flag thin early years (fewer than ~10% of the present network deployed) so the UI can
+      // label the modelled lead-in. The curve itself is real; this only marks sparse years.
+      isEstimate: sensorsByYear < presentSensors * 0.1,
+    })
+  }
+
+  return {
+    kind: 'programme',
+    capturedAt: new Date().toISOString(),
+    source: 'OpenAQ v3 /locations (one-time per-city snapshots, aggregated; not fetched at page load)',
+    startYear,
+    endYear: TIMELINE_END_YEAR,
+    counts: {
+      cities: presentCities,
+      memberCities: perCity.filter((c) => c.isMember).length,
+      sensors: presentSensors,
+      reference: sensors.filter((s) => s.type === 'reference').length,
+      lowCost: sensors.filter((s) => s.type === 'low-cost').length,
+      population: presentPopulation,
+      firstSeenMissing: sensors.filter((s) => s.firstSeenEstimated).length,
+    },
+    estimateNotes: {
+      sensors:
+        'Sensor positions + type (reference/low-cost) are real OpenAQ data across all programme ' +
+        'cities. Per-sensor firstSeen year is real where OpenAQ provides datetimeFirst; sensors ' +
+        'missing it are placed at the programme-wide median year (firstSeenEstimated=true). ' +
+        'Cumulative sensor + city counts per year are the true network deployment.',
+      population:
+        'People-in-range per city is a documented order-of-magnitude guesstimate (city-scale, ' +
+        'NOT a measured sensor catchment). The per-year population scales each city figure by ' +
+        'the fraction of that city’s sensors deployed that year, so it lands on the curated ' +
+        'present-day sum at the end year and reads as growth earlier. Always an estimate in the UI.',
+    },
+    // Per-city summary (used for the globe legend / future per-city emphasis).
+    cities: perCity,
+    sensors,
+    timeline,
+  }
+}
+
 /** Entry point. */
 async function main() {
+  // ── Programme (globe) mode: capture ALL cities, aggregate, write programme.json. ──
+  if (process.argv[2] === '--programme') {
+    const apiKey = readApiKey()
+    const slugs = Object.keys(PROGRAMME_CITIES)
+    console.log(`Capturing PROGRAMME snapshot — ${slugs.length} cities from OpenAQ …`)
+    const cityResults = []
+    for (const slug of slugs) {
+      const city = PROGRAMME_CITIES[slug]
+      try {
+        const locations = await fetchLocations(city.bbox, apiKey)
+        console.log(`  ${city.name.padEnd(16)} ${locations.length} locations`)
+        cityResults.push({ slug, city, locations })
+      } catch (err) {
+        // One city failing must not sink the whole capture — record zero and continue.
+        console.warn(`  ${city.name.padEnd(16)} FAILED (${err.message}) — captured as 0`)
+        cityResults.push({ slug, city, locations: [] })
+      }
+    }
+
+    const snapshot = buildProgrammeSnapshot(cityResults)
+    mkdirSync(SNAPSHOT_DIR, { recursive: true })
+    const outPath = resolve(SNAPSHOT_DIR, 'programme.json')
+    writeFileSync(outPath, `${JSON.stringify(snapshot, null, 2)}\n`, 'utf8')
+
+    console.log(
+      `  TOTAL: ${snapshot.counts.cities} cities, ${snapshot.counts.sensors} sensors ` +
+        `(${snapshot.counts.reference} reference, ${snapshot.counts.lowCost} low-cost)`,
+    )
+    console.log(`  timeline: ${snapshot.startYear}–${snapshot.endYear} (${snapshot.timeline.length} years)`)
+    console.log(`  wrote ${outPath}`)
+    return
+  }
+
   const slug = (process.argv[2] ?? 'accra').toLowerCase()
   const city = CITIES[slug]
   if (city === undefined) {
