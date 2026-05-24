@@ -13,10 +13,10 @@
  *   - /ux-concepts/best-practice-roadmap/city/[slug]    (city detail)
  *
  * Three pieces:
- *   - BcHeader: BC logo (left) + primary nav + "Join us" button. Nav links are
- *     inert (#) EXCEPT "Roadmap", which points at our roadmap overview so the
- *     in-context story is navigable. Back-to-hub is NOT rendered here -- the
- *     standard PrototypeHeader (above BcHeader in layout.tsx) owns it; BcChrome
+ *   - BcHeader: BC logo (left) + primary nav + "Join us" button + mobile
+ *     hamburger menu. Nav links are inert (#) EXCEPT "Cities" and "Roadmap",
+ *     which are live. Back-to-hub is NOT rendered here -- the standard
+ *     PrototypeHeader (above BcHeader in layout.tsx) owns it; BcChrome
  *     rendering its own would produce a duplicate "second nav bar".
  *   - BcFooter: email signup band + partner logos (placeholder text marks) +
  *     foot.
@@ -27,12 +27,15 @@
  * never hardcoded hex.
  *
  * Key exports: BcHeader, BcFooter
- * External dependencies: next/link
+ * External dependencies: next/link, react (useState, useEffect)
  */
 
+"use client";
+
+import { useState, useEffect } from "react";
 import Link from "next/link";
 
-/* BC's real primary nav labels (from breathecities.org). Only "Roadmap" is live. */
+/* BC's real primary nav labels (from breathecities.org). "Cities" and "Roadmap" are live. */
 const NAV = [
   { label: "Who we are", href: "#" },
   { label: "What we do", href: "#" },
@@ -49,8 +52,25 @@ const NAV = [
  * by the standard PrototypeHeader rendered above BcHeader in the roadmap
  * layout.tsx -- BcChrome no longer renders its own back-to-hub (it would be a
  * duplicate "second nav bar").
+ *
+ * Mobile: hamburger icon opens a full-screen overlay nav (matching BC's real
+ * mobile nav pattern -- dark navy background, vertical links in teal/cyan).
  */
 export function BcHeader() {
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  /* Prevent body scroll while overlay is open */
+  useEffect(() => {
+    if (menuOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [menuOpen]);
+
   return (
     <>
       {/* Prototype bar -- not part of BC's real chrome; labels this honestly as
@@ -82,7 +102,7 @@ export function BcHeader() {
             </span>
           </Link>
 
-          {/* Primary nav */}
+          {/* Primary nav -- desktop only */}
           <nav className="hidden items-center gap-5 md:flex">
             {NAV.map((item) => {
               const live = item.href !== "#";
@@ -104,15 +124,111 @@ export function BcHeader() {
             })}
           </nav>
 
-          {/* Join us CTA */}
-          <span
-            className="inline-flex items-center rounded-full px-4 py-2 text-sm font-semibold text-bc-white"
-            style={{ backgroundColor: "var(--bc-semantic-brand)" }}
-          >
-            Join us
-          </span>
+          {/* Right cluster: Join us CTA + hamburger (mobile) */}
+          <div className="flex items-center gap-3">
+            {/* Join us CTA */}
+            <span
+              className="inline-flex items-center rounded-full px-4 py-2 text-sm font-semibold text-bc-white"
+              style={{ backgroundColor: "var(--bc-semantic-brand)" }}
+            >
+              Join us
+            </span>
+
+            {/* Hamburger button -- mobile only */}
+            <button
+              type="button"
+              aria-label="Open navigation menu"
+              className="flex h-10 w-10 items-center justify-center md:hidden"
+              onClick={() => setMenuOpen(true)}
+            >
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                className="text-foreground"
+              >
+                <line x1="3" y1="6" x2="21" y2="6" />
+                <line x1="3" y1="12" x2="21" y2="12" />
+                <line x1="3" y1="18" x2="21" y2="18" />
+              </svg>
+            </button>
+          </div>
         </div>
       </header>
+
+      {/* Mobile nav overlay -- full-screen, dark navy background */}
+      {menuOpen && (
+        <div
+          className="fixed inset-0 z-50 flex flex-col"
+          style={{ backgroundColor: "var(--bc-color-dark-blue)" }}
+        >
+          {/* Overlay header -- logo left, close button right */}
+          <div className="flex items-center justify-between px-4 py-4">
+            <Link
+              href="/ux-concepts/best-practice-roadmap"
+              className="flex items-center gap-2"
+              onClick={() => setMenuOpen(false)}
+            >
+              <span
+                className="flex h-9 w-9 items-center justify-center rounded-full text-sm font-bold text-bc-white"
+                style={{ backgroundColor: "var(--bc-semantic-brand)" }}
+              >
+                BC
+              </span>
+            </Link>
+
+            <button
+              type="button"
+              aria-label="Close navigation menu"
+              className="flex h-10 w-10 items-center justify-center"
+              onClick={() => setMenuOpen(false)}
+            >
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="var(--bc-color-white)"
+                strokeWidth="2"
+                strokeLinecap="round"
+              >
+                <line x1="6" y1="6" x2="18" y2="18" />
+                <line x1="6" y1="18" x2="18" y2="6" />
+              </svg>
+            </button>
+          </div>
+
+          {/* Nav links -- vertically centered, large text */}
+          <nav className="flex flex-1 flex-col items-center justify-center gap-6 px-4">
+            {NAV.map((item) => {
+              const live = item.href !== "#";
+              return (
+                <Link
+                  key={item.label}
+                  href={item.href}
+                  aria-disabled={!live}
+                  onClick={() => {
+                    if (live) setMenuOpen(false);
+                  }}
+                  className="text-2xl font-semibold transition-colors"
+                  style={{
+                    color: live
+                      ? "var(--bc-color-teal)"
+                      : "var(--bc-color-steel)",
+                    cursor: live ? "pointer" : "default",
+                  }}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
+          </nav>
+        </div>
+      )}
     </>
   );
 }
