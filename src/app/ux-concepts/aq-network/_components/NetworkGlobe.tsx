@@ -36,8 +36,11 @@
  *
  * Side effects (all cleaned up on unmount / re-run):
  *   - Creates a Mapbox GL globe instance in the container ref; sets fog on load.
- *   - Adds a GeoJSON source + two circle layers; updates the layer filter when the year changes.
- *   - Runs an auto-rotate rAF loop; pauses on interaction, resumes on idle (timeout).
+ *   - Adds a GeoJSON source + THREE circle layers (a blue glow beneath, then low-cost + reference
+ *     markers); updates all three layer filters when the year changes.
+ *   - Runs ONE rAF loop doing two things: time-based auto-rotate (~10s/turn, pauses on interaction,
+ *     resumes on idle) AND a blue glow pulse (sine-driven radius/opacity on the glow layer's paint,
+ *     so the network "breathes"). Single loop, cancelled on unmount.
  *   - Runs a play-timeline interval (advance year start→end once); cleared on unmount + on scrub.
  *   - Reads process.env.NEXT_PUBLIC_MAPBOX_TOKEN (client-exposed token).
  */
@@ -76,11 +79,34 @@ const GLOBE_VIEW = {
  */
 const AUTO_ROTATE_MAX_ZOOM = 2.2
 
-/** Degrees of bearing nudged per animation frame for the slow idle spin (~ a gentle drift). */
-const AUTO_ROTATE_DEG_PER_FRAME = 0.02
+/**
+ * Milliseconds for one full 360° rotation. TIME-BASED (not per-frame): each rAF tick advances
+ * the globe by (deltaMs / AUTO_ROTATE_PERIOD_MS) * 360 degrees using the timestamp delta between
+ * frames, so a full turn takes ~10s on ANY display (the old per-frame nudge was frame-rate
+ * dependent — twice as fast on a 120Hz panel as on 60Hz).
+ */
+const AUTO_ROTATE_PERIOD_MS = 10_000
 
 /** Idle delay (ms) after the last user interaction before auto-rotate resumes. */
 const AUTO_ROTATE_RESUME_MS = 3500
+
+/**
+ * Blue "alive" glow tuning. A soft blue circle sits BENEATH the marker layers and breathes via a
+ * sine over GLOW_PULSE_PERIOD_MS, oscillating its radius (GLOW_RADIUS_MIN→MAX) and opacity
+ * (GLOW_OPACITY_MIN→MAX). It animates on the SAME rAF tick as the rotation (one loop, not two).
+ */
+const GLOW_PULSE_PERIOD_MS = 1800
+const GLOW_RADIUS_MIN = 7
+const GLOW_RADIUS_MAX = 12
+const GLOW_OPACITY_MIN = 0.1
+const GLOW_OPACITY_MAX = 0.32
+
+/**
+ * Glow colour. Mapbox paint properties cannot read CSS custom properties, so a literal hex is the
+ * documented exception here (same exception the marker tier colours use). Soft network blue — sits
+ * BEHIND the blue/amber dots so it never washes out the marker colours.
+ */
+const COLOR_GLOW = '#3b82f6' // blue-500 — the network "alive" pulse, behind all markers
 
 /**
  * Milliseconds per year-step when Play runs the timeline. ~750ms/step gives a watchable sweep
@@ -191,6 +217,9 @@ export function NetworkGlobe({ snapshot }: NetworkGlobeProps): ReactElement {
   const rotateFrameRef = useRef<number | null>(null)
   const interactingRef = useRef<boolean>(false)
   const resumeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  // Timestamp of the previous rAF frame — drives BOTH the time-based rotation delta and the glow
+  // pulse phase. null until the first frame (so we never apply a bogus huge delta on frame one).
+  const lastFrameTsRef = useRef<number | null>(null)
 
   /** The timeline row for the scrubbed year — drives the three counters. */
   const yearData: ProgrammeYear = useMemo(() => {
@@ -254,6 +283,9 @@ export function NetworkGlobe({ snapshot }: NetworkGlobeProps): ReactElement {
     // ── Auto-rotate: pause on any user interaction, resume after an idle delay (if zoomed out). ──
     const pauseRotation = (): void => {
       interactingRef.current = true
+      // Drop the rotation baseline so that when spin resumes, the first active frame uses a normal
+      // one-frame delta instead of the entire interaction span (which would jolt the globe).
+      lastFrameTsRef.current = null
       if (resumeTimerRef.current !== null) {
         clearTimeout(resumeTimerRef.current)
       }
@@ -267,20 +299,50 @@ export function NetworkGlobe({ snapshot }: NetworkGlobeProps): ReactElement {
     map.on('wheel', pauseRotation)
     map.on('dragstart', pauseRotation)
 
-    // Side effect: rAF loop that gently spins the globe while idle + near globe zoom.
-    const spin = (): void => {
+    // Side effect: ONE rAF loop driving BOTH the time-based spin AND the blue glow pulse.
+    //   - Rotation is TIME-BASED: advance by (deltaMs / AUTO_ROTATE_PERIOD_MS) * 360 degrees so a
+    //     full turn takes ~10s on any refresh rate. Only runs while idle + near globe zoom; when
+    //     paused we reset the delta baseline so resume doesn't apply an accumulated jump.
+    //   - Glow pulse runs EVERY frame (independent of the rotation pause) — it's the network
+    //     "alive" effect — by oscillating the glow layer's paint props with a sine of the clock.
+    const tick = (ts: number): void => {
       const m = mapRef.current
-      if (m !== null && !interactingRef.current && m.getZoom() <= AUTO_ROTATE_MAX_ZOOM) {
-        const center = m.getCenter()
-        center.lng -= AUTO_ROTATE_DEG_PER_FRAME * 60 // scale to a per-second-ish drift
-        // Use jumpTo (not easeTo) inside rAF so we don't stack animations; it's a tiny nudge.
-        m.jumpTo({ center })
-      }
-      rotateFrameRef.current = requestAnimationFrame(spin)
-    }
-    rotateFrameRef.current = requestAnimationFrame(spin)
+      if (m !== null) {
+        const last = lastFrameTsRef.current
+        const deltaMs = last === null ? 0 : ts - last
+        lastFrameTsRef.current = ts
 
-    // Side effect cleanup: stop rAF, clear resume timer, disconnect observer, remove the map.
+        // ── Time-based rotation ──
+        if (!interactingRef.current && m.getZoom() <= AUTO_ROTATE_MAX_ZOOM) {
+          if (deltaMs > 0) {
+            const center = m.getCenter()
+            center.lng -= (deltaMs / AUTO_ROTATE_PERIOD_MS) * 360
+            // jumpTo (not easeTo) inside rAF so we don't stack animations; it's a tiny per-frame nudge.
+            m.jumpTo({ center })
+          }
+        } else {
+          // Paused (interacting or zoomed in): drop the baseline so the next active frame's delta
+          // is the single-frame gap, not the whole paused span — prevents a sudden spin jump.
+          lastFrameTsRef.current = ts
+        }
+
+        // ── Blue glow pulse (always, while the glow layer exists) ──
+        if (m.getLayer('sensors-glow') !== undefined) {
+          // sine in [0,1] over the pulse period → breathe radius + opacity together.
+          const phase = (Math.sin((ts / GLOW_PULSE_PERIOD_MS) * Math.PI * 2) + 1) / 2
+          const radius = GLOW_RADIUS_MIN + (GLOW_RADIUS_MAX - GLOW_RADIUS_MIN) * phase
+          const opacity = GLOW_OPACITY_MIN + (GLOW_OPACITY_MAX - GLOW_OPACITY_MIN) * phase
+          // Side effect: animate paint props on the existing layer (no per-frame feature rebuild).
+          m.setPaintProperty('sensors-glow', 'circle-radius', radius)
+          m.setPaintProperty('sensors-glow', 'circle-opacity', opacity)
+        }
+      }
+      rotateFrameRef.current = requestAnimationFrame(tick)
+    }
+    rotateFrameRef.current = requestAnimationFrame(tick)
+
+    // Side effect cleanup: stop the rAF (rotation + glow pulse), clear resume timer, reset the
+    // frame-timestamp baseline, disconnect observer, remove the map.
     return () => {
       if (rotateFrameRef.current !== null) {
         cancelAnimationFrame(rotateFrameRef.current)
@@ -290,6 +352,7 @@ export function NetworkGlobe({ snapshot }: NetworkGlobeProps): ReactElement {
         clearTimeout(resumeTimerRef.current)
         resumeTimerRef.current = null
       }
+      lastFrameTsRef.current = null
       resizeObserver.disconnect()
       map.remove()
       mapRef.current = null
@@ -312,7 +375,25 @@ export function NetworkGlobe({ snapshot }: NetworkGlobeProps): ReactElement {
     // Side effect: GeoJSON source with every sensor (filtered per-year on the layers below).
     map.addSource('sensors', { type: 'geojson', data: sensorGeoJSON })
 
-    // Low-cost layer (drawn first, behind reference). Smaller dots; members emphasised slightly.
+    // Glow layer (drawn FIRST → sits BENEATH both marker layers). A soft blue circle per sensor;
+    // its radius + opacity are animated by the rAF tick to breathe (the network "alive" effect).
+    // Initial radius/opacity are mid-range so it looks right before the first pulse frame lands.
+    // Glow shows for ALL sensors present in the scrubbed year (no tier filter — blue on everything).
+    map.addLayer({
+      id: 'sensors-glow',
+      type: 'circle',
+      source: 'sensors',
+      filter: ['<=', ['get', 'firstSeenYear'], selectedYear],
+      paint: {
+        'circle-color': COLOR_GLOW,
+        'circle-radius': (GLOW_RADIUS_MIN + GLOW_RADIUS_MAX) / 2,
+        'circle-opacity': (GLOW_OPACITY_MIN + GLOW_OPACITY_MAX) / 2,
+        'circle-blur': 1, // soft edge so it reads as a glow, not a hard disc behind the dot
+      },
+    })
+
+    // Low-cost layer (above glow, behind reference). Bigger dots than before (~+70%); members
+    // emphasised slightly. Radius also grows with zoom so dots stay visible on the globe.
     map.addLayer({
       id: 'sensors-lowcost',
       type: 'circle',
@@ -320,11 +401,11 @@ export function NetworkGlobe({ snapshot }: NetworkGlobeProps): ReactElement {
       filter: ['all', ['==', ['get', 'tier'], 'low-cost'], ['<=', ['get', 'firstSeenYear'], selectedYear]],
       paint: {
         'circle-color': COLOR_LOWCOST,
-        // Members slightly larger; radius also grows with zoom so dots stay visible on the globe.
+        // Bumped from 2.4/1.8 (z1) and 5/4 (z5) by ~+70%, keeping member > non-member.
         'circle-radius': [
           'interpolate', ['linear'], ['zoom'],
-          1, ['case', ['get', 'member'], 2.4, 1.8],
-          5, ['case', ['get', 'member'], 5, 4],
+          1, ['case', ['get', 'member'], 4, 3],
+          5, ['case', ['get', 'member'], 8.5, 6.8],
         ],
         'circle-opacity': 0.85,
         'circle-stroke-width': ['case', ['get', 'member'], 0.6, 0.3],
@@ -332,7 +413,7 @@ export function NetworkGlobe({ snapshot }: NetworkGlobeProps): ReactElement {
       },
     })
 
-    // Reference layer (drawn on top). Larger, brighter; members emphasised more strongly.
+    // Reference layer (drawn on top). Bigger dots than before (~+70%); members emphasised more.
     map.addLayer({
       id: 'sensors-reference',
       type: 'circle',
@@ -340,10 +421,11 @@ export function NetworkGlobe({ snapshot }: NetworkGlobeProps): ReactElement {
       filter: ['all', ['==', ['get', 'tier'], 'reference'], ['<=', ['get', 'firstSeenYear'], selectedYear]],
       paint: {
         'circle-color': COLOR_REFERENCE,
+        // Bumped from 3.2/2.4 (z1) and 7/5 (z5) by ~+70%, keeping member > non-member.
         'circle-radius': [
           'interpolate', ['linear'], ['zoom'],
-          1, ['case', ['get', 'member'], 3.2, 2.4],
-          5, ['case', ['get', 'member'], 7, 5],
+          1, ['case', ['get', 'member'], 5.4, 4],
+          5, ['case', ['get', 'member'], 12, 8.5],
         ],
         'circle-opacity': 0.92,
         'circle-stroke-width': ['case', ['get', 'member'], 1, 0.5],
@@ -393,13 +475,17 @@ export function NetworkGlobe({ snapshot }: NetworkGlobeProps): ReactElement {
     if (!mapReady || map === null || map.getLayer('sensors-reference') === undefined) {
       return
     }
-    // Side effect: re-filter both layers to "tier matches AND firstSeenYear <= selectedYear".
+    // Side effect: re-filter all three layers. Markers match their tier AND firstSeenYear; the
+    // glow (beneath, all tiers) just matches firstSeenYear so it tracks the same sensor set.
     map.setFilter('sensors-lowcost', [
       'all', ['==', ['get', 'tier'], 'low-cost'], ['<=', ['get', 'firstSeenYear'], selectedYear],
     ])
     map.setFilter('sensors-reference', [
       'all', ['==', ['get', 'tier'], 'reference'], ['<=', ['get', 'firstSeenYear'], selectedYear],
     ])
+    if (map.getLayer('sensors-glow') !== undefined) {
+      map.setFilter('sensors-glow', ['<=', ['get', 'firstSeenYear'], selectedYear])
+    }
   }, [mapReady, selectedYear])
 
   /** Fly back to the global globe framing (the "Reset to globe" button). */
