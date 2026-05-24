@@ -9,9 +9,15 @@
  * Server component. The answer grid uses the reused EntryCard (a client Dialog) → ConcernCardView
  * popup, which carries the §4 content order and the §7 infographic.
  *
+ * Declutter pass (2026-05-25): the "A challenge cities share" badge and the per-concern "Fanned
+ * by …" axis descriptor line are removed, and the inferred-voice honesty note is moved out of
+ * inline body copy behind an "i" InfoTooltip (with a minimal visible "inferred" cue) — the
+ * evidence-discipline text is preserved, not deleted. (The hero was already eyebrow-less.)
+ *
  * Structure (top to bottom, per the build brief):
- *   1. THE SHARED CHALLENGE — the resident question in the resident's voice (labelled INFERRED),
- *      plus one line on why it is universal across cities. Uses ConceptHeroPlain (no eyebrow).
+ *   1. THE SHARED CHALLENGE — the resident question in the resident's voice (labelled INFERRED via
+ *      the "i" tooltip), plus one line on why it is universal across cities. Uses ConceptHeroPlain
+ *      (no eyebrow).
  *   2. HOW SOME BC CITIES ANSWERED IT — the concern's cards, grouped BY CITY (only cities with a
  *      real card appear — "some cities, not all"). Each card is one city's answer: tap → popup.
  *   3. CONTRIBUTION TO 2030 — the concern's `contribution` line (from the data): how these answers
@@ -29,9 +35,9 @@
  *
  * Key exports: default page component, generateStaticParams, generateMetadata
  * External dependencies: next/link, next/navigation, @/components/concept (BcHeader, BcFooter,
- *   ConceptSectionHeader, ConceptCard), the app-local ConceptHeroPlain (eyebrow-less hero), the
- *   co-located CITIES_CHROME config + EntryCard, concerns-data
- *   (CONCERNS, concernByKey, citiesWithAnswersFor).
+ *   ConceptSectionHeader, ConceptCard), the app-local ConceptHeroPlain (eyebrow-less hero) and
+ *   InfoTooltip (the "i" affordance holding the inferred-voice note), the co-located CITIES_CHROME
+ *   config + EntryCard, concerns-data (CONCERNS, concernByKey, citiesWithAnswersFor).
  *
  * Route: /ux-concepts/cities/[concern]
  */
@@ -46,6 +52,7 @@ import {
   ConceptCard,
 } from "@/components/concept";
 import { ConceptHeroPlain } from "../../../_components/ConceptHeroPlain";
+import { InfoTooltip } from "../../../_components/InfoTooltip";
 import { CITIES_CHROME } from "../_components/bc-chrome.config";
 import { EntryCard } from "../_components/EntryCard";
 import {
@@ -128,26 +135,16 @@ export default async function ConcernPage({ params }: ConcernPageProps) {
             headline={`“${concern.voice}”`}
             body={UNIVERSALITY[concern.key]}
           >
-            <div className="mt-4 flex flex-wrap items-center gap-3">
-              <span
-                className="inline-flex w-fit items-center rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide"
-                style={{
-                  backgroundColor:
-                    "color-mix(in srgb, var(--bc-color-blue) 12%, transparent)",
-                  color: "var(--bc-color-blue)",
-                }}
-              >
-                A challenge cities share
-              </span>
-              <span className="text-xs text-muted-foreground">
-                Fanned {concern.axisLabel.toLowerCase()} — {concern.axisDescription}
-              </span>
-            </div>
-            {/* Inferred-voice honesty, explicit. */}
-            <p className="mt-4 max-w-2xl rounded-lg bg-muted/60 px-3 py-2 text-xs text-muted-foreground">
-              This concern is <span className="font-semibold">inferred</span> — a worry commonly
-              raised by communities, voiced in residents&rsquo; words. It is a framing device, not
-              a survey of any one city.
+            {/* Inferred-voice honesty — kept (evidence discipline) but tucked behind an "i"
+                tooltip, with a minimal visible "inferred" cue so the honesty signal isn't lost.
+                The "A challenge cities share" badge and the "Fanned by …" axis descriptor were
+                removed in the declutter pass. */}
+            <p className="mt-4 inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+              <span className="font-semibold">inferred</span>
+              <InfoTooltip label="What “inferred” means here">
+                This concern is inferred — a worry commonly raised by communities, voiced in
+                residents&rsquo; words. It is a framing device, not a survey of any one city.
+              </InfoTooltip>
             </p>
           </ConceptHeroPlain>
         </div>
