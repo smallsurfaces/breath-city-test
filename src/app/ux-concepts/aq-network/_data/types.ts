@@ -26,6 +26,9 @@
  *
  * Key exports:
  *   - PillarId, PILLARS, PILLAR_BY_ID — BC's official four-pillar system (exact labels)
+ *   - RadarPillarId, RADAR_PILLAR_IDS, RADAR_PILLARS — the THREE city-level support pillars
+ *     the radar plots/derives (lesson sharing is deliberately excluded — see note below)
+ *   - LessonSharingEntry — one row in the peer-network participation strand
  *   - AchievementCard, NewsItem, SensorProgramme, HealthContext, PopulationEstimate,
  *     TrajectoryContext, CityProfile
  *
@@ -36,7 +39,15 @@
 // BC's four pillars — the official system. Use these EXACT four, in this order.
 // ----------------------------------------------------------------------------
 
-/** Stable identifier for one of BC's four support pillars. */
+/**
+ * Stable identifier for one of BC's four support pillars.
+ *
+ * NOTE on pillar 4 (Lesson sharing): all four pillars remain valid as card tags — a card
+ * can still be tagged pillar 4. But pillar 4 is NOT a radar axis. Lesson sharing is
+ * relational (city-to-city) rather than a city-level support intensity, so it is surfaced
+ * as its own participation strand (see LessonSharingEntry / CityProfile.lessonSharing) and
+ * the radar plots only the three CITY-LEVEL support pillars (see RadarPillarId below).
+ */
 export type PillarId = 1 | 2 | 3 | 4
 
 /** One BC support pillar: its id, full label, and a short label for tight UI (tags/axes). */
@@ -69,6 +80,30 @@ export const PILLAR_BY_ID: Readonly<Record<PillarId, Pillar>> = {
 }
 
 // ----------------------------------------------------------------------------
+// The radar's pillars — the THREE city-level support pillars only.
+// ----------------------------------------------------------------------------
+
+/**
+ * The subset of pillars the radar plots and derives counts for: the three CITY-LEVEL
+ * support pillars (1 Expanding data, 2 Technical support for policymaking, 3 Raising
+ * awareness). Pillar 4 (Lesson sharing) is intentionally absent — it is relational
+ * (city-to-city) and is shown as its own participation strand, not a radar axis. Cards may
+ * still be tagged pillar 4; it is simply not an axis.
+ */
+export type RadarPillarId = 1 | 2 | 3
+
+/** The three radar pillar ids, in axis order (pillar 1 at top, then clockwise). */
+export const RADAR_PILLAR_IDS: readonly RadarPillarId[] = [1, 2, 3] as const
+
+/**
+ * The three radar pillars (full Pillar objects), in axis order. Derived from PILLARS so the
+ * labels can never drift from the canonical list. The radar legend and axes read from here.
+ */
+export const RADAR_PILLARS: readonly Pillar[] = RADAR_PILLAR_IDS.map(
+  (id) => PILLAR_BY_ID[id],
+)
+
+// ----------------------------------------------------------------------------
 // Profile building blocks
 // ----------------------------------------------------------------------------
 
@@ -94,6 +129,35 @@ export type AchievementCard = {
   detail?: string
   /** The single BC pillar this support activity sits under. The radar counts these. */
   pillar: PillarId
+}
+
+/**
+ * One entry in the lesson-sharing participation strand — the city's role in the BC peer
+ * network. Lesson sharing (BC pillar 4) is relational: cities teach and learn from each
+ * other. Rather than collapse that into a radar axis, the strand captures it directly as a
+ * two-direction list.
+ *
+ * Framing contract (city-as-actor, same as achievements):
+ *   - `direction: 'gave'` = the city was the TEACHER (shared a playbook, mentored/hosted a
+ *     peer, presented at a forum). `direction: 'received'` = the city was the LEARNER
+ *     (adopted a peer's approach, joined an exchange).
+ *   - `headline` reads as the city doing the thing ("Accra adopted …", "London shared …").
+ *   - `peerCity` is the OTHER city in the exchange when there is a specific one (optional —
+ *     some entries, e.g. presenting at a forum, have no single peer).
+ *   - HONESTY: never fabricate a peer claim. An early-learner city with no documented
+ *     exchanges simply has an empty list; the UI renders an honest early-stage state.
+ */
+export type LessonSharingEntry = {
+  /** Stable key for React lists. */
+  id: string
+  /** 'gave' = city as teacher/sharer; 'received' = city as learner/adopter. */
+  direction: 'gave' | 'received'
+  /** City-as-actor headline for this exchange. */
+  headline: string
+  /** The other city in the exchange, when there is a specific one. Optional. */
+  peerCity?: string
+  /** Short date/period label (e.g. "Mar 2026"). Optional — some entries are undated. */
+  date?: string
 }
 
 /**
@@ -197,6 +261,13 @@ export type CityProfile = {
   strapline: string
   /** The achievement timeline — the spine of the profile. Order = display order. */
   achievements: AchievementCard[]
+  /**
+   * The lesson-sharing participation strand — the city's role in the BC peer network
+   * (BC pillar 4, surfaced here rather than on the radar). Two directions, gave/received.
+   * May be empty for an early-learner city with no documented exchanges (Accra) — that is
+   * honest, and the UI renders an early-stage state rather than fabricating peer claims.
+   */
+  lessonSharing: LessonSharingEntry[]
   /** The always-fresh "Latest from [city]" strip (curated snapshot in this slice). */
   latestNews: NewsItem[]
   /** Sensor programme figures + the OpenAQ slug for the live count. */
