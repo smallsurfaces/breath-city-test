@@ -8,7 +8,12 @@
  *
  * Server component. The v1/v2 split is collapsed — this single build at /ux-concepts/cities is the
  * one canonical cities concept, carrying the on-standard concept composition layer
- * (ConceptHero / ConceptSectionHeader / ConceptCard from @/components/concept).
+ * (ConceptHeroPlain / ConceptSectionHeader / ConceptCard from @/components/concept).
+ *
+ * Declutter pass (2026-05-25): the "RESIDENT CONCERNS" hero eyebrow is dropped (the hero now uses
+ * the eyebrow-less ConceptHeroPlain, matching the other concepts), and the inferred-voice honesty
+ * note is moved out of inline body copy behind an "i" InfoTooltip (with a minimal visible
+ * "inferred" cue) — the evidence-discipline text is preserved, not deleted.
  *
  * Page structure (top to bottom):
  *   - Chrome (BcHeader, per-page) — the in-context BC-site recreation.
@@ -30,8 +35,9 @@
  *
  * Key exports: default page component, metadata
  * External dependencies: next/link, lucide-react, @/components/concept (BcHeader, BcFooter,
- *   ConceptHero, ConceptSectionHeader, ConceptCard), the co-located CITIES_CHROME config,
- *   concerns-data (CONCERNS, citiesWithAnswersFor).
+ *   ConceptSectionHeader, ConceptCard), the app-local ConceptHeroPlain (eyebrow-less hero) and
+ *   InfoTooltip (the "i" affordance holding the inferred-voice note), the co-located CITIES_CHROME
+ *   config, concerns-data (CONCERNS, citiesWithAnswersFor).
  *
  * Route: /ux-concepts/cities
  */
@@ -42,10 +48,11 @@ import { ArrowRight } from "lucide-react";
 import {
   BcHeader,
   BcFooter,
-  ConceptHero,
   ConceptSectionHeader,
   ConceptCard,
 } from "@/components/concept";
+import { ConceptHeroPlain } from "../../_components/ConceptHeroPlain";
+import { InfoTooltip } from "../../_components/InfoTooltip";
 import { CITIES_CHROME } from "./_components/bc-chrome.config";
 import { CONCERNS, citiesWithAnswersFor } from "./_data/concerns-data";
 
@@ -82,16 +89,18 @@ export default function ResidentConcernsLanding() {
       {/* ── Hero: the collective challenge framing + the 30%-by-2030 mission ─── */}
       <section className="border-b border-border">
         <div className="mx-auto max-w-6xl px-4 py-16 lg:py-20">
-          <ConceptHero
-            eyebrow="Resident Concerns"
+          <ConceptHeroPlain
             headline="A challenge every city's residents share — and how some Breathe Cities answered it."
             body="Across the Breathe Cities family, residents keep asking the same five questions about the air they breathe. They are a common challenge, not a local one. For each, here is how some cities in the network have already answered — working toward 30% cleaner air by 2030 (against a 2019 baseline), with modelled projections of ~55,000 premature deaths prevented and ~$147B in avoided health costs."
           />
-          {/* Honest framing of the inferred voice, once, up front. */}
-          <p className="mt-6 max-w-2xl rounded-lg bg-muted/60 px-3 py-2 text-xs text-muted-foreground">
-            These five concerns are <span className="font-semibold">inferred</span> — worries
-            commonly raised by communities, voiced in residents&rsquo; words. They are a framing
-            device, not a survey.
+          {/* Inferred-voice honesty — kept (evidence discipline) but tucked behind an "i"
+              tooltip, with a minimal visible "inferred" cue so the honesty signal isn't lost. */}
+          <p className="mt-6 inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+            <span className="font-semibold">inferred</span>
+            <InfoTooltip label="What “inferred” means here">
+              These five concerns are inferred — worries commonly raised by communities, voiced in
+              residents&rsquo; words. They are a framing device, not a survey.
+            </InfoTooltip>
           </p>
         </div>
       </section>
