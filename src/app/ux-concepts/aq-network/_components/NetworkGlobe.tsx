@@ -4,7 +4,7 @@
  *   programme snapshot (NO live OpenAQ call — decision #7).
  *
  * Purpose / what the user sees + does
- *   - A 3D globe (Mapbox `projection: 'globe'`) on a dark basemap with space fog, so the
+ *   - A 3D globe (Mapbox `projection: 'globe'`) on a light basemap, so the
  *     bright sensor markers read like city lights against the Earth (deliberate theme choice —
  *     a globe pops on dark; the page chrome around it stays light per the hub convention).
  *   - EVERY programme sensor plotted as a GL circle. Reference-grade monitors and low-cost
@@ -59,8 +59,8 @@ import 'mapbox-gl/dist/mapbox-gl.css'
 /** Client-exposed Mapbox token (NEXT_PUBLIC_ prefix → available in the browser bundle). */
 const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN
 
-/** Dark basemap — chosen so the globe + bright sensor markers pop against dark space. */
-const GLOBE_STYLE = 'mapbox://styles/mapbox/dark-v11'
+/** Light basemap (matches the page chrome); markers deepened for contrast on light. */
+const GLOBE_STYLE = 'mapbox://styles/mapbox/light-v11'
 
 /** The global "see the whole network" framing the Reset button (and initial load) flies to. */
 const GLOBE_VIEW = {
@@ -88,10 +88,10 @@ const AUTO_ROTATE_RESUME_MS = 3500
  */
 const PLAY_STEP_MS = 750
 
-/** Brand ink for reference-grade monitors (fallback literal; map styling is its own layer). */
-const COLOR_REFERENCE = '#38bdf8' // bright sky-blue — reads as "anchor" tier against dark Earth
-/** Muted-bright tone for low-cost / community sensors. */
-const COLOR_LOWCOST = '#fbbf24' // warm amber — the dense community layer, distinct from reference
+/** Reference-grade monitors — deep blue, legible on the light basemap. */
+const COLOR_REFERENCE = '#0369a1' // strong sky-blue — the "anchor" tier
+/** Low-cost / community sensors — deep amber, distinct from reference on light. */
+const COLOR_LOWCOST = '#d97706' // amber-600 — the dense community layer
 /** White contrast ring around markers so they stay legible over land + ocean. */
 const MARKER_RING = '#ffffff'
 
@@ -226,13 +226,13 @@ export function NetworkGlobe({ snapshot }: NetworkGlobeProps): ReactElement {
     mapRef.current = map
 
     map.on('style.load', () => {
-      // Side effect: space fog/atmosphere so the globe reads as a planet in space (dark theme).
+      // Side effect: light atmosphere so the globe reads as a planet against a light backdrop.
       map.setFog({
-        color: 'rgb(15, 23, 42)', // lower atmosphere (slate-900-ish)
-        'high-color': 'rgb(30, 58, 95)', // upper atmosphere (deep blue)
-        'horizon-blend': 0.08,
-        'space-color': 'rgb(8, 12, 22)', // space behind the globe
-        'star-intensity': 0.45,
+        color: 'rgb(214, 226, 240)', // lower atmosphere — soft light blue
+        'high-color': 'rgb(170, 200, 235)', // upper atmosphere — light sky
+        'horizon-blend': 0.12,
+        'space-color': 'rgb(246, 249, 252)', // near-white space behind the globe (light)
+        'star-intensity': 0, // no stars on a light backdrop
       })
     })
 
@@ -510,7 +510,7 @@ export function NetworkGlobe({ snapshot }: NetworkGlobeProps): ReactElement {
       </div>
 
       {/* ── The globe + reset control + legend + timeline scrubber. ───────────── */}
-      <div className="overflow-hidden rounded-2xl border border-border bg-[#080c16]">
+      <div className="overflow-hidden rounded-2xl border border-border bg-muted">
         {/*
           PROVEN RENDER PATTERN: explicit-height `relative` wrapper with the map div as a FLOW
           CHILD `w-full h-full` (NOT absolute inset-0 — that pattern blanked on this hub).
