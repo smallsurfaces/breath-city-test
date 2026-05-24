@@ -71,10 +71,6 @@ const BUILDS = [
     folder: "src/app/ux-concepts/cities",
   },
   {
-    routes: ["/ux-concepts/resident-concerns"],
-    folder: "src/app/ux-concepts/resident-concerns",
-  },
-  {
     routes: ["/ux-concepts/best-practice-roadmap"],
     folder: "src/app/ux-concepts/best-practice-roadmap",
   },
