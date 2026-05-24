@@ -56,18 +56,15 @@ export const londonProfile: CityProfile = {
   strapline:
     'A Breathe Cities member further along the journey — its ULEZ is the clean-air model other cities study.',
 
-  // ── The achievement timeline (the spine). Each headline reads city-as-actor; the card UI
-  //    adds the "Supported by BC · [pillar]" credit. Pillar tags drive the radar. All four are
-  //    documented public facts — no fabricated programmes, no outcome claims.
+  // ── The achievement timeline (the spine). Authored OLDEST→NEWEST — the spine's whole point is
+  //    the SEQUENCE (what London did first). London's dense MONITORING network is foundational
+  //    and predates the flagship ULEZ policy it informs, so the data cards come first, then ULEZ
+  //    (the earliest FLAGSHIP: central London 2019 → London-wide 2023 — use 2019 per the journey
+  //    framing), then ongoing awareness. Years are APPROXIMATE estimates (ULEZ 2019 is the one
+  //    firm public date). Each headline reads city-as-actor; the card UI adds the "Supported by
+  //    BC · [pillar]" credit and shows the year. Pillar tags drive the radar (order-independent).
+  //    All four are documented public facts — no fabricated programmes, no outcome claims.
   achievements: [
-    {
-      id: 'london-ulez',
-      headline:
-        'London introduced and expanded its Ultra-Low Emission Zone (ULEZ) city-wide',
-      detail:
-        'From a central-London zone in 2019 to London-wide in 2023 — charging the most polluting vehicles to drive cleaner air. The founding example other cities now reference.',
-      pillar: 2, // Technical support for policymaking
-    },
     {
       id: 'london-monitoring-network',
       headline:
@@ -75,6 +72,7 @@ export const londonProfile: CityProfile = {
       detail:
         'Hundreds of reference-grade monitors give London a fine-grained, street-level picture of its air — the evidence base its policy is built on.',
       pillar: 1, // Expanding data
+      year: 2017, // Foundational monitoring — the data base ULEZ and targeting are built on.
     },
     {
       id: 'london-source-evidence',
@@ -83,6 +81,16 @@ export const londonProfile: CityProfile = {
       detail:
         'Road transport remains the dominant source; the network lets the city see where action is needed and track how the picture changes.',
       pillar: 1, // Expanding data
+      year: 2018, // Using the network's data to target sources — follows the network being in place.
+    },
+    {
+      id: 'london-ulez',
+      headline:
+        'London introduced and expanded its Ultra-Low Emission Zone (ULEZ) city-wide',
+      detail:
+        'From a central-London zone in 2019 to London-wide in 2023 — charging the most polluting vehicles to drive cleaner air. The founding example other cities now reference.',
+      pillar: 2, // Technical support for policymaking
+      year: 2019, // The earliest flagship — central-London ULEZ launch (firm public date).
     },
     {
       id: 'london-awareness',
@@ -91,6 +99,7 @@ export const londonProfile: CityProfile = {
       detail:
         'Helping Londoners understand the air they breathe and reduce their exposure on high-pollution days.',
       pillar: 3, // Raising awareness
+      year: 2022, // Ongoing public awareness — most recent strand.
     },
     // No separate pillar-4 card: lesson sharing is relational and lives in the lessonSharing
     // strand below (the TEACHER side), not on the radar.
@@ -181,4 +190,10 @@ export const londonProfile: CityProfile = {
     stageNote:
       'London is one of the more advanced members: its city-wide PM2.5 is on a roughly −28% trajectory toward 2030 (a city-wide trend from the Breathe Better reporting, not a Breathe Cities-attributed outcome). The collective goal is shared across all members; London is ahead of where early-journey cities are starting.',
   },
+
+  // ── Approximate annual-mean PM2.5 (µg/m³) — the input to the positive health payoff. ~11 is
+  //    an ESTIMATE for London from OpenAQ / WHO city air-quality data (a major European city,
+  //    closer to but still above WHO's 5 µg/m³ guideline). Feeds the life-expectancy-gain
+  //    estimate on the profile (≈ 4 months gained for a 30% reduction); labelled an estimate.
+  baselinePm25: 11,
 }

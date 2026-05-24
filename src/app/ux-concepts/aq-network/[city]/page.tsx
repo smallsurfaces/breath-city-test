@@ -22,15 +22,20 @@
  *      (reference vs low-cost, not air quality), a timeline scrubber + Play control driving
  *      sensor existence over time, and three scrubber-linked counters (sensors deployed ·
  *      districts covered · people within range — the last an estimate). Renders from a committed
- *      OpenAQ snapshot, never a per-load API call.
- *   3. Achievements — the achievement timeline (the spine) + the "Latest from [city]" live-news
- *      strip, alongside the DERIVED three-pillar radar ("How Breathe Cities supports [city]" —
- *      a programme scorecard, not a city grade, from the timeline / city-level support pillars
- *      only). Timeline + radar are kept together as one block.
+ *      OpenAQ snapshot, never a per-load API call. Carries a DataSource (OpenAQ + raw-data redirect).
+ *   3. Achievements — the NARRATIVE SPINE: the achievement timeline (oldest → newest) culminating
+ *      in a terminal 2030-GOAL node on the same spine (the destination all cards lead into) + the
+ *      "Latest from [city]" live-news strip (DataSource → Breathe Cities), alongside the DERIVED
+ *      three-pillar radar ("How Breathe Cities supports [city]" — a programme scorecard, not a
+ *      city grade, from the city-level support pillars only). Timeline + radar are one block.
  *   4. Lessons learned — the city's peer-network participation strand (gave/received). NOT on
- *      the radar; an early-learner city renders an honest near-empty state. (Heading renamed
- *      from "Lesson sharing"; content unchanged.)
- *   5. 2030 trajectory + problem/health context (hypothetical health line labelled a projection).
+ *      the radar; an early-learner city renders an honest near-empty state.
+ *   5. The payoff — the POSITIVE, LOCALISED health prize of reaching the 2030 goal: the
+ *      life-expectancy a resident GAINS (in months) under the AQLI relationship applied to a 30%
+ *      PM2.5 reduction. The payoff LEADS; a light current-state "why it matters" grounding
+ *      (×WHO + top sources) sits below it. Every figure is labelled an estimate with its method +
+ *      source (DataSource → AQLI · WHO). This REPLACES the former standalone "The 2030 journey"
+ *      section — the goal moved onto the spine, the health content was reframed problem → positive.
  *   (The former standalone "Population within sensor range" section was folded into the Sensors
  *    & coverage counters — population belongs under Sensors & coverage.)
  *
@@ -51,7 +56,7 @@
 
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { BadgeCheck, MapPin } from 'lucide-react'
+import { BadgeCheck, MapPin, HeartPulse } from 'lucide-react'
 import {
   getCityProfile,
   CITY_PROFILE_SLUGS,
@@ -65,7 +70,32 @@ import { PillarRadar } from '../_components/PillarRadar'
 import { AchievementTimeline } from '../_components/AchievementTimeline'
 import { LessonSharing } from '../_components/LessonSharing'
 import { SensorGrowthMap } from '../_components/SensorGrowthMap'
+import { DataSource } from '../_components/DataSource'
 import { getSensorSnapshot } from '../_data/sensor-snapshots'
+
+/**
+ * AQLI life-expectancy relationship: each 1 µg/m³ of long-term PM2.5 costs roughly 0.098 years
+ * of life expectancy (~1 year per 10 µg/m³). This is the Air Quality Life Index relationship
+ * (Ebenstein et al.; aqli.epic.uchicago.edu), used here to turn a city's PM2.5 baseline into the
+ * POSITIVE payoff of the 2030 goal: the life a resident GAINS if the city cuts PM2.5 by 30%.
+ * It is an ESTIMATE — a population-average relationship applied to a target reduction, not a
+ * measured outcome. The UI labels the result an estimate and shows the method.
+ */
+const LIFE_YEARS_LOST_PER_UGM3 = 0.098
+
+/** The shared collective goal: a 30% PM2.5 reduction by 2030 (the fraction the payoff applies). */
+const GOAL_PM25_REDUCTION = 0.3
+
+/**
+ * Estimate the life-expectancy a resident GAINS, in MONTHS, if the city hits the 30%-by-2030
+ * goal. gain(years) = baselinePm25 × 30% reduction × AQLI years-lost-per-µg/m³; ×12 for months,
+ * rounded to a whole month. Pure function of the (estimated) baseline — see the constants above
+ * for the relationship and its provenance. Returns an integer count of months.
+ */
+function lifeMonthsGained(baselinePm25: number): number {
+  const gainYears = baselinePm25 * GOAL_PM25_REDUCTION * LIFE_YEARS_LOST_PER_UGM3
+  return Math.round(gainYears * 12)
+}
 
 /**
  * DERIVE the per-pillar counts from the achievement timeline — the concept's central rule.
@@ -115,8 +145,9 @@ export async function generateMetadata({
 
 /**
  * The member profile page. Resolves the [city] slug to a CityProfile (404 if unknown), derives
- * the radar counts, and renders the profile sections from the data, in order: identity →
- * sensors & coverage → achievements (+ radar) → lessons learned → 2030 journey.
+ * the radar counts and the health-payoff estimate, and renders the profile sections from the
+ * data, in order: identity → sensors & coverage → achievements spine (+ goal node + radar) →
+ * lessons learned → the positive 2030 health payoff.
  */
 export default async function AqNetworkCityProfile({
   params,
@@ -137,6 +168,11 @@ export default async function AqNetworkCityProfile({
   // map framing). Keyed by the same openaqCitySlug the profile uses. May be undefined for a
   // city whose snapshot hasn't been captured yet — the section renders a graceful fallback.
   const sensorSnapshot = getSensorSnapshot(profile.sensorProgramme.openaqCitySlug)
+
+  // The POSITIVE health payoff: estimated months of life a resident gains if the city hits the
+  // 30%-by-2030 goal, via the AQLI relationship applied to the city's (estimated) PM2.5 baseline.
+  // An estimate, labelled as such in the UI. (Accra ≈ 10 months, London ≈ 4 months.)
+  const monthsGained = lifeMonthsGained(profile.baselinePm25)
 
   return (
     // Chrome (PrototypeHeader + BcHeader/BcFooter) is rendered by aq-network/layout.tsx.
@@ -197,6 +233,21 @@ export default async function AqNetworkCityProfile({
                 </div>
               )}
             </div>
+            {/* Attribution — sensor positions/type come from OpenAQ; offer a path to the raw
+                sensor data we don't host here (the redirect variant). Quiet, present, not loud. */}
+            <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1">
+              <DataSource
+                variant="attribution"
+                name="OpenAQ"
+                href="https://openaq.org"
+              />
+              <DataSource
+                variant="redirect"
+                label="For raw sensor data"
+                name="OpenAQ"
+                href="https://openaq.org"
+              />
+            </div>
           </section>
 
           {/* ── 3. Achievements — the timeline (spine) alongside the derived radar. Kept
@@ -212,8 +263,15 @@ export default async function AqNetworkCityProfile({
                 city acting, with Breathe Cities support credited as a tag.
               </p>
 
+              {/* The narrative spine: oldest action → … → the 2030 goal node (the destination
+                  all cards lead into, rendered on the same spine by the timeline component). */}
               <div className="mt-6">
-                <AchievementTimeline achievements={profile.achievements} />
+                <AchievementTimeline
+                  achievements={profile.achievements}
+                  cityName={profile.name}
+                  goalLabel={profile.trajectory.goalLabel}
+                  stageLabel={profile.trajectory.stageLabel}
+                />
               </div>
 
               {/* "Latest from [city]" — the always-fresh live-news layer (snapshot here). */}
@@ -241,6 +299,13 @@ export default async function AqNetworkCityProfile({
                     </li>
                   ))}
                 </ul>
+                {/* Attribution for the news layer — the live feed is sourced from Breathe Cities. */}
+                <DataSource
+                  variant="attribution"
+                  name="Breathe Cities"
+                  href="https://breathecities.org"
+                  className="mt-3"
+                />
               </div>
             </div>
 
@@ -318,38 +383,92 @@ export default async function AqNetworkCityProfile({
             </div>
           </section>
 
-          {/* ── 5. 2030 trajectory + problem/health context ─────────────────── */}
+          {/* ── 5. Health payoff — the POSITIVE, LOCALISED prize of reaching the 2030 goal.
+                  This replaces the former standalone "The 2030 journey" section: the goal now
+                  lives as the terminal node on the achievement spine (section 3), and the health
+                  content is reframed here from problem → positive payoff. The life-expectancy
+                  gain LEADS; the current-state "why it matters" grounding (×WHO + sources) is
+                  kept light, below the payoff. Every figure is labelled an estimate with its
+                  method + source — claim the support, never the outcome. ─────────────────── */}
           <section className="mt-14">
             <h2 className="text-2xl font-bold tracking-tight text-foreground">
-              The 2030 journey
+              The payoff for {profile.name}
             </h2>
-            <div className="mt-6 grid gap-4 sm:grid-cols-2">
-              {/* Goal + honest stage framing */}
+
+            <div className="mt-6 grid gap-4 lg:grid-cols-[1.3fr_1fr]">
+              {/* The POSITIVE payoff — leads. Brand-tinted so it reads as the prize, not a warning. */}
               <div
-                className="flex flex-col justify-center gap-2 rounded-2xl p-6"
+                className="rounded-2xl border p-6"
                 style={{
-                  background:
-                    'linear-gradient(135deg, var(--bc-color-dark-blue), var(--bc-color-blue))',
+                  borderColor:
+                    'color-mix(in srgb, var(--bc-semantic-brand) 25%, var(--bc-color-white))',
+                  backgroundColor:
+                    'color-mix(in srgb, var(--bc-semantic-brand) 6%, var(--bc-color-white))',
                 }}
               >
-                <p className="text-xs font-semibold uppercase tracking-widest text-bc-white/80">
-                  Collective goal
+                <div className="flex items-center gap-2">
+                  <span
+                    aria-hidden="true"
+                    className="flex h-8 w-8 items-center justify-center rounded-full"
+                    style={{
+                      backgroundColor:
+                        'color-mix(in srgb, var(--bc-semantic-brand) 16%, var(--bc-color-white))',
+                      color: 'var(--bc-semantic-brand)',
+                    }}
+                  >
+                    <HeartPulse className="h-4 w-4" aria-hidden="true" />
+                  </span>
+                  <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                    The 2030 prize
+                  </span>
+                </div>
+
+                <p className="mt-3 text-lg font-semibold leading-snug text-foreground sm:text-xl">
+                  If {profile.name} reaches the 2030 goal, the average resident gains
+                  about{' '}
+                  <span
+                    className="font-bold"
+                    style={{ color: 'var(--bc-semantic-brand)' }}
+                  >
+                    {monthsGained} months of life
+                  </span>
+                  .
                 </p>
-                <p className="text-3xl font-bold leading-tight text-bc-white">
-                  {profile.trajectory.goalLabel}
+
+                <p className="mt-3 text-sm text-muted-foreground">
+                  Estimated via the AQLI life-expectancy relationship applied to a 30% PM2.5
+                  reduction (from an estimated baseline of ~{profile.baselinePm25} µg/m³).
                 </p>
-                <p className="text-sm text-bc-white/90">
-                  Against a {profile.trajectory.baselineYear} baseline, shared across all
-                  Breathe Cities members.
-                </p>
-                <p className="mt-2 inline-flex w-fit rounded-full bg-bc-white/20 px-3 py-1 text-xs font-semibold text-bc-white">
-                  {profile.name}: {profile.trajectory.stageLabel}
-                </p>
+
+                {/* Honesty pill: explicitly an estimate, validation pending with BC's health team. */}
+                <div className="mt-4 flex flex-col gap-2">
+                  <span
+                    className="inline-flex w-fit items-center rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-wide"
+                    style={{
+                      backgroundColor:
+                        'color-mix(in srgb, var(--bc-color-yellow) 30%, var(--bc-color-white))',
+                      color: 'var(--bc-semantic-text)',
+                    }}
+                  >
+                    Estimate
+                  </span>
+                  <p className="text-xs text-muted-foreground">
+                    Prototype estimate — to be validated with BC&rsquo;s health team.
+                  </p>
+                  <DataSource
+                    variant="attribution"
+                    name="AQLI · WHO"
+                    href="https://aqli.epic.uchicago.edu"
+                  />
+                </div>
               </div>
 
-              {/* Problem + hypothetical health context */}
+              {/* LIGHT "why it matters" current-state grounding — kept, but secondary to the payoff. */}
               <div className="rounded-2xl border border-border bg-background p-6">
-                <p className="text-sm text-muted-foreground">
+                <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                  Why it matters now
+                </p>
+                <p className="mt-2 text-sm text-muted-foreground">
                   {profile.name}&rsquo;s air is around{' '}
                   <span className="font-semibold text-foreground">
                     {profile.health.whoMultiple}× the WHO guideline
@@ -369,20 +488,7 @@ export default async function AqNetworkCityProfile({
                     </li>
                   ))}
                 </ul>
-                <div className="mt-4 rounded-xl border border-border bg-muted/40 p-4">
-                  <p className="text-sm text-foreground">
-                    {profile.name} could prevent{' '}
-                    <span className="font-semibold">
-                      ~{profile.health.hypotheticalDeathsPreventedPerYear.toLocaleString()}{' '}
-                      deaths/year
-                    </span>{' '}
-                    if it met WHO guidelines.
-                  </p>
-                  <p className="mt-1 text-xs font-medium text-muted-foreground">
-                    Projection for context — not an achieved outcome.
-                  </p>
-                </div>
-                <p className="mt-2 text-xs text-muted-foreground">
+                <p className="mt-3 text-xs text-muted-foreground">
                   {profile.trajectory.stageNote}
                 </p>
               </div>

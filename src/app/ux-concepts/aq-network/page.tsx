@@ -2,10 +2,13 @@
  * page.tsx — AQ Network homepage, /ux-concepts/aq-network.
  *
  * Purpose
- *   The AQ Network homepage. Its centrepiece is an interactive 3D GLOBE (NetworkGlobe) showing
- *   the WHOLE Breathe Cities sensor network worldwide, driven by a committed programme snapshot
- *   (no live OpenAQ call). Below the globe it lists every registered member profile and links
- *   to each one — so the dynamic [city] route always has an entry point.
+ *   The AQ Network homepage. Above the globe it carries the COLLECTIVE health headline — the
+ *   shared prize if the whole network hits 30% cleaner air by 2030 (Breathe Cities' published
+ *   per-decade figures: childhood-asthma cases + dollars saved leading, premature deaths present;
+ *   labelled estimates, attributed via DataSource). Its centrepiece is an interactive 3D GLOBE
+ *   (NetworkGlobe) showing the WHOLE Breathe Cities sensor network worldwide, driven by a
+ *   committed programme snapshot (no live OpenAQ call). Below the globe it lists every registered
+ *   member profile and links to each one — so the dynamic [city] route always has an entry point.
  *
  *   The directory reads the SAME registry the dynamic route uses, so when the next city is
  *   registered it appears here automatically with no edit to this file.
@@ -25,8 +28,9 @@
 
 import Link from 'next/link'
 import type { Metadata } from 'next'
-import { ArrowRight } from 'lucide-react'
+import { ArrowRight, HeartPulse, PiggyBank, ShieldCheck } from 'lucide-react'
 import { NetworkGlobe } from './_components/NetworkGlobe'
+import { DataSource } from './_components/DataSource'
 import { getProgrammeSnapshot } from './_data/sensor-snapshots/programme'
 import { CITY_PROFILES } from './_data/cities'
 
@@ -60,6 +64,105 @@ export default function AqNetworkIndex() {
               the timeline to watch the network grow.
             </p>
           </header>
+
+          {/* ── Collective health headline — the SHARED PRIZE of the whole network hitting the
+                  30%-by-2030 goal. Sits directly above the globe counters as the collective payoff
+                  (the globe shows the network; this is what the network is FOR). Leads with the
+                  most relatable figures — childhood asthma + dollars saved — with premature deaths
+                  present. Breathe Cities' own published figures (per decade); labelled estimates,
+                  attributed to Breathe Cities. ADDITIVE — the globe section below is untouched. */}
+          <section className="mt-10">
+            <div
+              className="rounded-2xl border p-6"
+              style={{
+                borderColor:
+                  'color-mix(in srgb, var(--bc-semantic-brand) 22%, var(--bc-color-white))',
+                backgroundColor:
+                  'color-mix(in srgb, var(--bc-semantic-brand) 6%, var(--bc-color-white))',
+              }}
+            >
+              <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                The shared prize · if the network hits 30% cleaner air by 2030
+              </p>
+              <div className="mt-4 grid gap-5 sm:grid-cols-3">
+                {/* Lead 1 — childhood asthma (the most relatable). */}
+                <div>
+                  <span
+                    aria-hidden="true"
+                    className="flex h-9 w-9 items-center justify-center rounded-full"
+                    style={{
+                      backgroundColor:
+                        'color-mix(in srgb, var(--bc-semantic-brand) 16%, var(--bc-color-white))',
+                      color: 'var(--bc-semantic-brand)',
+                    }}
+                  >
+                    <HeartPulse className="h-4 w-4" aria-hidden="true" />
+                  </span>
+                  <p className="mt-3 text-3xl font-bold tracking-tight tabular-nums text-foreground">
+                    ~79,000
+                  </p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    new childhood-asthma cases avoided per decade
+                  </p>
+                </div>
+
+                {/* Lead 2 — money saved (relatable, tangible). */}
+                <div>
+                  <span
+                    aria-hidden="true"
+                    className="flex h-9 w-9 items-center justify-center rounded-full"
+                    style={{
+                      backgroundColor:
+                        'color-mix(in srgb, var(--bc-semantic-brand) 16%, var(--bc-color-white))',
+                      color: 'var(--bc-semantic-brand)',
+                    }}
+                  >
+                    <PiggyBank className="h-4 w-4" aria-hidden="true" />
+                  </span>
+                  <p className="mt-3 text-3xl font-bold tracking-tight tabular-nums text-foreground">
+                    ~$107 billion
+                  </p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    in economic savings
+                  </p>
+                </div>
+
+                {/* Present — premature deaths avoided. */}
+                <div>
+                  <span
+                    aria-hidden="true"
+                    className="flex h-9 w-9 items-center justify-center rounded-full"
+                    style={{
+                      backgroundColor:
+                        'color-mix(in srgb, var(--bc-semantic-brand) 16%, var(--bc-color-white))',
+                      color: 'var(--bc-semantic-brand)',
+                    }}
+                  >
+                    <ShieldCheck className="h-4 w-4" aria-hidden="true" />
+                  </span>
+                  <p className="mt-3 text-3xl font-bold tracking-tight tabular-nums text-foreground">
+                    ~39,000
+                  </p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    premature deaths avoided per decade
+                  </p>
+                </div>
+              </div>
+
+              {/* Honesty: these are Breathe Cities' published projections, not measured outcomes. */}
+              <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-1.5 border-t border-border pt-4">
+                <span className="text-xs text-muted-foreground">
+                  Breathe Cities&rsquo; published estimates for the collective 30%-by-2030 goal — a
+                  projection of the prize, not a measured result.
+                </span>
+                <DataSource
+                  variant="attribution"
+                  name="Breathe Cities"
+                  href="https://breathecities.org"
+                />
+              </div>
+            </div>
+          </section>
 
           {/* The centrepiece — interactive 3D network globe. */}
           <section className="mt-10">

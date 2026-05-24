@@ -42,8 +42,13 @@ export const accraProfile: CityProfile = {
   strapline:
     'A Breathe Cities member building the data, policy, and awareness to clean its air.',
 
-  // ── The achievement timeline (the spine). Each headline reads city-as-actor; the
-  //    card UI adds the "Supported by BC · [pillar]" credit. Pillar tags drive the radar.
+  // ── The achievement timeline (the spine). Authored OLDEST→NEWEST — the spine's whole point
+  //    is the SEQUENCE (what Accra did first) as a shared-learning signal. Years are APPROXIMATE
+  //    estimates inferred from each card's content: build the data foundation first (sensors,
+  //    then research on that data), then turn evidence into policy (action plans), then enforce
+  //    it (burning ban), then sustain awareness — a plausible early-journey order. Each headline
+  //    reads city-as-actor; the card UI adds the "Supported by BC · [pillar]" credit and shows
+  //    the year. Pillar tags drive the radar (order-independent — reordering changes nothing).
   achievements: [
     {
       id: 'accra-sensors-67',
@@ -51,6 +56,7 @@ export const accraProfile: CityProfile = {
       detail:
         'A city-wide low-cost sensor network giving Accra its first dense, local picture of air quality.',
       pillar: 1, // Expanding data
+      year: 2021, // The data foundation — earliest step (sensors before everything builds on them).
     },
     {
       id: 'accra-source-health-research',
@@ -59,6 +65,7 @@ export const accraProfile: CityProfile = {
       detail:
         'Studying where the pollution comes from and what it costs residents’ health — the evidence base for action.',
       pillar: 1, // Expanding data
+      year: 2022, // Research on the sensor data — follows the network being in place.
     },
     {
       id: 'accra-action-plans',
@@ -66,6 +73,7 @@ export const accraProfile: CityProfile = {
       detail:
         'Turning the evidence into concrete, city-led policy the administration can act on.',
       pillar: 2, // Technical support for policymaking
+      year: 2023, // Evidence → policy: action plans follow the research base.
     },
     {
       id: 'accra-burning-ban',
@@ -73,6 +81,7 @@ export const accraProfile: CityProfile = {
       detail:
         'Tackling open burning — one of the city’s largest pollution sources — through enforcement.',
       pillar: 2, // Technical support for policymaking
+      year: 2024, // Enforcement follows the policy it enforces.
     },
     {
       id: 'accra-awareness-campaigns',
@@ -80,6 +89,7 @@ export const accraProfile: CityProfile = {
       detail:
         'Helping residents understand the air they breathe and what reduces their exposure.',
       pillar: 3, // Raising awareness
+      year: 2025, // Sustained community awareness — most recent strand.
     },
     // No pillar-4 (Lesson sharing) card — intentionally absent. Lesson sharing is relational
     // and is captured in the lessonSharing strand below (not on the radar). Accra is early on
@@ -154,4 +164,10 @@ export const accraProfile: CityProfile = {
     stageNote:
       'Accra is building the foundations — data, policy, and awareness. The collective goal is shared across all Breathe Cities members; this is a starting point, not a pass/fail mark.',
   },
+
+  // ── Approximate annual-mean PM2.5 (µg/m³) — the input to the positive health payoff. ~27 is
+  //    an ESTIMATE for Accra from OpenAQ / WHO city air-quality data (West-African urban annual
+  //    means typically sit well above WHO's 5 µg/m³ guideline). Feeds the life-expectancy-gain
+  //    estimate on the profile (≈ 9 months gained for a 30% reduction); labelled an estimate.
+  baselinePm25: 27,
 }
