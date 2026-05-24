@@ -16,12 +16,13 @@
  *
  * Key exports: RoadmapV2Layout (default)
  * External dependencies: PrototypeHeader, @/components/concept (BcHeader, BcFooter),
- *   ./roadmap-chrome.config (ROADMAP_V2_CHROME)
+ *   ./roadmap-chrome.config (ROADMAP_V2_CHROME), the single-source concept registry (CONCEPTS).
  */
 
 import { PrototypeHeader } from '../../_components/PrototypeHeader'
 import { BcHeader, BcFooter } from '@/components/concept'
 import { ROADMAP_V2_CHROME } from './roadmap-chrome.config'
+import { CONCEPTS } from '../../_data/concept-registry'
 
 export default function RoadmapV2Layout({
   children,
@@ -30,8 +31,9 @@ export default function RoadmapV2Layout({
 }) {
   return (
     <>
-      {/* Tooling bar (back-to-hub + comments) ABOVE the BC-site recreation. */}
-      <PrototypeHeader buildName="Best Practice Roadmap v2 — concept" />
+      {/* Tooling bar (back-to-hub + comments) ABOVE the BC-site recreation. Title from the
+          concept registry so v2 reads the SAME name as v1 and the hub (no "vN — concept"). */}
+      <PrototypeHeader buildName={CONCEPTS.roadmap.title} />
       {/* BC site nav — the SHARED chrome, configured for Roadmap v2 routes. */}
       <BcHeader config={ROADMAP_V2_CHROME} />
       {children}

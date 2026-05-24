@@ -1,48 +1,32 @@
 /**
- * EntryCard.tsx — compact, graphical, scannable entry card for the deck grid
+ * EntryCard.tsx — compact, graphical, scannable entry card for a concern page's answer grid.
  *
- * The data-visualisation face of the Resident Concerns deck (Jack's 2026-05-23
- * review: lean data-viz, scan at a glance). Replaces the verbose inline card in
- * the grid. Each entry card shows three things only:
- *   1. An ICON for the source/setting (coal, factory, car, cooking, dust /
- *      school, commute, home, data) — lucide-react, simple and consistent.
- *   2. A HEADLINE STAT as a before→after progression, a single real figure, or a
- *      styled [TK] placeholder (StatViz). The card's most representative REAL
- *      number — same no-fabrication rule as the detailed card.
- *   3. Minimal label text — facet + city.
+ * The data-visualisation face of one CITY ANSWER on a concern page (Jack's 2026-05-23 review: lean
+ * data-viz, scan at a glance). After the concern-centric restructure (2026-05-25) the resident's
+ * QUESTION is the concern-page header and these cards are the city answers under it. Each entry
+ * card shows, at a glance:
+ *   1. A category ICON (source/setting/action/place/actor) — shared ConcernIcon, large for scan.
+ *   2. The §4 framing line — "Here's how {City} answered" — so the card reads as a city answer.
+ *   3. A HEADLINE STAT (shared StatViz): a before→after progression, a single real figure, or a
+ *      styled [TK] placeholder. The card's most representative REAL number — no fabrication.
+ *   4. A minimal facet chip.
  *
- * TAP/CLICK → opens a modal (shadcn/base-ui Dialog) containing the FULL detailed
- * card exactly as before, via the reused ConcernCardView. Dismiss by overlay
- * click, Esc, or the close button — all provided by DialogContent.
+ * TAP/CLICK → opens a modal (shadcn/base-ui Dialog) containing the FULL detailed card via the
+ * reused ConcernCardView, which carries the §4 content order AND the §7 infographic (icon + stat).
+ * Dismiss by overlay click, Esc, or the close button — all provided by DialogContent.
  *
- * Light-mode styling via BC semantic Tailwind tokens.
+ * The icon + stat use the SHARED concern-visuals primitives, so the grid face and the popup render
+ * the same infographic. The old `isLead` localisation ring is GONE — the city switcher and per-city
+ * lead state were retired with the restructure (the concern, not the city, is the organising unit).
+ *
+ * Light mode, functional colour only, no emoji.
  *
  * Key exports: EntryCard
- * External dependencies: shadcn Dialog/Card/Badge, lucide-react, ConcernCardView
+ * External dependencies: shadcn Dialog/Card/Badge, concern-visuals, ConcernCardView, concerns-data
  */
 
 "use client";
 
-import {
-  Factory,
-  Car,
-  Flame,
-  CookingPot,
-  Wind,
-  School,
-  Footprints,
-  Home,
-  Radar,
-  Route,
-  HandCoins,
-  Megaphone,
-  MapPin,
-  Landmark,
-  Scale,
-  ShieldCheck,
-  ArrowRight,
-  type LucideIcon,
-} from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -52,107 +36,16 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import { ConcernIcon, StatViz } from "./concern-visuals";
 import { ConcernCardView } from "./ConcernCardView";
-import {
-  type ConcernCard,
-  type City,
-  type IconKey,
-  type EntryStat,
-} from "../_data/concerns-data";
-
-/**
- * Icon-key → lucide icon. Lives in the presentation layer so the data stays
- * presentation-agnostic. "coal" uses Flame (lucide has no coal glyph); "dust"
- * uses Wind; "data" uses Radar (sensing). Kept simple and consistent.
- */
-const ICONS: Record<IconKey, LucideIcon> = {
-  coal: Flame,
-  factory: Factory,
-  car: Car,
-  cooking: CookingPot,
-  dust: Wind,
-  school: School,
-  commute: Footprints,
-  home: Home,
-  data: Radar,
-  // ACTION (what can I do?) — protect yourself / change the system
-  route: Route, // clean-air route / protective tool
-  grants: HandCoins, // a grant a resident can take up
-  campaign: Megaphone, // a civic campaign residents drove
-  // PLACE (which part of my city?) — neighbourhood comparison
-  place: MapPin,
-  // ACTOR (make the polluters stop?) — who must act
-  cityGov: Landmark, // city government acted
-  regulator: Scale, // a regulator / law banned or charged the polluter
-  national: ShieldCheck, // national government forcing function
-};
-
-/**
- * Renders the headline stat for an entry card. Three honest shapes, mirroring
- * the EntryStat union: a before→after progression, a single real figure, or a
- * styled [TK] placeholder consistent with the detailed card's [figure TK] chip.
- */
-function StatViz({ stat }: { stat: EntryStat }) {
-  if (stat.kind === "tk") {
-    return (
-      <div className="flex flex-col items-start gap-1">
-        <span className="rounded bg-amber-200 px-1.5 py-0.5 font-mono text-xs font-semibold text-amber-800">
-          [TK]
-        </span>
-        <span className="text-xs leading-snug text-muted-foreground">
-          {stat.metric}
-        </span>
-      </div>
-    );
-  }
-
-  if (stat.kind === "figure") {
-    return (
-      <div className="flex flex-col items-start gap-1">
-        {/* ~2x headline number (Jack 2026-05-23) — card reads as data-viz at a glance */}
-        <span className="text-5xl font-bold leading-none tracking-tight text-foreground">
-          {stat.value}
-        </span>
-        <span className="text-xs leading-snug text-muted-foreground">
-          {stat.metric}
-        </span>
-      </div>
-    );
-  }
-
-  // progression — before → after, both real
-  return (
-    <div className="flex flex-col items-start gap-1">
-      <span className="inline-flex items-center gap-2">
-        {/* `from` and arrow scaled up to stay balanced with the ~2x `to` value */}
-        <span className="text-base font-medium text-muted-foreground">
-          {stat.from}
-        </span>
-        <ArrowRight
-          aria-hidden="true"
-          className="h-5 w-5 shrink-0 text-muted-foreground/70"
-        />
-        <span className="text-5xl font-bold leading-none tracking-tight text-foreground">
-          {stat.to}
-        </span>
-      </span>
-      <span className="text-xs leading-snug text-muted-foreground">
-        {stat.metric}
-      </span>
-    </div>
-  );
-}
+import { type ConcernCard, type City } from "../_data/concerns-data";
 
 interface EntryCardProps {
   card: ConcernCard;
   city: City;
-  /** True when this card leads the deck for the active city (localisation). */
-  isLead: boolean;
 }
 
-export function EntryCard({ card, city, isLead }: EntryCardProps) {
-  const Icon = ICONS[card.iconKey];
-
+export function EntryCard({ card, city }: EntryCardProps) {
   return (
     <Dialog>
       <DialogTrigger
@@ -160,36 +53,39 @@ export function EntryCard({ card, city, isLead }: EntryCardProps) {
           <Card
             role="button"
             tabIndex={0}
-            aria-label={`${card.facet} — ${city.name}. Open full detail.`}
+            aria-label={`How ${city.name} answered: ${card.facet}. Open full detail.`}
             className={[
               "group cursor-pointer p-5 text-left transition-all",
               "hover:shadow-md hover:ring-1 hover:ring-foreground/15",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/40",
-              isLead ? "ring-2 ring-foreground/30" : "",
             ].join(" ")}
           />
         }
       >
-        {/* Top row: icon + city. Icon ~2x (Jack 2026-05-23) so the card reads as
-            a data-viz at a glance; city label stays as-is, top-aligned. */}
+        {/* Top row: category icon (~2x for at-a-glance data-viz) + city label. */}
         <div className="flex items-start justify-between gap-2">
-          <span className="inline-flex h-20 w-20 items-center justify-center rounded-xl bg-muted text-foreground">
-            <Icon aria-hidden="true" className="h-10 w-10" />
-          </span>
-          <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
-            {city.name}
-          </span>
+          <ConcernIcon
+            iconKey={card.iconKey}
+            tileClassName="h-20 w-20"
+            iconClassName="h-10 w-10"
+          />
+          <span className="text-xs text-muted-foreground">{city.name}</span>
         </div>
 
-        {/* Hero: the headline stat */}
-        <div className="mt-4">
+        {/* §4 framing line — the card is one city's answer to the page's question. */}
+        <p
+          className="mt-4 text-[11px] font-semibold uppercase tracking-widest"
+          style={{ color: "var(--bc-color-blue)" }}
+        >
+          Here&rsquo;s how {city.name} answered
+        </p>
+
+        {/* Hero: the headline stat (shared with the popup). */}
+        <div className="mt-2">
           <StatViz stat={card.stat} />
         </div>
 
-        {/* Minimal label: facet chip only. The "Leads {city}" textual marker was
-            removed (Jack 2026-05-23) — redundant with the city label and ambiguous.
-            Lead is now conveyed by POSITION (the per-city reorder in page.tsx) plus
-            the `isLead` ring on the card; no textual marker. */}
+        {/* Minimal label: facet chip. */}
         <div className="mt-4 flex flex-wrap items-center gap-2">
           <Badge variant="outline" className="text-xs">
             {card.facetLabel}
@@ -197,19 +93,19 @@ export function EntryCard({ card, city, isLead }: EntryCardProps) {
         </div>
       </DialogTrigger>
 
-      {/* Modal: the FULL detailed card, reused verbatim. Widened past the
-          default max-w-sm so the full detail breathes. */}
+      {/* Modal: the FULL detailed card (§4 order + §7 infographic), reused verbatim. */}
       <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-lg">
-        {/* Accessible title/description for the dialog (visually carried by the
-            card itself, so kept screen-reader-only to avoid duplication). */}
+        {/* Accessible title/description (visually carried by the card itself, so kept
+            screen-reader-only to avoid duplication). */}
         <DialogTitle className="sr-only">
           {card.facet} — {city.name}
         </DialogTitle>
         <DialogDescription className="sr-only">
-          What {city.name} did about {card.facetLabel.toLowerCase()}, the outcome,
-          and why it could apply to your city.
+          How {city.name} answered its residents about{" "}
+          {card.facetLabel.toLowerCase()}, the outcome, and why it could apply to
+          your city.
         </DialogDescription>
-        <ConcernCardView card={card} city={city} isLead={isLead} />
+        <ConcernCardView card={card} city={city} />
       </DialogContent>
     </Dialog>
   );

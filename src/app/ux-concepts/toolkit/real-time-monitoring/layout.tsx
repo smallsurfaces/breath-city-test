@@ -15,12 +15,13 @@
  *
  * Key exports: ToolkitRtMonitoringLayout (default)
  * External dependencies: PrototypeHeader, @/components/concept (BcHeader, BcFooter),
- *   ./real-time-monitoring-chrome.config (TOOLKIT_RT_CHROME)
+ *   ./real-time-monitoring-chrome.config (TOOLKIT_RT_CHROME), the concept registry (CONCEPTS).
  */
 
 import { PrototypeHeader } from '../../../_components/PrototypeHeader'
 import { BcHeader, BcFooter } from '@/components/concept'
 import { TOOLKIT_RT_CHROME } from './real-time-monitoring-chrome.config'
+import { CONCEPTS } from '../../../_data/concept-registry'
 
 export default function ToolkitRtMonitoringLayout({
   children,
@@ -29,8 +30,10 @@ export default function ToolkitRtMonitoringLayout({
 }) {
   return (
     <>
-      {/* Tooling bar (back-to-hub + comments + "Updated" stamp) ABOVE the BC-site recreation. */}
-      <PrototypeHeader buildName="City AQ Toolkit — Real-time monitoring (concept)" />
+      {/* Tooling bar (back-to-hub + comments + "Updated" stamp) ABOVE the BC-site recreation.
+          This is a SUB-PAGE of the toolkit concept, so the bar carries the toolkit concept title
+          from the registry (the page's own "Real-time monitoring" H1 distinguishes the sub-surface). */}
+      <PrototypeHeader buildName={CONCEPTS.toolkit.title} />
       {/* BC site nav — the SHARED chrome, configured for this component (live "Toolkit" + "Dev hub"). */}
       <BcHeader config={TOOLKIT_RT_CHROME} />
       {children}

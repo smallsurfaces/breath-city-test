@@ -74,6 +74,7 @@ import { AchievementTimeline } from '../_components/AchievementTimeline'
 import { LessonSharing } from '../_components/LessonSharing'
 import { SensorGrowthMap } from '../_components/SensorGrowthMap'
 import { DataSource } from '../_components/DataSource'
+import { InfoTooltip } from '../../../_components/InfoTooltip'
 import { getSensorSnapshot } from '../_data/sensor-snapshots'
 
 /**
@@ -219,14 +220,21 @@ export default async function AqNetworkCityProfile({
                   figure (an estimate) lives here now. Renders from a one-time OpenAQ snapshot,
                   never a per-load API call. */}
           <section className="mt-14">
-            <h2 className="text-2xl font-bold tracking-tight text-foreground">
-              Sensors &amp; coverage
-            </h2>
-            <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-              How {profile.name}&rsquo;s sensor network was built — scrub the timeline to watch
-              it grow. Markers show each sensor by type: reference-grade monitors and low-cost
-              sensors.
-            </p>
+            {/* Heading + an "i" info affordance. The descriptive sub-line ("How [city]'s sensor
+                network was built — scrub the timeline… Markers show each sensor by type…") was
+                HIDDEN this pass (purely descriptive). The OpenAQ provenance/attribution is KEPT
+                but moved behind the "i" tooltip (load-bearing for data-attribution-traceability). */}
+            <div className="flex items-center gap-2">
+              <h2 className="text-2xl font-bold tracking-tight text-foreground">
+                Sensors &amp; coverage
+              </h2>
+              <InfoTooltip label="Sensor data source">
+                <span className="flex flex-col gap-1">
+                  <span>Source: OpenAQ.</span>
+                  <span>For raw sensor data, see OpenAQ (openaq.org).</span>
+                </span>
+              </InfoTooltip>
+            </div>
             <div className="mt-6">
               {sensorSnapshot !== undefined ? (
                 <SensorGrowthMap snapshot={sensorSnapshot} />
@@ -236,21 +244,6 @@ export default async function AqNetworkCityProfile({
                   Sensor-growth map for {profile.name} is not available yet.
                 </div>
               )}
-            </div>
-            {/* Attribution — sensor positions/type come from OpenAQ; offer a path to the raw
-                sensor data we don't host here (the redirect variant). Quiet, present, not loud. */}
-            <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1">
-              <DataSource
-                variant="attribution"
-                name="OpenAQ"
-                href="https://openaq.org"
-              />
-              <DataSource
-                variant="redirect"
-                label="For raw sensor data"
-                name="OpenAQ"
-                href="https://openaq.org"
-              />
             </div>
           </section>
 
@@ -326,11 +319,9 @@ export default async function AqNetworkCityProfile({
                 <h2 className="text-base font-bold tracking-tight text-foreground">
                   How Breathe Cities supports {profile.name}
                 </h2>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  A programme scorecard across BC&rsquo;s three city-level support pillars,
-                  summarising the achievements above. A lighter pillar means less support
-                  focus there — not a judgement of the city.
-                </p>
+                {/* Descriptive scorecard explainer ("A programme scorecard across BC's three
+                    pillars… A lighter pillar means less support focus there — not a judgement of
+                    the city.") was HIDDEN this pass — purely descriptive, not load-bearing. */}
 
                 <div className="mt-4 flex justify-center">
                   <PillarRadar counts={counts} />

@@ -20,13 +20,15 @@
  * Route: /ux-concepts/toolkit
  *
  * Key exports: ToolkitLandingPage (default)
- * External dependencies: @/components/concept (ConceptHero, ConceptSectionHeader, BcHeader,
- *   BcFooter), ../_components/PrototypeHeader, ./_components/{toolkit-catalogue.config, CatalogueCard}
+ * External dependencies: @/components/concept (ConceptSectionHeader, BcHeader, BcFooter),
+ *   ../../_components/PrototypeHeader, ../../_components/ConceptHeroPlain (eyebrow-less hero),
+ *   ../../_data/concept-registry (CONCEPTS), ./_components/{toolkit-catalogue.config, CatalogueCard}
  */
 
 import { PrototypeHeader } from '../../_components/PrototypeHeader'
+import { ConceptHeroPlain } from '../../_components/ConceptHeroPlain'
+import { CONCEPTS } from '../../_data/concept-registry'
 import {
-  ConceptHero,
   ConceptSectionHeader,
   BcHeader,
   BcFooter,
@@ -41,16 +43,19 @@ import { CatalogueCard } from './_components/CatalogueCard'
 export default function ToolkitLandingPage() {
   return (
     <>
-      {/* Tooling bar (back-to-hub + comments + "Updated" stamp) ABOVE the BC-site recreation. */}
-      <PrototypeHeader buildName="City AQ Toolkit — component catalogue (concept)" />
+      {/* Tooling bar (back-to-hub + comments + "Updated" stamp) ABOVE the BC-site recreation.
+          Title from the concept registry so the bar matches the hub label (no "concept" suffix). */}
+      <PrototypeHeader buildName={CONCEPTS.toolkit.title} />
       {/* BC site nav — the SHARED chrome, configured for the toolkit landing. */}
       <BcHeader config={TOOLKIT_CHROME} />
 
       <main className="min-h-screen bg-background px-4 py-10">
         <div className="mx-auto max-w-6xl space-y-12">
-          {/* ── Hero — the catalogue pitch ───────────────────────────────────────── */}
-          <ConceptHero
-            eyebrow="City AQ Toolkit · concept"
+          {/* ── Hero — the catalogue pitch. Eyebrow dropped this pass (Jack's decision): uses the
+                local eyebrow-less ConceptHeroPlain wrapper instead of <ConceptHero> (whose eyebrow
+                is required and which is design-system-keeper's domain). FLAG: once ConceptHero gets
+                an optional eyebrow this returns to <ConceptHero>. */}
+          <ConceptHeroPlain
             headline="Everything a complete air-quality stack needs"
             body="A catalogue of the digital components and guidance a city needs to understand, communicate, and act on its air quality — and which parts Breathe Cities offers today. Real-time monitoring is the foundation, and it is available now; the rest are on the way."
           />

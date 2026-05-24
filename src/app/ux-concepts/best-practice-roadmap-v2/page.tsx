@@ -5,7 +5,8 @@
  *   Synchronised v2 copy of the Best Practice Roadmap overview page. SAME structure, content,
  *   data, and interactions as v1 — four pillar sections, featured PracticeCardTile per domain,
  *   domain explore links. The ONLY differences from v1 are skin-level:
- *     - The hero uses ConceptHero (shared primitive) instead of inline h1/p markup.
+ *     - The hero uses ConceptHeroPlain (eyebrow-less hero wrapper) instead of inline h1/p markup.
+ *       (The eyebrow was dropped in the concept-housekeeping pass.)
  *     - The four stat figures use ConceptStat (shared primitive) instead of inline div markup.
  *     - Pillar section headers use ConceptSectionHeader (shared primitive) instead of inline h2/p.
  *     - The stage indicator dot overrides STAGE_COLORS at the PRESENTATION LAYER using inline
@@ -23,14 +24,16 @@
  *   Enabling   → var(--bc-color-steel)      steel grey — support/infrastructure = neutral
  *
  * Key exports: default page component
- * External dependencies: next/link, shadcn Separator, @/components/concept (ConceptHero,
- *   ConceptStat, ConceptSectionHeader), @/data/roadmap-data (DOMAINS, PRACTICE_CARDS, Stage),
- *   ./_components/PracticeCardView (PracticeCardTile)
+ * External dependencies: next/link, shadcn Separator, @/components/concept (ConceptStat,
+ *   ConceptSectionHeader), ../../_components/ConceptHeroPlain (eyebrow-less hero),
+ *   @/data/roadmap-data (DOMAINS, PRACTICE_CARDS, Stage), ./_components/PracticeCardView
+ *   (PracticeCardTile)
  */
 
 import Link from 'next/link'
 import { Separator } from '@/components/ui/separator'
-import { ConceptHero, ConceptStat, ConceptSectionHeader } from '@/components/concept'
+import { ConceptStat, ConceptSectionHeader } from '@/components/concept'
+import { ConceptHeroPlain } from '../../_components/ConceptHeroPlain'
 import {
   DOMAINS,
   PRACTICE_CARDS,
@@ -108,11 +111,11 @@ export default function RoadmapV2Page() {
           <span>Best Practice Roadmap</span>
         </div>
 
-        {/* Hero — shared ConceptHero primitive replaces v1's inline h1/p. The four stat figures
-            use ConceptStat (bare, no card wrapper) in a flex row below the lead, matching v1's
-            inline stat row layout (all values are ≤ text-3xl, within the primitive's cap). */}
-        <ConceptHero
-          eyebrow="Best Practice Roadmap · concept"
+        {/* Hero — eyebrow-less ConceptHeroPlain (eyebrow dropped this pass, Jack's decision). Same
+            h1/lead type scale as ConceptHero; the four stat figures use ConceptStat (bare, no card)
+            in a flex row in the children slot, matching v1's inline stat row layout. FLAG: returns
+            to <ConceptHero> once its eyebrow is made optional (design-system-keeper). */}
+        <ConceptHeroPlain
           headline="Best Practice Roadmap"
           body="How 14 cities serving 77 million people are building clean air — domain by domain, with measurable results."
         >
@@ -123,7 +126,7 @@ export default function RoadmapV2Page() {
             <ConceptStat value="12" label="domains" />
             <ConceptStat value="30%" label="reduction target by 2030" />
           </div>
-        </ConceptHero>
+        </ConceptHeroPlain>
 
         {/* Pillar sections — four stages, each with a ConceptSectionHeader and a domain grid. */}
         {PILLAR_ORDER.map((pillar) => {

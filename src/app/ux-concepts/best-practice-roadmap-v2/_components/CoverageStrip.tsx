@@ -37,7 +37,7 @@ export function CoverageStrip({ citySlug }: CoverageStripProps) {
               <TooltipTrigger
                 render={
                   <Link
-                    href={`/ux-concepts/best-practice-roadmap/domain/${domain.slug}#${citySlug}`}
+                    href={`/ux-concepts/best-practice-roadmap-v2/domain/${domain.slug}#${citySlug}`}
                     className="inline-flex items-center justify-center"
                   />
                 }

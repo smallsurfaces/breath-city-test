@@ -67,47 +67,32 @@ const BUILDS = [
     folder: "src/app/jtbd-framework/architecture",
   },
   {
+    // Resident Concerns concept (concern-centric). Index "/ux-concepts/cities" also covers the
+    // dynamic concern route "/ux-concepts/cities/[concern]" via longest-prefix lookup at render
+    // time. (The v1/v2 split and the old per-city "[slug]" route were retired in the
+    // concern-centric restructure.)
     routes: ["/ux-concepts/cities"],
     folder: "src/app/ux-concepts/cities",
   },
   {
-    routes: ["/ux-concepts/best-practice-roadmap"],
-    folder: "src/app/ux-concepts/best-practice-roadmap",
-  },
-  {
-    routes: ["/ux-concepts/jtbd-city-toolkit"],
-    folder: "src/app/ux-concepts/jtbd-city-toolkit",
-  },
-  {
-    // Index "/ux-concepts/aq-network" also covers the dynamic profile route
-    // "/ux-concepts/aq-network/[city]" via longest-prefix lookup at render time.
-    routes: ["/ux-concepts/aq-network"],
-    folder: "src/app/ux-concepts/aq-network",
-  },
-  {
-    // Synchronised v2 skin of the AQ Network concept. Index "/ux-concepts/aq-network-v2"
-    // also covers its dynamic profile route "/ux-concepts/aq-network-v2/[city]" via
-    // longest-prefix lookup at render time.
+    // AQ Network Membership concept (canonical build — v1 retired in the v1-retire pass).
+    // Index "/ux-concepts/aq-network-v2" also covers its dynamic profile route
+    // "/ux-concepts/aq-network-v2/[city]" via longest-prefix lookup at render time.
     routes: ["/ux-concepts/aq-network-v2"],
     folder: "src/app/ux-concepts/aq-network-v2",
   },
   {
-    // Synchronised v2 skin of the Best Practice Roadmap concept. Sub-routes
-    // (/cities, /city/[slug], /domain/[slug]) inherit via longest-prefix lookup.
+    // Best Practice Roadmap concept (canonical build — v1 retired in the v1-retire pass).
+    // Sub-routes (/cities, /city/[slug], /domain/[slug]) inherit via longest-prefix lookup.
     routes: ["/ux-concepts/best-practice-roadmap-v2"],
     folder: "src/app/ux-concepts/best-practice-roadmap-v2",
   },
   {
-    // Synchronised v2 skin of the JTBD City Toolkit concept.
-    routes: ["/ux-concepts/jtbd-city-toolkit-v2"],
-    folder: "src/app/ux-concepts/jtbd-city-toolkit-v2",
-  },
-  {
-    // Synchronised v2 skin of the Resident Concerns (Cities) concept.
-    // Index "/ux-concepts/cities-v2" also covers the dynamic city route
-    // "/ux-concepts/cities-v2/[slug]" via longest-prefix lookup at render time.
-    routes: ["/ux-concepts/cities-v2"],
-    folder: "src/app/ux-concepts/cities-v2",
+    // City AQ Toolkit concept (component-catalogue build). Supersedes the retired JTBD
+    // per-city-audit toolkit (jtbd-city-toolkit + -v2, both removed in the v1-retire pass).
+    // The dynamic "/real-time-monitoring" sub-route inherits via longest-prefix lookup.
+    routes: ["/ux-concepts/toolkit"],
+    folder: "src/app/ux-concepts/toolkit",
   },
 ];
 
