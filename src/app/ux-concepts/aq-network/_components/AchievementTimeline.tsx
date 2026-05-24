@@ -16,23 +16,26 @@
  *       "what did the city do first" as a shared-learning signal.
  *
  * Rendering approach
- *   A connected vertical timeline (one rule, a node per card) that CULMINATES in a distinct,
- *   brand-filled goal node on the SAME spine — so the whole section reads as a trajectory with a
- *   destination. Each pillar has a BC-token colour for its node + tag, matching PillarRadar so
- *   timeline and radar read as one system. Colours are BC tokens only (no hardcoded hex).
+ *   A connected vertical timeline (one rule, a node per card) that runs achievement cards →
+ *   a distinct brand-filled 2030-GOAL node → a final HEALTH-PAYOFF node, all on the SAME spine —
+ *   so the whole section reads as one trajectory: what the city did → the shared destination →
+ *   the prize for reaching it. Each pillar has a BC-token colour for its node + tag, matching
+ *   PillarRadar so timeline and radar read as one system. Colours are BC tokens only (no
+ *   hardcoded hex).
  *
  * Key exports: AchievementTimeline (named)
- * External dependencies: react (types), lucide-react (Flag), ../_data/types (AchievementCard,
- *   PILLAR_BY_ID, PillarId).
+ * External dependencies: react (types), lucide-react (Flag, HeartPulse), ../_data/types
+ *   (AchievementCard, PILLAR_BY_ID, PillarId), ./DataSource (payoff-node attribution).
  */
 
 import type { ReactElement } from 'react'
-import { Flag } from 'lucide-react'
+import { Flag, HeartPulse } from 'lucide-react'
 import {
   PILLAR_BY_ID,
   type AchievementCard,
   type PillarId,
 } from '../_data/types'
+import { DataSource } from './DataSource'
 
 /**
  * BC token colour per pillar — MUST match PillarRadar's mapping so the timeline node/tag
@@ -55,6 +58,20 @@ type AchievementTimelineProps = {
   goalLabel: string
   /** The city's honest stage label (trajectory.stageLabel, e.g. "Early on the journey"). */
   stageLabel: string
+  /**
+   * The POSITIVE health payoff — estimated months of life the average resident GAINS if the
+   * city hits the 30%-by-2030 goal. Computed in the [city] page (AQLI relationship × baseline)
+   * and passed in so this component owns presentation only, not the health maths.
+   */
+  monthsGained: number
+  /** Estimated annual-mean PM2.5 baseline (µg/m³) the payoff is computed from — shown as ~N. */
+  baselinePm25: number
+  /** How many times the WHO PM2.5 guideline the city's air is — the "why it matters now" anchor. */
+  whoMultiple: number
+  /** Major pollution sources (label + approximate %), shown in the "why it matters now" context. */
+  sources: { label: string; sharePct: number }[]
+  /** The non-judgemental "starting point, not a pass/fail mark" note (trajectory.stageNote). */
+  stageNote: string
 }
 
 /**
@@ -171,25 +188,167 @@ function GoalNode({
 }
 
 /**
+ * The FINAL node — the health payoff, the prize for reaching the 2030 goal. Sits on the SAME
+ * vertical rule immediately AFTER the GoalNode, so the spine reads: actions → shared goal →
+ * the prize. Visually it is the POSITIVE counterpart to the goal node: a brand-TINTED (not
+ * brand-filled) card so it reads as the upside, not a second destination. It carries:
+ *   - the headline payoff (the months of life a resident gains) + the AQLI method line,
+ *   - an ESTIMATE pill + the "validate with BC's health team" honesty note + the AQLI·WHO source,
+ *   - and, attached WITHIN the node (not a detached section), the light "why it matters now"
+ *     current-state grounding: ×WHO multiple, top pollution sources, and the non-judgemental
+ *     stage note. The payoff LEADS; the grounding is secondary, inside the same node.
+ * Every figure is labelled an estimate — claim the support, never the outcome.
+ */
+function PayoffNode({
+  cityName,
+  monthsGained,
+  baselinePm25,
+  whoMultiple,
+  sources,
+  stageNote,
+}: {
+  cityName: string
+  monthsGained: number
+  baselinePm25: number
+  whoMultiple: number
+  sources: { label: string; sharePct: number }[]
+  stageNote: string
+}): ReactElement {
+  return (
+    <li className="relative pl-10">
+      {/* Payoff node marker — brand-tinted ring with a heart-pulse glyph so it reads as the
+          human upside of the goal. Same rule + same size as the goal node so the two terminal
+          nodes are a matched pair (destination → prize). */}
+      <span
+        aria-hidden="true"
+        className="absolute left-[6px] top-0.5 flex h-6 w-6 items-center justify-center rounded-full border-2 border-background"
+        style={{
+          backgroundColor:
+            'color-mix(in srgb, var(--bc-semantic-brand) 16%, var(--bc-color-white))',
+          color: 'var(--bc-semantic-brand)',
+        }}
+      >
+        <HeartPulse className="h-3.5 w-3.5" aria-hidden="true" />
+      </span>
+
+      {/* Payoff card — brand-TINTED (a wash + border tint of the brand), so it reads as the
+          prize rather than a second brand-filled destination. */}
+      <div
+        className="rounded-2xl border p-6 shadow-sm"
+        style={{
+          borderColor:
+            'color-mix(in srgb, var(--bc-semantic-brand) 25%, var(--bc-color-white))',
+          backgroundColor:
+            'color-mix(in srgb, var(--bc-semantic-brand) 6%, var(--bc-color-white))',
+        }}
+      >
+        <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+          The 2030 prize
+        </p>
+
+        {/* HERO: the positive payoff — months of life gained at the 2030 goal. */}
+        <p className="mt-2 text-lg font-semibold leading-snug text-foreground sm:text-xl">
+          If {cityName} reaches the 2030 goal, the average resident gains about{' '}
+          <span className="font-bold" style={{ color: 'var(--bc-semantic-brand)' }}>
+            {monthsGained} months of life
+          </span>
+          .
+        </p>
+
+        <p className="mt-3 text-sm text-muted-foreground">
+          Estimated via the AQLI life-expectancy relationship applied to a 30% PM2.5 reduction
+          (from an estimated baseline of ~{baselinePm25} µg/m³).
+        </p>
+
+        {/* Honesty: explicitly an estimate, validation pending with BC's health team. */}
+        <div className="mt-4 flex flex-col gap-2">
+          <span
+            className="inline-flex w-fit items-center rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-wide"
+            style={{
+              backgroundColor:
+                'color-mix(in srgb, var(--bc-color-yellow) 30%, var(--bc-color-white))',
+              color: 'var(--bc-semantic-text)',
+            }}
+          >
+            Estimate
+          </span>
+          <p className="text-xs text-muted-foreground">
+            Prototype estimate — to be validated with BC&rsquo;s health team.
+          </p>
+          <DataSource
+            variant="attribution"
+            name="AQLI · WHO"
+            href="https://aqli.epic.uchicago.edu"
+          />
+        </div>
+
+        {/* WHY IT MATTERS NOW — the light current-state grounding, kept WITHIN the payoff node
+            (a divided sub-block), not as a detached full-width section. Secondary to the payoff
+            above: ×WHO multiple, top sources, and the non-judgemental stage note. */}
+        <div
+          className="mt-5 border-t pt-4"
+          style={{
+            borderColor:
+              'color-mix(in srgb, var(--bc-semantic-brand) 18%, var(--bc-color-white))',
+          }}
+        >
+          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+            Why it matters now
+          </p>
+          <p className="mt-2 text-sm text-muted-foreground">
+            {cityName}&rsquo;s air is around{' '}
+            <span className="font-semibold text-foreground">
+              {whoMultiple}× the WHO guideline
+            </span>
+            . Major sources:
+          </p>
+          <ul className="mt-2 space-y-1">
+            {sources.map((source) => (
+              <li
+                key={source.label}
+                className="flex items-center justify-between gap-2 text-sm"
+              >
+                <span className="text-muted-foreground">{source.label}</span>
+                <span className="font-semibold tabular-nums text-foreground">
+                  ~{source.sharePct}%
+                </span>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-3 text-xs text-muted-foreground">{stageNote}</p>
+        </div>
+      </div>
+    </li>
+  )
+}
+
+/**
  * The narrative spine. Renders the vertical rule, one AchievementRow per card (in the data's
- * oldest→newest order), then the terminal GoalNode on the same rule. A small "dates approximate"
- * note sits under the spine. Reordering cards changes only display order — the radar (counted
- * elsewhere) is order-independent.
+ * oldest→newest order), then the terminal GoalNode and the final PayoffNode on the same rule —
+ * so the spine reads actions → shared 2030 goal → the prize for reaching it. A small "dates
+ * approximate" note sits under the spine. Reordering cards changes only display order — the
+ * radar (counted elsewhere) is order-independent.
  */
 export function AchievementTimeline({
   achievements,
   cityName,
   goalLabel,
   stageLabel,
+  monthsGained,
+  baselinePm25,
+  whoMultiple,
+  sources,
+  stageNote,
 }: AchievementTimelineProps): ReactElement {
   return (
     <div>
       <ol className="relative space-y-4">
-        {/* The vertical rule the nodes sit on. Spans from the first card node down INTO the goal
-            node so the cards visibly flow into the destination (one continuous spine). */}
+        {/* The vertical rule the nodes sit on. Spans from the first card node down THROUGH the
+            goal node and INTO the final payoff node, so the cards flow into the destination and
+            on into the prize — one continuous spine. */}
         <span
           aria-hidden="true"
-          className="absolute left-[17px] top-2 bottom-3 w-px bg-border"
+          className="absolute left-[17px] top-2 bottom-6 w-px bg-border"
         />
         {achievements.map((card) => (
           <AchievementRow key={card.id} card={card} />
@@ -199,6 +358,16 @@ export function AchievementTimeline({
           cityName={cityName}
           goalLabel={goalLabel}
           stageLabel={stageLabel}
+        />
+        {/* The prize — final node on the same spine, immediately after the goal: the positive
+            health payoff for reaching it, with the "why it matters now" grounding attached. */}
+        <PayoffNode
+          cityName={cityName}
+          monthsGained={monthsGained}
+          baselinePm25={baselinePm25}
+          whoMultiple={whoMultiple}
+          sources={sources}
+          stageNote={stageNote}
         />
       </ol>
 

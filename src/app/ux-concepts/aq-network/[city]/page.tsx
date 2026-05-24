@@ -24,18 +24,21 @@
  *      districts covered · people within range — the last an estimate). Renders from a committed
  *      OpenAQ snapshot, never a per-load API call. Carries a DataSource (OpenAQ + raw-data redirect).
  *   3. Achievements — the NARRATIVE SPINE: the achievement timeline (oldest → newest) culminating
- *      in a terminal 2030-GOAL node on the same spine (the destination all cards lead into) + the
- *      "Latest from [city]" live-news strip (DataSource → Breathe Cities), alongside the DERIVED
- *      three-pillar radar ("How Breathe Cities supports [city]" — a programme scorecard, not a
- *      city grade, from the city-level support pillars only). Timeline + radar are one block.
+ *      in a terminal 2030-GOAL node and then a final HEALTH-PAYOFF node on the same spine (actions
+ *      → shared destination → the prize for reaching it) + the "Latest from [city]" live-news strip
+ *      (DataSource → Breathe Cities), alongside the DERIVED three-pillar radar ("How Breathe Cities
+ *      supports [city]" — a programme scorecard, not a city grade, from the city-level support
+ *      pillars only). Timeline + radar are one block. The payoff figures (months gained, baseline,
+ *      ×WHO, sources, stage note) are computed/resolved here and passed into <AchievementTimeline>.
  *   4. Lessons learned — the city's peer-network participation strand (gave/received). NOT on
  *      the radar; an early-learner city renders an honest near-empty state.
- *   5. The payoff — the POSITIVE, LOCALISED health prize of reaching the 2030 goal: the
- *      life-expectancy a resident GAINS (in months) under the AQLI relationship applied to a 30%
- *      PM2.5 reduction. The payoff LEADS; a light current-state "why it matters" grounding
- *      (×WHO + top sources) sits below it. Every figure is labelled an estimate with its method +
- *      source (DataSource → AQLI · WHO). This REPLACES the former standalone "The 2030 journey"
- *      section — the goal moved onto the spine, the health content was reframed problem → positive.
+ *   (The health payoff is NO LONGER a standalone section. It is the POSITIVE, LOCALISED prize of
+ *    reaching the 2030 goal — the life-expectancy a resident GAINS, in months, under the AQLI
+ *    relationship applied to a 30% PM2.5 reduction — and now renders as the FINAL node on the
+ *    achievement spine in section 3, immediately after the 2030 goal node, with the light
+ *    "why it matters now" grounding (×WHO + top sources + stage note) attached within that node.
+ *    Every figure is labelled an estimate with its method + source. This subsumes the former
+ *    standalone "The 2030 journey" / "The payoff for [city]" sections.)
  *   (The former standalone "Population within sensor range" section was folded into the Sensors
  *    & coverage counters — population belongs under Sensors & coverage.)
  *
@@ -56,7 +59,7 @@
 
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { BadgeCheck, MapPin, HeartPulse } from 'lucide-react'
+import { BadgeCheck, MapPin } from 'lucide-react'
 import {
   getCityProfile,
   CITY_PROFILE_SLUGS,
@@ -146,8 +149,9 @@ export async function generateMetadata({
 /**
  * The member profile page. Resolves the [city] slug to a CityProfile (404 if unknown), derives
  * the radar counts and the health-payoff estimate, and renders the profile sections from the
- * data, in order: identity → sensors & coverage → achievements spine (+ goal node + radar) →
- * lessons learned → the positive 2030 health payoff.
+ * data, in order: identity → sensors & coverage → achievements spine (+ goal node + payoff node
+ * + radar) → lessons learned. The positive 2030 health payoff is the final node on the spine,
+ * not a separate section.
  */
 export default async function AqNetworkCityProfile({
   params,
@@ -263,14 +267,20 @@ export default async function AqNetworkCityProfile({
                 city acting, with Breathe Cities support credited as a tag.
               </p>
 
-              {/* The narrative spine: oldest action → … → the 2030 goal node (the destination
-                  all cards lead into, rendered on the same spine by the timeline component). */}
+              {/* The narrative spine: oldest action → … → the 2030 goal node → the health-payoff
+                  node (the prize for reaching the goal). All rendered on one spine by the timeline
+                  component; the payoff figures are computed here and passed in. */}
               <div className="mt-6">
                 <AchievementTimeline
                   achievements={profile.achievements}
                   cityName={profile.name}
                   goalLabel={profile.trajectory.goalLabel}
                   stageLabel={profile.trajectory.stageLabel}
+                  monthsGained={monthsGained}
+                  baselinePm25={profile.baselinePm25}
+                  whoMultiple={profile.health.whoMultiple}
+                  sources={profile.health.sources}
+                  stageNote={profile.trajectory.stageNote}
                 />
               </div>
 
@@ -383,117 +393,12 @@ export default async function AqNetworkCityProfile({
             </div>
           </section>
 
-          {/* ── 5. Health payoff — the POSITIVE, LOCALISED prize of reaching the 2030 goal.
-                  This replaces the former standalone "The 2030 journey" section: the goal now
-                  lives as the terminal node on the achievement spine (section 3), and the health
-                  content is reframed here from problem → positive payoff. The life-expectancy
-                  gain LEADS; the current-state "why it matters" grounding (×WHO + sources) is
-                  kept light, below the payoff. Every figure is labelled an estimate with its
-                  method + source — claim the support, never the outcome. ─────────────────── */}
-          <section className="mt-14">
-            <h2 className="text-2xl font-bold tracking-tight text-foreground">
-              The payoff for {profile.name}
-            </h2>
-
-            <div className="mt-6 grid gap-4 lg:grid-cols-[1.3fr_1fr]">
-              {/* The POSITIVE payoff — leads. Brand-tinted so it reads as the prize, not a warning. */}
-              <div
-                className="rounded-2xl border p-6"
-                style={{
-                  borderColor:
-                    'color-mix(in srgb, var(--bc-semantic-brand) 25%, var(--bc-color-white))',
-                  backgroundColor:
-                    'color-mix(in srgb, var(--bc-semantic-brand) 6%, var(--bc-color-white))',
-                }}
-              >
-                <div className="flex items-center gap-2">
-                  <span
-                    aria-hidden="true"
-                    className="flex h-8 w-8 items-center justify-center rounded-full"
-                    style={{
-                      backgroundColor:
-                        'color-mix(in srgb, var(--bc-semantic-brand) 16%, var(--bc-color-white))',
-                      color: 'var(--bc-semantic-brand)',
-                    }}
-                  >
-                    <HeartPulse className="h-4 w-4" aria-hidden="true" />
-                  </span>
-                  <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-                    The 2030 prize
-                  </span>
-                </div>
-
-                <p className="mt-3 text-lg font-semibold leading-snug text-foreground sm:text-xl">
-                  If {profile.name} reaches the 2030 goal, the average resident gains
-                  about{' '}
-                  <span
-                    className="font-bold"
-                    style={{ color: 'var(--bc-semantic-brand)' }}
-                  >
-                    {monthsGained} months of life
-                  </span>
-                  .
-                </p>
-
-                <p className="mt-3 text-sm text-muted-foreground">
-                  Estimated via the AQLI life-expectancy relationship applied to a 30% PM2.5
-                  reduction (from an estimated baseline of ~{profile.baselinePm25} µg/m³).
-                </p>
-
-                {/* Honesty pill: explicitly an estimate, validation pending with BC's health team. */}
-                <div className="mt-4 flex flex-col gap-2">
-                  <span
-                    className="inline-flex w-fit items-center rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-wide"
-                    style={{
-                      backgroundColor:
-                        'color-mix(in srgb, var(--bc-color-yellow) 30%, var(--bc-color-white))',
-                      color: 'var(--bc-semantic-text)',
-                    }}
-                  >
-                    Estimate
-                  </span>
-                  <p className="text-xs text-muted-foreground">
-                    Prototype estimate — to be validated with BC&rsquo;s health team.
-                  </p>
-                  <DataSource
-                    variant="attribution"
-                    name="AQLI · WHO"
-                    href="https://aqli.epic.uchicago.edu"
-                  />
-                </div>
-              </div>
-
-              {/* LIGHT "why it matters" current-state grounding — kept, but secondary to the payoff. */}
-              <div className="rounded-2xl border border-border bg-background p-6">
-                <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-                  Why it matters now
-                </p>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  {profile.name}&rsquo;s air is around{' '}
-                  <span className="font-semibold text-foreground">
-                    {profile.health.whoMultiple}× the WHO guideline
-                  </span>
-                  . Major sources:
-                </p>
-                <ul className="mt-2 space-y-1">
-                  {profile.health.sources.map((source) => (
-                    <li
-                      key={source.label}
-                      className="flex items-center justify-between gap-2 text-sm"
-                    >
-                      <span className="text-muted-foreground">{source.label}</span>
-                      <span className="font-semibold tabular-nums text-foreground">
-                        ~{source.sharePct}%
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-                <p className="mt-3 text-xs text-muted-foreground">
-                  {profile.trajectory.stageNote}
-                </p>
-              </div>
-            </div>
-          </section>
+          {/* The health payoff is no longer a standalone section here. It now renders as the
+              FINAL node on the achievement spine (section 3), immediately after the 2030 goal
+              node — see <AchievementTimeline>, which receives monthsGained + the baseline/WHO/
+              sources/stageNote it needs as props. The "why it matters now" grounding is attached
+              within that payoff node, not as a detached full-width section. The compute logic
+              (lifeMonthsGained, AQLI constant) still lives in this orchestrator. */}
 
           {/* The former standalone "People within sensor range" section was removed: the
               population-in-range figure now lives inside the Sensors & coverage map as one of
