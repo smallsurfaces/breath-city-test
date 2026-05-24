@@ -135,15 +135,16 @@ export const GUIDANCE_ENTRIES: readonly CatalogueEntry[] = [
 ]
 
 /**
- * Chrome config for the toolkit landing. The brand mark links to the landing itself; a live "Dev
- * hub" item links back to "/". Every other BC label stays inert (`#`) so the chrome reads as BC's
- * real site IA without inventing pages.
+ * Chrome config for the toolkit landing. The brand mark links to the landing itself. Every BC label
+ * stays inert (`#`) so the chrome reads as BC's real site IA without inventing pages or leaking
+ * prototype scaffolding. Back-to-hub is owned by the PrototypeHeader above this chrome, so no live
+ * "Dev hub" nav item is needed here.
  */
 export const TOOLKIT_CHROME: BcChromeConfig = {
   conceptLabel: 'City AQ Toolkit',
   logoHref: '/ux-concepts/toolkit',
   nav: [
-    { label: 'Dev hub', href: '/' },
+    { label: 'Cities', href: '#' },
     { label: 'Who we are', href: '#' },
     { label: 'Why we do it', href: '#' },
     { label: 'Voices', href: '#' },
