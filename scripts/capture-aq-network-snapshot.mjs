@@ -38,7 +38,7 @@
  *   node scripts/capture-aq-network-snapshot.mjs london     # any registered city slug
  *   node scripts/capture-aq-network-snapshot.mjs --programme # ALL cities → programme.json
  *   Reads OPENAQ_API_KEY from .env.local (Node does not auto-load env files).
- *   Writes src/app/ux-concepts/aq-network/_data/sensor-snapshots/<slug>.json (per-city)
+ *   Writes src/app/ux-concepts/aq-network-v2/_data/sensor-snapshots/<slug>.json (per-city)
  *   or .../programme.json (--programme, the network-wide globe snapshot).
  *   Review the diff by hand and commit the JSON. The committed JSON is what ships.
  *
@@ -68,7 +68,7 @@ const REPO_ROOT = resolve(SCRIPT_DIR, '..')
 const ENV_LOCAL = resolve(REPO_ROOT, '.env.local')
 const SNAPSHOT_DIR = resolve(
   REPO_ROOT,
-  'src/app/ux-concepts/aq-network/_data/sensor-snapshots',
+  'src/app/ux-concepts/aq-network-v2/_data/sensor-snapshots',
 )
 
 /** OpenAQ v3 base URL. */

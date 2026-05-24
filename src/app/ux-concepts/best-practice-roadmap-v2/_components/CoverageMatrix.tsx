@@ -48,7 +48,7 @@ export function CoverageMatrix() {
                   <TooltipTrigger
                     render={
                       <Link
-                        href={`/ux-concepts/best-practice-roadmap/domain/${domain.slug}`}
+                        href={`/ux-concepts/best-practice-roadmap-v2/domain/${domain.slug}`}
                         className="block text-xs leading-tight hover:underline"
                       />
                     }
@@ -74,7 +74,7 @@ export function CoverageMatrix() {
               <TableRow key={city.slug}>
                 <TableCell className="sticky left-0 z-10 bg-background font-medium text-xs whitespace-nowrap">
                   <Link
-                    href={`/ux-concepts/best-practice-roadmap/city/${city.slug}`}
+                    href={`/ux-concepts/best-practice-roadmap-v2/city/${city.slug}`}
                     className="hover:underline"
                   >
                     {city.flag} {city.name}
@@ -87,7 +87,7 @@ export function CoverageMatrix() {
                     <TableCell key={domain.id} className="text-center px-1">
                       {active ? (
                         <Link
-                          href={`/ux-concepts/best-practice-roadmap/domain/${domain.slug}#${city.slug}`}
+                          href={`/ux-concepts/best-practice-roadmap-v2/domain/${domain.slug}#${city.slug}`}
                           className="inline-flex items-center justify-center"
                         >
                           <span className="inline-block w-4 h-4 rounded-full bg-foreground/70 hover:bg-foreground transition-colors" />

@@ -20,7 +20,7 @@
  *
  * Rendering (reuses the proven CityMapHero structure)
  *   The map's rendering is rebuilt on the pattern that renders reliably on the deployed hub —
- *   src/app/ux-concepts/best-practice-roadmap/_components/CityMapHero.tsx. Two things from
+ *   src/app/ux-concepts/best-practice-roadmap-v2/_components/CityMapHero.tsx. Two things from
  *   that component are the reason it renders (and the reason this one previously went blank):
  *     1. CONTAINER: the map div is a NORMAL-FLOW child `<div className="w-full h-full" />`
  *        inside an explicit-height `relative` wrapper — NOT `absolute inset-0`. An

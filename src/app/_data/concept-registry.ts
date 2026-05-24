@@ -18,9 +18,10 @@
  *
  * Shape
  *   Keyed by a stable concept id. Each entry carries the canonical `title` and the concept's
- *   primary `route` (the v1 / "Open →" destination). v2 and sub-routes are NOT enumerated here —
- *   they reuse the same title and are linked from the hub directly; only the primary route lives
- *   in the registry (it is what the hub's primary "Open →" points at).
+ *   single canonical `route` (the "Open →" destination). After the v1-retire pass every concept
+ *   has exactly ONE shipping build, so the route here IS the only build — there are no longer
+ *   parallel v1/v2 links on the hub. Dynamic sub-routes are NOT enumerated here; they live under
+ *   the canonical route and are linked from within each build.
  *
  * Key exports: ConceptId (type), CONCEPTS (const record), conceptTitle (helper).
  * External dependencies: none.
@@ -29,11 +30,11 @@
 /** Stable concept identifiers — one per UX concept (NOT per version). */
 export type ConceptId = 'roadmap' | 'residentConcerns' | 'toolkit' | 'aqNetwork'
 
-/** A single concept's catalogue entry: its canonical title + primary route. */
+/** A single concept's catalogue entry: its canonical title + canonical route. */
 export type ConceptEntry = {
   /** The one canonical display title — shown on the hub AND in the PrototypeHeader bar. */
   title: string
-  /** The concept's primary route (the v1 / "Open →" destination). */
+  /** The concept's single canonical route (the "Open →" destination). */
   route: string
 }
 
@@ -44,7 +45,7 @@ export type ConceptEntry = {
 export const CONCEPTS: Record<ConceptId, ConceptEntry> = {
   roadmap: {
     title: 'Global Site Concept - BC AQ Roadmap',
-    route: '/ux-concepts/best-practice-roadmap',
+    route: '/ux-concepts/best-practice-roadmap-v2',
   },
   residentConcerns: {
     title: 'Global Site Concept - Resident Concerns',
@@ -58,7 +59,7 @@ export const CONCEPTS: Record<ConceptId, ConceptEntry> = {
   },
   aqNetwork: {
     title: 'Global Site Concept - BC AQ Network Membership',
-    route: '/ux-concepts/aq-network',
+    route: '/ux-concepts/aq-network-v2',
   },
 }
 
