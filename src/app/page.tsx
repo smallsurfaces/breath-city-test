@@ -183,6 +183,17 @@ export default function HomePage() {
             >
               Open →
             </Link>
+            <Link
+              href="/ux-concepts/aq-network-v2"
+              className="inline-flex items-center justify-center px-4 py-2 rounded-xl text-sm font-medium transition-colors"
+              style={{
+                backgroundColor: "var(--bc-color-light-grey)",
+                color: "var(--bc-semantic-text)",
+                borderRadius: "var(--bc-border-radius-md)",
+              }}
+            >
+              v2 — synchronised →
+            </Link>
           </div>
         </div>
       </div>
