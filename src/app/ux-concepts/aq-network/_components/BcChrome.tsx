@@ -22,11 +22,11 @@
  *
  * Three pieces:
  *   - BcHeader: BC logo (left) + primary nav + "Join us" button. The only live nav link is
- *     "AQ Network" -> the globe home (the AQ Network concept IS BC's Cities page, so it stands
- *     in for the "Cities" slot here). The sibling concepts (Roadmap / Toolkit) belong to other
- *     concept prototypes and are deliberately not linked from this chrome. The inert BC labels
- *     (Who we are / Why we do it / Voices / News) stay as non-links so the chrome still reads
- *     as BC's real IA.
+ *     "Cities" -> the AQ Network globe home: in this concept BC's "Cities" page IS the AQ
+ *     Network, so the Cities slot carries it. The sibling concepts (Roadmap / Toolkit) belong
+ *     to other concept prototypes and are deliberately not linked from this chrome. The inert
+ *     BC labels (Who we are / Why we do it / Voices / News) stay as non-links so the chrome
+ *     still reads as BC's real IA.
  *   - BcFooter: email signup band + partner logos (placeholder text marks) + foot strip.
  *   - PartnerLogos: Clean Air Fund / C40 / Bloomberg as neutral placeholder marks.
  *
@@ -45,15 +45,15 @@
 import Link from "next/link";
 
 /**
- * BC's real primary nav labels (from breathecities.org). On this AQ Network copy only
- * "AQ Network" is LIVE (the globe home, standing in for BC's "Cities" slot). The remaining BC
- * labels stay inert (#) so the chrome still reads as BC's real site IA. "live" is derived from
- * href !== "#" by the renderer.
+ * BC's real primary nav labels (from breathecities.org). On this AQ Network copy only "Cities"
+ * is LIVE -- it points at the AQ Network globe home, because in this concept BC's Cities page IS
+ * the AQ Network. The remaining BC labels stay inert (#) so the chrome still reads as BC's real
+ * site IA. "live" is derived from href !== "#" by the renderer.
  */
 const NAV = [
   { label: "Who we are", href: "#" },
   { label: "Why we do it", href: "#" },
-  { label: "AQ Network", href: "/ux-concepts/aq-network" },
+  { label: "Cities", href: "/ux-concepts/aq-network" },
   { label: "Voices", href: "#" },
   { label: "News", href: "#" },
 ];
