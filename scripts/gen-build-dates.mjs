@@ -78,6 +78,12 @@ const BUILDS = [
     routes: ["/ux-concepts/jtbd-city-toolkit"],
     folder: "src/app/ux-concepts/jtbd-city-toolkit",
   },
+  {
+    // Index "/ux-concepts/aq-network" also covers the dynamic profile route
+    // "/ux-concepts/aq-network/[city]" via longest-prefix lookup at render time.
+    routes: ["/ux-concepts/aq-network"],
+    folder: "src/app/ux-concepts/aq-network",
+  },
 ];
 
 /**
