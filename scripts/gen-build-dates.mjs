@@ -91,6 +91,24 @@ const BUILDS = [
     routes: ["/ux-concepts/aq-network-v2"],
     folder: "src/app/ux-concepts/aq-network-v2",
   },
+  {
+    // Synchronised v2 skin of the Best Practice Roadmap concept. Sub-routes
+    // (/cities, /city/[slug], /domain/[slug]) inherit via longest-prefix lookup.
+    routes: ["/ux-concepts/best-practice-roadmap-v2"],
+    folder: "src/app/ux-concepts/best-practice-roadmap-v2",
+  },
+  {
+    // Synchronised v2 skin of the JTBD City Toolkit concept.
+    routes: ["/ux-concepts/jtbd-city-toolkit-v2"],
+    folder: "src/app/ux-concepts/jtbd-city-toolkit-v2",
+  },
+  {
+    // Synchronised v2 skin of the Resident Concerns (Cities) concept.
+    // Index "/ux-concepts/cities-v2" also covers the dynamic city route
+    // "/ux-concepts/cities-v2/[slug]" via longest-prefix lookup at render time.
+    routes: ["/ux-concepts/cities-v2"],
+    folder: "src/app/ux-concepts/cities-v2",
+  },
 ];
 
 /**
