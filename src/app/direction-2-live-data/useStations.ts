@@ -43,6 +43,14 @@ import type { ParameterKey } from './aqiParameters'
  */
 export type NetworkStatus = 'idle' | 'loading' | 'empty' | 'empty-stale' | 'ready' | 'error'
 
+/**
+ * Which data source to request from /api/stations:
+ *   - 'live'     — hit OpenAQ live (the integration/plumbing route default; the future go-live toggle)
+ *   - 'snapshot' — serve the committed snapshot (the toolkit demo default; deterministic, frozen)
+ * The route resolves the source and reports back which one it actually served via response headers.
+ */
+export type DataSource = 'live' | 'snapshot'
+
 /** The full resolved state the hook exposes to the view. */
 export type StationsState = {
   status: NetworkStatus
@@ -52,6 +60,18 @@ export type StationsState = {
   freshCount: number
   /** Total stations returned for the active parameter — the "M" in "N of M live". */
   totalCount: number
+  /**
+   * Which source the route ACTUALLY served (from the `x-data-source` response header). May differ
+   * from the requested source: a 'snapshot' request for an un-captured city falls through to live,
+   * and a 'live' request that fails falls back to snapshot. null until the first fetch settles.
+   */
+  servedSource: DataSource | null
+  /**
+   * ISO-8601 capture instant when the served data is a snapshot (from `x-snapshot-captured-at`).
+   * null when the served data is live (live data has no single capture instant). Drives the honest
+   * "Snapshot · data as of <date>" label.
+   */
+  capturedAt: string | null
   /** Re-issue the current city+parameter fetch (used by the error Retry action). */
   retry: () => void
 }
@@ -93,10 +113,20 @@ function statusForResult(stations: Station[], fresh: number): NetworkStatus {
  *
  * @param citySlug   active city slug from the city registry (e.g. 'london')
  * @param parameter  active, AVAILABLE parameter key ('pm25' | 'pm10')
+ * @param source     which data source to request. Defaults to 'live' so existing callers (the
+ *                   live-data integration route) keep hitting OpenAQ; the toolkit component passes
+ *                   'snapshot' for the deterministic, frozen demo data.
  */
-export function useStations(citySlug: string, parameter: ParameterKey): StationsState {
+export function useStations(
+  citySlug: string,
+  parameter: ParameterKey,
+  source: DataSource = 'live',
+): StationsState {
   const [status, setStatus] = useState<NetworkStatus>('idle')
   const [stations, setStations] = useState<Station[]>([])
+  // Which source the route actually served + the snapshot capture instant (from response headers).
+  const [servedSource, setServedSource] = useState<DataSource | null>(null)
+  const [capturedAt, setCapturedAt] = useState<string | null>(null)
 
   // Monotonic request id: only the latest request may commit state. Guards against an earlier
   // slow response landing after the user has already switched city/parameter (item 2).
@@ -105,12 +135,12 @@ export function useStations(citySlug: string, parameter: ParameterKey): Stations
   const controllerRef = useRef<AbortController | null>(null)
 
   /**
-   * Run a fetch for the given city+parameter. Tags the request, aborts any prior in-flight
+   * Run a fetch for the given city+parameter+source. Tags the request, aborts any prior in-flight
    * request, and commits state only if this request is still the latest when it resolves.
    * Used by both the city/parameter effect and the Retry action.
    */
   const load = useCallback(
-    (slug: string, param: ParameterKey): void => {
+    (slug: string, param: ParameterKey, src: DataSource): void => {
       const id = requestIdRef.current + 1
       requestIdRef.current = id
 
@@ -123,13 +153,21 @@ export function useStations(citySlug: string, parameter: ParameterKey): Stations
 
       setStatus('loading')
 
-      const url = `/api/stations?city=${encodeURIComponent(slug)}&parameter=${encodeURIComponent(param)}`
+      const url = `/api/stations?city=${encodeURIComponent(slug)}&parameter=${encodeURIComponent(param)}&source=${encodeURIComponent(src)}`
+      // Capture the source-provenance headers off the Response, then parse the body. The body
+      // contract is unchanged (a bare Station[]); the headers carry which source was served.
+      let servedFromHeader: DataSource | null = null
+      let capturedAtFromHeader: string | null = null
       fetch(url, { signal: controller.signal })
         .then((response): Promise<Station[]> => {
           if (!response.ok) {
             // Non-2xx (400/502/etc) is a load failure -> error state with Retry.
             throw new Error(`Request failed with status ${response.status}`)
           }
+          const sourceHeader = response.headers.get('x-data-source')
+          servedFromHeader =
+            sourceHeader === 'snapshot' || sourceHeader === 'live' ? sourceHeader : null
+          capturedAtFromHeader = response.headers.get('x-snapshot-captured-at')
           return response.json() as Promise<Station[]>
         })
         .then((data: Station[]): void => {
@@ -139,6 +177,8 @@ export function useStations(citySlug: string, parameter: ParameterKey): Stations
           }
           const fresh = freshCount(data, param)
           setStations(data)
+          setServedSource(servedFromHeader)
+          setCapturedAt(capturedAtFromHeader)
           setStatus(statusForResult(data, fresh))
         })
         .catch((error: unknown): void => {
@@ -151,26 +191,28 @@ export function useStations(citySlug: string, parameter: ParameterKey): Stations
             return
           }
           setStations([])
+          setServedSource(null)
+          setCapturedAt(null)
           setStatus('error')
         })
     },
     [],
   )
 
-  // Refetch on city or parameter change. Cleanup aborts the in-flight request on unmount/change.
+  // Refetch on city / parameter / source change. Cleanup aborts the in-flight request on unmount.
   useEffect(() => {
-    load(citySlug, parameter)
+    load(citySlug, parameter, source)
     return () => {
       if (controllerRef.current !== null) {
         controllerRef.current.abort()
       }
     }
-  }, [citySlug, parameter, load])
+  }, [citySlug, parameter, source, load])
 
-  /** Retry re-issues the CURRENT city+parameter fetch (brief pattern 4 acceptance criterion). */
+  /** Retry re-issues the CURRENT city+parameter+source fetch (brief pattern 4 acceptance criterion). */
   const retry = useCallback((): void => {
-    load(citySlug, parameter)
-  }, [citySlug, parameter, load])
+    load(citySlug, parameter, source)
+  }, [citySlug, parameter, source, load])
 
   const fresh = freshCount(stations, parameter)
   return {
@@ -178,6 +220,8 @@ export function useStations(citySlug: string, parameter: ParameterKey): Stations
     stations,
     freshCount: fresh,
     totalCount: stations.length,
+    servedSource,
+    capturedAt,
     retry,
   }
 }

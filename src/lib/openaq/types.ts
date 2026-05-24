@@ -107,8 +107,15 @@ export type OpenAQLocation = {
   sensors: OpenAQSensor[]
   coordinates: OpenAQCoordinates
   licenses: OpenAQLicense[] | null
-  datetimeFirst: string | null
-  datetimeLast: string | null
+  /**
+   * First/last seen timestamps. Probe-verified: the live v3 /locations endpoint returns these as
+   * `{utc, local}` objects (OpenAQDatetime), NOT bare strings — `.utc` is the source of truth.
+   * (`OpenAQDatetime` is declared below; the type alias is hoisted so the forward reference is fine.)
+   * Either may be null. Earlier this was typed `string | null`, which silently mis-described the
+   * wire shape — corrected here so consumers read `.utc` rather than coercing an object to a string.
+   */
+  datetimeFirst: OpenAQDatetime | null
+  datetimeLast: OpenAQDatetime | null
 }
 
 /**
@@ -184,6 +191,19 @@ export type Station = {
   coordinates: [number, number]
   quality: StationQuality
   provider: string
+  /**
+   * The operating organisation that OWNS the station (OpenAQ location.owner.name). Distinct from
+   * `provider` (the data feed/network). Often a generic placeholder upstream
+   * ("Unknown Governmental Organization") — callers decide whether to show it or prefer provider.
+   * A non-null string (OpenAQ always returns an owner block, even when generic).
+   */
+  owner: string
+  /**
+   * The station's first-seen timestamp (OpenAQ location.datetimeFirst, ISO-8601 UTC) — i.e. when
+   * the station started reporting to the network. `null` when upstream does not expose it for this
+   * location. Surfaced as the station's "start date"; never fabricated when absent.
+   */
+  firstSeen: string | null
   /** Human-readable attribution string built from licenses; null when none present. */
   attribution: string | null
   parameters: Record<string, StationParameterReading>

@@ -234,6 +234,12 @@ export async function fetchStations(
         coordinates: [location.coordinates.longitude, location.coordinates.latitude],
         quality: mapQuality(location.isMonitor),
         provider: location.provider.name,
+        // Owner (operating org) and first-seen date come from the location block. Owner is always a
+        // non-null string upstream (may be a generic placeholder). datetimeFirst is an {utc, local}
+        // object (probe-verified) — take .utc as the ISO start date; null when upstream omits it.
+        // Never fabricated.
+        owner: location.owner.name,
+        firstSeen: location.datetimeFirst?.utc ?? null,
         attribution: buildAttribution(location),
         parameters: {
           [parameterName]: parameterReading,
@@ -292,8 +298,11 @@ export async function fetchLocationMetas(citySlug: string): Promise<LocationMeta
       isMonitor: loc.isMonitor,
       instruments: loc.instruments.map((i) => i.name),
       parameters: loc.sensors.map((s) => s.parameter.displayName),
-      datetimeFirst: loc.datetimeFirst,
-      datetimeLast: loc.datetimeLast,
+      // datetimeFirst/Last are {utc, local} objects upstream (probe-verified); LocationMeta carries
+      // the ISO string, so take .utc. (Previously these assigned the raw object into a string-typed
+      // field — a latent mismatch the corrected wire type now surfaces; .utc is the right value.)
+      datetimeFirst: loc.datetimeFirst?.utc ?? null,
+      datetimeLast: loc.datetimeLast?.utc ?? null,
     }
   })
 }
