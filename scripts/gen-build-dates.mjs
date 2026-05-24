@@ -84,6 +84,13 @@ const BUILDS = [
     routes: ["/ux-concepts/aq-network"],
     folder: "src/app/ux-concepts/aq-network",
   },
+  {
+    // Synchronised v2 skin of the AQ Network concept. Index "/ux-concepts/aq-network-v2"
+    // also covers its dynamic profile route "/ux-concepts/aq-network-v2/[city]" via
+    // longest-prefix lookup at render time.
+    routes: ["/ux-concepts/aq-network-v2"],
+    folder: "src/app/ux-concepts/aq-network-v2",
+  },
 ];
 
 /**
