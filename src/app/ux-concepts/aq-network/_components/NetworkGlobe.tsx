@@ -82,10 +82,10 @@ const AUTO_ROTATE_MAX_ZOOM = 2.2
 /**
  * Milliseconds for one full 360° rotation. TIME-BASED (not per-frame): each rAF tick advances
  * the globe by (deltaMs / AUTO_ROTATE_PERIOD_MS) * 360 degrees using the timestamp delta between
- * frames, so a full turn takes ~20s on ANY display (the old per-frame nudge was frame-rate
+ * frames, so a full turn takes ~40s on ANY display (the old per-frame nudge was frame-rate
  * dependent — twice as fast on a 120Hz panel as on 60Hz).
  */
-const AUTO_ROTATE_PERIOD_MS = 20_000
+const AUTO_ROTATE_PERIOD_MS = 40_000
 
 /** Idle delay (ms) after the last user interaction before auto-rotate resumes. */
 const AUTO_ROTATE_RESUME_MS = 3500
