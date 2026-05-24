@@ -456,7 +456,6 @@ export const MapComponent = forwardRef<MapHandle, Props>(function MapComponent(
           result={result}
           parameter={parameterRef.current}
           freshCount={freshCountRef.current}
-          nearestDistanceLabel={null}
           onClose={() => {
             clearProbe()
             onExitProbeRef.current()

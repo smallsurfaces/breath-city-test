@@ -6,20 +6,20 @@
  *   (matches jtbd-city-toolkit-v2/layout.tsx):
  *     1. PrototypeHeader — the TOOLING bar (back-to-hub link + comment widget + "Updated" stamp).
  *     2. BcHeader — the SITE nav, the SHARED component from `@/components/concept`, driven by
- *        TOOLKIT_RT_CHROME. Its live "Dev hub" item is the visible site-nav route back to "/".
- *   The footer is intentionally omitted here: this component is a full-viewport interactive map
- *   (the page sizes the map to the space below the chrome), so a footer band would either be
- *   stranded off-screen or fight the map's height math. Back-to-hub is provided twice over —
- *   PrototypeHeader's ArrowLeft link AND BcHeader's live "Dev hub" nav item — so the no-dead-end
- *   navigation rule holds without the footer.
+ *        TOOLKIT_RT_CHROME. Its live "Toolkit" + "Dev hub" items are the visible site-nav routes.
+ *     3. BcFooter — the shared static footer.
+ *   As of increment 2 the page is no longer a full-viewport map: the map is one bounded demo block
+ *   inside a scrolling page (intro → demo → adoption → nav), so the footer sits naturally at the end
+ *   of the content rather than being stranded off-screen. Back-to-toolkit/hub is provided in the
+ *   tooling bar, the BcHeader nav, AND the page's own in-flow nav footer.
  *
  * Key exports: ToolkitRtMonitoringLayout (default)
- * External dependencies: PrototypeHeader, @/components/concept (BcHeader),
+ * External dependencies: PrototypeHeader, @/components/concept (BcHeader, BcFooter),
  *   ./real-time-monitoring-chrome.config (TOOLKIT_RT_CHROME)
  */
 
 import { PrototypeHeader } from '../../../_components/PrototypeHeader'
-import { BcHeader } from '@/components/concept'
+import { BcHeader, BcFooter } from '@/components/concept'
 import { TOOLKIT_RT_CHROME } from './real-time-monitoring-chrome.config'
 
 export default function ToolkitRtMonitoringLayout({
@@ -30,10 +30,12 @@ export default function ToolkitRtMonitoringLayout({
   return (
     <>
       {/* Tooling bar (back-to-hub + comments + "Updated" stamp) ABOVE the BC-site recreation. */}
-      <PrototypeHeader buildName="JTBD City Toolkit — Real-time monitoring (concept)" />
-      {/* BC site nav — the SHARED chrome, configured for this component (live "Dev hub" → "/"). */}
+      <PrototypeHeader buildName="City AQ Toolkit — Real-time monitoring (concept)" />
+      {/* BC site nav — the SHARED chrome, configured for this component (live "Toolkit" + "Dev hub"). */}
       <BcHeader config={TOOLKIT_RT_CHROME} />
       {children}
+      {/* Shared static footer — sits at the end of the now-scrolling page. */}
+      <BcFooter />
     </>
   )
 }

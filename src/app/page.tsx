@@ -203,6 +203,34 @@ export default function HomePage() {
 
           <div className="flex items-center gap-3">
             <span className="text-sm w-52 shrink-0" style={{ color: "var(--bc-semantic-text)" }}>
+              City AQ Toolkit — Component Catalogue
+            </span>
+            <Link
+              href="/ux-concepts/toolkit"
+              className="inline-flex items-center justify-center px-4 py-2 rounded-xl text-sm font-medium transition-colors"
+              style={{
+                backgroundColor: "var(--bc-semantic-brand)",
+                color: "var(--bc-color-white)",
+                borderRadius: "var(--bc-border-radius-md)",
+              }}
+            >
+              Open →
+            </Link>
+            <Link
+              href="/ux-concepts/toolkit/real-time-monitoring"
+              className="inline-flex items-center justify-center px-4 py-2 rounded-xl text-sm font-medium transition-colors"
+              style={{
+                backgroundColor: "var(--bc-color-light-grey)",
+                color: "var(--bc-semantic-text)",
+                borderRadius: "var(--bc-border-radius-md)",
+              }}
+            >
+              Real-time Monitoring →
+            </Link>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <span className="text-sm w-52 shrink-0" style={{ color: "var(--bc-semantic-text)" }}>
               AQ Network — Member Profile Concept
             </span>
             <Link
