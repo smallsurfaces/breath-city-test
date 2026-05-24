@@ -19,11 +19,13 @@
  *
  * Key exports: CatalogueStatus, CatalogueTier, CatalogueEntry, COMPONENT_ENTRIES, GUIDANCE_ENTRIES,
  *   TOOLKIT_CHROME
- * External dependencies: @/data/toolkit-data (ToolId), @/components/concept (BcChromeConfig type)
+ * External dependencies: @/data/toolkit-data (ToolId), @/components/concept (BcChromeConfig type),
+ *   ../toolkit-nav (shared TOOLKIT_NAV / TOOLKIT_ROUTE)
  */
 
 import type { ToolId } from '@/data/toolkit-data'
 import type { BcChromeConfig } from '@/components/concept'
+import { TOOLKIT_NAV, TOOLKIT_ROUTE } from '../toolkit-nav'
 
 /** Whether a capability is shipping today or previewed. */
 export type CatalogueStatus = 'available' | 'coming-soon'
@@ -135,19 +137,14 @@ export const GUIDANCE_ENTRIES: readonly CatalogueEntry[] = [
 ]
 
 /**
- * Chrome config for the toolkit landing. The brand mark links to the landing itself. Every BC label
- * stays inert (`#`) so the chrome reads as BC's real site IA without inventing pages or leaking
- * prototype scaffolding. Back-to-hub is owned by the PrototypeHeader above this chrome, so no live
- * "Dev hub" nav item is needed here.
+ * Chrome config for the toolkit landing. The brand mark links to the landing itself. The nav set is
+ * the shared TOOLKIT_NAV (toolkit-nav.ts) — defined once and imported by both this landing and the
+ * real-time monitoring component so the two cannot drift; "Toolkit" is the live current-section item,
+ * the remaining BC labels stay inert (`#`) so the chrome reads as BC's real site IA. Back-to-hub is
+ * owned by the PrototypeHeader above this chrome, so no live "Dev hub" nav item is needed here.
  */
 export const TOOLKIT_CHROME: BcChromeConfig = {
   conceptLabel: 'City AQ Toolkit',
-  logoHref: '/ux-concepts/toolkit',
-  nav: [
-    { label: 'Cities', href: '#' },
-    { label: 'Who we are', href: '#' },
-    { label: 'Why we do it', href: '#' },
-    { label: 'Voices', href: '#' },
-    { label: 'News', href: '#' },
-  ],
+  logoHref: TOOLKIT_ROUTE,
+  nav: TOOLKIT_NAV,
 }
