@@ -9,9 +9,11 @@
  *
  * Data provenance & honesty (matches the concept's hard rules)
  *   - Achievement headlines are city-as-actor, sourced from Breathe Cities' live Accra
- *     city page. Each is a BC-SUPPORTED activity, tagged to one pillar — the radar counts
- *     these tags (it is never authored). Accra has NO pillar-4 (Lesson sharing) card: that
- *     is deliberately left empty because it is honest, not because data is missing.
+ *     city page. Each is a BC-SUPPORTED activity, tagged to one of the three CITY-LEVEL
+ *     support pillars — the radar counts those tags (it is never authored).
+ *   - Lesson sharing (BC pillar 4) is relational and lives in the lessonSharing strand, not
+ *     on the radar. Accra is an EARLY LEARNER with no documented exchanges, so lessonSharing
+ *     is deliberately empty — honest, never fabricated. The UI renders an early-stage state.
  *   - There are NO outcome claims (no "PM2.5 fell by X"): Accra is early on the journey.
  *     The hypothetical health line is a PROJECTION, explicitly modelled as
  *     `hypotheticalDeathsPreventedPerYear` and labelled as a projection in the UI.
@@ -79,9 +81,18 @@ export const accraProfile: CityProfile = {
         'Helping residents understand the air they breathe and what reduces their exposure.',
       pillar: 3, // Raising awareness
     },
-    // No pillar-4 (Lesson sharing) card — intentionally absent. Accra is early on the
-    // journey; an empty pillar here is honest, and the radar shows it as a light axis.
+    // No pillar-4 (Lesson sharing) card — intentionally absent. Lesson sharing is relational
+    // and is captured in the lessonSharing strand below (not on the radar). Accra is early on
+    // the journey, so that strand is honestly near-empty rather than fabricated.
   ],
+
+  // ── Lesson-sharing participation strand (BC pillar 4, shown as its own section, not on the
+  //    radar). HONESTY: Accra is an EARLY LEARNER — there is no documented city-to-city
+  //    lesson sharing in its source data, so this list is intentionally empty. We do NOT
+  //    fabricate specific peer claims. The UI renders an honest "Early — building peer
+  //    connections" state for both directions. The structure holds both 'gave' and 'received'
+  //    so a teacher-heavy city (e.g. London) populates the same shape later.
+  lessonSharing: [],
 
   // ── The always-fresh "Latest from Accra" layer. Curated placeholders standing in for a
   //    live feed; the UI labels this section as the live-news layer.

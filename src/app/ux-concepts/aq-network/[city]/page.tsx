@@ -8,16 +8,20 @@
  *   one registry line), with NO change to this file or its components.
  *
  *   This is the ORCHESTRATOR. The one piece of real logic it owns is the concept's central
- *   rule: the four-pillar radar is DERIVED from the timeline, not authored. pillarCounts()
- *   below counts the achievement cards per pillar and feeds those counts to PillarRadar. There
+ *   rule: the support radar is DERIVED from the timeline, not authored. pillarCounts() below
+ *   counts the achievement cards per RADAR pillar and feeds those counts to PillarRadar. There
  *   is no "radar score" anywhere in the data — a light pillar simply means fewer support cards
- *   under that pillar (e.g. Accra's empty Lesson-sharing axis), which is the honest picture.
+ *   under that pillar, which is the honest picture. The radar plots only the THREE city-level
+ *   support pillars; lesson sharing (BC pillar 4) is relational and gets its own strand
+ *   (section 3b), not a radar axis.
  *
  * Sections (in order):
  *   1. Identity header — name, region, "Breathe Cities member" badge, strapline.
  *   2. Achievement timeline (the spine) + the "Latest from [city]" live-news strip.
- *   3. Four-pillar radar — "How Breathe Cities supports [city]" (programme scorecard, not a
- *      city grade), DERIVED from the timeline.
+ *   3. Three-pillar radar — "How Breathe Cities supports [city]" (programme scorecard, not a
+ *      city grade), DERIVED from the timeline (city-level support pillars only).
+ *   3b. Lesson sharing — the city's peer-network participation strand (gave/received). NOT
+ *      on the radar; an early-learner city renders an honest near-empty state.
  *   4. Sensors & coverage — programme deployed figure vs LIVE OpenAQ count (honest gap).
  *   5. 2030 trajectory + problem/health context (hypothetical health line labelled a projection).
  *   6. Population within sensor range — labelled an estimate (guesstimate).
@@ -42,25 +46,33 @@ import {
   CITY_PROFILE_SLUGS,
 } from '../_data/cities'
 import {
-  PILLARS,
+  RADAR_PILLARS,
   type CityProfile,
-  type PillarId,
+  type RadarPillarId,
 } from '../_data/types'
 import { PillarRadar } from '../_components/PillarRadar'
 import { AchievementTimeline } from '../_components/AchievementTimeline'
+import { LessonSharing } from '../_components/LessonSharing'
 import { SensorsLive } from '../_components/SensorsLive'
 
 /**
  * DERIVE the per-pillar counts from the achievement timeline — the concept's central rule.
- * Counts every card under each of the four pillars; pillars with no cards come back 0 (a light
- * radar axis). This is the ONLY source the radar uses; nothing in the data authors a score.
+ * Counts cards under each of the THREE radar pillars only (1 Expanding data, 2 Technical
+ * support, 3 Raising awareness). Cards tagged pillar 4 (Lesson sharing) are intentionally
+ * NOT counted here — lesson sharing is shown as its own participation strand, not a radar
+ * axis. A radar pillar with no cards comes back 0 (a light axis). This is the ONLY source the
+ * radar uses; nothing in the data authors a score.
  */
 function pillarCounts(
   profile: CityProfile,
-): Readonly<Record<PillarId, number>> {
-  const counts: Record<PillarId, number> = { 1: 0, 2: 0, 3: 0, 4: 0 }
+): Readonly<Record<RadarPillarId, number>> {
+  const counts: Record<RadarPillarId, number> = { 1: 0, 2: 0, 3: 0 }
   for (const card of profile.achievements) {
-    counts[card.pillar] += 1
+    // Only the three radar pillars contribute to the radar. Pillar 4 (lesson sharing) is
+    // a valid card tag but is surfaced in the LessonSharing strand, never on the radar.
+    if (card.pillar === 1 || card.pillar === 2 || card.pillar === 3) {
+      counts[card.pillar] += 1
+    }
   }
   return counts
 }
@@ -187,52 +199,77 @@ export default async function AqNetworkCityProfile({
               </div>
             </div>
 
-            {/* The derived four-pillar radar (programme scorecard, not a city grade). */}
+            {/* The derived three-pillar radar (programme scorecard, not a city grade). Plots
+                the three city-level support pillars; lesson sharing has its own strand below. */}
             <aside className="lg:pt-1">
               <div className="rounded-2xl border border-border bg-background p-5 lg:sticky lg:top-20">
                 <h2 className="text-base font-bold tracking-tight text-foreground">
                   How Breathe Cities supports {profile.name}
                 </h2>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  A programme scorecard across BC&rsquo;s four pillars, summarising the
-                  achievements above. A lighter pillar means less support focus there — not
-                  a judgement of the city.
+                  A programme scorecard across BC&rsquo;s three city-level support pillars,
+                  summarising the achievements above. A lighter pillar means less support
+                  focus there — not a judgement of the city.
                 </p>
 
                 <div className="mt-4 flex justify-center">
                   <PillarRadar counts={counts} />
                 </div>
 
-                {/* Pillar legend — full labels + the derived count (ties radar to the cards). */}
+                {/* Pillar legend — the THREE radar pillars only (lesson sharing is shown as
+                    its own strand below, not on this scorecard). Full labels + derived count
+                    tie the radar to the cards. */}
                 <ul className="mt-4 space-y-1.5">
-                  {PILLARS.map((pillar) => (
-                    <li
-                      key={pillar.id}
-                      className="flex items-center justify-between gap-2 text-xs"
-                    >
-                      <span className="flex items-center gap-2 text-muted-foreground">
-                        <span
-                          aria-hidden="true"
-                          className="h-2.5 w-2.5 rounded-full"
-                          style={{
-                            backgroundColor: [
-                              'var(--bc-color-blue)',
-                              'var(--bc-color-teal)',
-                              'var(--bc-color-tangerine)',
-                              'var(--bc-color-green)',
-                            ][pillar.id - 1],
-                          }}
-                        />
-                        {pillar.label}
-                      </span>
-                      <span className="font-semibold tabular-nums text-foreground">
-                        {counts[pillar.id]}
-                      </span>
-                    </li>
-                  ))}
+                  {RADAR_PILLARS.map((pillar) => {
+                    const id = pillar.id as RadarPillarId
+                    return (
+                      <li
+                        key={id}
+                        className="flex items-center justify-between gap-2 text-xs"
+                      >
+                        <span className="flex items-center gap-2 text-muted-foreground">
+                          <span
+                            aria-hidden="true"
+                            className="h-2.5 w-2.5 rounded-full"
+                            style={{
+                              backgroundColor: {
+                                1: 'var(--bc-color-blue)',
+                                2: 'var(--bc-color-teal)',
+                                3: 'var(--bc-color-tangerine)',
+                              }[id],
+                            }}
+                          />
+                          {pillar.label}
+                        </span>
+                        <span className="font-semibold tabular-nums text-foreground">
+                          {counts[id]}
+                        </span>
+                      </li>
+                    )
+                  })}
                 </ul>
               </div>
             </aside>
+          </section>
+
+          {/* ── 3b. Lesson sharing — peer-network participation strand (NOT on the radar).
+                  Lesson sharing is BC pillar 4 but relational, so it gets its own section
+                  rather than a radar axis. Two directions: shared with / learned from peers. */}
+          <section className="mt-14">
+            <h2 className="text-2xl font-bold tracking-tight text-foreground">
+              Lesson sharing
+            </h2>
+            <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
+              How {profile.name} takes part in the Breathe Cities peer network — the lessons
+              it shares with other cities and the approaches it learns from them. This is
+              network participation, not a score.
+            </p>
+            <div className="mt-6">
+              <LessonSharing
+                cityName={profile.name}
+                entries={profile.lessonSharing}
+              />
+            </div>
           </section>
 
           {/* ── 4. Sensors & coverage (programme vs live OpenAQ) ────────────── */}

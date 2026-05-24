@@ -13,18 +13,32 @@
  *   - CITY_PROFILE_SLUGS — slugs only (for generateStaticParams + the index list)
  *   - getCityProfile(slug) — lookup, undefined when unknown
  *
- * External dependencies: ../types (CityProfile), ./accra (the Accra profile). Adding a city
- *   adds one import + one array entry here.
+ * External dependencies: ../types (CityProfile), ./accra (the Accra profile),
+ *   ./validate-slugs (the build-time OpenAQ-slug guard). Adding a city adds one import + one
+ *   array entry here.
+ *
+ * BUILD-TIME GUARD: immediately after CITY_PROFILES is defined, this module calls
+ *   assertOpenaqSlugsExist(CITY_PROFILES) at its top level. Because this file is imported by
+ *   the dynamic route during `next build` (generateStaticParams + the page), that call runs at
+ *   build/SSG time and THROWS — failing the build loudly — if any profile's openaqCitySlug is
+ *   not a member of the OpenAQ city registry. This is not a runtime check.
  */
 
 import type { CityProfile } from '../types'
 import { accraProfile } from './accra'
+import { assertOpenaqSlugsExist } from './validate-slugs'
 
 /**
  * Every AQ Network member profile, in the order they should appear on the index.
  * NEXT CITY = import its profile above and add it to this array. That is the whole change.
  */
 export const CITY_PROFILES: readonly CityProfile[] = [accraProfile] as const
+
+// Build-time side effect: validate every profile's OpenAQ slug against the OpenAQ registry.
+// Runs at module evaluation (build/SSG time via the route's import chain) and throws — aborting
+// `next build` — on any unknown slug. A mistyped slug would otherwise render a fake runtime
+// "network error" (BUG 1 from the Accra bug-test). Loud CI failure by design.
+assertOpenaqSlugsExist(CITY_PROFILES)
 
 /** All registered profile slugs — used by generateStaticParams and the index list. */
 export const CITY_PROFILE_SLUGS: readonly string[] = CITY_PROFILES.map(
