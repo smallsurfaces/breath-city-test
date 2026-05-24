@@ -32,7 +32,7 @@ import { notFound } from "next/navigation";
 import { ArrowRight } from "lucide-react";
 import { BcHeader, BcFooter } from "../_components/BcChrome";
 import { CityConcernStack } from "../_components/CityConcernStack";
-import { CITIES, type CityKey } from "../../resident-concerns/_data/concerns-data";
+import { CITIES, type CityKey } from "../_data/concerns-data";
 
 interface CityPageProps {
   params: Promise<{ slug: string }>;

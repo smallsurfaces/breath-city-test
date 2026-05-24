@@ -2,8 +2,8 @@
  * CityConcernStack.tsx — the FLATTENED Resident Concerns component (core deliverable)
  *
  * This is the Resident Concerns deck FLATTENED for embedding in a single BC city
- * page. The original deck (src/app/ux-concepts/resident-concerns) has TWO
- * switchers — concern and city. Here BOTH are removed: the page is already
+ * page. The original standalone deck had TWO switchers — concern and city. Here
+ * BOTH are removed: the page is already
  * scoped to ONE city, and the reader scrolls through ALL FIVE concerns in a
  * single vertical stack.
  *
@@ -24,17 +24,17 @@
  * concerns-data, and EntryCard from the existing deck. No data is copied here.
  *
  * Key exports: CityConcernStack
- * External dependencies: EntryCard + concerns-data (both from resident-concerns)
+ * External dependencies: EntryCard + concerns-data (both colocated in cities/)
  */
 
 "use client";
 
-import { EntryCard } from "../../resident-concerns/_components/EntryCard";
+import { EntryCard } from "./EntryCard";
 import {
   CONCERNS,
   CITIES,
   type CityKey,
-} from "../../resident-concerns/_data/concerns-data";
+} from "../_data/concerns-data";
 
 interface CityConcernStackProps {
   cityKey: CityKey;
