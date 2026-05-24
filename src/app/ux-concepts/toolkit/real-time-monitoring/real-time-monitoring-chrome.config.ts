@@ -34,7 +34,6 @@ import { TOOLKIT_NAV, TOOLKIT_ROUTE } from '../toolkit-nav'
  * item is needed here.
  */
 export const TOOLKIT_RT_CHROME: BcChromeConfig = {
-  conceptLabel: 'City AQ Toolkit · Real-time monitoring',
   logoHref: TOOLKIT_ROUTE,
   nav: TOOLKIT_NAV,
 }

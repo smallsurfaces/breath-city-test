@@ -34,7 +34,6 @@ import type { BcChromeConfig } from '@/components/concept'
  * primary nav (Who we are / What we do / Why we do it / Cities / Voices / News).
  */
 export const CITIES_CHROME: BcChromeConfig = {
-  conceptLabel: 'Resident Concerns',
   logoHref: '/ux-concepts/cities',
   nav: [
     { label: 'Who we are', href: '#' },

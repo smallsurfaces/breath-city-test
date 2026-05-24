@@ -22,7 +22,6 @@ import type { BcChromeConfig } from '@/components/concept'
  * "Cities" slot points at the v2 cities listing.
  */
 export const ROADMAP_V2_CHROME: BcChromeConfig = {
-  conceptLabel: 'Best Practice Roadmap',
   logoHref: '/ux-concepts/best-practice-roadmap-v2',
   nav: [
     { label: 'Who we are', href: '#' },

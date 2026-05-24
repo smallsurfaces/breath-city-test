@@ -6,13 +6,17 @@
  *   data, and interactions as v1 — four pillar sections, featured PracticeCardTile per domain,
  *   domain explore links. The ONLY differences from v1 are skin-level:
  *     - The hero uses ConceptHeroPlain (eyebrow-less hero wrapper) instead of inline h1/p markup.
- *       (The eyebrow was dropped in the concept-housekeeping pass.)
+ *       (The eyebrow was dropped in the concept-housekeeping pass.) Its H1 reads "Breathe Cities
+ *       Air Quality Roadmap" (declutter close-out) — the registry/catalog title stays "Best
+ *       Practice Roadmap"; only this in-page hero headline differs.
  *     - The four stat figures use ConceptStat (shared primitive) instead of inline div markup.
  *     - Pillar section headers use ConceptSectionHeader (shared primitive) instead of inline h2/p.
  *     - The stage indicator dot overrides STAGE_COLORS at the PRESENTATION LAYER using inline
  *       style with distinct --bc-* token tints (see STAGE_DOT_STYLE below) — the shared data
  *       file (roadmap-data.ts) is NOT edited.
  *     - All internal links point at the -v2 routes so the concept is self-contained.
+ *     - The redundant top-of-page breadcrumb (a bare current-page label) was removed in the
+ *       declutter close-out — the PrototypeHeader's "Back to hub" is the sole back-nav.
  *
  * Chrome: provided by best-practice-roadmap-v2/layout.tsx (PrototypeHeader + shared BcHeader/
  *   BcFooter). This page renders no chrome of its own. Light mode only. No emoji.
@@ -106,17 +110,12 @@ export default function RoadmapV2Page() {
     <main className="min-h-screen bg-background pb-0">
       <div className="mx-auto max-w-6xl px-4 py-12 space-y-16">
 
-        {/* Breadcrumb — identical to v1 (back-nav is the PrototypeHeader "Back to hub"). */}
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <span>Best Practice Roadmap</span>
-        </div>
-
         {/* Hero — eyebrow-less ConceptHeroPlain (eyebrow dropped this pass, Jack's decision). Same
             h1/lead type scale as ConceptHero; the four stat figures use ConceptStat (bare, no card)
             in a flex row in the children slot, matching v1's inline stat row layout. FLAG: returns
             to <ConceptHero> once its eyebrow is made optional (design-system-keeper). */}
         <ConceptHeroPlain
-          headline="Best Practice Roadmap"
+          headline="Breathe Cities Air Quality Roadmap"
           body="How 14 cities serving 77 million people are building clean air — domain by domain, with measurable results."
         >
           {/* Hero stat row — four ConceptStat blocks (bare, no card), matching v1's layout. */}
