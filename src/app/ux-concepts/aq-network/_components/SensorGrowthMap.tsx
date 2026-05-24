@@ -40,16 +40,21 @@
  *
  * Side effects (all cleaned up on unmount / re-run):
  *   - Creates a Mapbox GL map instance in the container ref.
+ *   - Calls map.resize() on load + via a ResizeObserver on the container (robust fix for the
+ *     classic mid-page Mapbox blank-canvas sizing/timing bug); the observer is disconnected
+ *     on cleanup.
  *   - Adds/removes mapboxgl.Marker DOM elements as the scrubbed year changes.
+ *   - Runs a play-timeline interval (setInterval) that advances selectedYear start→end once;
+ *     the interval is cleared on unmount and when the user manually scrubs.
  *   - Reads process.env.NEXT_PUBLIC_MAPBOX_TOKEN (client-exposed token).
  */
 
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactElement } from 'react'
 import mapboxgl from 'mapbox-gl'
-import { Radar, CircleDot, MapPin, Users } from 'lucide-react'
+import { Radar, CircleDot, MapPin, Users, Play, RotateCcw } from 'lucide-react'
 import type {
   SensorSnapshot,
   SnapshotSensor,
@@ -63,6 +68,13 @@ const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN
 
 /** Light basemap style — cribbed from direction-1-mapbox / the light-basemap branch. */
 const LIGHT_BASEMAP_STYLE = 'mapbox://styles/mapbox/light-v11'
+
+/**
+ * Milliseconds per year-step when the Play control runs the timeline. ~700ms/step gives a
+ * ~4–5s sweep over Accra's ~6–7 year range — slow enough to watch markers appear and the
+ * three counters tick up ("watch the network grow"), fast enough not to drag.
+ */
+const PLAY_STEP_MS = 700
 
 /**
  * Marker colours read from BC tokens at runtime (no hardcoded hex in the component logic;
@@ -207,6 +219,16 @@ export function SensorGrowthMap({
   //    section opens on the full, current network; scrubbing back plays the growth in reverse. ──
   const [selectedYear, setSelectedYear] = useState<number>(snapshot.endYear)
 
+  // ── Play state — true while the timeline is auto-advancing start→end. Drives the button label
+  //    and disabled state. The interval id lives in a ref (not state) so cleanup/cancel can reach
+  //    it without re-rendering. ──
+  const [playing, setPlaying] = useState<boolean>(false)
+  const playTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  // True once a play has run to completion — flips the idle button label from "Play" to "Replay".
+  // Distinct from the year check: on first load selectedYear already equals endYear (section opens
+  // on the present-day network), so we must NOT show "Replay" until a play actually finished.
+  const [hasPlayed, setHasPlayed] = useState<boolean>(false)
+
   // Resolved token colours for markers (computed once on mount; tokens don't change at runtime).
   const colorsRef = useRef<{ reference: string; lowCost: string }>({
     reference: REFERENCE_FALLBACK,
@@ -261,12 +283,41 @@ export function SensorGrowthMap({
 
     map.on('load', () => {
       mapReadyRef.current = true
+      // Resize fix (1/3): force a resize once the style/canvas is ready. A mid-page Mapbox map
+      // can initialise before its container has its final measured size, which leaves the WebGL
+      // canvas sized 0×0 and rendering blank. Resizing on load makes Mapbox re-measure the now
+      // laid-out container. Harmless (a no-op) if the canvas was already sized correctly.
+      map.resize()
       // Trigger the marker-paint effect (it waits on map readiness).
       setMapReady(true)
     })
 
-    // Side effect cleanup: remove markers + the map instance on unmount.
+    // Resize fix (2/3, belt-and-braces): one more resize on the next animation frame after init,
+    // covering the case where layout settles a tick after the map is constructed but before/around
+    // the load event. Also a no-op if the size is already correct.
+    const rafId = requestAnimationFrame(() => {
+      map.resize()
+    })
+
+    // Resize fix (3/3): observe the container for ANY later size change (responsive breakpoints,
+    // sibling content reflow, the section scrolling into a sized layout) and resize the map each
+    // time. This is the robust catch-all for the blank-canvas sizing/timing bug. Side effect:
+    // attaches a ResizeObserver to the container DOM node; disconnected in cleanup below.
+    const resizeObserver = new ResizeObserver(() => {
+      // Guard: only resize while the map still exists (cleanup may have nulled it).
+      if (mapRef.current !== null) {
+        mapRef.current.resize()
+      }
+    })
+    if (containerRef.current !== null) {
+      resizeObserver.observe(containerRef.current)
+    }
+
+    // Side effect cleanup: cancel the pending rAF, disconnect the ResizeObserver, remove markers
+    // + the map instance on unmount.
     return () => {
+      cancelAnimationFrame(rafId)
+      resizeObserver.disconnect()
       for (const m of markersRef.current) {
         m.remove()
       }
@@ -302,6 +353,86 @@ export function SensorGrowthMap({
       markersRef.current.push(marker)
     }
   }, [visibleSensors])
+
+  /**
+   * Stop any running playback: clear the interval and flip `playing` off. Safe to call when
+   * nothing is playing (the ref guard makes it a no-op). Used by the unmount cleanup, by the
+   * manual-scrub interrupt, and when play reaches the end year.
+   */
+  const stopPlay = useCallback((): void => {
+    if (playTimerRef.current !== null) {
+      // Side effect: clears the year-advance interval.
+      clearInterval(playTimerRef.current)
+      playTimerRef.current = null
+    }
+    setPlaying(false)
+  }, [])
+
+  /**
+   * Start playback from the beginning: jump to startYear, then advance one year every
+   * PLAY_STEP_MS until endYear, where it STOPS (plays once, no loop). The button returns to its
+   * replay state via stopPlay() at the end. If a play is somehow already running, it's cleared
+   * first so we never stack intervals.
+   */
+  const startPlay = useCallback((): void => {
+    if (playTimerRef.current !== null) {
+      clearInterval(playTimerRef.current)
+      playTimerRef.current = null
+    }
+    setPlaying(true)
+    setSelectedYear(snapshot.startYear)
+
+    // Side effect: interval that ticks the scrubbed year forward. Uses the functional updater so
+    // it doesn't close over a stale selectedYear. When it would pass endYear, it clamps to
+    // endYear, tears down the interval, and clears `playing` (replay state) — once only, no loop.
+    playTimerRef.current = setInterval(() => {
+      setSelectedYear((current) => {
+        if (current >= snapshot.endYear) {
+          if (playTimerRef.current !== null) {
+            clearInterval(playTimerRef.current)
+            playTimerRef.current = null
+          }
+          setPlaying(false)
+          setHasPlayed(true)
+          return snapshot.endYear
+        }
+        const next = current + 1
+        // The next tick is the last → stop after applying it (don't overshoot endYear).
+        if (next >= snapshot.endYear) {
+          if (playTimerRef.current !== null) {
+            clearInterval(playTimerRef.current)
+            playTimerRef.current = null
+          }
+          setPlaying(false)
+          setHasPlayed(true)
+          return snapshot.endYear
+        }
+        return next
+      })
+    }, PLAY_STEP_MS)
+  }, [snapshot.startYear, snapshot.endYear])
+
+  /**
+   * Handle a manual scrubber change. If the user drags while a play is running, cancel playback
+   * first (don't fight the user — manual scrub interrupts), then apply their chosen year.
+   */
+  const handleManualScrub = useCallback(
+    (year: number): void => {
+      if (playTimerRef.current !== null) {
+        stopPlay()
+      }
+      setSelectedYear(year)
+    },
+    [stopPlay],
+  )
+
+  // ── Unmount cleanup for the play interval. Mount-only effect: stopPlay is stable (useCallback
+  //    with no changing deps), so this never re-runs and the cleanup fires exactly on unmount. ──
+  useEffect(() => {
+    return () => {
+      stopPlay()
+    }
+  }, [stopPlay])
 
   // ── Token-missing guard. ──────────────────────────────────────────────────────
   if (MAPBOX_TOKEN === undefined || MAPBOX_TOKEN.length === 0) {
@@ -394,13 +525,50 @@ export function SensorGrowthMap({
             </span>
           </div>
 
+          {/* Play control — runs the timeline once start→end so the network "grows" on its own.
+              Manual scrubbing (below) cancels it. While running it shows a disabled "Playing…"
+              state; after it finishes it returns to a "Replay" label (the icon switches to a
+              loop-back glyph). No emoji — lucide icon + text only. */}
+          <button
+            type="button"
+            onClick={startPlay}
+            disabled={playing}
+            aria-label={
+              playing
+                ? 'Playing the network growth timeline'
+                : 'Play the network growth timeline from the start'
+            }
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-opacity disabled:cursor-default disabled:opacity-60"
+            style={{
+              backgroundColor: 'var(--bc-semantic-brand)',
+              color: 'var(--bc-color-white)',
+            }}
+          >
+            {playing ? (
+              <>
+                <Play className="h-3.5 w-3.5" aria-hidden="true" />
+                Playing&hellip;
+              </>
+            ) : hasPlayed ? (
+              <>
+                <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
+                Replay
+              </>
+            ) : (
+              <>
+                <Play className="h-3.5 w-3.5" aria-hidden="true" />
+                Play
+              </>
+            )}
+          </button>
+
           <input
             type="range"
             min={snapshot.startYear}
             max={snapshot.endYear}
             step={1}
             value={selectedYear}
-            onChange={(e) => setSelectedYear(Number(e.target.value))}
+            onChange={(e) => handleManualScrub(Number(e.target.value))}
             aria-label={`Year: ${selectedYear}. Drag to change which sensors are shown.`}
             className="flex-1 cursor-pointer"
             style={{ accentColor: 'var(--bc-semantic-brand)' }}

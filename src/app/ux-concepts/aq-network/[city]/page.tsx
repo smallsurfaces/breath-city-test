@@ -17,19 +17,22 @@
  *
  * Sections (in order):
  *   1. Identity header — name, region, "Breathe Cities member" badge, strapline.
- *   2. Achievement timeline (the spine) + the "Latest from [city]" live-news strip.
- *   3. Three-pillar radar — "How Breathe Cities supports [city]" (programme scorecard, not a
- *      city grade), DERIVED from the timeline (city-level support pillars only).
- *   3b. Lesson sharing — the city's peer-network participation strand (gave/received). NOT
- *      on the radar; an early-learner city renders an honest near-empty state.
- *   4. Sensors & coverage — the interactive SENSOR-GROWTH MAP (the concept centrepiece): a
- *      light basemap with markers by sensor TYPE (reference vs low-cost, not air quality), a
- *      timeline scrubber driving sensor existence over time, and three scrubber-linked
- *      counters (sensors deployed · districts covered · people within range — the last an
- *      estimate). Renders from a committed OpenAQ snapshot, never a per-load API call.
+ *   2. Sensors & coverage — the interactive SENSOR-GROWTH MAP (the concept centrepiece), moved
+ *      directly under the identity header: a light basemap with markers by sensor TYPE
+ *      (reference vs low-cost, not air quality), a timeline scrubber + Play control driving
+ *      sensor existence over time, and three scrubber-linked counters (sensors deployed ·
+ *      districts covered · people within range — the last an estimate). Renders from a committed
+ *      OpenAQ snapshot, never a per-load API call.
+ *   3. Achievements — the achievement timeline (the spine) + the "Latest from [city]" live-news
+ *      strip, alongside the DERIVED three-pillar radar ("How Breathe Cities supports [city]" —
+ *      a programme scorecard, not a city grade, from the timeline / city-level support pillars
+ *      only). Timeline + radar are kept together as one block.
+ *   4. Lessons learned — the city's peer-network participation strand (gave/received). NOT on
+ *      the radar; an early-learner city renders an honest near-empty state. (Heading renamed
+ *      from "Lesson sharing"; content unchanged.)
  *   5. 2030 trajectory + problem/health context (hypothetical health line labelled a projection).
- *   (The former standalone section 6, "Population within sensor range", was folded into the
- *    section-4 counters — population belongs under Sensors & coverage.)
+ *   (The former standalone "Population within sensor range" section was folded into the Sensors
+ *    & coverage counters — population belongs under Sensors & coverage.)
  *
  * Chrome: PrototypeHeader (back-to-hub + comments + "Updated" stamp) — every hub build uses it.
  * Theme: light (the repo default; Jack's standing preference). No emoji anywhere.
@@ -110,7 +113,8 @@ export async function generateMetadata({
 
 /**
  * The member profile page. Resolves the [city] slug to a CityProfile (404 if unknown), derives
- * the radar counts, and renders the six sections from the data.
+ * the radar counts, and renders the profile sections from the data, in order: identity →
+ * sensors & coverage → achievements (+ radar) → lessons learned → 2030 journey.
  */
 export default async function AqNetworkCityProfile({
   params,
@@ -167,8 +171,37 @@ export default async function AqNetworkCityProfile({
             </p>
           </header>
 
-          {/* ── 2 + 3. Timeline (spine) alongside the derived radar ─────────── */}
-          <section className="mt-12 grid gap-10 lg:grid-cols-[1fr_320px]">
+          {/* ── 2. Sensors & coverage — the interactive sensor-growth map (the concept's
+                  centrepiece), moved up to sit directly under the identity header. Scrub the
+                  timeline (or hit Play) to watch the network grow; markers are styled by sensor
+                  TYPE (reference vs low-cost), not air quality. The three counters (sensors /
+                  districts / people in range) move with the scrubber — the population-in-range
+                  figure (an estimate) lives here now. Renders from a one-time OpenAQ snapshot,
+                  never a per-load API call. */}
+          <section className="mt-14">
+            <h2 className="text-2xl font-bold tracking-tight text-foreground">
+              Sensors &amp; coverage
+            </h2>
+            <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
+              How {profile.name}&rsquo;s sensor network was built — scrub the timeline to watch
+              it grow. Markers show each sensor by type: reference-grade monitors and low-cost
+              sensors.
+            </p>
+            <div className="mt-6">
+              {sensorSnapshot !== undefined ? (
+                <SensorGrowthMap snapshot={sensorSnapshot} />
+              ) : (
+                // Graceful fallback: a city profile may exist before its snapshot is captured.
+                <div className="rounded-2xl border border-border bg-muted/40 p-6 text-sm text-muted-foreground">
+                  Sensor-growth map for {profile.name} is not available yet.
+                </div>
+              )}
+            </div>
+          </section>
+
+          {/* ── 3. Achievements — the timeline (spine) alongside the derived radar. Kept
+                  together as one block per the brief. ─────────────────────────────── */}
+          <section className="mt-14 grid gap-10 lg:grid-cols-[1fr_320px]">
             {/* Timeline + news strip */}
             <div>
               <h2 className="text-2xl font-bold tracking-tight text-foreground">
@@ -264,12 +297,13 @@ export default async function AqNetworkCityProfile({
             </aside>
           </section>
 
-          {/* ── 3b. Lesson sharing — peer-network participation strand (NOT on the radar).
+          {/* ── 4. Lessons learned — peer-network participation strand (NOT on the radar).
                   Lesson sharing is BC pillar 4 but relational, so it gets its own section
-                  rather than a radar axis. Two directions: shared with / learned from peers. */}
+                  rather than a radar axis. Two directions: shared with / learned from peers.
+                  (Heading reads "Lessons learned"; the gave/received content is unchanged.) */}
           <section className="mt-14">
             <h2 className="text-2xl font-bold tracking-tight text-foreground">
-              Lesson sharing
+              Lessons learned
             </h2>
             <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
               How {profile.name} takes part in the Breathe Cities peer network — the lessons
@@ -281,33 +315,6 @@ export default async function AqNetworkCityProfile({
                 cityName={profile.name}
                 entries={profile.lessonSharing}
               />
-            </div>
-          </section>
-
-          {/* ── 4. Sensors & coverage — the interactive sensor-growth map (the concept's
-                  centrepiece). Scrub the timeline to watch the network grow; markers are
-                  styled by sensor TYPE (reference vs low-cost), not air quality. The three
-                  counters (sensors / districts / people in range) move with the scrubber —
-                  the population-in-range figure (an estimate) lives here now. Renders from a
-                  one-time OpenAQ snapshot, never a per-load API call. */}
-          <section className="mt-14">
-            <h2 className="text-2xl font-bold tracking-tight text-foreground">
-              Sensors &amp; coverage
-            </h2>
-            <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-              How {profile.name}&rsquo;s sensor network was built — scrub the timeline to watch
-              it grow. Markers show each sensor by type: reference-grade monitors and low-cost
-              sensors.
-            </p>
-            <div className="mt-6">
-              {sensorSnapshot !== undefined ? (
-                <SensorGrowthMap snapshot={sensorSnapshot} />
-              ) : (
-                // Graceful fallback: a city profile may exist before its snapshot is captured.
-                <div className="rounded-2xl border border-border bg-muted/40 p-6 text-sm text-muted-foreground">
-                  Sensor-growth map for {profile.name} is not available yet.
-                </div>
-              )}
             </div>
           </section>
 
@@ -382,7 +389,7 @@ export default async function AqNetworkCityProfile({
             </div>
           </section>
 
-          {/* Section 6 (standalone "People within sensor range") was removed: the
+          {/* The former standalone "People within sensor range" section was removed: the
               population-in-range figure now lives inside the Sensors & coverage map as one of
               the three scrubber-linked counters (per the brief — it belongs under Sensors &
               coverage). profile.populationInRange still feeds the snapshot's present-day
