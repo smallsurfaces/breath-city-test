@@ -49,6 +49,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactElement } from 'react'
+import { useRouter } from 'next/navigation'
 import mapboxgl from 'mapbox-gl'
 import { Building2, Radar, Users, Play, RotateCcw, Globe2 } from 'lucide-react'
 import type {
@@ -56,11 +57,21 @@ import type {
   ProgrammeSensor,
   ProgrammeYear,
 } from '../_data/sensor-snapshots/programme-types'
+import { CITY_PROFILE_SLUGS } from '../_data/cities'
 
 import 'mapbox-gl/dist/mapbox-gl.css'
 
 /** Client-exposed Mapbox token (NEXT_PUBLIC_ prefix → available in the browser bundle). */
 const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN
+
+/**
+ * Slugs of cities that have a member-profile page, as a Set for O(1) membership tests in the
+ * globe's hover/click handlers. Sourced from the SAME registry the dynamic [city] route uses
+ * (CITY_PROFILE_SLUGS), so when a new profile is registered the matching dots become interactive
+ * automatically — no edit here. Today: only `accra` + `london`. A dot whose city is NOT in this
+ * set is inert (no pointer cursor, click does nothing) so there are never dead-end navigations.
+ */
+const PROFILE_SLUG_SET = new Set<string>(CITY_PROFILE_SLUGS)
 
 /** Light basemap (matches the page chrome); markers deepened for contrast on light. */
 const GLOBE_STYLE = 'mapbox://styles/mapbox/light-v11'
@@ -129,8 +140,10 @@ type NetworkGlobeProps = {
 
 /**
  * Convert programme sensors to a GeoJSON FeatureCollection for the circle layers. Each feature
- * carries `firstSeenYear` (so a Mapbox filter expression can show/hide by the scrubbed year)
- * and `tier`/`member` (so paint can size+colour reference vs low-cost and emphasise members).
+ * carries `firstSeenYear` (so a Mapbox filter expression can show/hide by the scrubbed year),
+ * `tier`/`member` (so paint can size+colour reference vs low-cost and emphasise members), and
+ * `citySlug` (so the hover/click handlers can route a dot to its member-profile page when one
+ * exists). `citySlug` is the programme snapshot's `city` field, which IS the OpenAQ city slug.
  */
 function sensorsToGeoJSON(
   sensors: ProgrammeSensor[],
@@ -143,6 +156,7 @@ function sensorsToGeoJSON(
         id: s.id,
         name: s.name,
         cityName: s.cityName,
+        citySlug: s.city, // OpenAQ city slug — drives click-through to the city's profile page
         tier: s.type, // 'reference' | 'low-cost'
         member: s.isMember,
         firstSeenYear: s.firstSeenYear,
@@ -200,6 +214,7 @@ function Counter({
  * reset + auto-rotate behaviour, and the timeline scrubber + play + three programme counters.
  */
 export function NetworkGlobe({ snapshot }: NetworkGlobeProps): ReactElement {
+  const router = useRouter()
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<mapboxgl.Map | null>(null)
   const mapReadyRef = useRef<boolean>(false)
@@ -433,7 +448,13 @@ export function NetworkGlobe({ snapshot }: NetworkGlobeProps): ReactElement {
       },
     })
 
-    // Side effect: pointer cursor + city tooltip on hover over either sensor layer.
+    // Side effect: hover tooltip + click-through on either sensor layer.
+    //   - The city-name tooltip shows for EVERY dot (useful context on any sensor).
+    //   - The POINTER cursor is set ONLY when the hovered dot's city has a profile page
+    //     (citySlug ∈ PROFILE_SLUG_SET) — that's the affordance that teaches users which dots
+    //     are interactive. Dots without a profile keep the default cursor.
+    //   - Clicking a dot whose city has a profile navigates to that profile; a dot without a
+    //     profile does nothing (no dead-end route).
     const popup = new mapboxgl.Popup({
       closeButton: false,
       closeOnClick: false,
@@ -441,12 +462,14 @@ export function NetworkGlobe({ snapshot }: NetworkGlobeProps): ReactElement {
       className: 'aq-globe-popup',
     })
     const onEnter = (e: mapboxgl.MapLayerMouseEvent): void => {
-      map.getCanvas().style.cursor = 'pointer'
       const f = e.features?.[0]
       if (f === undefined || f.geometry.type !== 'Point') {
         return
       }
       const p = f.properties ?? {}
+      // Pointer ONLY for cities with a profile page — the "this dot is clickable" affordance.
+      const hasProfile = PROFILE_SLUG_SET.has(String(p.citySlug ?? ''))
+      map.getCanvas().style.cursor = hasProfile ? 'pointer' : ''
       popup
         .setLngLat(f.geometry.coordinates.slice() as [number, number])
         .setHTML(
@@ -462,12 +485,26 @@ export function NetworkGlobe({ snapshot }: NetworkGlobeProps): ReactElement {
       map.getCanvas().style.cursor = ''
       popup.remove()
     }
+    // Click-through: route to the dot's city profile when one exists; otherwise no-op.
+    const onClick = (e: mapboxgl.MapLayerMouseEvent): void => {
+      const f = e.features?.[0]
+      if (f === undefined) {
+        return
+      }
+      const slug = String(f.properties?.citySlug ?? '')
+      if (PROFILE_SLUG_SET.has(slug)) {
+        // Side effect: client navigation to the member-profile route for this city.
+        router.push(`/ux-concepts/aq-network/${slug}`)
+      }
+    }
     map.on('mouseenter', 'sensors-reference', onEnter)
     map.on('mouseenter', 'sensors-lowcost', onEnter)
     map.on('mouseleave', 'sensors-reference', onLeave)
     map.on('mouseleave', 'sensors-lowcost', onLeave)
-    // The hover handlers live for the map's lifetime; map.remove() in the init cleanup drops them.
-  }, [mapReady, sensorGeoJSON, selectedYear])
+    map.on('click', 'sensors-reference', onClick)
+    map.on('click', 'sensors-lowcost', onClick)
+    // The hover/click handlers live for the map's lifetime; map.remove() in the init cleanup drops them.
+  }, [mapReady, sensorGeoJSON, selectedYear, router])
 
   // ── Update the per-year layer filter whenever the scrubbed year changes. ───────
   useEffect(() => {

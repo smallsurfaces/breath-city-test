@@ -129,6 +129,15 @@ export type AchievementCard = {
   detail?: string
   /** The single BC pillar this support activity sits under. The radar counts these. */
   pillar: PillarId
+  /**
+   * APPROXIMATE year this action began — the journey-spine ordering key. The point of the
+   * spine is the SEQUENCE ("what did the city do first") as a shared-learning signal, not a
+   * precise dated record: these years are estimates inferred from each card's content, and
+   * the UI says so. Cards are authored oldest→newest; the timeline displays the year (small,
+   * muted) and renders a one-line "dates are approximate" note. Ordering is purely a display
+   * concern — it does NOT affect the radar, which counts pillars order-independently.
+   */
+  year: number
 }
 
 /**
@@ -278,4 +287,12 @@ export type CityProfile = {
   populationInRange: PopulationEstimate
   /** Collective 2030 trajectory + honest stage framing. */
   trajectory: TrajectoryContext
+  /**
+   * APPROXIMATE annual-mean PM2.5 in µg/m³ — the input to the positive health payoff on the
+   * profile (the life-expectancy months a resident gains if the city hits the 30%-by-2030
+   * goal). This is an ESTIMATE drawn from OpenAQ / WHO city air-quality data, not a measured
+   * project figure; the UI labels the resulting number an estimate and shows the method. See
+   * LIFE_YEARS_LOST_PER_UGM3 in the [city] page for the AQLI relationship applied to it.
+   */
+  baselinePm25: number
 }
