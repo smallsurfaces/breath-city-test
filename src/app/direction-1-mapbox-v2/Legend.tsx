@@ -3,7 +3,7 @@
  *
  * Shows:
  * - AQI PM2.5 colour bands with breakpoints
- * - Sensor type key (high quality triangle / low quality circle)
+ * - Sensor type key (reference grade triangle / low-cost sensor circle)
  * - Usage hint that changes per interaction mode
  *
  * Key exports: Legend
@@ -130,19 +130,19 @@ export function Legend({ mapMode }: Props): React.ReactElement {
         Sensor Type
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-        {/* High quality — triangle */}
+        {/* Reference grade — triangle */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <svg width="14" height="14" viewBox="0 0 14 14" style={{ flexShrink: 0 }}>
             <polygon points="7,1 13,13 1,13" fill="#0071c7" />
           </svg>
-          <span style={{ fontSize: '0.72rem', color: '#0f1117' }}>High quality</span>
+          <span style={{ fontSize: '0.72rem', color: '#0f1117' }}>Reference grade</span>
         </div>
-        {/* Low quality — circle */}
+        {/* Low-cost sensor — circle */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <svg width="14" height="14" viewBox="0 0 14 14" style={{ flexShrink: 0 }}>
             <circle cx="7" cy="7" r="5" fill="#9c27b0" />
           </svg>
-          <span style={{ fontSize: '0.72rem', color: '#0f1117' }}>Low quality</span>
+          <span style={{ fontSize: '0.72rem', color: '#0f1117' }}>Low-cost sensor</span>
         </div>
       </div>
 

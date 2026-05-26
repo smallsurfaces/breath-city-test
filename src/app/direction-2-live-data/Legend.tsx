@@ -36,9 +36,9 @@ import type { MapMode } from './MapComponent'
 const MUTED = '#6b7280'
 /** Primary text colour (prototype chrome). */
 const TEXT = '#0f1117'
-/** BC brand blue for the high-quality (triangle) key swatch. */
+/** BC brand blue for the reference-grade (triangle) key swatch. */
 const BRAND = '#0071c7'
-/** Steel-ish for the low-quality (circle) key swatch (matches the muted sensor role). */
+/** Steel-ish for the low-cost-sensor (circle) key swatch (matches the muted sensor role). */
 const LOW_QUALITY = '#9c27b0'
 
 /** Per-mode hint text shown at the bottom of the legend (parameter-interpolated). */
@@ -161,13 +161,13 @@ export function Legend({ parameter, mapMode }: Props): React.ReactElement {
           <svg width="14" height="14" viewBox="0 0 14 14" style={{ flexShrink: 0 }}>
             <polygon points="7,1 13,13 1,13" fill={BRAND} />
           </svg>
-          <span style={{ fontSize: '0.72rem', color: TEXT }}>High quality</span>
+          <span style={{ fontSize: '0.72rem', color: TEXT }}>Reference grade</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <svg width="14" height="14" viewBox="0 0 14 14" style={{ flexShrink: 0 }}>
             <circle cx="7" cy="7" r="5" fill={LOW_QUALITY} />
           </svg>
-          <span style={{ fontSize: '0.72rem', color: TEXT }}>Low quality</span>
+          <span style={{ fontSize: '0.72rem', color: TEXT }}>Low-cost sensor</span>
         </div>
       </div>
 

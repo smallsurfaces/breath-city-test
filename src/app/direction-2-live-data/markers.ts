@@ -109,7 +109,7 @@ function staleStroke(): string {
 }
 
 /**
- * Triangle SVG (high quality), light re-tune. `fresh` switches between a solid AQI-filled triangle
+ * Triangle SVG (reference grade), light re-tune. `fresh` switches between a solid AQI-filled triangle
  * with a dark-blue ink outline + inverted halo (light under-stroke drawn first + ink over-stroke),
  * and a hollow neutral-grey-outlined triangle (no fill, no halo). The fresh halo stops a pale-green
  * triangle dissolving into the light basemap; the ink outline is the crisp edge the mild tiers rely
@@ -134,7 +134,7 @@ function triangleSVG(size: number, fresh: boolean, hue: string): string {
 }
 
 /**
- * Circle SVG (low quality), light re-tune. Same fresh/stale logic as the triangle. The fresh circle
+ * Circle SVG (low-cost sensor), light re-tune. Same fresh/stale logic as the triangle. The fresh circle
  * gets the inverted halo + ink outline; the stale circle is the smallest element in the set (~14px),
  * so the thin neutral-grey hollow ring is the legibility case the spike screenshots answered.
  */
