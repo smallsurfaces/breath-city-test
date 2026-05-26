@@ -228,7 +228,7 @@ export function StationPopup({ station, parameter, onClose }: Props): React.Reac
 
         {/* Quality */}
         <div style={{ fontSize: '0.7rem', color: MUTED, marginBottom: 8 }}>
-          {station.quality === 'high' ? 'High quality sensor' : 'Low quality sensor'}
+          {station.quality === 'high' ? 'Reference grade sensor' : 'Low-cost sensor'}
         </div>
 
         <ProvenanceBlock station={station} />

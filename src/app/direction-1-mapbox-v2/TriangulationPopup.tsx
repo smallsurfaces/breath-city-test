@@ -32,7 +32,7 @@ type Props = {
 
 /** Maps sensor quality to a short readable label for the popup list */
 function qualityLabel(quality: SensorQuality): string {
-  return quality === 'high' ? 'High quality' : 'Low quality'
+  return quality === 'high' ? 'Reference grade' : 'Low-cost sensor'
 }
 
 export function TriangulationPopup({ result, onClose }: Props): React.ReactElement {
@@ -138,7 +138,7 @@ export function TriangulationPopup({ result, onClose }: Props): React.ReactEleme
             >
               {/* Sensor name + quality indicator */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                {/* Shape indicator — triangle SVG for high quality, circle for low */}
+                {/* Shape indicator — triangle SVG for reference grade, circle for low-cost sensor */}
                 {sensor.quality === 'high' ? (
                   <svg width="10" height="10" viewBox="0 0 10 10" style={{ flexShrink: 0 }}>
                     <polygon points="5,1 9,9 1,9" fill="#0071c7" />

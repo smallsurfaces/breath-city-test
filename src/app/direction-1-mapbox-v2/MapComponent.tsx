@@ -3,8 +3,8 @@
  *
  * Responsibilities:
  * - Initialises a Mapbox GL JS map centred on Vienna
- * - Renders sensor markers as custom HTML elements (triangles for high
- *   quality, circles for low quality) via mapboxgl.Marker
+ * - Renders sensor markers as custom HTML elements (triangles for reference
+ *   grade, circles for low-cost sensor) via mapboxgl.Marker
  * - Three mutually exclusive interaction modes:
  *     default  — normal pan/zoom, no triangulation on click
  *     probe    — map click drops a probe pin and triggers triangulation
@@ -95,7 +95,7 @@ function makeTriangleSVG(size: number, color: string): string {
 
 /**
  * Creates an HTML element for a sensor marker.
- * High quality → filled triangle SVG; Low quality → filled circle div.
+ * Reference grade → filled triangle SVG; Low-cost sensor → filled circle div.
  * Includes a title attribute for hover tooltip showing sensor name + PM2.5.
  */
 function createMarkerElement(sensor: Sensor): HTMLElement {
@@ -106,12 +106,12 @@ function createMarkerElement(sensor: Sensor): HTMLElement {
   const aqiColor = getAQICategory(sensor.pm25).color
 
   if (sensor.quality === 'high') {
-    // High quality: triangular marker, 22px, AQI-coloured
+    // Reference grade: triangular marker, 22px, AQI-coloured
     el.style.width = '22px'
     el.style.height = '22px'
     el.innerHTML = makeTriangleSVG(22, aqiColor)
   } else {
-    // Low quality: circular marker, 14px, AQI-coloured
+    // Low-cost sensor: circular marker, 14px, AQI-coloured
     el.style.width = '14px'
     el.style.height = '14px'
     el.style.borderRadius = '50%'
@@ -637,7 +637,7 @@ export const MapComponent = forwardRef<MapHandle, Props>(function MapComponent(
                   color: '#6b7280',
                 }}
               >
-                {sensor.quality === 'high' ? 'High quality sensor' : 'Low quality sensor'}
+                {sensor.quality === 'high' ? 'Reference grade sensor' : 'Low-cost sensor'}
               </div>
             </div>,
           )

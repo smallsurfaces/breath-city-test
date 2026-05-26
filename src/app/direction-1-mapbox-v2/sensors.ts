@@ -10,8 +10,8 @@
  * corridors in the centre and near the ring road.
  */
 
-/** The two sensor quality types. High quality uses triangular markers;
- *  low quality uses circular markers. */
+/** The two sensor quality types. Reference grade uses triangular markers;
+ *  low-cost sensor uses circular markers. */
 export type SensorQuality = 'high' | 'low'
 
 /** A single mock air quality sensor placed on the Vienna map. */
