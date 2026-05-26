@@ -49,7 +49,7 @@
  *
  * Key exports: SensorGrowthMap (named)
  * External dependencies: react, mapbox-gl, lucide-react (icons), ../_data/sensor-snapshots/types,
- *   ../../../_components/InfoTooltip (the "i" affordance hiding the provenance/methodology copy).
+ *   @/components/concept (InfoTooltip — the "i" affordance hiding the provenance/methodology copy).
  *
  * Side effects (all cleaned up on unmount / re-run):
  *   - Creates a Mapbox GL map instance in the container ref.
@@ -72,12 +72,12 @@ import { Radar, MapPin, Users, Play, RotateCcw } from 'lucide-react'
 import {
   ConceptCard,
   ConceptStat,
+  InfoTooltip,
   SENSOR_TIER_REFERENCE_HEX,
   SENSOR_TIER_LOWCOST_HEX,
   SENSOR_TIER_FALLBACK_HEX,
   SENSOR_TIER_STROKE_HEX,
 } from '@/components/concept'
-import { InfoTooltip } from '../../../_components/InfoTooltip'
 import type {
   SensorSnapshot,
   SnapshotSensor,

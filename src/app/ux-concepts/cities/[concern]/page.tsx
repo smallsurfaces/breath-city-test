@@ -16,8 +16,8 @@
  *
  * Structure (top to bottom, per the build brief):
  *   1. THE SHARED CHALLENGE — the resident question in the resident's voice (labelled INFERRED via
- *      the "i" tooltip), plus one line on why it is universal across cities. Uses ConceptHeroPlain
- *      (no eyebrow).
+ *      the "i" tooltip), plus one line on why it is universal across cities. Uses the shared
+ *      ConceptHero with no eyebrow prop.
  *   2. HOW SOME BC CITIES ANSWERED IT — the concern's cards, grouped BY CITY (only cities with a
  *      real card appear — "some cities, not all"). Each card is one city's answer: tap → popup.
  *   3. CONTRIBUTION TO 2030 — the concern's `contribution` line (from the data): how these answers
@@ -35,10 +35,10 @@
  * Inferred-voice labelling is explicit. No BC photography, no fabricated figures.
  *
  * Key exports: default page component, generateStaticParams, generateMetadata
- * External dependencies: next/navigation, @/components/concept (BcHeader, BcFooter,
- *   ConceptSectionHeader, ConceptCard), the app-local ConceptHeroPlain (eyebrow-less hero) and
- *   InfoTooltip (the "i" affordance holding the inferred-voice note), the co-located CITIES_CHROME
- *   config + EntryCard, concerns-data (CONCERNS, concernByKey, citiesWithAnswersFor).
+ * External dependencies: next/navigation, @/components/concept (BcHeader, BcFooter, ConceptHero,
+ *   ConceptSectionHeader, ConceptCard, InfoTooltip — the "i" affordance holding the
+ *   inferred-voice note), the co-located CITIES_CHROME config + EntryCard, concerns-data (CONCERNS,
+ *   concernByKey, citiesWithAnswersFor).
  *
  * Route: /ux-concepts/cities/[concern]
  */
@@ -48,11 +48,11 @@ import { notFound } from "next/navigation";
 import {
   BcHeader,
   BcFooter,
+  ConceptHero,
   ConceptSectionHeader,
   ConceptCard,
+  InfoTooltip,
 } from "@/components/concept";
-import { ConceptHeroPlain } from "../../../_components/ConceptHeroPlain";
-import { InfoTooltip } from "../../../_components/InfoTooltip";
 import { CITIES_CHROME } from "../_components/bc-chrome.config";
 import { EntryCard } from "../_components/EntryCard";
 import {
@@ -118,8 +118,9 @@ export default async function ConcernPage({ params }: ConcernPageProps) {
       {/* ── (1) The shared challenge ─────────────────────────────────────────── */}
       <section className="border-b border-border">
         <div className="mx-auto max-w-6xl px-4 py-14 lg:py-20">
-          {/* Eyebrow-less hero (ConceptHeroPlain): the resident question + why it's universal. */}
-          <ConceptHeroPlain
+          {/* Eyebrow-less hero (shared ConceptHero, no `eyebrow` prop): the resident question +
+              why it's universal. */}
+          <ConceptHero
             headline={`“${concern.voice}”`}
             body={UNIVERSALITY[concern.key]}
           >
@@ -134,7 +135,7 @@ export default async function ConcernPage({ params }: ConcernPageProps) {
                 residents&rsquo; words. It is a framing device, not a survey of any one city.
               </InfoTooltip>
             </p>
-          </ConceptHeroPlain>
+          </ConceptHero>
         </div>
       </section>
 

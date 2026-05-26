@@ -74,7 +74,7 @@ import { AchievementTimeline } from '../_components/AchievementTimeline'
 import { LessonSharing } from '../_components/LessonSharing'
 import { SensorGrowthMap } from '../_components/SensorGrowthMap'
 import { DataSource } from '../_components/DataSource'
-import { InfoTooltip } from '../../../_components/InfoTooltip'
+import { InfoTooltip } from '@/components/concept'
 import { getSensorSnapshot } from '../_data/sensor-snapshots'
 
 /**
