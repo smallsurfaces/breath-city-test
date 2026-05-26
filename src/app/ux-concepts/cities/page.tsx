@@ -8,11 +8,11 @@
  *
  * Server component. The v1/v2 split is collapsed — this single build at /ux-concepts/cities is the
  * one canonical cities concept, carrying the on-standard concept composition layer
- * (ConceptHeroPlain / ConceptSectionHeader / ConceptCard from @/components/concept).
+ * (ConceptHero / ConceptSectionHeader / ConceptCard from @/components/concept).
  *
- * Declutter pass (2026-05-25): the "RESIDENT CONCERNS" hero eyebrow is dropped (the hero now uses
- * the eyebrow-less ConceptHeroPlain, matching the other concepts), and the inferred-voice honesty
- * note is moved out of inline body copy behind an "i" InfoTooltip (with a minimal visible
+ * Declutter pass (2026-05-25): the "RESIDENT CONCERNS" hero eyebrow is dropped (the hero uses the
+ * shared ConceptHero with no eyebrow prop, matching the other concepts), and the inferred-voice
+ * honesty note is moved out of inline body copy behind an "i" InfoTooltip (with a minimal visible
  * "inferred" cue) — the evidence-discipline text is preserved, not deleted.
  *
  * Page structure (top to bottom):
@@ -35,9 +35,9 @@
  *
  * Key exports: default page component, metadata
  * External dependencies: next/link, lucide-react, @/components/concept (BcHeader, BcFooter,
- *   ConceptSectionHeader, ConceptCard), the app-local ConceptHeroPlain (eyebrow-less hero) and
- *   InfoTooltip (the "i" affordance holding the inferred-voice note), the co-located CITIES_CHROME
- *   config, concerns-data (CONCERNS, citiesWithAnswersFor).
+ *   ConceptHero, ConceptSectionHeader, ConceptCard, InfoTooltip — the "i" affordance holding the
+ *   inferred-voice note), the co-located CITIES_CHROME config, concerns-data (CONCERNS,
+ *   citiesWithAnswersFor).
  *
  * Route: /ux-concepts/cities
  */
@@ -48,11 +48,11 @@ import { ArrowRight } from "lucide-react";
 import {
   BcHeader,
   BcFooter,
+  ConceptHero,
   ConceptSectionHeader,
   ConceptCard,
+  InfoTooltip,
 } from "@/components/concept";
-import { ConceptHeroPlain } from "../../_components/ConceptHeroPlain";
-import { InfoTooltip } from "../../_components/InfoTooltip";
 import { CITIES_CHROME } from "./_components/bc-chrome.config";
 import { CONCERNS, citiesWithAnswersFor } from "./_data/concerns-data";
 
@@ -89,7 +89,7 @@ export default function ResidentConcernsLanding() {
       {/* ── Hero: the collective challenge framing + the 30%-by-2030 mission ─── */}
       <section className="border-b border-border">
         <div className="mx-auto max-w-6xl px-4 py-16 lg:py-20">
-          <ConceptHeroPlain
+          <ConceptHero
             headline="A challenge every city's residents share — and how some Breathe Cities answered it."
             body="Across the Breathe Cities family, residents keep asking the same five questions about the air they breathe. They are a common challenge, not a local one. For each, here is how some cities in the network have already answered — working toward 30% cleaner air by 2030 (against a 2019 baseline), with modelled projections of ~55,000 premature deaths prevented and ~$147B in avoided health costs."
           />

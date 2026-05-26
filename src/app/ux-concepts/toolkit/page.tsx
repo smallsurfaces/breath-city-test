@@ -20,15 +20,15 @@
  * Route: /ux-concepts/toolkit
  *
  * Key exports: ToolkitLandingPage (default)
- * External dependencies: @/components/concept (ConceptSectionHeader, BcHeader, BcFooter),
- *   ../../_components/PrototypeHeader, ../../_components/ConceptHeroPlain (eyebrow-less hero),
- *   ../../_data/concept-registry (CONCEPTS), ./_components/{toolkit-catalogue.config, CatalogueCard}
+ * External dependencies: @/components/concept (ConceptHero, ConceptSectionHeader, BcHeader,
+ *   BcFooter), ../../_components/PrototypeHeader, ../../_data/concept-registry (CONCEPTS),
+ *   ./_components/{toolkit-catalogue.config, CatalogueCard}
  */
 
 import { PrototypeHeader } from '../../_components/PrototypeHeader'
-import { ConceptHeroPlain } from '../../_components/ConceptHeroPlain'
 import { CONCEPTS } from '../../_data/concept-registry'
 import {
+  ConceptHero,
   ConceptSectionHeader,
   BcHeader,
   BcFooter,
@@ -52,10 +52,8 @@ export default function ToolkitLandingPage() {
       <main className="min-h-screen bg-background px-4 py-10">
         <div className="mx-auto max-w-6xl space-y-12">
           {/* ── Hero — the catalogue pitch. Eyebrow dropped this pass (Jack's decision): uses the
-                local eyebrow-less ConceptHeroPlain wrapper instead of <ConceptHero> (whose eyebrow
-                is required and which is design-system-keeper's domain). FLAG: once ConceptHero gets
-                an optional eyebrow this returns to <ConceptHero>. */}
-          <ConceptHeroPlain
+                shared ConceptHero with no `eyebrow` prop. */}
+          <ConceptHero
             headline="Everything a complete air-quality stack needs"
             body="A catalogue of the digital components and guidance a city needs to understand, communicate, and act on its air quality — and which parts Breathe Cities offers today. Real-time monitoring is the foundation, and it is available now; the rest are on the way."
           />

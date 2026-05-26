@@ -18,11 +18,11 @@
  *   (focus) as well as pointer (hover) — Base UI's Tooltip opens on both. The icon itself is
  *   aria-hidden (the button's label carries the meaning).
  *
- * Placement note (design-system-keeper)
- *   Lives in src/app/_components (app-local shared chrome), NOT in @/components/concept — per the
- *   housekeeping guardrail that new shared bits are built locally and flagged, not added to the
- *   concept primitive layer directly. FLAG: if this proves reusable across concepts it should be
- *   promoted into the shared concept/design-system layer by design-system-keeper.
+ * Placement
+ *   Lives in src/components/concept/ — the shared concept composition layer (alongside ConceptHero,
+ *   ConceptCard, ConceptSectionHeader). It was previously app-local at src/app/_components/ as a
+ *   flagged-for-promotion file; the ds-tidy pass promoted it once the four concept-page callers
+ *   confirmed it is shared concept chrome, not single-page furniture.
  *
  * Tokens
  *   shadcn-bridged semantic classes only (text-muted-foreground, hover:text-foreground,

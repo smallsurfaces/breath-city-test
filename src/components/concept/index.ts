@@ -19,6 +19,7 @@ export { ConceptHero } from './ConceptHero'
 export { ConceptSectionHeader } from './ConceptSectionHeader'
 export { ConceptCard } from './ConceptCard'
 export { ConceptStat } from './ConceptStat'
+export { InfoTooltip } from './InfoTooltip'
 
 export type { AqiLevel } from './aqi-palette'
 export {
