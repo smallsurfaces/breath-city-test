@@ -84,9 +84,9 @@ function composeHero(practice: PracticeCard, example: CityExample): string | nul
     // Seeing — Monitoring (London)
     "d1-sensor-deployment|london": "120 low-cost sensors citywide",
     // Seeing — Data & Tech (Bogota open data)
-    "d12-open-data|bogota": "20 monitoring stations live",
+    "d12-open-data|bogota": "20 reference-grade stations citywide",
     // Understanding — Source Analysis (Accra)
-    "d2-source-apportionment|accra": "Transport + cookstoves identified",
+    "d2-source-apportionment|accra": "Transport + cookstoves identified as source",
     // Understanding — Health Impact (Paris UFP study)
     "d3-health-risk-assessment|paris": "33% fewer respiratory admissions",
     // Acting — Policy Design (Brussels)
@@ -100,7 +100,7 @@ function composeHero(practice: PracticeCard, example: CityExample): string | nul
     // Enabling — Awareness (Bangkok)
     "d8-awareness|bangkok": "45% of residents now AQ-aware",
     // Enabling — Governance (Warsaw)
-    "d9-governance|warsaw": "3 governance levels in 5 years",
+    "d9-governance|warsaw": "3 governance level coverage in 5 years",
     // Enabling — Funding (Warsaw)
     "d10-funding|warsaw": "PLN 2.1B unlocked for transition",
   };
