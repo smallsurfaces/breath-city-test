@@ -111,7 +111,7 @@ export default function RoadmapV2Page() {
         {/* Hero — unchanged from previous pass: shared ConceptHero + four ConceptStat figures. */}
         <ConceptHero
           headline="Breathe Cities Air Quality Roadmap"
-          body="Every BC city walks the same journey toward clean air: seeing their pollution, understanding where it comes from, acting to cut it, and enabling the infrastructure that makes the rest possible. The roadmap below organises 12 domains of practice across those four stages, domain by domain, with measurable results."
+          body="14 Breathe Cities serving 77 million people are on the same journey toward clean air: seeing, understanding, acting and enabling. This roadmap organises 12 domains of practice across those four stages, with measurable results."
         >
           <div className="flex flex-wrap items-end gap-6 pt-2">
             <ConceptStat value="14" label="cities" />
