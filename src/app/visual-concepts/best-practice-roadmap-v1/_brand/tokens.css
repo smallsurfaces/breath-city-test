@@ -1,0 +1,187 @@
+/**
+ * tokens.css — BC brand tokens scoped to Visual Concept v1.
+ *
+ * Purpose
+ *   Defines the BC brand token set per the 2026 Brand Guidelines + Arne's live-site
+ *   code resolutions for the 10 gaps the brand guide does not specify. All tokens
+ *   are scoped under `[data-bc-brand="v1"]` so they cascade ONLY inside the v1
+ *   layout — UX wireframe pages (which read tokens from the global Style Dictionary
+ *   build at `dist/css/tokens.css`) are unaffected.
+ *
+ *   This file is the "shadow definition" of what will eventually graduate into the
+ *   shared `src/systems/bc-brand/` root after the client presentation. Migration:
+ *   move this file out of `_brand/`, drop the scoping selector, and let it be
+ *   loaded globally. The token names (`--bc-*`) are chosen to be migration-safe.
+ *
+ *   Relationship to the global token build
+ *     The global build (`dist/css/tokens.css`) already defines `--bc-color-blue`,
+ *     `--bc-color-dark-blue`, `--bc-color-light-blue`, etc. with the SAME HEX
+ *     values used here. Re-declaring under a scoped selector is a no-op at the
+ *     cascade level — values match, scope wins. The NEW additions are:
+ *       - Regional palette (`--bc-color-region-*`) — not in global build
+ *       - Interaction states (`--bc-color-blue-darker`, `--bc-color-blue-pressed`)
+ *         — not in global build, sourced from Arne's `_colors.css`
+ *       - `--bc-font-sans` — global build references Söhne but does not load it;
+ *         this scope provides the actual loaded variable from next/font
+ *
+ *   Source-of-truth ladder
+ *     1. 2026 Brand Guidelines (HEX values, regional mapping, palette names)
+ *     2. Arne's code files (interaction states, type ramp, breakpoints, fallback)
+ *     3. SUM at resources/brand-handoff-from-ahoy/Breathe Cities Brand Guidelines - 2026 — SUM.md
+ *
+ *   Type ramp source
+ *     Arne's `_base.css` responsive scale, breakpoints sm=780px and wide=1600px.
+ *     Implemented via CSS `clamp()` so the value smoothly interpolates between
+ *     viewport sizes — equivalent to Arne's discrete-breakpoint ramp but smoother.
+ *
+ * Key exports: CSS custom properties on `[data-bc-brand="v1"]`
+ * External dependencies: none (font variable is supplied by `./fonts.ts` via the
+ *   layout wrapper className)
+ */
+
+/* ─── BC brand tokens, scoped to v1 ────────────────────────────────────────── */
+[data-bc-brand="v1"] {
+  /* ─── Primary anchor ───
+   * BC Blue is the anchor across all surfaces (2026 guide). */
+  --bc-color-blue: #0071C7;
+
+  /* ─── Secondary palette (8 colours) ───
+   * Per 2026 guide, page 11. Anchored in AQI-warning lineage:
+   *   green = healthy, yellow = moderate, orange = unhealthy, pink = very unhealthy.
+   * BC Blue itself sits OUTSIDE the secondary palette as the brand anchor. */
+  --bc-color-dark-blue:    #003574;  /* Dark Blue — headings, depth, accent grounds */
+  --bc-color-light-blue:   #23BCED;  /* Light Blue — interactive hover state */
+  --bc-color-purple:       #AC4399;  /* Purple — secondary accent */
+  --bc-color-fuchsia:      #F357CA;  /* Fuchsia — Asia-Pacific regional + very-unhealthy lineage */
+  --bc-color-rich-green:   #03AB3D;  /* Rich Green — Latin America regional + healthy lineage */
+  --bc-color-tangerine:    #F55200;  /* Tangerine — Europe regional + error states (per Arne) */
+  --bc-color-acid-yellow:  #E8F000;  /* Acid Yellow — moderate lineage + bold accent */
+  --bc-color-black:        #000000;  /* Black — neutral darkest */
+
+  /* ─── Regional palette (4 named tokens) ───
+   * Per 2026 guide, pages 12–13. Used for city/region accents. Africa is its
+   * own accent (#2DCDB0), NOT a member of the secondary palette — it overlaps
+   * value-wise with Arne's `--mint`. The other three regions point at members
+   * of the secondary palette. */
+  --bc-color-region-africa:        #2DCDB0;  /* Africa — bespoke teal-green accent */
+  --bc-color-region-asia-pacific:  #F357CA;  /* Asia-Pacific — same as fuchsia */
+  --bc-color-region-latin-america: #03AB3D;  /* Latin America — same as rich green */
+  --bc-color-region-europe:        #F55200;  /* Europe — same as tangerine */
+
+  /* ─── Interaction-state colours (from Arne's _colors.css) ───
+   * Not specified in the 2026 brand guide; sourced from Arne's `_colors.css`
+   * where they are declared as `--darkerblue` and `--bluepressed`. Use for
+   * focus, hover-on-dark, and active/pressed states on the primary blue. */
+  --bc-color-blue-darker:  #002A5B;  /* Deepest blue — pressed state on dark backgrounds */
+  --bc-color-blue-pressed: #059ECF;  /* Active state — pressed/clicked state on light backgrounds */
+
+  /* ─── Neutrals ─── */
+  --bc-color-white:        #FFFFFF;
+  --bc-color-grey:         #F3F8FE;  /* Per Arne — very light grey-blue, used for UI backgrounds */
+
+  /* ─── Semantic aliases ───
+   * Per Arne's `--*Color` token layer. Errors map to Tangerine (NOT red); this
+   * is a deliberate brand-system choice in Arne's code, kept here for parity. */
+  --bc-bg:        var(--bc-color-white);        /* Page background */
+  --bc-text:      var(--bc-color-dark-blue);    /* Primary text colour */
+  --bc-brand:     var(--bc-color-blue);         /* Brand/primary CTA colour */
+  --bc-accent:    var(--bc-color-dark-blue);    /* Accent for partner / dark sections */
+  --bc-hover:     var(--bc-color-light-blue);   /* Interactive hover */
+  --bc-active:    var(--bc-color-blue-pressed); /* Pressed/active */
+  --bc-error:     var(--bc-color-tangerine);    /* Errors — Tangerine, per Arne, NOT red */
+  --bc-success:   var(--bc-color-rich-green);   /* Success */
+  --bc-border:    var(--bc-color-grey);         /* Subtle borders */
+
+  /* ─── Regional accent runtime variable ───
+   * Per Arne's `_base.css`: `.bc-underline::after { background-color:
+   * var(--region-color, currentColor) }`. Components set `--region-color` at
+   * a closer scope (e.g. on a city card) to switch underline/accent colour.
+   * Default = currentColor so it inherits if unset. */
+  --bc-region-color: currentColor;
+
+  /* ─── Typography ───
+   * Font stack — Söhne + Verdana (per Arne) + system sans fallback. The
+   * `--bc-font-sans` value is OVERRIDDEN by next/font/local at runtime via the
+   * className on the scoping wrapper — that override prepends a font-family
+   * stack that ALSO includes Söhne (now-loaded) at the front. This declaration
+   * is the failsafe in case next/font initialisation runs slow. */
+  --bc-font-sans:  'Söhne', Verdana, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+
+  /* ─── Type scale — responsive via clamp() ───
+   * Translated from Arne's @screen sm (780px) and @screen wide (1600px)
+   * breakpoints into smooth clamp() expressions. Min = mobile, max = wide,
+   * vw-relative scaling between.
+   *
+   *   Reference values from Arne's _base.css (sm = 780px, wide = 1600px):
+   *     titleLarge:  38 → 64  → 84   (line heights: 48/38 → 70/64 → 82/84)
+   *     titleMedium: 24 → 34  → 46   (line heights: 32/24 → 38/34 → 50/46)
+   *     titleSmall:  20 → 24  → 34   (line heights: 26/20 → 30/24 → 42/34)
+   *     titleSub:    18 → 22  → 26   (line heights: 24/18 → 32/22 → 32/26)
+   *     body:        16 → 18  → 20   (line heights: 24/16 → 26/18 → 28/20)
+   *     bodySmall:   14 → 16  → 18   (line heights: 20/14 → 24/16 → 26/18)
+   *     bodySmaller: 12 → 14  → 16   (line heights: 18/12 → 22/14 → 24/16)
+   *
+   *   The clamp() expressions below interpolate from min (mobile) to max (wide)
+   *   over the viewport range 780px → 1600px, matching Arne's intent at the
+   *   endpoints. Application layer can override per-component if needed.
+   */
+  --bc-font-size-title-large:  clamp(2.375rem, 1.0rem + 2.83vw,  5.25rem);  /* 38 → 84px  */
+  --bc-font-size-title-medium: clamp(1.5rem,   0.86rem + 1.32vw, 2.875rem); /* 24 → 46px  */
+  --bc-font-size-title-small:  clamp(1.25rem,  0.92rem + 0.69vw, 2.125rem); /* 20 → 34px  */
+  --bc-font-size-title-sub:    clamp(1.125rem, 0.99rem + 0.28vw, 1.625rem); /* 18 → 26px  */
+  --bc-font-size-body:         clamp(1rem,     0.88rem + 0.25vw, 1.25rem);  /* 16 → 20px  */
+  --bc-font-size-body-small:   clamp(0.875rem, 0.76rem + 0.25vw, 1.125rem); /* 14 → 18px  */
+  --bc-font-size-body-smaller: clamp(0.75rem,  0.64rem + 0.25vw, 1rem);     /* 12 → 16px  */
+
+  /* ─── Line heights paired with the type scale ───
+   * Three discrete values cover the ramp: titles get tight, body gets normal.
+   * Pulled from Arne's @screen wide values (the most-shipped state). */
+  --bc-line-height-title-large:  0.976;   /* 82/84   — title-large at wide */
+  --bc-line-height-title-medium: 1.087;   /* 50/46   — title-medium at wide */
+  --bc-line-height-title-small:  1.235;   /* 42/34   — title-small at wide */
+  --bc-line-height-title-sub:    1.231;   /* 32/26   — title-sub at wide */
+  --bc-line-height-body:         1.4;     /* 28/20   — body at wide */
+  --bc-line-height-tight:        1.1;
+  --bc-line-height-snug:         1.25;
+  --bc-line-height-normal:       1.4;
+  --bc-line-height-relaxed:      1.5;
+
+  /* ─── Font weights ───
+   * The four "live-site-confirmed" weights from Arne's code plus the heaviest
+   * available (Extrafett — mapped to 900 in fonts.ts). */
+  --bc-font-weight-regular:  400;  /* Söhne Buch */
+  --bc-font-weight-medium:   500;  /* Söhne Kräftig */
+  --bc-font-weight-semibold: 600;  /* Söhne Halbfett */
+  --bc-font-weight-bold:     700;  /* Söhne Fett */
+  --bc-font-weight-black:    900;  /* Söhne Extrafett */
+
+  /* ─── Breakpoint reference (consumable as a comment) ───
+   * Tailwind/CSS-side breakpoints from Arne's tailwind.config.js. Listed here
+   * as CSS custom properties so component CSS can reference them via
+   * `var(--bc-breakpoint-sm)` if needed (rare — most consumers will use
+   * Tailwind utility classes). */
+  --bc-breakpoint-xs:   640px;
+  --bc-breakpoint-sm:   780px;
+  --bc-breakpoint-md:   980px;
+  --bc-breakpoint-lg:   1080px;
+  --bc-breakpoint-xl:   1281px;
+  --bc-breakpoint-xxl:  1441px;
+  --bc-breakpoint-wide: 1600px;
+  --bc-breakpoint-max:  1880px;
+
+  /* ─── Spacing scale (from Arne's tailwind.config.js spacing) ───
+   * In px; align with the global token build for cross-system consistency. */
+  --bc-spacing-xs:   10px;
+  --bc-spacing-sm:   20px;
+  --bc-spacing-md:   40px;
+  --bc-spacing-lg:   60px;
+  --bc-spacing-xl:   80px;
+  --bc-spacing-xxl: 120px;
+  --bc-spacing-max: 200px;
+
+  /* ─── Apply Söhne to everything inside this scope ───
+   * The `next/font/local` className on the wrapper supplies the actual loaded
+   * font-family; this declaration ensures cascade reaches every descendant. */
+  font-family: var(--bc-font-sans);
+  color: var(--bc-text);
+}

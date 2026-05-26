@@ -24,6 +24,20 @@
  *     forked into ./_chrome so future BC-brand visual edits inside this sandbox cannot leak
  *     into other concepts that depend on the shared chrome.
  *
+ *   BC brand foundation (2026-05-26)
+ *     The `./_brand/` folder provides the bootstrapped BC brand layer — Söhne web fonts loaded
+ *     via next/font/local, BC tokens (palette + regional + interaction-state colours + type
+ *     ramp) declared on `[data-bc-brand="v1"]`, and SVG/PNG graphic assets (Wind, Windows).
+ *     We apply both by wrapping the children in a scoping `<div>` that carries the data
+ *     attribute (so the tokens.css cascade matches) and the next/font className (so Söhne is
+ *     served and bound to `--bc-font-sans`). The wrapper is intentionally non-semantic — it
+ *     does not affect layout flow; it only owns the brand scope.
+ *
+ *     UX-wireframe routes (under `/ux-concepts/...`) do NOT receive this wrapper, so they
+ *     continue to render with the root layout's Geist font and untouched defaults. The token
+ *     scope is folder-based tonight; after the presentation it migrates to
+ *     `src/systems/bc-brand/` and the scoping mechanism graduates to a theme provider.
+ *
  *   Title source
  *     The buildName shown in the PrototypeHeader is inlined here (not pulled from the shared
  *     CONCEPTS registry) because the concept-registry is the source-of-truth for UX concepts
@@ -32,11 +46,13 @@
  *
  * Key exports: VisualRoadmapV1Layout (default)
  * External dependencies: ./_chrome (PrototypeHeader, BcHeader, BcFooter — all forked),
- *   ./roadmap-chrome.config (ROADMAP_CHROME).
+ *   ./roadmap-chrome.config (ROADMAP_CHROME), ./_brand (soehne font + tokens.css side-effect).
  */
 
 import { PrototypeHeader, BcHeader, BcFooter } from './_chrome'
 import { ROADMAP_CHROME } from './roadmap-chrome.config'
+import { soehne } from './_brand'
+import './_brand/tokens.css'
 
 /** Locked catalogue name for the Visual Concept v1 BC AQ Roadmap build — mirrors the home-hub label. */
 const BUILD_NAME = 'Global Site Visual Concept - BC AQ Roadmap V1'
@@ -47,13 +63,13 @@ export default function VisualRoadmapV1Layout({
   children: React.ReactNode
 }) {
   return (
-    <>
+    <div data-bc-brand="v1" className={soehne.variable}>
       {/* Tooling bar (back-to-hub + comments) ABOVE the BC-site recreation. */}
       <PrototypeHeader buildName={BUILD_NAME} />
       {/* BC site nav — the SHARED chrome, configured for visual concept v1 routes. */}
       <BcHeader config={ROADMAP_CHROME} />
       {children}
       <BcFooter />
-    </>
+    </div>
   )
 }
