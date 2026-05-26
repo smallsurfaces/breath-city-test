@@ -1122,7 +1122,13 @@ function InvestmentROI({ data }: { data: any }) {
   );
 }
 
-function ChartViz({ data, cityFlag }: { data: any; cityFlag?: string }) {
+/**
+ * ChartViz — shared chart dispatcher. Routes a chartData blob to the matching
+ * visualisation component based on its `type` field. Exported so sibling components
+ * in this folder (PracticeCardHero) can reuse the same chart catalogue without
+ * duplicating the switch.
+ */
+export function ChartViz({ data, cityFlag }: { data: any; cityFlag?: string }) {
   if (!data) return null;
   switch (data.type) {
     case "deltaBar":

@@ -2,22 +2,26 @@
  * page.tsx — Best Practice Roadmap v2 overview, /ux-concepts/best-practice-roadmap-v2.
  *
  * Purpose
- *   Synchronised v2 copy of the Best Practice Roadmap overview page. SAME structure, content,
- *   data, and interactions as v1 — four pillar sections, featured PracticeCardTile per domain,
- *   domain explore links. The ONLY differences from v1 are skin-level:
- *     - The hero uses the shared ConceptHero with no eyebrow prop (the eyebrow was dropped in the
- *       concept-housekeeping pass; the former ConceptHeroPlain wrapper was retired once
- *       ConceptHero's eyebrow became optional) instead of inline h1/p markup. Its H1 reads
- *       "Breathe Cities Air Quality Roadmap" (declutter close-out) — the registry/catalog title
- *       stays "Best Practice Roadmap"; only this in-page hero headline differs.
- *     - The four stat figures use ConceptStat (shared primitive) instead of inline div markup.
- *     - Pillar section headers use ConceptSectionHeader (shared primitive) instead of inline h2/p.
- *     - The stage indicator dot overrides STAGE_COLORS at the PRESENTATION LAYER using inline
- *       style with distinct --bc-* token tints (see STAGE_DOT_STYLE below) — the shared data
- *       file (roadmap-data.ts) is NOT edited.
- *     - All internal links point at the -v2 routes so the concept is self-contained.
- *     - The redundant top-of-page breadcrumb (a bare current-page label) was removed in the
- *       declutter close-out — the PrototypeHeader's "Back to hub" is the sole back-nav.
+ *   The roadmap overview surface. Same data and interactions as v1, but with a redesigned
+ *   visual hierarchy (post 2026-05-26 Russ-style critique — the previous "wall of words"
+ *   treatment was too flat to skim).
+ *
+ *   Three-tier scale jumps:
+ *     - Tier 1 — STAGE chapter headings (Seeing / Understanding / Acting / Enabling) rendered
+ *       at ~clamp(2.25rem, 4vw, 3rem) bold dark-blue with a stage-coloured dot, a numbered
+ *       prefix ("01 / 04 · Seeing"), generous top margin. Inline custom treatment — NOT the
+ *       shared ConceptSectionHeader (this page consumes its own chapter scale; the shared
+ *       component is untouched so other concepts render unchanged).
+ *     - Tier 2 — DOMAIN titles ("Monitoring", "Data & Tech", etc.) rendered as quiet
+ *       sentence-case column headers above each card, with a small uppercase "domain" label.
+ *     - Tier 3 — CARD content inverted via PracticeCardHero (new sibling of PracticeCardTile):
+ *       outcome number is the hero, practice/intervention is the supporting line, city +
+ *       population + introduced-year are quiet footer metadata.
+ *
+ *   Detail pages (city/[slug], domain/[slug]) continue to use PracticeCardTile so their
+ *   behaviour is unchanged — the new hierarchy only applies to this overview surface.
+ *
+ *   The hero (ConceptHero + four ConceptStat figures) is unchanged from the previous pass.
  *
  * Chrome: provided by best-practice-roadmap-v2/layout.tsx (PrototypeHeader + shared BcHeader/
  *   BcFooter). This page renders no chrome of its own. Light mode only. No emoji.
@@ -28,25 +32,27 @@
  *   Acting     → var(--bc-color-dark-blue)  deep navy  — action/impact = weight
  *   Enabling   → var(--bc-color-steel)      steel grey — support/infrastructure = neutral
  *
+ * Unique build signal (for deploy-poll verification): the string "01 / 04 · Seeing" appears
+ * in this page's markup only after this redesign — used as the unique-string poll target
+ * post-deploy.
+ *
  * Key exports: default page component
- * External dependencies: next/link, shadcn Separator, @/components/concept (ConceptHero,
- *   ConceptStat, ConceptSectionHeader), @/data/roadmap-data (DOMAINS, PRACTICE_CARDS, Stage),
- *   ./_components/PracticeCardView (PracticeCardTile)
+ * External dependencies: next/link, @/components/concept (ConceptHero, ConceptStat),
+ *   @/data/roadmap-data (DOMAINS, PRACTICE_CARDS, Stage),
+ *   ./_components/PracticeCardHero (overview-only outcome-as-hero card)
  */
 
 import Link from 'next/link'
-import { Separator } from '@/components/ui/separator'
 import {
   ConceptHero,
   ConceptStat,
-  ConceptSectionHeader,
 } from '@/components/concept'
 import {
   DOMAINS,
   PRACTICE_CARDS,
   type Stage,
 } from '@/data/roadmap-data'
-import { PracticeCardTile } from './_components/PracticeCardView'
+import { PracticeCardHero } from './_components/PracticeCardHero'
 
 /**
  * Stage dot style override — 4 DISTINCT --bc-* token tints applied at the presentation
@@ -58,28 +64,15 @@ import { PracticeCardTile } from './_components/PracticeCardView'
  *   Understanding → --bc-color-teal       (teal — analysis, insight)
  *   Acting        → --bc-color-dark-blue  (deep navy — intervention, weight)
  *   Enabling      → --bc-color-steel      (steel grey — infrastructure, support)
+ *
+ * dotColor is now used at chapter scale (larger w-3 h-3 dot beside the stage heading) and
+ * also as the colour of the "01 / 04" prefix numeral for that stage.
  */
-const STAGE_DOT_STYLE: Record<Stage, { dotColor: string; badgeBg: string; badgeText: string }> = {
-  Seeing: {
-    dotColor: 'var(--bc-color-blue)',
-    badgeBg: 'color-mix(in srgb, var(--bc-color-blue) 18%, var(--bc-color-white))',
-    badgeText: 'color-mix(in srgb, var(--bc-color-blue) 90%, var(--bc-color-dark-blue))',
-  },
-  Understanding: {
-    dotColor: 'var(--bc-color-teal)',
-    badgeBg: 'color-mix(in srgb, var(--bc-color-teal) 18%, var(--bc-color-white))',
-    badgeText: 'color-mix(in srgb, var(--bc-color-teal) 90%, var(--bc-color-dark-blue))',
-  },
-  Acting: {
-    dotColor: 'var(--bc-color-dark-blue)',
-    badgeBg: 'color-mix(in srgb, var(--bc-color-dark-blue) 14%, var(--bc-color-white))',
-    badgeText: 'var(--bc-color-dark-blue)',
-  },
-  Enabling: {
-    dotColor: 'var(--bc-color-steel)',
-    badgeBg: 'color-mix(in srgb, var(--bc-color-steel) 18%, var(--bc-color-white))',
-    badgeText: 'color-mix(in srgb, var(--bc-color-steel) 90%, var(--bc-color-dark-blue))',
-  },
+const STAGE_DOT_STYLE: Record<Stage, { dotColor: string }> = {
+  Seeing: { dotColor: 'var(--bc-color-blue)' },
+  Understanding: { dotColor: 'var(--bc-color-teal)' },
+  Acting: { dotColor: 'var(--bc-color-dark-blue)' },
+  Enabling: { dotColor: 'var(--bc-color-steel)' },
 }
 
 /**
@@ -109,19 +102,17 @@ const PILLAR_ORDER: { stage: Stage; label: string; description: string }[] = [
 ]
 
 export default function RoadmapV2Page() {
+  const totalStages = PILLAR_ORDER.length
+
   return (
     <main className="min-h-screen bg-background pb-0">
-      <div className="mx-auto max-w-6xl px-4 py-12 space-y-16">
+      <div className="mx-auto max-w-6xl px-4 py-12">
 
-        {/* Hero — shared ConceptHero with no `eyebrow` prop (eyebrow dropped this pass, Jack's
-            decision; ConceptHero's eyebrow is now optional). The four stat figures use ConceptStat
-            (bare, no card) in a flex row in the children slot, matching v1's inline stat row
-            layout. */}
+        {/* Hero — unchanged from previous pass: shared ConceptHero + four ConceptStat figures. */}
         <ConceptHero
           headline="Breathe Cities Air Quality Roadmap"
           body="Every BC city walks the same journey toward clean air: seeing their pollution, understanding where it comes from, acting to cut it, and enabling the infrastructure that makes the rest possible. The roadmap below organises 12 domains of practice across those four stages, domain by domain, with measurable results."
         >
-          {/* Hero stat row — four ConceptStat blocks (bare, no card), matching v1's layout. */}
           <div className="flex flex-wrap items-end gap-6 pt-2">
             <ConceptStat value="14" label="cities" />
             <ConceptStat value="77M" label="people" />
@@ -130,30 +121,48 @@ export default function RoadmapV2Page() {
           </div>
         </ConceptHero>
 
-        {/* Pillar sections — four stages, each with a ConceptSectionHeader and a domain grid. */}
-        {PILLAR_ORDER.map((pillar) => {
+        {/* Stage chapter sections — Tier 1 hierarchy. Each stage is its own section with a
+            chapter-scale heading and generous top margin so the four stages read as distinct
+            chapters rather than as siblings to the cards. */}
+        {PILLAR_ORDER.map((pillar, pillarIndex) => {
           const pillarDomains = DOMAINS.filter((d) => d.stage === pillar.stage)
           const stageStyle = STAGE_DOT_STYLE[pillar.stage]
+          const stageNumberStr = `${String(pillarIndex + 1).padStart(2, '0')} / ${String(totalStages).padStart(2, '0')}`
 
           return (
-            <section key={pillar.stage} className="space-y-6">
-              {/* Section header: stage dot (BC-token tinted) + ConceptSectionHeader. The dot is
-                  a functional-colour indicator (which stage this is) and uses a distinct --bc-*
-                  token per stage, applied inline. The heading text uses ConceptSectionHeader. */}
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
+            <section key={pillar.stage} className="mt-24 first:mt-20">
+              {/* Tier 1 — STAGE chapter heading. Inline custom treatment (NOT the shared
+                  ConceptSectionHeader) so this page can carry its own chapter scale without
+                  rippling into other concepts. Stage number prefix + dot + headline + quiet
+                  one-line description. */}
+              <header className="mb-10 space-y-3">
+                <div
+                  className="text-sm font-semibold tracking-wider"
+                  style={{ color: stageStyle.dotColor }}
+                >
+                  {stageNumberStr}
+                </div>
+                <div className="flex items-center gap-3">
                   <span
-                    className="inline-block w-2.5 h-2.5 rounded-full flex-shrink-0"
+                    className="inline-block w-3 h-3 rounded-full flex-shrink-0"
                     style={{ backgroundColor: stageStyle.dotColor }}
                     aria-hidden="true"
                   />
-                  <ConceptSectionHeader heading={pillar.label} />
+                  <h2
+                    className="font-bold tracking-tight text-foreground leading-[1.05]"
+                    style={{ fontSize: 'clamp(2.25rem, 4vw, 3rem)' }}
+                  >
+                    {pillar.label}
+                  </h2>
                 </div>
-                <p className="text-sm text-muted-foreground">{pillar.description}</p>
-              </div>
+                <p className="text-base text-muted-foreground max-w-2xl pl-6">
+                  {pillar.description}
+                </p>
+              </header>
 
-              {/* Domain card grid — identical to v1; links updated to -v2 routes. */}
-              <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
+              {/* Domain card grid — each cell has a Tier 2 quiet eyebrow domain title above
+                  a Tier 3 PracticeCardHero card. */}
+              <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
                 {pillarDomains.filter((d) => FEATURED[d.id]).map((domain) => {
                   const domainCards = PRACTICE_CARDS.filter((p) => p.domainId === domain.id)
                   const featured = FEATURED[domain.id]
@@ -162,39 +171,29 @@ export default function RoadmapV2Page() {
 
                   if (!card || !example) {
                     return (
-                      <Link
-                        key={domain.id}
-                        href={`/ux-concepts/best-practice-roadmap-v2/domain/${domain.slug}`}
-                        className="block"
-                      >
-                        <div className="rounded-2xl border border-border bg-background shadow-sm p-5 h-full hover:bg-muted transition-colors">
-                          <div className="text-sm font-semibold text-foreground">
-                            {domain.shortName}
+                      <div key={domain.id} className="space-y-2">
+                        <DomainEyebrow name={domain.shortName} />
+                        <Link
+                          href={`/ux-concepts/best-practice-roadmap-v2/domain/${domain.slug}`}
+                          className="block"
+                        >
+                          <div className="rounded-2xl border border-border bg-background shadow-sm p-5 h-full hover:bg-muted transition-colors">
+                            <p className="text-xs text-muted-foreground line-clamp-2">
+                              {domain.description}
+                            </p>
                           </div>
-                          <p className="text-xs text-muted-foreground mt-2 line-clamp-2">
-                            {domain.description}
-                          </p>
-                        </div>
-                      </Link>
+                        </Link>
+                      </div>
                     )
                   }
 
                   return (
-                    <div key={domain.id} className="space-y-2">
-                      <Link
-                        href={`/ux-concepts/best-practice-roadmap-v2/domain/${domain.slug}`}
-                        className="block"
-                      >
-                        <div className="text-base font-semibold text-foreground hover:underline">
-                          {domain.shortName}
-                        </div>
-                      </Link>
-                      <PracticeCardTile
-                        practice={card}
-                        example={example}
-                        linkCity={false}
-                        layout="horizontal"
-                      />
+                    <div key={domain.id} className="space-y-3">
+                      {/* Tier 2 — quiet domain eyebrow above the card. Sentence-case heading
+                          with small uppercase "domain" label so it reads as a column header
+                          rather than as a sibling to the stage chapter. */}
+                      <DomainEyebrow name={domain.shortName} />
+                      <PracticeCardHero practice={card} example={example} />
                       <Link
                         href={`/ux-concepts/best-practice-roadmap-v2/domain/${domain.slug}`}
                         className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground hover:underline transition-colors"
@@ -205,12 +204,27 @@ export default function RoadmapV2Page() {
                   )
                 })}
               </div>
-
-              <Separator />
             </section>
           )
         })}
       </div>
     </main>
+  )
+}
+
+/**
+ * DomainEyebrow — Tier 2 quiet column-header treatment for a domain title. Small uppercase
+ * "domain" label above the sentence-case domain name. Renders quieter than the stage chapter
+ * heading and quieter than the card outcome hero — sits cleanly as a column header inside
+ * its stage section.
+ */
+function DomainEyebrow({ name }: { name: string }) {
+  return (
+    <div className="space-y-0.5">
+      <div className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/80 font-medium">
+        domain
+      </div>
+      <div className="text-base font-medium text-foreground/80">{name}</div>
+    </div>
   )
 }
