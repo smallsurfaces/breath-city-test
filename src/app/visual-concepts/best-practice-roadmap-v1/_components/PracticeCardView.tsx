@@ -295,10 +295,11 @@ function SourceDonut({ data, cityFlag }: { data: any; cityFlag?: string }) {
           className="absolute inset-0 rounded-full"
           style={{ background: `conic-gradient(${stops.join(", ")})` }}
         />
-        {/* Inner cutout — uses transparent so the parent chart-container colour shows through
-            (white-tinted on light cards, navy-tinted on dark cards), keeping the donut
-            visually anchored to its variant-driven surface. */}
-        <div className="absolute inset-5 rounded-full bg-background flex items-center justify-center">
+        {/* Inner cutout — transparent so the parent chart-container colour shows through
+            (BC-blue-tinted wash on light cards, dark-blue surface on dark cards), keeping
+            the donut visually anchored to its variant-driven surface. Previously bg-background
+            which resolves to white and rendered as a white circle on dark cards. */}
+        <div className="absolute inset-5 rounded-full bg-transparent flex items-center justify-center">
           <span className="text-xs font-bold text-muted-foreground">{cityFlag ?? ""}</span>
         </div>
       </div>
