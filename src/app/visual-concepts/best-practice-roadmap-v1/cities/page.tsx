@@ -18,7 +18,10 @@
  *       No hardcoded hex. No emoji. Light mode only.
  *
  * Key exports: default page component
- * External dependencies: next/link, lucide-react, @/data/roadmap-data, @/components/concept
+ * External dependencies: next/link, lucide-react, @/data/roadmap-data
+ *   (this page renders no concept-chrome primitives directly — the BcHeader/BcFooter and
+ *   PrototypeHeader are mounted by the parent layout at /visual-concepts/best-practice-roadmap-v1/
+ *   from its forked ./_chrome namespace)
  */
 
 import Link from 'next/link'

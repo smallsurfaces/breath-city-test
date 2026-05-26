@@ -34,7 +34,8 @@
  *   The hero (ConceptHero + four ConceptStat figures) is unchanged from the previous pass.
  *
  * Chrome: provided by visual-concepts/best-practice-roadmap-v1/layout.tsx (PrototypeHeader +
- *   shared BcHeader/BcFooter). This page renders no chrome of its own. Light mode only. No emoji.
+ *   BcHeader/BcFooter — all forked into ./_chrome in round 2 so future visual edits stay
+ *   isolated). This page renders no chrome of its own. Light mode only. No emoji.
  *
  * Stage hue → tint mapping (flagged for design-qa/Jack review):
  *   Seeing     → var(--bc-color-blue)       cool blue  — data/sensing = blue
@@ -47,8 +48,9 @@
  * composition only after this iteration — used as the unique-string poll target post-deploy.
  *
  * Key exports: default page component
- * External dependencies: next/link, @/components/concept (ConceptHero, ConceptStat),
- *   @/data/roadmap-data (DOMAINS, PRACTICE_CARDS, Stage),
+ * External dependencies: next/link, ./_chrome (ConceptHero, ConceptStat — forked into the
+ *   visual-concepts namespace so this concept has no remaining imports from the shared
+ *   @/components/concept chrome), @/data/roadmap-data (DOMAINS, PRACTICE_CARDS, Stage),
  *   ./_components/PracticeCardHero (overview-only outcome-as-hero card)
  */
 
@@ -56,7 +58,7 @@ import Link from 'next/link'
 import {
   ConceptHero,
   ConceptStat,
-} from '@/components/concept'
+} from './_chrome'
 import {
   DOMAINS,
   PRACTICE_CARDS,

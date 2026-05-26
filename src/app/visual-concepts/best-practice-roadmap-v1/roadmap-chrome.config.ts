@@ -18,10 +18,11 @@
  *     visual concept v1, not a roadmap v2). The fork's layout.tsx imports it under this name.
  *
  * Key exports: ROADMAP_CHROME (const)
- * External dependencies: @/components/concept (BcChromeConfig type)
+ * External dependencies: ./_chrome (BcChromeConfig type — forked into the visual-concepts namespace
+ *   so this concept has no remaining imports from the shared @/components/concept chrome)
  */
 
-import type { BcChromeConfig } from '@/components/concept'
+import type { BcChromeConfig } from './_chrome'
 
 /**
  * Visual Concept v1 — BC AQ Roadmap chrome config. All live routes target the visual-concepts
