@@ -29,7 +29,10 @@
  *   modified), ./markers, ./aqiParameters, ./StationPopup, ./ProbeResultPopup
  *
  * Token discipline: all AQI colour comes through markers.ts / the popups (runtime tokens). The
- *   probe pin + dash lines use neutral white-on-dark chrome (not AQI semantics), as in v2.
+ *   probe pin + dash lines use neutral chrome (not AQI semantics). On this LIGHT basemap that chrome
+ *   is dark-blue ink (#003574 = --bc-color-dark-blue): the v2 white-on-dark treatment vanished on the
+ *   light ground, so the pin's outer outline and the dash lines are ink, matching the light marker
+ *   re-tune in markers.ts (Option A).
  */
 
 'use client'
@@ -99,11 +102,14 @@ function createProbePinElement(): HTMLElement {
   el.style.height = '48px'
   el.style.cursor = 'default'
   el.style.filter = 'drop-shadow(0 3px 8px rgba(0,0,0,0.45))'
-  // Neutral BC-blue pin; the AQI result colour is conveyed by the popup header, not the pin.
+  // Neutral BC-blue pin with a dark-blue ink (#003574) outer outline — the white outline of the
+  // dark-basemap version vanished on the light ground, so the edge is now ink. Inner white detailing
+  // (signal-wave strokes + centre disc) is kept: it reads against the blue pin body, not the map.
+  // The AQI result colour is conveyed by the popup header, not the pin.
   el.innerHTML = `
     <svg xmlns="http://www.w3.org/2000/svg" width="36" height="48" viewBox="0 0 36 48">
       <path d="M18 2 C9 2, 2 9, 2 18 C2 27, 18 46, 18 46 C18 46, 34 27, 34 18 C34 9, 27 2, 18 2 Z"
-        fill="#0071c7" stroke="#ffffff" stroke-width="2"/>
+        fill="#0071c7" stroke="#003574" stroke-width="2"/>
       <circle cx="18" cy="17" r="7" fill="rgba(255,255,255,0.9)" />
       <path d="M22 13 Q28 17 22 21" fill="none" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" opacity="0.9"/>
       <path d="M24 11 Q33 17 24 23" fill="none" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" opacity="0.6"/>
@@ -424,7 +430,7 @@ export const MapComponent = forwardRef<MapHandle, Props>(function MapComponent(
         return
       }
 
-      const lineColor = 'rgba(255, 255, 255, 0.75)' // white reads cleanly on the dark basemap
+      const lineColor = 'rgba(0, 53, 116, 0.75)' // dark-blue ink (#003574) reads on the light basemap
 
       const pinEl = createProbePinElement()
       const probePinMarker = new mapboxgl.Marker({ element: pinEl, anchor: 'bottom' })
@@ -496,7 +502,7 @@ export const MapComponent = forwardRef<MapHandle, Props>(function MapComponent(
 
     const map = new mapboxgl.Map({
       container: containerRef.current,
-      style: 'mapbox://styles/mapbox/dark-v11',
+      style: 'mapbox://styles/mapbox/light-v11',
       // Initial framing comes from the active city's registry values (read once at init).
       center: cityCenter,
       zoom: cityZoom,

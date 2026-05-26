@@ -10,11 +10,26 @@
  *   Three channels (design-owned — NOT redesigned here, see brief "Marker treatment"):
  *     - Hue   = AQI value     (active parameter -> EPA tier -> BC AQI indicator token)
  *     - Shape = quality        (high -> triangle, low -> circle)
- *     - Fill  = freshness       (fresh -> SOLID full hue + white border + drop shadow;
- *                                stale -> HOLLOW outline only, muted steel, AQI hue drained,
- *                                with a dark under-stroke so the outline survives on dark-v11)
+ *     - Fill  = freshness       (fresh -> SOLID full hue + dark-blue ink outline + drop shadow +
+ *                                inverted halo; stale -> HOLLOW neutral-grey outline only, no fill,
+ *                                no shadow, AQI hue fully drained)
  *   Fresh markers are sized a hair larger + (caller z-boosts) so the few live readings win
  *   attention against the many stale ghosts (the dominant London case).
+ *
+ *   LIGHT-BASEMAP re-tune (Option A) — Jack approved light + Option A, validated by the
+ *   prototype-builder spike on real London + Accra (spike/marker-density-light, stash). This is the
+ *   polarity flip of the old dark treatment, ported verbatim from the spike's Option-A path. The
+ *   three-signal model above is UNCHANGED; only the colour polarity changed for the light ground:
+ *     - FRESH border: dark-blue INK hairline (#003574 = --bc-color-dark-blue) replaces the white
+ *       border (white vanishes on light). This ink edge is load-bearing — it carries the mild tiers
+ *       (green/amber/orange) whose pale fills stop doing the work on a light basemap.
+ *     - HALO inverted: the dark spike drew a dark under-stroke + light over-stroke (a light edge
+ *       survives on dark); on light we flip it — a near-white under-stroke + an ink over-stroke, so
+ *       fresh markers separate from the light ground (parks, water labels).
+ *     - STALE recedes by DARKENING, not lightening: the live steel (#b2c2d5) washes out on light,
+ *       so stale uses a neutral dark-grey (#5a6675) hollow outline that darkens to recede. (This is
+ *       Option A. Option B — the tier's own darkened -text hue — was NOT carried into this route.)
+ *     - Drop shadow tinted toward the ink (rgba(0,53,116,0.35)) rather than black, for the light map.
  *
  * Key exports: createStationMarkerElement
  *
@@ -22,12 +37,15 @@
  *   - ../../lib/openaq/types (Station type only — read-only, never modified)
  *   - ./aqiParameters (classifyAqi + runtime token resolution; the single AQI source)
  *
- * Token discipline (brief): colours are NOT inlined as hex. The AQI hue and the stale steel are
- *   read at runtime from the BC tokens via aqiParameters.resolveTierColor / resolveMutedColor
- *   (getComputedStyle off :root). White border + dark halo are structural marker chrome (not
- *   AQI semantics), kept as literals as in the spike. If a token cannot be resolved (SSR /
- *   pre-apply), the helpers return '' and we fall back to the muted token / a neutral grey —
- *   never an arbitrary AQI hex.
+ * Token discipline (brief): the AQI fill hue is NOT inlined — it is read at runtime from the BC
+ *   indicator token via aqiParameters.resolveTierColor (getComputedStyle off :root). The ink
+ *   outline, the light halo under-stroke, and the stale neutral-grey are structural marker chrome
+ *   (not AQI semantics), kept as documented literals as in the spike. The ink equals the BC token
+ *   --bc-color-dark-blue (#003574, confirmed in dist/css/tokens.css). The stale neutral (#5a6675)
+ *   is NOT yet a token — it is a spike-only neutral picked to sit darker than the live steel so
+ *   stale recedes on light; flagged to design-system-keeper for possible tokenisation. If the AQI
+ *   token cannot be resolved (SSR / pre-apply), the helper returns '' and the fresh fill falls back
+ *   to the muted token / a neutral grey — never an arbitrary AQI hex.
  */
 
 import type { Station } from '../../lib/openaq/types'
@@ -39,11 +57,28 @@ import {
   type ParameterKey,
 } from './aqiParameters'
 
-/** White marker border for fresh/solid markers (confident, live). Structural chrome, not AQI. */
-const WHITE = '#ffffff'
+/**
+ * Dark-blue ink hairline for fresh/solid markers (replaces the dark spike's white border, which is
+ * invisible on a light ground). Structural marker chrome, not AQI semantics — kept as a literal as
+ * in the spike. Equals the BC token --bc-color-dark-blue (#003574, confirmed in dist/css/tokens.css).
+ * Load-bearing: gives the mild tiers a crisp edge once their pale fill stops carrying on light.
+ */
+const INK = '#003574'
 
-/** Dark under-stroke colour for hollow markers, so the steel outline survives on the dark map. */
-const HALO_DARK = 'rgba(0,0,0,0.55)'
+/**
+ * Near-white halo under-stroke for fresh markers (the inverted, light-ground halo). Drawn first and
+ * fatter so a sliver of light separates the ink over-stroke from a dark/busy patch of the basemap.
+ * Structural chrome, not AQI — literal as in the spike.
+ */
+const HALO_LIGHT = 'rgba(255,255,255,0.9)'
+
+/**
+ * Option-A stale outline — a neutral dark-grey, deliberately darker than the live steel (#b2c2d5)
+ * so stale markers recede by DARKENING on a light ground rather than washing out. NOT a token:
+ * spike-only neutral (the steel token is too pale on light to read as recessive). Flagged to
+ * design-system-keeper for possible tokenisation. Structural chrome, not AQI.
+ */
+const STALE_NEUTRAL = '#5a6675'
 
 /** Last-resort neutral if even the muted token cannot be resolved (SSR/pre-apply only). */
 const NEUTRAL_FALLBACK = 'rgba(178,194,213,0.9)'
@@ -64,52 +99,58 @@ function freshHueFor(value: number, parameter: ParameterKey): string {
   return muted.length > 0 ? muted : NEUTRAL_FALLBACK
 }
 
-/** Resolve the muted steel used for stale markers, with a neutral last-resort fallback. */
-function staleSteel(): string {
-  const muted = resolveMutedColor()
-  return muted.length > 0 ? muted : NEUTRAL_FALLBACK
+/**
+ * Stale marker outline colour (Option A): the neutral dark-grey that recedes by darkening on the
+ * light basemap. A function (rather than using STALE_NEUTRAL inline) so the single stale-stroke
+ * source is named at the call site and easy to retarget if STALE_NEUTRAL is later tokenised.
+ */
+function staleStroke(): string {
+  return STALE_NEUTRAL
 }
 
 /**
- * Triangle SVG (high quality). `fresh` switches between a solid AQI-filled triangle with a
- * white border, and a hollow steel-outlined triangle (no fill). The hollow variant carries a
- * darker under-stroke (drawn first, slightly fatter) so the light steel outline survives
- * against the dark-v11 basemap — design-director's "is a small hollow triangle still a
- * triangle?" legibility hedge, validated in the spike.
+ * Triangle SVG (high quality), light re-tune. `fresh` switches between a solid AQI-filled triangle
+ * with a dark-blue ink outline + inverted halo (light under-stroke drawn first + ink over-stroke),
+ * and a hollow neutral-grey-outlined triangle (no fill, no halo). The fresh halo stops a pale-green
+ * triangle dissolving into the light basemap; the ink outline is the crisp edge the mild tiers rely
+ * on. Stale stays quiet — a single thin neutral stroke that already reads against the light ground —
+ * which is design-director's "is a small hollow triangle still a triangle?" legibility case,
+ * validated on real London + Accra in the light spike.
  */
 function triangleSVG(size: number, fresh: boolean, hue: string): string {
   const half = size / 2
   const pts = `${half},2 ${size - 2},${size - 2} 2,${size - 2}`
   if (fresh) {
     return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
-      <polygon points="${pts}" fill="${hue}" stroke="${WHITE}" stroke-width="1.5"
-        style="filter:drop-shadow(0 1px 3px rgba(0,0,0,0.45))"/>
+      <polygon points="${pts}" fill="none" stroke="${HALO_LIGHT}" stroke-width="3.5" stroke-linejoin="round"/>
+      <polygon points="${pts}" fill="${hue}" stroke="${INK}" stroke-width="1.5" stroke-linejoin="round"
+        style="filter:drop-shadow(0 1px 2.5px rgba(0,53,116,0.35))"/>
     </svg>`
   }
-  // Hollow: dark halo stroke under a steel outline, no fill (AQI hue drained).
+  // Hollow: a single thin neutral-grey outline, no fill (AQI hue drained), no halo (stays quiet).
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
-    <polygon points="${pts}" fill="none" stroke="${HALO_DARK}" stroke-width="3.5" stroke-linejoin="round"/>
-    <polygon points="${pts}" fill="none" stroke="${hue}" stroke-width="2" stroke-linejoin="round"/>
+    <polygon points="${pts}" fill="none" stroke="${hue}" stroke-width="1.75" stroke-linejoin="round"/>
   </svg>`
 }
 
 /**
- * Circle SVG (low quality). Same solid/hollow logic as the triangle. The hollow circle is the
- * smallest element in the set so it gets the same dark-halo + steel-outline pairing to stay
- * legible as an outline-only ring on the dark basemap.
+ * Circle SVG (low quality), light re-tune. Same fresh/stale logic as the triangle. The fresh circle
+ * gets the inverted halo + ink outline; the stale circle is the smallest element in the set (~14px),
+ * so the thin neutral-grey hollow ring is the legibility case the spike screenshots answered.
  */
 function circleSVG(size: number, fresh: boolean, hue: string): string {
   const r = size / 2 - 2
   const c = size / 2
   if (fresh) {
     return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
-      <circle cx="${c}" cy="${c}" r="${r}" fill="${hue}" stroke="${WHITE}" stroke-width="2"
-        style="filter:drop-shadow(0 1px 3px rgba(0,0,0,0.45))"/>
+      <circle cx="${c}" cy="${c}" r="${r}" fill="none" stroke="${HALO_LIGHT}" stroke-width="3.5"/>
+      <circle cx="${c}" cy="${c}" r="${r}" fill="${hue}" stroke="${INK}" stroke-width="2"
+        style="filter:drop-shadow(0 1px 2.5px rgba(0,53,116,0.35))"/>
     </svg>`
   }
+  // Hollow: a single thin neutral-grey ring, no fill (AQI hue drained), no halo.
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
-    <circle cx="${c}" cy="${c}" r="${r}" fill="none" stroke="${HALO_DARK}" stroke-width="3.5"/>
-    <circle cx="${c}" cy="${c}" r="${r}" fill="none" stroke="${hue}" stroke-width="2"/>
+    <circle cx="${c}" cy="${c}" r="${r}" fill="none" stroke="${hue}" stroke-width="1.75"/>
   </svg>`
 }
 
@@ -123,9 +164,9 @@ function circleSVG(size: number, fresh: boolean, hue: string): string {
  * Guards (brief / prototype-build-standard item 1):
  *   - A station may lack the requested parameter reading (defensive — fetchStations should not
  *     produce one, but the projection must not assume it): render a tiny neutral dot, never throw.
- *   - The hollow (stale) path uses the muted steel for BOTH the outline hue and is fed by
- *     staleSteel(); the fresh path uses the AQI tier hue. Stale markers therefore never carry an
- *     AQI hue (it is "drained"), matching the locked treatment.
+ *   - The hollow (stale) path uses the neutral dark-grey (staleStroke / Option A) for the outline;
+ *     the fresh path uses the AQI tier hue. Stale markers therefore never carry an AQI hue (it is
+ *     "drained"), matching the locked treatment.
  *
  * Side effects: creates a detached DOM element and sets a hover `title`. No DOM insertion here —
  * the caller attaches it via mapboxgl.Marker.
@@ -149,8 +190,8 @@ export function createStationMarkerElement(
   }
 
   const fresh = !reading.isStale
-  // Fresh markers carry the AQI hue; stale markers drain it to muted steel (design-owned).
-  const hue = fresh ? freshHueFor(reading.value, parameter) : staleSteel()
+  // Fresh markers carry the AQI hue; stale markers drain it to the neutral grey (Option A, design-owned).
+  const hue = fresh ? freshHueFor(reading.value, parameter) : staleStroke()
   const isTriangle = station.quality === 'high'
   const size = isTriangle ? (fresh ? 24 : 22) : fresh ? 16 : 14
 
