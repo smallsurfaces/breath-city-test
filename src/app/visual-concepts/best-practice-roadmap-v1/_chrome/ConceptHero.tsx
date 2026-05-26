@@ -16,17 +16,18 @@
  *   The eyebrow is OPTIONAL — when omitted, the hero renders headline + body + children with
  *   no eyebrow element in the DOM.
  *
- * Caps
- *   The h1 is capped at `sm:text-4xl` — never larger — matching the reference homepage hero
- *   (`text-3xl sm:text-4xl`). This is deliberate: a concept hero must not introduce a bigger
- *   display size than the established hub scale. Future visual evolution may lift this cap
- *   inside this forked variant; the shared original stays put.
+ * Caps (BC brand pass 1 — 2026-05-26)
+ *   The h1 cap (`text-3xl sm:text-4xl`) has been LIFTED for this forked variant per the
+ *   brand-pass-1 brief §2 — the headline now opens at `var(--bc-font-size-title-large)`
+ *   (responsive 38 → 84px via clamp) so the page opens at confident editorial scale.
+ *   The shared original at src/components/concept/ConceptHero.tsx stays put with its cap.
  *
- * Colour (resolved canonical)
+ * Colour (BC brand pass 1 — 2026-05-26)
  *   - Eyebrow (when present): brand blue, set inline as `var(--bc-color-blue)`.
- *   - Headline: `text-foreground`, which in globals.css resolves to --bc-semantic-text =
- *     --bc-color-dark-blue via the bridged shadcn semantic.
- *   - Body: `text-muted-foreground` (bridged), max-w-2xl, base size.
+ *   - Headline: inline `var(--bc-color-dark-blue)` at Söhne 900 weight — was bridged
+ *     foreground; promoted per brief §3 so the editorial weight comes from typography.
+ *   - Body: inline muted dark-blue at 70% (`color-mix` over dark-blue token) — was
+ *     bridged muted-foreground; promoted per brief §3 so brand opacity is consistent.
  *   No `*-bc-*` utility classes; no hardcoded hex.
  *
  * Key exports: ConceptHero (named)
@@ -42,9 +43,9 @@ type ConceptHeroProps = {
    * element is not rendered — the hero opens with the h1.
    */
   eyebrow?: string
-  /** The h1 headline (capped at sm:text-4xl). */
+  /** The h1 headline (BC brand pass 1: rendered at --bc-font-size-title-large, cap lifted). */
   headline: string
-  /** The muted lead paragraph beneath the headline. */
+  /** The muted lead paragraph beneath the headline (BC brand pass 1: muted dark-blue at 70%). */
   body: string
   /** Optional content rendered directly beneath the lead (hero-adjacent slot). */
   children?: ReactNode
@@ -52,9 +53,13 @@ type ConceptHeroProps = {
 
 /**
  * The hero block. Renders the optional eyebrow → h1 → lead, then the optional children slot.
- * The h1 size is fixed at text-3xl/sm:text-4xl (the cap); colour comes from bridged semantics
- * plus one inline brand-blue eyebrow token. When `eyebrow` is undefined, no eyebrow <p> is
- * rendered.
+ *
+ * BC brand pass 1 (2026-05-26): the h1 cap is lifted — size now bound to
+ * `var(--bc-font-size-title-large)` (responsive 38 → 84px). h1 colour and weight are now
+ * set inline to `var(--bc-color-dark-blue)` and 900 (Söhne Extrafett) so the editorial
+ * weight is consistent across the page. Body paragraph is now muted dark-blue at 70%
+ * (color-mix) rather than the bridged shadcn muted-foreground, so the brand opacity is
+ * consistent. The eyebrow (when present) is unchanged — already BC Blue.
  */
 export function ConceptHero({
   eyebrow,
@@ -72,10 +77,26 @@ export function ConceptHero({
           {eyebrow}
         </p>
       )}
-      <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+      <h1
+        className="tracking-tight"
+        style={{
+          fontSize: 'var(--bc-font-size-title-large)',
+          fontWeight: 'var(--bc-font-weight-black)',
+          color: 'var(--bc-color-dark-blue)',
+          lineHeight: 'var(--bc-line-height-title-large)',
+        }}
+      >
         {headline}
       </h1>
-      <p className="max-w-2xl text-base text-muted-foreground">{body}</p>
+      <p
+        className="max-w-2xl leading-relaxed"
+        style={{
+          fontSize: 'var(--bc-font-size-body)',
+          color: 'color-mix(in srgb, var(--bc-color-dark-blue) 70%, transparent)',
+        }}
+      >
+        {body}
+      </p>
       {children}
     </header>
   )

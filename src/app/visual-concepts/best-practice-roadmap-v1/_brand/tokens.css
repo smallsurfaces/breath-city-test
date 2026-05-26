@@ -79,6 +79,21 @@
   --bc-color-white:        #FFFFFF;
   --bc-color-grey:         #F3F8FE;  /* Per Arne — very light grey-blue, used for UI backgrounds */
 
+  /* ─── Legacy aliases — stage colour back-fill ───
+   * Added 2026-05-26 (BC brand pass 1) because the v1 page.tsx STAGE_DOT_STYLE
+   * historically referenced `--bc-color-teal` and `--bc-color-steel` (tokens that
+   * pre-dated this scoped token set). Both names are PRESERVED as aliases so any
+   * stale lookup still resolves to a BC-palette colour, but the canonical stage
+   * mapping has shifted per the brand-pass-1 brief:
+   *   - Understanding → --bc-color-region-africa (bespoke teal — see §3 of brief)
+   *   - Enabling      → --bc-color-purple
+   * The aliases below resolve `--bc-color-teal` to the region-africa teal and
+   * `--bc-color-steel` to a muted neutral derived from BC dark blue, so any
+   * unmigrated consumer renders within-palette. Application code now uses the
+   * canonical tokens directly. */
+  --bc-color-teal:         var(--bc-color-region-africa);  /* alias — see note above */
+  --bc-color-steel:        color-mix(in srgb, var(--bc-color-dark-blue) 40%, var(--bc-color-grey));  /* alias — muted navy-grey */
+
   /* ─── Semantic aliases ───
    * Per Arne's `--*Color` token layer. Errors map to Tangerine (NOT red); this
    * is a deliberate brand-system choice in Arne's code, kept here for parity. */

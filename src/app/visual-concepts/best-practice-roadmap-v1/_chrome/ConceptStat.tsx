@@ -13,15 +13,20 @@
  *   row, the value, the label). It does NOT draw a card surface — the caller wraps it in
  *   ConceptCard when a carded stat is wanted.
  *
- * Caps & functional colour
- *   The value is capped at `text-3xl` (the shared reference's size) — never larger. The
- *   `estimate` pill is FUNCTIONAL (it flags a guesstimated figure) and is kept verbatim: a
- *   soft yellow wash via color-mix on the BC yellow token. No emoji.
+ * Caps & functional colour (BC brand pass 1 — 2026-05-26)
+ *   The text-3xl cap has been LIFTED for this forked variant per the brand-pass-1 brief §2 —
+ *   the value now renders at `clamp(2.5rem, 4vw, 4rem)` in BC Blue at Söhne 900 (Extrafett),
+ *   so the four hero stats read as the visual anchor of the page top.
+ *   The `estimate` pill stays FUNCTIONAL — a soft yellow wash via color-mix on the BC yellow
+ *   token. No emoji. The shared original at src/components/concept/ConceptStat.tsx stays put
+ *   with its text-3xl cap and bridged-semantic colours.
  *
- * Styling
- *   Bridged shadcn semantics for text (`text-foreground`, `text-muted-foreground`); inline
- *   `style` with `var(--bc-*)` for the estimate pill's wash. No `*-bc-*` utility classes; no
- *   hardcoded hex.
+ * Styling (BC brand pass 1)
+ *   Value: inline `var(--bc-color-blue)` at 900 weight + clamp font-size.
+ *   Label: inline `color-mix(...dark-blue 60%, transparent)` at `--bc-font-size-body-smaller`
+ *     and 500 weight (Söhne Kräftig); was bridged shadcn muted-foreground.
+ *   Inline `style` with `var(--bc-*)` for the estimate pill's wash (unchanged). No `*-bc-*`
+ *   utility classes; no hardcoded hex.
  *
  * Key exports: ConceptStat (named)
  * External dependencies: react (ReactNode).
@@ -83,10 +88,25 @@ export function ConceptStat({
           )}
         </div>
       )}
-      <div className="mt-2 text-3xl font-bold tracking-tight tabular-nums text-foreground">
+      <div
+        className="mt-2 font-black tracking-tight tabular-nums"
+        style={{
+          fontSize: 'clamp(2.5rem, 4vw, 4rem)',
+          color: 'var(--bc-color-blue)',
+          lineHeight: 1.0,
+        }}
+      >
         {value}
       </div>
-      <div className="mt-1 text-sm text-muted-foreground">{label}</div>
+      <div
+        className="mt-1 font-medium"
+        style={{
+          fontSize: 'var(--bc-font-size-body-smaller)',
+          color: 'color-mix(in srgb, var(--bc-color-dark-blue) 60%, transparent)',
+        }}
+      >
+        {label}
+      </div>
     </div>
   )
 }

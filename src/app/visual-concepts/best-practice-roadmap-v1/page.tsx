@@ -37,11 +37,18 @@
  *   BcHeader/BcFooter — all forked into ./_chrome in round 2 so future visual edits stay
  *   isolated). This page renders no chrome of its own. Light mode only. No emoji.
  *
- * Stage hue → tint mapping (flagged for design-qa/Jack review):
- *   Seeing     → var(--bc-color-blue)       cool blue  — data/sensing = blue
- *   Understanding → var(--bc-color-teal)    teal       — analysis/insight = teal
- *   Acting     → var(--bc-color-dark-blue)  deep navy  — action/impact = weight
- *   Enabling   → var(--bc-color-steel)      steel grey — support/infrastructure = neutral
+ * Stage hue → tint mapping (BC brand pass 1 — 2026-05-26 — per design-director brief §3):
+ *   Seeing        → var(--bc-color-blue)            BC Blue        — data/sensing = blue
+ *   Understanding → var(--bc-color-region-africa)   bespoke teal   — analysis/insight = teal accent
+ *   Acting        → var(--bc-color-tangerine)       tangerine      — intervention warmth/energy
+ *   Enabling      → var(--bc-color-purple)          purple         — cross-cutting infra/support
+ *
+ *   Previous mapping referenced --bc-color-teal (not in the v1 token set; back-filled in
+ *   _brand/tokens.css as an alias to region-africa) and --bc-color-dark-blue for Acting
+ *   (the dot disappeared against the dark-blue heading) and --bc-color-steel for Enabling
+ *   (also not in v1; back-filled as a muted neutral). Brand pass 1 swaps to the canonical
+ *   BC palette per brief §3 — acknowledged overlap with AQI "unhealthy" semantic for
+ *   Acting/tangerine, going with it for the warmth/intervention character.
  *
  * Unique build signal (for deploy-poll verification): the string
  * "120 low-cost sensors citywide" (London/Monitoring hero) appears in PracticeCardHero
@@ -68,24 +75,42 @@ import { PracticeCardHero } from './_components/PracticeCardHero'
 
 /**
  * Stage dot style override — 4 DISTINCT --bc-* token tints applied at the presentation
- * layer so v2 uses BC brand colours instead of the tailwind blue/amber/green/gray from
- * STAGE_COLORS in roadmap-data.ts. The shared data file is NOT edited.
+ * layer so this overview uses the canonical BC brand palette instead of the tailwind
+ * blue/amber/green/gray from STAGE_COLORS in roadmap-data.ts. The shared data file is NOT
+ * edited.
  *
- * Hue → stage rationale (flagged for design-qa/Jack):
- *   Seeing        → --bc-color-blue       (cool blue — data collection, sensing)
- *   Understanding → --bc-color-teal       (teal — analysis, insight)
- *   Acting        → --bc-color-dark-blue  (deep navy — intervention, weight)
- *   Enabling      → --bc-color-steel      (steel grey — infrastructure, support)
+ * BC brand pass 1 (2026-05-26) — canonical mapping per design-director brief §3:
+ *   Seeing        → --bc-color-blue            (BC Blue — data collection, sensing)
+ *   Understanding → --bc-color-region-africa   (bespoke teal accent — analysis, insight)
+ *   Acting        → --bc-color-tangerine       (intervention warmth and energy)
+ *   Enabling      → --bc-color-purple          (cross-cutting infrastructure cue)
  *
- * dotColor is now used at chapter scale (larger w-3 h-3 dot beside the stage heading) and
- * also as the colour of the "01 / 04" prefix numeral for that stage.
+ * Previous draft mapping used --bc-color-teal/--bc-color-dark-blue/--bc-color-steel — the
+ * first and third tokens were not declared in the v1 token set; back-filled as aliases in
+ * _brand/tokens.css so any stale lookup still resolves within-palette.
+ *
+ * dotColor is rendered as a w-4 h-4 chapter dot to the left of the stage heading.
  */
 const STAGE_DOT_STYLE: Record<Stage, { dotColor: string }> = {
   Seeing: { dotColor: 'var(--bc-color-blue)' },
-  Understanding: { dotColor: 'var(--bc-color-teal)' },
-  Acting: { dotColor: 'var(--bc-color-dark-blue)' },
-  Enabling: { dotColor: 'var(--bc-color-steel)' },
+  Understanding: { dotColor: 'var(--bc-color-region-africa)' },
+  Acting: { dotColor: 'var(--bc-color-tangerine)' },
+  Enabling: { dotColor: 'var(--bc-color-purple)' },
 }
+
+/**
+ * DARK_CARD_DOMAINS — the four featured domains that render their PracticeCardHero in the
+ * DARK variant (navy surface, white text, light-blue city, white-on-blue chart inset).
+ * One dark card per stage row creates the editorial card-rhythm seen in the data-vis
+ * reference image. Picks per brief §4:
+ *   Seeing        → 1  (London / Monitoring   — BC Blue sensor count earns the navy stage)
+ *   Understanding → 2  (Accra / Source Analysis)
+ *   Acting        → 4  (Brussels / Policy Timeline — the -42% PM2.5 figure)
+ *   Enabling      → 8  (Bangkok / Awareness)
+ * If a stage only renders one card, that card stays light per brief §4. The alternation
+ * is editorial rhythm, not a rule.
+ */
+const DARK_CARD_DOMAINS = new Set<number>([1, 2, 4, 8])
 
 /**
  * Featured card per domain — picks the most visually compelling example.
@@ -115,15 +140,24 @@ const PILLAR_ORDER: { stage: Stage; label: string; description: string }[] = [
 
 export default function RoadmapV2Page() {
   return (
-    <main className="min-h-screen bg-background pb-0">
+    // BC brand pass 1: main background locked explicitly to BC white via inline style. The
+    // brand wrapper in layout.tsx sets [data-bc-brand="v1"] so var(--bc-color-white) resolves.
+    // Resists any shadcn bg-background bridging that might tint the page.
+    <main
+      className="min-h-screen pb-0"
+      style={{ backgroundColor: 'var(--bc-color-white)' }}
+    >
       <div className="mx-auto max-w-6xl px-4 py-12">
 
-        {/* Hero — unchanged from previous pass: shared ConceptHero + four ConceptStat figures. */}
+        {/* Hero — ConceptHero (h1 cap lifted to title-large in BC brand pass 1) +
+            four ConceptStat figures (value promoted to BC Blue 900 weight at clamp scale,
+            label muted dark-blue at 60%). gap bumped to gap-x-10 gap-y-4 pt-4 so the
+            big-numbers row reads as deliberate editorial pacing — was gap-6 pt-2. */}
         <ConceptHero
           headline="Breathe Cities Air Quality Roadmap"
           body="14 Breathe Cities serving 77 million people are on the same journey toward clean air: seeing, understanding, acting and enabling. This roadmap organises 12 domains of practice across those four stages, with measurable results."
         >
-          <div className="flex flex-wrap items-end gap-6 pt-2">
+          <div className="flex flex-wrap items-end gap-x-10 gap-y-4 pt-4">
             <ConceptStat value="14" label="cities" />
             <ConceptStat value="77M" label="people" />
             <ConceptStat value="12" label="domains" />
@@ -150,22 +184,36 @@ export default function RoadmapV2Page() {
               {/* Tier 1 — STAGE chapter heading. Inline custom treatment (NOT the shared
                   ConceptSectionHeader) so this page can carry its own chapter scale without
                   rippling into other concepts. Stage dot + chapter title + quiet one-line
-                  description. The "01 / 04" stage counter prefix was removed in iteration 2. */}
+                  description. The "01 / 04" stage counter prefix was removed in iteration 2.
+                  BC brand pass 1: h2 size bound to --bc-font-size-title-medium (24→46px clamp),
+                  weight bumped to 900 (Söhne Extrafett), colour to BC dark blue. Dot bumped to
+                  w-4 h-4 to balance the heavier weight. Description pl bumped to pl-7 to align
+                  with the larger dot. Description colour to muted dark-blue at 65%. */}
               <header className="mb-10 space-y-3">
                 <div className="flex items-center gap-3">
                   <span
-                    className="inline-block w-3 h-3 rounded-full flex-shrink-0"
+                    className="inline-block w-4 h-4 rounded-full flex-shrink-0"
                     style={{ backgroundColor: stageStyle.dotColor }}
                     aria-hidden="true"
                   />
                   <h2
-                    className="font-bold tracking-tight text-foreground leading-[1.05]"
-                    style={{ fontSize: 'clamp(2.25rem, 4vw, 3rem)' }}
+                    className="tracking-tight leading-[1.05]"
+                    style={{
+                      fontSize: 'var(--bc-font-size-title-medium)',
+                      fontWeight: 'var(--bc-font-weight-black)',
+                      color: 'var(--bc-color-dark-blue)',
+                    }}
                   >
                     {pillar.label}
                   </h2>
                 </div>
-                <p className="text-base text-muted-foreground max-w-2xl pl-6">
+                <p
+                  className="max-w-2xl pl-7"
+                  style={{
+                    fontSize: 'var(--bc-font-size-body)',
+                    color: 'color-mix(in srgb, var(--bc-color-dark-blue) 65%, transparent)',
+                  }}
+                >
                   {pillar.description}
                 </p>
               </header>
@@ -206,12 +254,25 @@ export default function RoadmapV2Page() {
                     <div key={domain.id} className="flex flex-col gap-3">
                       {/* Tier 2 — quiet domain title above the card. Sentence-case heading,
                           no uppercase "domain" eyebrow label (dropped in iteration 2 — the
-                          name alone is sufficient). */}
+                          name alone is sufficient). BC brand pass 1: lifted to title-sub scale
+                          in DomainTitle below. */}
                       <DomainTitle name={domain.shortName} />
-                      <PracticeCardHero practice={card} example={example} />
+                      {/* BC brand pass 1: dark variant for the first featured domain per stage
+                          (the four IDs in DARK_CARD_DOMAINS), light variant otherwise — creates
+                          mixed light/dark card rhythm on the white field per brief §4. */}
+                      <PracticeCardHero
+                        practice={card}
+                        example={example}
+                        variant={DARK_CARD_DOMAINS.has(domain.id) ? 'dark' : 'light'}
+                      />
+                      {/* BC brand pass 1: Explore link promoted to BC Blue at 600 weight.
+                          Hover underline (CSS-only utility) carries the affordance — full
+                          colour-state hover would require a CSS rule rather than inline style,
+                          accepting the default-blue-at-rest treatment per brief §8.7. */}
                       <Link
                         href={`/visual-concepts/best-practice-roadmap-v1/domain/${domain.slug}`}
-                        className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground hover:underline transition-colors"
+                        className="inline-flex items-center gap-1 text-sm font-semibold transition-colors hover:underline"
+                        style={{ color: 'var(--bc-color-blue)' }}
                       >
                         Explore {domain.shortName} &rarr;
                       </Link>
@@ -229,12 +290,25 @@ export default function RoadmapV2Page() {
 
 /**
  * DomainTitle — Tier 2 quiet column-header treatment for a domain title. Sentence-case
- * domain name; renders quieter than the stage chapter heading and quieter than the card
- * outcome hero. Iteration 2 — the uppercase "domain" eyebrow label that previously sat
- * above the name was dropped; the name alone is sufficient signal.
+ * domain name; renders between the stage chapter heading (Tier 1) and the card outcome hero
+ * (Tier 3) in the type hierarchy. Iteration 2 dropped the uppercase "domain" eyebrow label;
+ * the name alone is sufficient signal.
+ *
+ * BC brand pass 1 (2026-05-26) — promoted to --bc-font-size-title-sub (18→26px clamp) in
+ * full BC dark blue at 500 (Söhne Kräftig). Was text-base font-medium text-foreground/80,
+ * which collapsed against the lifted hero stats and card outcome hero at this density.
+ * The lift only works because the colour also goes to full-strength dark blue.
  */
 function DomainTitle({ name }: { name: string }) {
   return (
-    <div className="text-base font-medium text-foreground/80">{name}</div>
+    <div
+      className="font-medium tracking-tight"
+      style={{
+        fontSize: 'var(--bc-font-size-title-sub)',
+        color: 'var(--bc-color-dark-blue)',
+      }}
+    >
+      {name}
+    </div>
   )
 }

@@ -47,6 +47,7 @@
  *   PracticeCardView (re-uses ChartViz dispatcher via the shared module).
  */
 
+import type { CSSProperties } from "react";
 import {
   Card,
   CardContent,
@@ -64,6 +65,17 @@ interface PracticeCardHeroProps {
   practice: PracticeCard;
   /** The single city example to showcase. */
   example: CityExample;
+  /**
+   * BC brand pass 1 (2026-05-26) — card surface variant.
+   *   'light' (default) — white background, navy hairline border, dark-blue text, BC Blue
+   *     city name. Most cards on the page render light.
+   *   'dark' — Dark Blue surface, no border, white text, Light Blue city name. Used for one
+   *     featured card per stage row (set in page.tsx via DARK_CARD_DOMAINS) to create the
+   *     mixed-card editorial rhythm seen in the data-vis reference image translated through
+   *     BC palette.
+   * Chart container and footer metadata both respond to variant for tonal coherence.
+   */
+  variant?: 'light' | 'dark';
 }
 
 /**
@@ -136,23 +148,92 @@ function isShortHero(outcome: string): boolean {
  *   RIGHT column (top-aligned):
  *     Chart viz
  *
+ * BC brand pass 1 (2026-05-26) — applies the BC editorial visual language:
+ *   - Card surface variant: 'light' (white card, navy hairline border) or 'dark' (Dark Blue
+ *     surface, no border, white text). One dark card per stage row creates editorial rhythm.
+ *   - Card radius bumped to 20px; shadcn's default rounded-lg overridden via inline style.
+ *   - Card shadow flat — the hairline border carries the edge on light cards.
+ *   - Outcome hero text: Söhne 900 weight (was bold/700). Dark blue on light, white on dark.
+ *   - City name: BC Blue on light cards (was Dark Blue), Light Blue on dark cards.
+ *   - Practice description: muted-navy 70% on light, muted-white 80% on dark.
+ *   - Footer metadata: promoted to eyebrow treatment — uppercase tracking-wider 500 weight.
+ *     Inherits currentColor at 60% so it adapts to variant automatically.
+ *   - Chart container shell: rounded-2xl p-4 with inset background — BC Blue at 6% over
+ *     white on light cards; white at 10% transparency on dark cards.
+ *
  * When no clean composed hero exists, falls back to the practice-name-as-hero treatment
- * (intervention name promoted to large scale; chart still in right column).
+ * (intervention name promoted to large scale; chart still in right column). Both branches
+ * honour the variant prop identically.
  */
-export function PracticeCardHero({ practice, example }: PracticeCardHeroProps) {
+export function PracticeCardHero({
+  practice,
+  example,
+  variant = 'light',
+}: PracticeCardHeroProps) {
   const city = getCityBySlug(example.citySlug);
   if (!city) return null;
 
   const outcome = composeHero(practice, example);
   const shortHero = outcome !== null && isShortHero(outcome);
+  const isDark = variant === 'dark';
 
-  /* Chart viz block — shared dispatcher from PracticeCardView. Kept in a tinted muted-bg panel
-   * matching the existing PracticeCardTile chart treatment for visual continuity.
-   * minHeight ensures the chart anchors the right column at a predictable size. */
+  /* Card surface treatment — variant-driven. Light: white background, navy hairline border,
+   * radius 20px, flat (no shadow). Dark: Dark Blue background, no border, same radius and
+   * flat. The shadcn Card primitive's default classes set a different radius and shadow;
+   * inline style locks the BC brand treatment. */
+  const cardStyle: CSSProperties = {
+    borderRadius: '20px',
+    border: isDark
+      ? 'none'
+      : '1px solid color-mix(in srgb, var(--bc-color-dark-blue) 10%, transparent)',
+    backgroundColor: isDark
+      ? 'var(--bc-color-dark-blue)'
+      : 'var(--bc-color-white)',
+    boxShadow: 'none',
+  };
+
+  /* Outcome hero text colour — navy on white, white on navy. Söhne 900 (Extrafett). */
+  const outcomeColor = isDark
+    ? 'var(--bc-color-white)'
+    : 'var(--bc-color-dark-blue)';
+
+  /* City name colour — BC Blue on light card (geographic identity anchor); Light Blue on
+   * dark card so the city reads at equivalent hierarchy when the surface flips. */
+  const cityColor = isDark
+    ? 'var(--bc-color-light-blue)'
+    : 'var(--bc-color-blue)';
+
+  /* Practice description colour — muted-navy 70% on light, muted-white 80% on dark. */
+  const descriptionColor = isDark
+    ? 'color-mix(in srgb, var(--bc-color-white) 80%, transparent)'
+    : 'color-mix(in srgb, var(--bc-color-dark-blue) 70%, transparent)';
+
+  /* Country flag chip muted colour — adapts to variant so it stays legible against either
+   * surface without competing with the city name. */
+  const flagColor = isDark
+    ? 'color-mix(in srgb, var(--bc-color-white) 60%, transparent)'
+    : 'color-mix(in srgb, var(--bc-color-dark-blue) 50%, transparent)';
+
+  /* Chart container shell — BC brand pass 1 §8.6. Light: BC Blue at 6% over white (gives the
+   * chart its own quiet inset on a white card). Dark: white at 10% transparency (a subtle
+   * lift on the navy surface). Radius bumped to rounded-2xl (was rounded-lg). minHeight stays
+   * 160 so chart anchors the right column at a predictable size. */
+  const chartContainerStyle: CSSProperties = {
+    minHeight: 160,
+    backgroundColor: isDark
+      ? 'color-mix(in srgb, var(--bc-color-white) 10%, transparent)'
+      : 'color-mix(in srgb, var(--bc-color-blue) 6%, var(--bc-color-white))',
+    /* Chart `currentColor` resolution — sets the inherited foreground for SVG strokes/fills
+     * in the chart dispatcher. On dark cards the chart inherits white so monochrome charts
+     * remain legible; on light cards we keep the default cascade (dark blue from the card
+     * surface). */
+    color: isDark ? 'var(--bc-color-white)' : 'var(--bc-color-dark-blue)',
+  };
+
   const chartBlock = example.chartData ? (
     <div
-      className="rounded-lg bg-muted/30 p-3 flex items-center justify-center"
-      style={{ minHeight: 160 }}
+      className="rounded-2xl p-4 flex items-center justify-center"
+      style={chartContainerStyle}
     >
       <div className="w-full">
         <ChartViz data={example.chartData} cityFlag={city.flag} />
@@ -167,12 +248,18 @@ export function PracticeCardHero({ practice, example }: PracticeCardHeroProps) {
       ? "ongoing"
       : `introduced ${example.introducedYear}`;
 
-  /* Footer metadata block — population + year, quiet and small. City name is no longer in
-   * the footer (promoted to its own prominent line beneath the hero — see fix #3). The
-   * country code flag stays attached to the city name above. mt-auto pins this row to the
-   * bottom of the left column so cards keep predictable vertical rhythm. */
+  /* Footer metadata block — population + year. BC brand pass 1: eyebrow treatment
+   * (uppercase, tracking-wider, 500 weight). Inherits parent currentColor at 60% so the
+   * row adapts to variant — readable on either white or navy surface without per-variant
+   * tuning. mt-auto pins this row to the bottom of the left column. */
   const footerMeta = (
-    <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-muted-foreground pt-3 mt-auto">
+    <div
+      className="flex flex-wrap items-center gap-x-2 gap-y-0.5 pt-3 mt-auto uppercase tracking-wider font-medium"
+      style={{
+        fontSize: '11px',
+        color: 'color-mix(in srgb, currentColor 60%, transparent)',
+      }}
+    >
       <span>{city.populationLabel}</span>
       <span aria-hidden="true">&middot;</span>
       <span>{introducedStr}</span>
@@ -183,7 +270,7 @@ export function PracticeCardHero({ practice, example }: PracticeCardHeroProps) {
    * left column, chart in the right. */
   if (outcome !== null) {
     return (
-      <Card>
+      <Card style={cardStyle}>
         <CardContent className="p-6">
           {/* Two-column flex. md:items-stretch keeps both columns the same height so the
               metadata mt-auto can pin the population/year row to the bottom of the left
@@ -191,33 +278,47 @@ export function PracticeCardHero({ practice, example }: PracticeCardHeroProps) {
           <div className="flex flex-col md:flex-row md:items-stretch gap-5">
             {/* LEFT column — top-aligned content stack. flex-col with mt-auto on the
                 metadata row produces: hero at top, metadata at bottom, city + description
-                filling the middle. */}
-            <div className="flex-1 min-w-0 flex flex-col">
-              {/* Outcome hero — visually dominant, top of the left column */}
+                filling the middle. Outer color set so footerMeta's currentColor cascade
+                resolves to the variant-correct base. */}
+            <div
+              className="flex-1 min-w-0 flex flex-col"
+              style={{ color: outcomeColor }}
+            >
+              {/* Outcome hero — visually dominant, top of the left column. BC brand pass 1:
+                  Söhne 900 weight (was bold/700) at variant-driven colour. */}
               <div
-                className="font-bold tracking-tight text-foreground leading-[1.05]"
+                className="tracking-tight leading-[1.05]"
                 style={{
                   fontSize: shortHero ? "2.25rem" : "1.5rem",
                   lineHeight: shortHero ? 1.05 : 1.2,
+                  fontWeight: 'var(--bc-font-weight-black)',
+                  color: outcomeColor,
                 }}
               >
                 {outcome}
               </div>
-              {/* City name — prominent supporting line beneath the hero. ~17px medium,
-                  dark-blue tinted via the BC token applied at the page level via foreground.
-                  The country flag chip stays with the city name for region cue. */}
+              {/* City name — prominent supporting line beneath the hero. ~17px Söhne
+                  Halbfett (600). BC brand pass 1: colour shifts BC Blue on light card,
+                  Light Blue on dark card — geographic identity anchor. */}
               <div
                 className="mt-2 text-[17px] font-semibold tracking-tight"
-                style={{ color: "var(--bc-color-dark-blue)" }}
+                style={{ color: cityColor }}
               >
-                <span className="text-[11px] font-medium mr-1.5 text-muted-foreground tracking-wider">
+                <span
+                  className="text-[11px] font-medium mr-1.5 tracking-wider"
+                  style={{ color: flagColor }}
+                >
                   {city.flag}
                 </span>
                 {city.name}
               </div>
               {/* Practice description — quiet supporting line nested under the hero/city.
-                  Reads as the programme name the outcome belongs to. */}
-              <p className="mt-2 text-[13px] leading-snug text-foreground/70">
+                  Reads as the programme name the outcome belongs to. BC brand pass 1:
+                  variant-driven muted colour. */}
+              <p
+                className="mt-2 text-[13px] leading-snug"
+                style={{ color: descriptionColor }}
+              >
                 {example.interventionName}
               </p>
               {footerMeta}
@@ -237,26 +338,39 @@ export function PracticeCardHero({ practice, example }: PracticeCardHeroProps) {
 
   /* Branch 2 — no-composed-hero fallback: promote the intervention name to hero scale.
    * Used by any cards that don't have a hand-tuned override and don't carry an outcomeChange
-   * value (rare given the override coverage, but kept for safety). */
+   * value (rare given the override coverage, but kept for safety). Honours variant identically. */
   return (
-    <Card>
+    <Card style={cardStyle}>
       <CardContent className="p-6">
         <div className="flex flex-col md:flex-row md:items-stretch gap-5">
-          <div className="flex-1 min-w-0 flex flex-col">
-            <div className="text-xs uppercase tracking-wider text-muted-foreground">
+          <div
+            className="flex-1 min-w-0 flex flex-col"
+            style={{ color: outcomeColor }}
+          >
+            <div
+              className="text-xs uppercase tracking-wider font-medium"
+              style={{ color: descriptionColor }}
+            >
               {practice.name}
             </div>
             <div
-              className="mt-2 font-bold tracking-tight text-foreground leading-snug"
-              style={{ fontSize: "1.5rem" }}
+              className="mt-2 tracking-tight leading-snug"
+              style={{
+                fontSize: "1.5rem",
+                fontWeight: 'var(--bc-font-weight-black)',
+                color: outcomeColor,
+              }}
             >
               {example.interventionName}
             </div>
             <div
               className="mt-2 text-[17px] font-semibold tracking-tight"
-              style={{ color: "var(--bc-color-dark-blue)" }}
+              style={{ color: cityColor }}
             >
-              <span className="text-[11px] font-medium mr-1.5 text-muted-foreground tracking-wider">
+              <span
+                className="text-[11px] font-medium mr-1.5 tracking-wider"
+                style={{ color: flagColor }}
+              >
                 {city.flag}
               </span>
               {city.name}

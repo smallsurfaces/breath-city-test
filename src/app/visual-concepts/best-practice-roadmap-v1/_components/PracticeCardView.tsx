@@ -8,10 +8,33 @@
  *   concept. First-deploy render identical to v2. All chart sub-components (monochrome SVG/CSS)
  *   kept exactly as-is — they use var(--foreground) tokens, not decorative hex.
  *
+ * BC brand pass 1 (2026-05-26) — chart-colour-cycle restyle ONLY (no structural refactor):
+ *   The chart dispatcher and all chart logic are unchanged. The colour cycle on the FIVE
+ *   multi-series charts (SourceDonut, FuelMixShift, ReachFunnel, InvestmentROI,
+ *   FundingProgression) is swapped from monochrome foreground-opacity cascades to the BC
+ *   palette cycle (BC Blue → Tangerine → Fuchsia → Rich Green). Single-series monochrome
+ *   charts (bars, lines, sparklines, gauge, timeline) inherit `currentColor` from the chart
+ *   container — which PracticeCardHero now sets to dark-blue on light cards and white on
+ *   dark cards — so they pick up the BC palette automatically without code-level swaps.
+ *
  * Key exports: PracticeCardView, PracticeCardTile, ChartViz
  * External dependencies: next/link, shadcn (Card, Badge, Separator), @/data/roadmap-data,
  *   ./StageBadge (local BC-token tinted version)
  */
+
+/**
+ * BC_SERIES_PALETTE — colour cycle for multi-series charts. Brief §5: BC Blue dominant,
+ * Tangerine for comparison/second series, Fuchsia for third, Rich Green for fourth. Purple
+ * is the brief's fifth fallback if a chart ever needs five series. Defined once here so the
+ * five multi-series chart functions consume the same cycle.
+ */
+const BC_SERIES_PALETTE = [
+  'var(--bc-color-blue)',
+  'var(--bc-color-tangerine)',
+  'var(--bc-color-fuchsia)',
+  'var(--bc-color-rich-green)',
+  'var(--bc-color-purple)',
+] as const;
 import Link from "next/link";
 import {
   Card,
@@ -250,13 +273,16 @@ function CoverageRing({ data }: { data: any }) {
 
 function SourceDonut({ data, cityFlag }: { data: any; cityFlag?: string }) {
   const segments: { label: string; icon: string; value: number }[] = data.segments;
-  const opacities = [0.6, 0.4, 0.25, 0.15];
+  // BC brand pass 1 — colour cycle from BC_SERIES_PALETTE (blue, tangerine, fuchsia, rich-green).
+  // Fallback to muted currentColor if a chart somehow needs >5 segments.
+  const colorFor = (i: number) =>
+    BC_SERIES_PALETTE[i] ?? 'color-mix(in srgb, currentColor 20%, transparent)';
 
   let cumulativePct = 0;
   const stops = segments.map((seg, i) => {
     const start = cumulativePct;
     cumulativePct += seg.value;
-    return `color-mix(in srgb, var(--foreground) ${Math.round((opacities[i] ?? 0.1) * 100)}%, transparent) ${start}% ${cumulativePct}%`;
+    return `${colorFor(i)} ${start}% ${cumulativePct}%`;
   });
 
   return (
@@ -269,6 +295,9 @@ function SourceDonut({ data, cityFlag }: { data: any; cityFlag?: string }) {
           className="absolute inset-0 rounded-full"
           style={{ background: `conic-gradient(${stops.join(", ")})` }}
         />
+        {/* Inner cutout — uses transparent so the parent chart-container colour shows through
+            (white-tinted on light cards, navy-tinted on dark cards), keeping the donut
+            visually anchored to its variant-driven surface. */}
         <div className="absolute inset-5 rounded-full bg-background flex items-center justify-center">
           <span className="text-xs font-bold text-muted-foreground">{cityFlag ?? ""}</span>
         </div>
@@ -278,11 +307,11 @@ function SourceDonut({ data, cityFlag }: { data: any; cityFlag?: string }) {
           <div key={i} className="flex items-center gap-2 text-xs">
             <span
               className="inline-block w-2.5 h-2.5 rounded-sm flex-shrink-0"
-              style={{ background: `color-mix(in srgb, var(--foreground) ${Math.round((opacities[i] ?? 0.1) * 100)}%, transparent)` }}
+              style={{ background: colorFor(i) }}
             />
             {seg.icon && <span>{seg.icon}</span>}
-            <span className="text-muted-foreground flex-1 truncate">{seg.label}</span>
-            <span className="font-semibold text-foreground">{seg.value}%</span>
+            <span className="flex-1 truncate" style={{ color: 'color-mix(in srgb, currentColor 70%, transparent)' }}>{seg.label}</span>
+            <span className="font-semibold">{seg.value}%</span>
           </div>
         ))}
       </div>
@@ -482,11 +511,13 @@ function PhaseIndicator({ data }: { data: any }) {
 
 function FuelMixShift({ data }: { data: any }) {
   const segments = data.segments;
-  const opacities = [0.6, 0.4, 0.25, 0.15];
+  // BC brand pass 1 — segment colours from BC_SERIES_PALETTE cycle.
+  const colorFor = (i: number) =>
+    BC_SERIES_PALETTE[i] ?? 'color-mix(in srgb, currentColor 20%, transparent)';
 
   const renderBar = (label: string, getPct: (seg: any) => number) => (
     <div>
-      <div className="text-xs text-muted-foreground mb-1">{label}</div>
+      <div className="text-xs mb-1" style={{ color: 'color-mix(in srgb, currentColor 60%, transparent)' }}>{label}</div>
       <div className="flex h-8 w-full rounded overflow-hidden">
         {segments.map((seg: any, i: number) => (
           <div
@@ -494,7 +525,7 @@ function FuelMixShift({ data }: { data: any }) {
             className="h-full first:rounded-l last:rounded-r"
             style={{
               width: `${getPct(seg)}%`,
-              background: `color-mix(in srgb, var(--foreground) ${Math.round((opacities[i] ?? 0.1) * 100)}%, transparent)`,
+              background: colorFor(i),
             }}
           />
         ))}
@@ -504,7 +535,7 @@ function FuelMixShift({ data }: { data: any }) {
 
   return (
     <div className="space-y-3">
-      <div className="text-base font-bold text-foreground">{data.headline}</div>
+      <div className="text-base font-bold">{data.headline}</div>
       <div className="space-y-2">
         {renderBar(data.beforeLabel, (seg: any) => seg.beforePct)}
         {renderBar(data.afterLabel, (seg: any) => seg.afterPct)}
@@ -514,10 +545,10 @@ function FuelMixShift({ data }: { data: any }) {
           <div key={i} className="flex items-center gap-2 text-sm">
             <span
               className="inline-block w-2.5 h-2.5 rounded-sm flex-shrink-0"
-              style={{ background: `color-mix(in srgb, var(--foreground) ${Math.round((opacities[i] ?? 0.1) * 100)}%, transparent)` }}
+              style={{ background: colorFor(i) }}
             />
-            <span className="text-muted-foreground flex-1 truncate">{seg.label}</span>
-            <span className="font-semibold text-foreground">
+            <span className="flex-1 truncate" style={{ color: 'color-mix(in srgb, currentColor 70%, transparent)' }}>{seg.label}</span>
+            <span className="font-semibold">
               {seg.beforePct}% → {seg.afterPct}%
             </span>
           </div>
@@ -716,25 +747,28 @@ function ReachFunnel({ data }: { data: any }) {
   //   { label: "Actively engaged", value: "340K", pct: 16 },
   //   { label: "Behaviour change", value: "85K", pct: 4 },
   // ]}
+  // BC brand pass 1 — bar fill colours cycle from BC_SERIES_PALETTE so the funnel reads as
+  // three deliberate BC tones rather than a monochrome opacity ladder.
   const steps: { label: string; value: string; pct: number }[] = data.steps;
-  const barOpacities = [60, 40, 25];
+  const colorFor = (i: number) =>
+    BC_SERIES_PALETTE[i] ?? 'color-mix(in srgb, currentColor 20%, transparent)';
 
   return (
     <div className="space-y-2">
-      <div className="text-sm font-semibold text-foreground">{data.headline}</div>
+      <div className="text-sm font-semibold">{data.headline}</div>
       <div className="space-y-1.5">
         {steps.map((step, i) => (
           <div key={i}>
             <div className="flex items-center justify-between mb-0.5">
-              <span className="text-xs text-muted-foreground">{step.label}</span>
-              <span className="text-xs font-semibold text-foreground">{step.value}</span>
+              <span className="text-xs" style={{ color: 'color-mix(in srgb, currentColor 60%, transparent)' }}>{step.label}</span>
+              <span className="text-xs font-semibold">{step.value}</span>
             </div>
-            <div className="h-5 w-full rounded bg-muted/30 overflow-hidden">
+            <div className="h-5 w-full rounded overflow-hidden" style={{ background: 'color-mix(in srgb, currentColor 8%, transparent)' }}>
               <div
                 className="h-full rounded"
                 style={{
                   width: `${step.pct}%`,
-                  background: `color-mix(in srgb, var(--foreground) ${barOpacities[i] ?? 20}%, transparent)`,
+                  background: colorFor(i),
                 }}
               />
             </div>
@@ -995,10 +1029,14 @@ function GovernanceStaircase({ data }: { data: any }) {
 /** FundingProgression — horizontal step flow showing how domain achievements built the case for investment */
 function FundingProgression({ data }: { data: any }) {
   // data: { type: "fundingProgression", steps: [{ pillar: "Seeing", label: "...", year: 2013 }, ...], outcome: "..." }
+  // BC brand pass 1 — pillar markers map to the canonical stage palette from page.tsx
+  // STAGE_DOT_STYLE (Seeing → BC Blue, Understanding → region-africa, Acting → tangerine,
+  // Enabling → purple). The funding-flow step keeps a muted neutral.
   const PILLAR_COLORS: Record<string, string> = {
-    "Seeing": "color-mix(in srgb, var(--foreground) 60%, transparent)",
-    "Understanding": "color-mix(in srgb, var(--foreground) 45%, transparent)",
-    "Acting": "color-mix(in srgb, var(--foreground) 30%, transparent)",
+    "Seeing": "var(--bc-color-blue)",
+    "Understanding": "var(--bc-color-region-africa)",
+    "Acting": "var(--bc-color-tangerine)",
+    "Enabling": "var(--bc-color-purple)",
   };
 
   const steps: { pillar: string; label: string; year: number }[] = data.steps;
@@ -1011,26 +1049,26 @@ function FundingProgression({ data }: { data: any }) {
           <div key={i} className="flex-1 flex flex-col">
             <div
               className="h-2 rounded-full mb-2"
-              style={{ background: PILLAR_COLORS[step.pillar] ?? 'color-mix(in srgb, var(--foreground) 20%, transparent)' }}
+              style={{ background: PILLAR_COLORS[step.pillar] ?? 'color-mix(in srgb, currentColor 20%, transparent)' }}
             />
-            <div className="text-[10px] font-semibold text-foreground">{step.pillar}</div>
-            <div className="text-[10px] text-muted-foreground leading-tight mt-0.5">{step.label}</div>
-            <div className="text-[10px] text-muted-foreground mt-auto pt-1">{step.year}</div>
+            <div className="text-[10px] font-semibold">{step.pillar}</div>
+            <div className="text-[10px] leading-tight mt-0.5" style={{ color: 'color-mix(in srgb, currentColor 65%, transparent)' }}>{step.label}</div>
+            <div className="text-[10px] mt-auto pt-1" style={{ color: 'color-mix(in srgb, currentColor 60%, transparent)' }}>{step.year}</div>
           </div>
         ))}
-        {/* Final "funding" step */}
+        {/* Final "funding" step — muted neutral */}
         <div className="flex-1 flex flex-col">
           <div
             className="h-2 rounded-full mb-2"
-            style={{ background: 'color-mix(in srgb, var(--foreground) 15%, transparent)' }}
+            style={{ background: 'color-mix(in srgb, currentColor 15%, transparent)' }}
           />
-          <div className="text-[10px] font-semibold text-foreground">→ Funding</div>
-          <div className="text-[10px] text-muted-foreground leading-tight mt-0.5">Investment follows results</div>
+          <div className="text-[10px] font-semibold">→ Funding</div>
+          <div className="text-[10px] leading-tight mt-0.5" style={{ color: 'color-mix(in srgb, currentColor 65%, transparent)' }}>Investment follows results</div>
         </div>
       </div>
 
       {/* Outcome line */}
-      <div className="text-xs text-muted-foreground border-t pt-2" style={{ borderColor: 'color-mix(in srgb, var(--foreground) 10%, transparent)' }}>
+      <div className="text-xs border-t pt-2" style={{ borderColor: 'color-mix(in srgb, currentColor 10%, transparent)', color: 'color-mix(in srgb, currentColor 65%, transparent)' }}>
         {data.outcome}
       </div>
     </div>
@@ -1066,20 +1104,22 @@ function InvestmentROI({ data }: { data: any }) {
   //   resultLabel: "Measurable air quality improvement",
   // }
   const allocations: { label: string; pct: number }[] = data.allocations;
-  const opacities = [60, 45, 30, 18];
+  // BC brand pass 1 — allocation segments cycle BC_SERIES_PALETTE.
+  const colorFor = (i: number) =>
+    BC_SERIES_PALETTE[i] ?? 'color-mix(in srgb, currentColor 20%, transparent)';
 
   return (
     <div className="space-y-3">
       {/* Investment amount — big number */}
       <div className="text-center">
-        <div className="text-2xl font-bold text-foreground">{data.investment}</div>
-        <div className="text-xs text-muted-foreground">{data.investmentLabel}</div>
+        <div className="text-2xl font-bold">{data.investment}</div>
+        <div className="text-xs" style={{ color: 'color-mix(in srgb, currentColor 60%, transparent)' }}>{data.investmentLabel}</div>
       </div>
 
       {/* Down arrow */}
       <div className="flex justify-center">
         <svg width="16" height="20" viewBox="0 0 16 20">
-          <path d="M8,0 L8,14 M2,10 L8,16 L14,10" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-foreground/30" />
+          <path d="M8,0 L8,14 M2,10 L8,16 L14,10" fill="none" stroke="currentColor" strokeWidth="1.5" style={{ opacity: 0.3 }} />
         </svg>
       </div>
 
@@ -1092,7 +1132,7 @@ function InvestmentROI({ data }: { data: any }) {
               className="h-full"
               style={{
                 width: `${a.pct}%`,
-                background: `color-mix(in srgb, var(--foreground) ${opacities[i] ?? 15}%, transparent)`,
+                background: colorFor(i),
               }}
             />
           ))}
@@ -1102,10 +1142,10 @@ function InvestmentROI({ data }: { data: any }) {
             <div key={i} className="flex items-center gap-2 text-xs">
               <span
                 className="inline-block w-2.5 h-2.5 rounded-sm flex-shrink-0"
-                style={{ background: `color-mix(in srgb, var(--foreground) ${opacities[i] ?? 15}%, transparent)` }}
+                style={{ background: colorFor(i) }}
               />
-              <span className="text-muted-foreground flex-1 truncate">{a.label}</span>
-              <span className="font-semibold text-foreground">{a.pct}%</span>
+              <span className="flex-1 truncate" style={{ color: 'color-mix(in srgb, currentColor 70%, transparent)' }}>{a.label}</span>
+              <span className="font-semibold">{a.pct}%</span>
             </div>
           ))}
         </div>
@@ -1114,14 +1154,14 @@ function InvestmentROI({ data }: { data: any }) {
       {/* Down arrow */}
       <div className="flex justify-center">
         <svg width="16" height="20" viewBox="0 0 16 20">
-          <path d="M8,0 L8,14 M2,10 L8,16 L14,10" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-foreground/30" />
+          <path d="M8,0 L8,14 M2,10 L8,16 L14,10" fill="none" stroke="currentColor" strokeWidth="1.5" style={{ opacity: 0.3 }} />
         </svg>
       </div>
 
-      {/* Result — bold outcome */}
-      <div className="text-center rounded-lg p-2" style={{ background: 'color-mix(in srgb, var(--foreground) 8%, transparent)' }}>
-        <div className="text-xl font-bold text-foreground">{data.result}</div>
-        <div className="text-xs text-muted-foreground">{data.resultLabel}</div>
+      {/* Result — bold outcome on a quiet BC Blue wash */}
+      <div className="text-center rounded-lg p-2" style={{ background: 'color-mix(in srgb, var(--bc-color-blue) 8%, transparent)' }}>
+        <div className="text-xl font-bold">{data.result}</div>
+        <div className="text-xs" style={{ color: 'color-mix(in srgb, currentColor 60%, transparent)' }}>{data.resultLabel}</div>
       </div>
     </div>
   );
