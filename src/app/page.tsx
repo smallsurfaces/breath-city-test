@@ -98,6 +98,38 @@ export default function HomePage() {
         </div>
       </div>
 
+      {/* Visual Concepts — parallel exploration layer that forks from the wireframe-locked UX
+          concepts, so visual brand work (Söhne, BC blue, graphic elements) can evolve without
+          leaking into the wireframe-locked UX surfaces. Each entry is a sandbox route under
+          /visual-concepts/. Same card pattern as UX Concepts — single "Open →" per build. */}
+      <div className="flex flex-col items-center gap-4">
+        <p
+          className="text-xs font-semibold tracking-widest uppercase"
+          style={{ color: "var(--bc-semantic-muted)" }}
+        >
+          Visual Concepts
+        </p>
+
+        <div className="flex flex-col gap-3 w-full max-w-xl">
+          <div className="flex items-center gap-3">
+            <span className="text-sm w-52 shrink-0" style={{ color: "var(--bc-semantic-text)" }}>
+              Global Site Visual Concept - BC AQ Roadmap V1
+            </span>
+            <Link
+              href="/visual-concepts/best-practice-roadmap-v1"
+              className="inline-flex items-center justify-center px-4 py-2 rounded-xl text-sm font-medium transition-colors"
+              style={{
+                backgroundColor: "var(--bc-semantic-brand)",
+                color: "var(--bc-color-white)",
+                borderRadius: "var(--bc-border-radius-md)",
+              }}
+            >
+              Open →
+            </Link>
+          </div>
+        </div>
+      </div>
+
       <div className="flex flex-col items-center gap-4">
         <p
           className="text-xs font-semibold tracking-widest uppercase"
