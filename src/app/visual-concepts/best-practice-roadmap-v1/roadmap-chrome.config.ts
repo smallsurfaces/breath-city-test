@@ -16,17 +16,25 @@
  *     Export name kept as ROADMAP_CHROME (dropping the "_V2" suffix, since this is the first
  *     visual concept v1, not a roadmap v2). The fork's layout.tsx imports it under this name.
  *
- *   Pass 3 v2 (2026-05-27 — per pass-3-v2 brief §3 + previous chrome brief §2 + §3)
- *     Desktop nav drops from 7 items to 3 ("Who we are", "What we do", "Why we do it") —
- *     matches the live BC site. Page identity is now carried by the hero headline, not by
- *     a nav highlight.
+ *   Pass 4 (2026-05-27 — five-item bundle, nav restore against BC live)
+ *     Desktop nav restored from 3 -> 7 items to match the BC live site plus the new Roadmap
+ *     slot:
+ *       Who we are / What we do / Why we do it (caret) / Roadmap / Cities /
+ *       Voices of Breathe Cities / News
  *
- *     Mobile overlay carries a SEPARATE 5-item nav set ("Who we are", "What we do",
- *     "Why we do it", "Cities", "News") — adds Cities + News beyond the desktop set, per the
- *     live BC mobile menu. Roadmap + Voices + Join us dropped from mobile too.
+ *     Roadmap is the only live destination (it self-links to this page — the current visual
+ *     concept overview is the BC AQ Roadmap), carrying the active-state cyan underline. The
+ *     caret on "Why we do it" is a visual indicator only — there is no real dropdown behaviour
+ *     wired (the live BC site has a multi-link dropdown there; the prototype shows the
+ *     affordance without implementing it).
  *
- *     The live "Cities" route inside the prototype keeps its destination so the mobile menu
- *     still reaches the cities listing inside this sandbox.
+ *     "Join Us" became "Join us" (lowercase u) — the live BC site uses lowercase.
+ *
+ *     Mobile overlay mirrors the desktop 7-item set for parity (was 5 items in pass 3 v2; the
+ *     reduction was a follow-the-Figma decision that the live-site review reverses).
+ *
+ *     The live "Cities" route inside the prototype keeps its destination so the menu still
+ *     reaches the cities listing inside this sandbox.
  *
  * Key exports: ROADMAP_CHROME (const)
  * External dependencies: ./_chrome (BcChromeConfig type — forked into the visual-concepts namespace
@@ -35,28 +43,38 @@
 
 import type { BcChromeConfig } from './_chrome'
 
+/** This page's own route, used so the Roadmap nav item self-links and carries the active state. */
+const ROADMAP_HREF = '/visual-concepts/best-practice-roadmap-v1'
+
 /**
  * Visual Concept v1 — BC AQ Roadmap chrome config. All live routes target the visual-concepts
  * path so the concept is self-contained. The brand mark points at the visual concept overview;
- * the "Cities" slot in the mobile nav points at the visual concept cities listing.
+ * the "Cities" slot points at the visual concept cities listing; the "Roadmap" slot self-links
+ * (current page IS the BC AQ Roadmap, so the nav item carries the active-state cyan underline).
  */
 export const ROADMAP_CHROME: BcChromeConfig = {
-  logoHref: '/visual-concepts/best-practice-roadmap-v1',
-  // Desktop nav — 3 items per pass-3-v2 brief §3 / previous chrome brief §2 delta 1.
-  // All inert (href '#') — the prototype carries no destinations for Who/What/Why pages;
-  // the renderer styles inert items at white-60% with cursor-default.
+  logoHref: ROADMAP_HREF,
+  // Desktop nav — 7 items per pass-4 brief item 1. Order matches BC live, with Roadmap inserted
+  // between "Why we do it" and "Cities". `hasCaret: true` triggers a small downward chevron
+  // affordance after the label — visual indicator only, no dropdown behaviour wired (matches
+  // the affordance the BC live nav uses on "Why we do it").
   nav: [
     { label: 'Who we are', href: '#' },
     { label: 'What we do', href: '#' },
-    { label: 'Why we do it', href: '#' },
+    { label: 'Why we do it', href: '#', hasCaret: true },
+    { label: 'Roadmap', href: ROADMAP_HREF },
+    { label: 'Cities', href: '/visual-concepts/best-practice-roadmap-v1/cities' },
+    { label: 'Voices of Breathe Cities', href: '#' },
+    { label: 'News', href: '#' },
   ],
-  // Mobile overlay nav — 5 items per pass-3-v2 brief §3 / previous chrome brief §3 delta 1.
-  // Cities is live (prototype has the cities listing); News is inert.
+  // Mobile overlay nav — mirrors the desktop 7-item set per pass-4 brief item 1.
   mobileNav: [
     { label: 'Who we are', href: '#' },
     { label: 'What we do', href: '#' },
-    { label: 'Why we do it', href: '#' },
+    { label: 'Why we do it', href: '#', hasCaret: true },
+    { label: 'Roadmap', href: ROADMAP_HREF },
     { label: 'Cities', href: '/visual-concepts/best-practice-roadmap-v1/cities' },
+    { label: 'Voices of Breathe Cities', href: '#' },
     { label: 'News', href: '#' },
   ],
 }

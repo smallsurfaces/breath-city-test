@@ -27,12 +27,18 @@
  * One primary-nav entry. `href === '#'` marks an INERT label (a real BC nav item the prototype
  * does not implement) — the renderer derives "live" from `href !== '#'` and styles/links
  * accordingly, so an inert item is shown but not clickable (no dead-end navigation).
+ *
+ * `hasCaret` (pass 4, 2026-05-27) renders a small downward chevron after the label to indicate
+ * the item is a dropdown parent on the BC live site. Visual indicator only — no actual dropdown
+ * behaviour is wired in the prototype.
  */
 export type BcChromeNavItem = {
   /** The visible nav label (BC's real primary-nav wording). */
   label: string
   /** The route this item links to, or '#' to mark it inert (shown, not clickable). */
   href: string
+  /** Render a downward chevron after the label (BC dropdown affordance, visual only). */
+  hasCaret?: boolean
 }
 
 /**

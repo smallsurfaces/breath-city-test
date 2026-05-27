@@ -49,7 +49,10 @@
  *   ./roadmap-chrome.config (ROADMAP_CHROME), ./_brand (soehne font + tokens.css side-effect).
  */
 
-import { PrototypeHeader, BcHeader, BcNewsletter, BcFooter } from './_chrome'
+// Pass 4 (2026-05-27): BcNewsletter dropped from invocation per pass-4 brief item 2 — the mint
+// "Stay in the loop" strip between page body and footer is removed. The named export remains in
+// _chrome/index.ts for future re-introduction if needed; this layout just no longer renders it.
+import { PrototypeHeader, BcHeader, BcFooter } from './_chrome'
 import { ROADMAP_CHROME } from './roadmap-chrome.config'
 import { soehne } from './_brand'
 import './_brand/tokens.css'
@@ -58,12 +61,12 @@ import './_brand/tokens.css'
 const BUILD_NAME = 'Global Site Visual Concept - BC AQ Roadmap V1'
 
 /**
- * VisualRoadmapV1Layout — wraps all v1 visual-concept routes in the standard chrome stack:
+ * VisualRoadmapV1Layout — wraps all v1 visual-concept routes in the chrome stack. Pass 4
+ * (2026-05-27) drops BcNewsletter from the stack:
  *   1. PrototypeHeader (tooling: back-to-hub + comments + visual-concept disclaimer)
- *   2. BcHeader (BC site nav — solid BC Blue ground, white logo, 7-item live nav)
+ *   2. BcHeader (BC site nav — solid BC Blue ground, white logo, 7-item live nav incl. Roadmap)
  *   3. children (page content)
- *   4. BcNewsletter (NEW in pass 2 — mint signup strip, split out of BcFooter per brief §10)
- *   5. BcFooter (BC Blue full-bleed, 4-column with founding-org logos)
+ *   4. BcFooter (BC Blue full-bleed, 4-column with founding-org logos; Roadmap in Col 2)
  *
  * The brand wrapper `<div data-bc-brand="v1" className={soehne.variable}>` scopes the BC
  * tokens (via tokens.css cascade) and Söhne font to this layout only — UX wireframe routes
@@ -81,9 +84,8 @@ export default function VisualRoadmapV1Layout({
       {/* BC site nav — the FORKED chrome, configured for visual concept v1 routes. */}
       <BcHeader config={ROADMAP_CHROME} />
       {children}
-      {/* Pass 2 (2026-05-27): mint newsletter signup strip, sits between page content and the
-       * BC Blue footer per brand-pass-2 brief §10. Static — no per-route variation. */}
-      <BcNewsletter />
+      {/* Pass 4 (2026-05-27): BcNewsletter intentionally NOT rendered here. Page flows directly
+       * from last content section into BcFooter. */}
       <BcFooter />
     </div>
   )

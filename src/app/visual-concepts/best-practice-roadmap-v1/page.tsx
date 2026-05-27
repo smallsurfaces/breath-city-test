@@ -6,7 +6,16 @@
  *   wireframe-lock-2026-05-26). Forked so visual exploration cannot leak into the
  *   wireframe-locked UX concept.
  *
- * BC brand pass 2 (2026-05-27 — per brand-pass-2 brief)
+ * Pass 4 (2026-05-27 — five-item bundle)
+ *   - Hero right column now renders RoadmapRingChart (two-ring data viz of the 11-domain /
+ *     4-stage structure) in place of HeroWindComposition. Wind+Windows continues at the
+ *     Acting-stage WindAccent moment only.
+ *   - Card template uniform across all 11 featured cards (no light/dark BC Blue alternation).
+ *     DARK_CARD_DOMAINS set removed; per-card Explore pill is variant B (blue) on every card.
+ *     PracticeCardHero retains its `variant` prop for backward compatibility but currently
+ *     ignores it.
+ *
+ * BC brand pass 2 (2026-05-27 — historical, per brand-pass-2 brief)
  *   This restructures the page chrome from a single-`<main>`-with-white-background into a stack
  *   of full-bleed coloured `<section>` elements that implement the alternating BC site colour
  *   rhythm per brief §4:
@@ -18,8 +27,9 @@
  *     Stage 4 Enabling     → Light-blue panel wash
  *
  *   The hero gets a two-column layout (brief §5) — headline + stats + pill CTA on the left,
- *   Wind+Windows composition on the right. The hero is rendered with `<ConceptHero variant="dark">`
- *   to flip type to white-on-blue. ConceptStat instances likewise use `variant="dark"`.
+ *   plus a hero-right composition (pass 4: ring chart; pass 2: Wind+Windows). The hero is
+ *   rendered with `<ConceptHero variant="dark">` to flip type to white-on-blue. ConceptStat
+ *   instances likewise use `variant="dark"`.
  *
  *   Each stage chapter gets a section eyebrow above the h2 per brief §9 — "Chapter NN · [Stage]"
  *   in BC Blue or stage-coloured per the §9 mapping. The h2 itself stays clean (no chapter
@@ -53,16 +63,15 @@
  *   Enabling      → var(--bc-color-purple)          purple
  *
  * Key exports: default page component
- * External dependencies: ./_chrome (ConceptHero, ConceptStat, BcPill, HeroWindComposition,
- *   WindAccent), @/data/roadmap-data (DOMAINS, PRACTICE_CARDS, Stage, getCityBySlug),
- *   ./_components/PracticeCardHero.
+ * External dependencies: ./_chrome (ConceptHero, ConceptStat, BcPill, WindAccent),
+ *   @/data/roadmap-data (DOMAINS, PRACTICE_CARDS, Stage), ./_components/PracticeCardHero,
+ *   ./_components/RoadmapRingChart (pass 4 hero data viz).
  */
 
 import {
   ConceptHero,
   ConceptStat,
   BcPill,
-  HeroWindComposition,
   WindAccent,
 } from './_chrome'
 import {
@@ -71,6 +80,11 @@ import {
   type Stage,
 } from '@/data/roadmap-data'
 import { PracticeCardHero } from './_components/PracticeCardHero'
+// Pass 4 (2026-05-27): HeroWindComposition replaced in the hero's right column with the
+// two-ring data viz chart per pass-4 brief item 3. HeroWindComposition stays available in
+// _chrome/BcGraphics (still consumed inside WindAccent's Acting-stage accent moment, plus the
+// raw primitives WindShape / Window01..05 stay exported for future moments).
+import { RoadmapRingChart } from './_components/RoadmapRingChart'
 
 /**
  * Stage dot style override — 4 distinct BC token tints applied at the presentation layer per
@@ -121,15 +135,12 @@ function chapterNumber(stage: Stage): string {
 }
 
 /**
- * DARK_CARD_DOMAINS — the four featured domains rendered with the dark PracticeCardHero
- * variant (BC Blue surface, white text). Editorial rhythm: one dark card per stage row.
- * Picks per brief §4 (pass 1):
- *   Seeing        → 1  (London / Monitoring)
- *   Understanding → 2  (Accra / Source Analysis)
- *   Acting        → 4  (Brussels / Policy Timeline)
- *   Enabling      → 8  (Bangkok / Awareness)
+ * Pass 4 (2026-05-27) — DARK_CARD_DOMAINS removed. The card template now renders uniformly
+ * (white card surface with subtle full-card city image background; saturated-regional
+ * fallback for Bangkok / Bogotá). Visual rhythm comes from the different city images
+ * themselves, not from BC-Blue card alternation. Per-card Explore pill uses variant B
+ * (blue pill) on all cards as a consequence.
  */
-const DARK_CARD_DOMAINS = new Set<number>([1, 2, 4, 8])
 
 /**
  * Featured card per domain — picks the most visually compelling example.
@@ -196,12 +207,21 @@ export default function RoadmapV2Page() {
               </ConceptHero>
             </div>
 
-            {/* RIGHT column — Wind + Windows composition per brief §5 / §7 moment 1.
-             *  Hidden on mobile via `hidden lg:block` to avoid crowding the headline column
-             *  on narrow viewports (per brief §5 — developer's call based on viewport testing).
-             *  Placeholder cyan panel inside the large window; real photography lands later. */}
+            {/* RIGHT column — pass 4 (2026-05-27): two-ring roadmap data viz replaces the
+             *  Wind+Windows composition per pass-4 brief item 3. Hidden on mobile via
+             *  `hidden lg:block` (the hero collapses to single-column text-only on narrow
+             *  viewports — mirrors how the previous composition handled mobile). Render size
+             *  drops on tablet via lg:w-[360px] -> xl:w-[480px] (parent grid keeps the column
+             *  vertically centred). */}
             <div className="hidden lg:block w-full">
-              <HeroWindComposition />
+              <div className="flex items-center justify-center">
+                <div className="block xl:hidden">
+                  <RoadmapRingChart size={360} />
+                </div>
+                <div className="hidden xl:block">
+                  <RoadmapRingChart size={480} />
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -294,14 +314,11 @@ export default function RoadmapV2Page() {
                   const featured = FEATURED[domain.id]
                   const card = domainCards[featured?.cardIndex ?? 0]
                   const example = card?.cityExamples[featured?.exampleIndex ?? 0]
-                  const isDark = DARK_CARD_DOMAINS.has(domain.id)
 
-                  // Pass 3 v2 §4 — cityRegion / regional top-border removed. The 4px hairline
-                  // was a vestigial signifier between BC's navigation-tile saturated-fill
-                  // pattern (whole-card colour) and our data-card hairline; pass 3 v2 drops it.
-
-                  // Pill variant: B (blue pill) on light cards, C (white pill) on dark cards.
-                  const pillVariant = isDark ? 'C' : 'B'
+                  // Pass 4 (2026-05-27) — card template uniform across all 11 featured cards.
+                  // PracticeCardHero no longer accepts a meaningful `variant` (prop preserved
+                  // for backward compat, currently a no-op). Per-card Explore pill is variant B
+                  // on every card (blue pill on light surface).
 
                   if (!card || !example) {
                     return (
@@ -333,18 +350,17 @@ export default function RoadmapV2Page() {
                     <div key={domain.id} className="flex flex-col gap-3">
                       {/* Tier 2 — quiet domain title above the card. */}
                       <DomainTitle name={domain.shortName} />
-                      {/* Tier 3 — PracticeCardHero with variant + cityRegion props per pass 2. */}
+                      {/* Tier 3 — PracticeCardHero, pass-4 uniform template. */}
                       <PracticeCardHero
                         practice={card}
                         example={example}
-                        variant={isDark ? 'dark' : 'light'}
                       />
-                      {/* Pass 2 §8: per-card Explore CTA promoted from text link to pill. */}
+                      {/* Per-card Explore CTA — pass 4: variant B uniformly across all cards. */}
                       <div className="pt-1">
                         <BcPill
                           label={`Explore ${domain.shortName}`}
                           href={`/visual-concepts/best-practice-roadmap-v1/domain/${domain.slug}`}
-                          variant={pillVariant}
+                          variant="B"
                           size="small"
                         />
                       </div>

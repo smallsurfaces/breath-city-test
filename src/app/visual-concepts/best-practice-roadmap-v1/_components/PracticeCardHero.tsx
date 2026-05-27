@@ -15,52 +15,47 @@
  *   This component is consumed only on the v1 roadmap overview page (page.tsx). Detail pages
  *   continue to use PracticeCardTile so their behaviour is unchanged.
  *
- * BC brand pass 3 v2 (2026-05-27 — per brand-pass-3-v2 brief §4)
- *   This is the composition density refinement pass. Subtraction and confidence:
+ * Pass 4 (2026-05-27 — five-item bundle, card template restructure per pass-4 brief item 4)
+ *   Two-zone composition replacing pass 3 v2's sibling-tile + chart-stack pattern. Cleaner,
+ *   image-first surface treatment per Jack's hand sketch:
  *
- *   - HERO NUMBER hits HARD. Token swap from --bc-font-weight-black (900) → --bc-font-weight-medium
- *     (500, Söhne Kräftig — BC's actual headline weight). Token swap from hardcoded 2.25rem /
- *     1.5rem → var(--bc-font-size-title-large) which clamps 38px→84px responsively. No size
- *     branch for long hero — long values wrap to two lines and stay loud (BC pattern from
- *     "$147 billion in avoided hospitalisations" treatment on What We Do).
- *   - isShortHero() helper DELETED. Branch no longer needed.
- *   - DESCRIPTION removed from the hero card. <p>{example.interventionName}</p> deleted from
- *     both branches. Intervention name lives on city/[slug] drill-in only — in the card the
- *     data IS the story; policy mechanism is one click deeper.
- *   - POPULATION removed from metadata. Only `introduced YYYY` remains. Population competes
- *     with the hero for "the number that matters" — it belongs on the city drill-in.
- *   - CHART DEMOTED. Container width 240→180px, radius 16→12px, padding 16→10px,
- *     min-height 160→120px, light card bg 6%→4%, dark card bg 12%→8%. Reads as a sparkline
- *     accent rather than a co-hero.
- *   - CITY PHOTO sibling tile added. Right column becomes vertical stack: photo (top) → chart
- *     (bottom), gap-3. Square 180×180 with 16px radius, 1px navy-6% hairline on light, no
- *     border on dark. Sourced from _brand/graphics/cities/${slug}.png — already brand-colour
- *     duotones.
- *   - BANGKOK + BOGOTÁ fallback. Photo not yet shot for these two; render a flat
- *     regional-colour solid tile at the same dimensions (Asia-Pacific fuchsia for Bangkok,
- *     Latin America green for Bogotá). Placeholder is intentional — when the city photo PNG
- *     lands at the canonical path, just add the slug to CITIES_WITH_PHOTOS and the photo
- *     branch renders automatically.
- *   - cityRegion prop REMOVED. REGION_COLOR + resolveRegionColor() helpers DELETED.
- *     borderTop regional accent dropped — it was a vestigial signifier between
- *     navigation-tile saturated-fill (BC pattern) and our data-card hairline.
+ *   - FULL-CARD CITY IMAGE BACKGROUND. The city PNG fills the entire card surface at
+ *     opacity 0.20 (judgment call — "subtle but identifies the city"). Renders inside an
+ *     absolutely-positioned wrapper layer behind the content. object-fit: cover so the
+ *     image fills the card.
+ *   - TWO ZONES inside the card. Top-left text block (title, flag+city, introduced YYYY)
+ *     anchored to top-left; bottom-right chart block anchored to bottom-right. Implemented
+ *     via flex column with a top sub-zone (text) and a bottom sub-zone (right-aligned chart).
+ *   - NO SIBLING TILE. The 180x180 photo square next to the chart from pass 3 v2 is removed —
+ *     the full-card background absorbs the place signal.
+ *   - NO LIGHT/DARK VARIANT ALTERNATION. All cards now render with white card surface +
+ *     subtle city-image overlay. The visual rhythm comes from the different city images
+ *     themselves, not BC Blue alternation. `variant` prop is preserved in the signature for
+ *     backward compatibility with the page.tsx call site but is currently a no-op (kept for
+ *     potential pass-5 re-introduction).
+ *   - BANGKOK + BOGOTÁ FALLBACK. No photos staged for either; their cards render with a
+ *     regional-colour solid background (Asia-Pacific fuchsia for Bangkok, Latin America rich
+ *     green for Bogotá) instead of the white card + image overlay. Text on those cards
+ *     switches to white (rather than dark blue) for legibility on the saturated regional
+ *     colour; the chart container inside also flips to a navy-on-image-tile treatment to keep
+ *     the data readable on the coloured surface.
+ *   - CARD RADIUS preserved at 24px from pass 3 v2.
+ *   - REGIONAL TOP BORDER (4px) — not introduced; not in sketch.
+ *   - HOVER LIFT preserved from pass 3 v2 (translateY -2px + shadow expand).
  *
- * Iteration 2 (2026-05-26) layout — preserved.
- *   Two columns inside the card, both top-aligned:
- *     LEFT column [Outcome hero → City name → introduced YYYY]
- *     RIGHT column [Photo (180×180) → Chart (180×~120)]
+ *   The chart dispatcher inside the chart block stays unchanged from pass 3 v2 — same
+ *   compactMode prop, same per-chart dispatch via ChartViz. Chart container is sized to fit
+ *   the bottom-right block (180px wide).
  *
- * Pass 2 (2026-05-27) surface treatment — preserved.
- *   - Card radius 24px, light card box shadow, hover lift on light cards (translate-y -2px,
- *     shadow grows to 4px), dark variant is BC Blue (not navy).
+ * Iteration 2 (2026-05-26) layout — replaced by pass 4 two-zone composition.
+ * Pass 2 (2026-05-27) surface treatment — partial carry: hover lift + 24px radius preserved.
  *
- * Hover state — preserved.
- *   Hover tracked in component state (useState) — swaps shadow + transform inline.
- *   Acceptable on a page with low card count (11 max).
+ * Hover state — preserved. Hover tracked in component state (useState); swaps shadow +
+ *   transform inline. Acceptable on a page with low card count (11 max).
  *
- * Hero composition — preserved.
- *   composeHero() takes the practice + example and returns a hero string. Hand-tuned overrides
- *   per practice-id × city-slug; falls back to example.outcomeChange. No edits to roadmap-data.ts.
+ * Hero composition — preserved. composeHero() takes the practice + example and returns a
+ *   hero string. Hand-tuned overrides per practice-id × city-slug; falls back to
+ *   example.outcomeChange. No edits to roadmap-data.ts.
  *
  * Key exports: PracticeCardHero (named), CITIES_WITH_PHOTOS (Set)
  * External dependencies: shadcn Card, next/image, @/data/roadmap-data lookup helpers, sibling
@@ -83,8 +78,10 @@ import {
 import { ChartViz } from "./PracticeCardView";
 
 // Static asset imports — Next.js resolves these to optimised public paths.
-// 12 city photos already staged and brand-colour-duotone-treated at 315×400 native.
-// Bangkok + Bogotá: photo assets pending; rendered via regional-colour fallback tile (see below).
+// 12 city photos already staged and brand-colour-duotone-treated at 315×400 native. Per pass 4
+// they now render as full-card background overlays (at opacity 0.20) instead of as 180×180
+// sibling tiles. Bangkok + Bogotá: photo assets pending; rendered via regional-colour fallback
+// background (see FALLBACK_BG_COLOR below).
 import accraPhoto from '../_brand/graphics/cities/accra.png'
 import brusselsPhoto from '../_brand/graphics/cities/brussels.png'
 import jakartaPhoto from '../_brand/graphics/cities/jakarta.png'
@@ -100,9 +97,9 @@ import warsawPhoto from '../_brand/graphics/cities/warsaw.png'
 
 /**
  * CITY_PHOTOS — slug → imported StaticImageData. Acts as the existence check for the photo
- * branch: a slug present here renders the photo tile, a slug absent renders the
- * regional-colour fallback. When Bangkok or Bogotá photos land at
- * `_brand/graphics/cities/{slug}.png`, import the asset and add the entry here — the
+ * branch: a slug present here renders the photo as a full-card background overlay; a slug
+ * absent renders the regional-colour fallback background. When Bangkok or Bogotá photos land
+ * at `_brand/graphics/cities/{slug}.png`, import the asset and add the entry here — the
  * photo branch will pick it up automatically.
  */
 const CITY_PHOTOS: Record<string, StaticImageData> = {
@@ -121,16 +118,21 @@ const CITY_PHOTOS: Record<string, StaticImageData> = {
 }
 
 /**
- * FALLBACK_TILE_COLOR — slug → BC regional-colour token for cities without staged photos.
- * Bangkok (Asia-Pacific) and Bogotá (Latin America). Flat solid square reads as "place
- * placeholder, not yet illustrated" — visually consistent with the photo tiles in shape and
- * dimensions. When a photo for either lands, add to CITY_PHOTOS above; no need to remove
- * from here (CITY_PHOTOS takes priority in the resolver below).
+ * FALLBACK_BG_COLOR — slug → BC regional-colour token for cities without staged photos.
+ * Bangkok (Asia-Pacific fuchsia) and Bogotá (Latin America rich green). Used as the entire
+ * card background; text + chart switch to a white-on-regional treatment for legibility. When
+ * a photo for either lands, add to CITY_PHOTOS above and the regional fallback stops applying
+ * (CITY_PHOTOS takes priority in the resolver below).
  */
-const FALLBACK_TILE_COLOR: Record<string, string> = {
+const FALLBACK_BG_COLOR: Record<string, string> = {
   bangkok: 'var(--bc-color-region-asia-pacific)',
   bogota: 'var(--bc-color-region-latin-america)',
 }
+
+/** Opacity applied to the full-card city image background. Tuned to "subtle but identifies
+ *  the city" — high enough that the place silhouette reads, low enough that text and chart
+ *  stay dominant. */
+const CITY_IMAGE_OPACITY = 0.2
 
 /** Props for PracticeCardHero. Mirrors the subset of PracticeCardTile props this variant needs. */
 interface PracticeCardHeroProps {
@@ -139,11 +141,10 @@ interface PracticeCardHeroProps {
   /** The single city example to showcase. */
   example: CityExample;
   /**
-   * BC brand pass 1 — card surface variant.
-   *   'light' (default) — white background, navy hairline border, dark-blue text, BC Blue
-   *     city name. Most cards on the page render light.
-   *   'dark' — BC Blue surface (pass 2: was Dark Blue), no border, white text, white-95% city
-   *     name. Used for one featured card per stage row to create mixed editorial rhythm.
+   * Card surface variant. Pass 4 (2026-05-27): preserved in the prop signature for backward
+   * compatibility with page.tsx, but currently a no-op — the new full-card-image template
+   * uses one uniform surface for cities with photos (white + image overlay) and a regional
+   * solid for the two fallback cities. Variant may be re-activated in a future pass.
    */
   variant?: 'light' | 'dark';
 }
@@ -183,81 +184,79 @@ function composeHero(practice: PracticeCard, example: CityExample): string | nul
 }
 
 /**
- * PracticeCardHero — outcome-first card layout for the roadmap overview grid. Pass 3 v2
- * applies BC's data-as-hero asymmetry: hero number HITS at title-large Kräftig 500, chart
- * demotes to a quiet sparkline-ish accent, a square city-landmark photo sits as sibling tile
- * above the chart in the right column, description drops to drill-in, metadata strips to
- * introduced-year only.
+ * PracticeCardHero — pass 4 two-zone card template. The card surface is a relatively-positioned
+ * shell with a city-image background overlay (or regional-colour fallback for Bangkok/Bogotá).
+ * Above the overlay sit two content zones: top-left text block (hero outcome + flag/city +
+ * introduced-year metadata) and bottom-right chart block (existing ChartViz dispatcher in a
+ * compact container).
  */
 export function PracticeCardHero({
   practice,
   example,
-  variant = 'light',
 }: PracticeCardHeroProps) {
   const city = getCityBySlug(example.citySlug);
   if (!city) return null;
 
   const outcome = composeHero(practice, example);
-  const isDark = variant === 'dark';
 
   // Side effect: hover state stored in component memory so lift effect can swap shadow + transform.
   const [hovered, setHovered] = useState(false);
 
-  /* Card surface treatment — pass 2 spec preserved.
-   *  Light: white BG, 8% navy hairline, radius 24px, subtle 1px shadow at rest, lifts to 4px
-   *         shadow + translate-y -2px on hover.
-   *  Dark:  BC Blue BG, no border, radius 24px, no shadow, gentle BG-lift on hover.
-   *  No regional top-border accent (pass 3 v2 §4.5 — REGION_COLOR + resolveRegionColor removed). */
+  // Resolve the surface treatment. Three branches:
+  //   1. Photo branch — white card surface, city image overlay at opacity 0.20, dark-blue text,
+  //      navy-tinted chart container.
+  //   2. Regional-colour fallback (Bangkok / Bogotá) — saturated regional-colour surface, white
+  //      text, white-tinted chart container.
+  //   3. No photo, no fallback — falls back to plain white surface (graceful degrade).
+  const photoSrc = CITY_PHOTOS[example.citySlug];
+  const fallbackBg = FALLBACK_BG_COLOR[example.citySlug];
+  const isRegionalFallback = !photoSrc && Boolean(fallbackBg);
+
+  /* Card surface treatment. Radius 24px, white BG by default; regional fallback overrides BG.
+   *  Subtle 1px shadow at rest, lifts to 4px shadow + translate-y -2px on hover. */
   const cardStyle: CSSProperties = {
+    position: 'relative',
+    overflow: 'hidden',
     borderRadius: '24px',
-    border: isDark
+    border: isRegionalFallback
       ? 'none'
       : '1px solid color-mix(in srgb, var(--bc-color-dark-blue) 8%, transparent)',
-    backgroundColor: isDark
-      ? hovered
-        ? 'color-mix(in srgb, var(--bc-color-blue) 96%, var(--bc-color-white))'
-        : 'var(--bc-color-blue)'
+    backgroundColor: isRegionalFallback
+      ? fallbackBg
       : 'var(--bc-color-white)',
-    boxShadow: isDark
-      ? 'none'
-      : hovered
-        ? '0 4px 16px color-mix(in srgb, var(--bc-color-blue) 12%, transparent)'
-        : '0 1px 3px color-mix(in srgb, var(--bc-color-dark-blue) 6%, transparent)',
-    transform: !isDark && hovered ? 'translateY(-2px)' : 'translateY(0)',
-    transition: 'transform 200ms ease, box-shadow 200ms ease, background-color 200ms ease',
+    boxShadow: hovered
+      ? '0 4px 16px color-mix(in srgb, var(--bc-color-blue) 12%, transparent)'
+      : '0 1px 3px color-mix(in srgb, var(--bc-color-dark-blue) 6%, transparent)',
+    transform: hovered ? 'translateY(-2px)' : 'translateY(0)',
+    transition: 'transform 200ms ease, box-shadow 200ms ease',
   };
 
-  /* Outcome hero text colour — navy on white, white on BC Blue. */
-  const outcomeColor = isDark
+  /* Text colours per branch. Regional fallback uses white text; photo branch uses dark blue. */
+  const outcomeColor = isRegionalFallback
     ? 'var(--bc-color-white)'
     : 'var(--bc-color-dark-blue)';
-
-  /* City name colour — BC Blue on light card; white at 95% on dark card. */
-  const cityColor = isDark
+  const cityColor = isRegionalFallback
     ? 'color-mix(in srgb, var(--bc-color-white) 95%, transparent)'
     : 'var(--bc-color-blue)';
-
-  /* Practice eyebrow colour (Branch 2 only) — muted-navy 70% on light, muted-white 85% on dark. */
-  const descriptionColor = isDark
+  const flagColor = isRegionalFallback
+    ? 'color-mix(in srgb, var(--bc-color-white) 70%, transparent)'
+    : 'color-mix(in srgb, var(--bc-color-dark-blue) 50%, transparent)';
+  const descriptionColor = isRegionalFallback
     ? 'color-mix(in srgb, var(--bc-color-white) 85%, transparent)'
     : 'color-mix(in srgb, var(--bc-color-dark-blue) 70%, transparent)';
 
-  /* Country flag chip muted colour — adapts to variant so it stays legible against either
-   * surface without competing with the city name. */
-  const flagColor = isDark
-    ? 'color-mix(in srgb, var(--bc-color-white) 60%, transparent)'
-    : 'color-mix(in srgb, var(--bc-color-dark-blue) 50%, transparent)';
-
-  /* Chart container shell — pass 3 v2 §4.2 demotion: rounded-xl (12px), p-2.5 (10px),
-   * min-height 120, BG 4% (light) / 8% (dark). Reads as a quiet sparkline accent, not a co-hero. */
+  /* Chart container shell — sits in the bottom-right block. Wider on regional fallback
+   *  branch (white-on-saturated) and tighter alpha on the photo branch. */
   const chartContainerStyle: CSSProperties = {
     minHeight: 120,
-    backgroundColor: isDark
-      ? 'color-mix(in srgb, var(--bc-color-white) 8%, transparent)'
+    backgroundColor: isRegionalFallback
+      ? 'color-mix(in srgb, var(--bc-color-white) 12%, transparent)'
       : 'color-mix(in srgb, var(--bc-color-blue) 4%, var(--bc-color-white))',
     /* Chart `currentColor` resolution — sets the inherited foreground for SVG strokes/fills
-     * in the chart dispatcher. Dark cards inherit white; light cards inherit dark blue. */
-    color: isDark ? 'var(--bc-color-white)' : 'var(--bc-color-dark-blue)',
+     * in the chart dispatcher. Regional fallback inherits white; photo branch inherits dark blue. */
+    color: isRegionalFallback
+      ? 'var(--bc-color-white)'
+      : 'var(--bc-color-dark-blue)',
   };
 
   const chartBlock = example.chartData ? (
@@ -266,70 +265,23 @@ export function PracticeCardHero({
       style={chartContainerStyle}
     >
       <div className="w-full">
-        {/* compactMode signals the dispatcher to render the sparkline-ish low-density variant.
-         * Container demotion (width/padding/min-h above) does most of the visual work; the
-         * prop is a forward-compatible hook for per-chart axis/legend suppression. */}
+        {/* compactMode signals the dispatcher to render the sparkline-ish low-density variant. */}
         <ChartViz data={example.chartData} cityFlag={city.flag} compactMode />
       </div>
     </div>
   ) : null;
 
-  /* City photo (sibling tile) — pass 3 v2 §4.5. Square 180×180 above the chart in the right
-   * column. Resolves to one of:
-   *   - CITY_PHOTOS[slug]   → next/image render of the brand-colour-duotone PNG.
-   *   - FALLBACK_TILE_COLOR[slug] → flat regional-colour solid square.
-   *   - neither             → no tile rendered (graceful degrade; chart stays).
-   * The brand-colour duotone is the place signal; no additional opacity / blend mode.
-   * Light cards get a 1px navy-6% hairline; dark cards none (photo sits flush against BC Blue). */
-  const photoSrc = CITY_PHOTOS[example.citySlug];
-  const fallbackColor = FALLBACK_TILE_COLOR[example.citySlug];
-
-  const photoTile = photoSrc ? (
-    <div
-      className="relative aspect-square w-full overflow-hidden"
-      style={{
-        borderRadius: '16px',
-        border: isDark
-          ? 'none'
-          : '1px solid color-mix(in srgb, var(--bc-color-dark-blue) 6%, transparent)',
-      }}
-    >
-      <Image
-        src={photoSrc}
-        alt={`${city.name} city landmark`}
-        fill
-        sizes="(min-width: 768px) 180px, 140px"
-        style={{ objectFit: 'cover', objectPosition: 'center' }}
-        unoptimized
-      />
-    </div>
-  ) : fallbackColor ? (
-    <div
-      className="aspect-square w-full"
-      style={{
-        backgroundColor: fallbackColor,
-        borderRadius: '16px',
-        border: isDark
-          ? 'none'
-          : '1px solid color-mix(in srgb, var(--bc-color-dark-blue) 6%, transparent)',
-      }}
-      aria-label={`${city.name} (illustration pending)`}
-      role="img"
-    />
-  ) : null;
-
-  /* Introduced-year string for the footer metadata row. Pass 3 v2 §4.4 — population removed,
-   * only year remains. */
+  /* Introduced-year string for the footer metadata row. Population removed in pass 3 v2 §4.4. */
   const introducedStr =
     example.introducedYear === "ongoing"
       ? "ongoing"
       : `introduced ${example.introducedYear}`;
 
   /* Footer metadata block — introduced year only. Eyebrow treatment (uppercase, tracking-wider,
-   * 500 weight, currentColor at 60%). mt-auto pins to bottom. */
+   * 500 weight, currentColor at 60%). */
   const footerMeta = (
     <div
-      className="flex flex-wrap items-center gap-x-2 gap-y-0.5 pt-3 mt-auto uppercase tracking-wider font-medium"
+      className="flex flex-wrap items-center gap-x-2 gap-y-0.5 pt-3 uppercase tracking-wider font-medium"
       style={{
         fontSize: '11px',
         color: 'color-mix(in srgb, currentColor 60%, transparent)',
@@ -339,8 +291,7 @@ export function PracticeCardHero({
     </div>
   );
 
-  /* Wrapper props — hover handlers shared by both branches. Both branches use Card with the
-   * full pass-2 surface treatment and a p-7 inner padding. */
+  /* Wrapper props — hover handlers shared by both branches. */
   const cardWrapperProps = {
     style: cardStyle,
     // Side effect: hover state mutates inline style via React re-render.
@@ -350,116 +301,109 @@ export function PracticeCardHero({
     onBlur: () => setHovered(false),
   };
 
-  /* Right-column stack: photo (top) → chart (bottom), gap-3. Single flex column.
-   * If neither photo nor chart exists, the wrapper renders nothing (md:w-[180px] suppresses
-   * a phantom column). On mobile the column stacks below the text block; on desktop it sits
-   * side-by-side at 180px width.
-   *
-   * Mobile (below md): if both photo and chart exist, an inner 2-col grid keeps them
-   * side-by-side at full card width to avoid the right column doubling page height. */
-  const rightColumn = (photoTile || chartBlock) ? (
-    <div className="md:w-[180px] flex-shrink-0 self-start w-full">
-      <div className="hidden md:flex flex-col gap-3">
-        {photoTile}
-        {chartBlock}
-      </div>
-      <div className="md:hidden grid grid-cols-2 gap-3">
-        {photoTile}
-        {chartBlock}
-      </div>
+  /* Full-card city-image background overlay — sits behind the content layers. opacity 0.20
+   *  "subtle but identifies the city". Only renders on the photo branch. */
+  const imageOverlay = photoSrc ? (
+    <div
+      aria-hidden="true"
+      className="absolute inset-0 pointer-events-none"
+      style={{ opacity: CITY_IMAGE_OPACITY }}
+    >
+      <Image
+        src={photoSrc}
+        alt=""
+        fill
+        sizes="(min-width: 1024px) 50vw, 100vw"
+        style={{ objectFit: 'cover', objectPosition: 'center' }}
+        unoptimized
+      />
     </div>
   ) : null;
 
-  /* Branch 1 — composed hero exists: outcome → city → metadata, with photo+chart sibling. */
-  if (outcome !== null) {
-    return (
-      <Card {...cardWrapperProps}>
-        <CardContent className="p-7">
-          <div className="flex flex-col md:flex-row md:items-stretch gap-5">
-            <div
-              className="flex-1 min-w-0 flex flex-col"
-              style={{ color: outcomeColor }}
-            >
-              {/* Pass 3 v2 §4.1 — hero number HITS. title-large clamps 38→84px; Söhne Kräftig
-               * 500 (BC's actual headline weight; was Extrafett 900 — wrong for BC). Long
-               * values wrap to two lines and stay loud. */}
-              <div
-                style={{
-                  fontSize: 'var(--bc-font-size-title-large)',
-                  lineHeight: 'var(--bc-line-height-title-large)',
-                  fontWeight: 'var(--bc-font-weight-medium)',
-                  letterSpacing: '-0.025em',
-                  color: outcomeColor,
-                }}
-              >
-                {outcome}
-              </div>
-              <div
-                className="mt-2 text-[17px] font-semibold tracking-tight"
-                style={{ color: cityColor }}
-              >
-                <span
-                  className="text-[11px] font-medium mr-1.5 tracking-wider"
-                  style={{ color: flagColor }}
-                >
-                  {city.flag}
-                </span>
-                {city.name}
-              </div>
-              {footerMeta}
-            </div>
-
-            {rightColumn}
+  /* Top-left text block — the title, flag+city, introduced YYYY stacked vertically.
+   * Anchored to top-left via the parent flex layout. */
+  const topLeftBlock = (
+    <div
+      className="flex flex-col"
+      style={{ color: outcomeColor }}
+    >
+      {outcome !== null ? (
+        // Branch 1: composed hero string. Title at title-large Söhne Kräftig 500.
+        <>
+          <div
+            style={{
+              fontSize: 'var(--bc-font-size-title-large)',
+              lineHeight: 'var(--bc-line-height-title-large)',
+              fontWeight: 'var(--bc-font-weight-medium)',
+              letterSpacing: '-0.025em',
+              color: outcomeColor,
+            }}
+          >
+            {outcome}
           </div>
-        </CardContent>
-      </Card>
-    );
-  }
+        </>
+      ) : (
+        // Branch 2 fallback: practice eyebrow + intervention name as hero.
+        <>
+          <div
+            className="text-xs uppercase tracking-wider font-medium"
+            style={{ color: descriptionColor }}
+          >
+            {practice.name}
+          </div>
+          <div
+            className="mt-2 tracking-tight leading-snug"
+            style={{
+              fontSize: 'var(--bc-font-size-title-medium)',
+              fontWeight: 'var(--bc-font-weight-medium)',
+              color: outcomeColor,
+            }}
+          >
+            {example.interventionName}
+          </div>
+        </>
+      )}
+      <div
+        className="mt-2 text-[17px] font-semibold tracking-tight"
+        style={{ color: cityColor }}
+      >
+        <span
+          className="text-[11px] font-medium mr-1.5 tracking-wider"
+          style={{ color: flagColor }}
+        >
+          {city.flag}
+        </span>
+        {city.name}
+      </div>
+      {footerMeta}
+    </div>
+  );
 
-  /* Branch 2 — no-composed-hero fallback: promote intervention name to hero scale.
-   * Same right-column treatment (photo + chart) for visual consistency across all 11 featured
-   * cards on the overview. */
+  /* Bottom-right chart block — anchored to bottom-right by parent's flex justify-end + margin
+   *  on the wrapper. Renders nothing if the example carries no chartData (defensive — most
+   *  examples do). */
+  const bottomRightBlock = chartBlock ? (
+    <div className="self-end ml-auto" style={{ width: '180px', maxWidth: '100%' }}>
+      {chartBlock}
+    </div>
+  ) : null;
+
   return (
     <Card {...cardWrapperProps}>
-      <CardContent className="p-7">
-        <div className="flex flex-col md:flex-row md:items-stretch gap-5">
-          <div
-            className="flex-1 min-w-0 flex flex-col"
-            style={{ color: outcomeColor }}
-          >
-            <div
-              className="text-xs uppercase tracking-wider font-medium"
-              style={{ color: descriptionColor }}
-            >
-              {practice.name}
-            </div>
-            {/* Branch 2 keeps intervention-name-as-hero at a medium-large step (this branch
-             * is a rare authoring fallback — most cards have composed-hero overrides). */}
-            <div
-              className="mt-2 tracking-tight leading-snug"
-              style={{
-                fontSize: 'var(--bc-font-size-title-medium)',
-                fontWeight: 'var(--bc-font-weight-medium)',
-                color: outcomeColor,
-              }}
-            >
-              {example.interventionName}
-            </div>
-            <div
-              className="mt-2 text-[17px] font-semibold tracking-tight"
-              style={{ color: cityColor }}
-            >
-              <span
-                className="text-[11px] font-medium mr-1.5 tracking-wider"
-                style={{ color: flagColor }}
-              >
-                {city.flag}
-              </span>
-              {city.name}
-            </div>
-            {footerMeta}
-          </div>
-          {rightColumn}
+      {/* Image overlay layer — absolutely positioned behind content. Photo branch only. */}
+      {imageOverlay}
+
+      {/* Content layer — relatively positioned above the overlay. The two-zone layout uses a
+       *  vertical flex with the text block at top and chart block at bottom-right; min-height
+       *  ensures cards in a row top-align cleanly without the chart pushing height variance. */}
+      <CardContent
+        className="relative p-7 flex flex-col"
+        style={{ minHeight: '280px' }}
+      >
+        {topLeftBlock}
+        {/* Spacer keeps the chart block hugging the bottom-right; mt-auto pushes it down. */}
+        <div className="mt-auto pt-5 w-full flex">
+          {bottomRightBlock}
         </div>
       </CardContent>
     </Card>

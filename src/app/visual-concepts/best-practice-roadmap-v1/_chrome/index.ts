@@ -28,7 +28,7 @@ export { PrototypeHeader } from './PrototypeHeader'
 
 // Pass 2 — new CTA + graphic primitives
 export { BcPill } from './BcPill'
-export type { BcPillVariant, BcPillSize } from './BcPill'
+export type { BcPillVariant, BcPillSize, BcPillArrowDirection } from './BcPill'
 export {
   WindShape,
   Window01,

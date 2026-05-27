@@ -18,6 +18,15 @@
  *       Renders identical to A — kept as a distinct variant name in case future iterations
  *       split card pills from header pills (e.g. different padding). Today A and C produce
  *       the same DOM; the variant name documents the intent at the call site.
+ *   D — Outlined pill on BC Blue ground (header "Join us" only, pass 4 2026-05-27).
+ *       Transparent background, white text, 1.5px white border. Hover: background white at
+ *       12%, text stays white. Used for the header CTA per the BC live site's outlined
+ *       treatment (was variant A before the live-site review reversed it).
+ *
+ * Arrow icon shapes
+ *   'right'    — horizontal arrow (default; original pill behaviour)
+ *   'diagonal' — upward-right arrow, ~45°. Used by the header "Join us" pill per pass-4 brief
+ *                item 1, matching the BC live header CTA's diagonal indicator.
  *
  * Sizes
  *   'standard' (default) — 15px text, px-6 py-3
@@ -48,10 +57,13 @@ import Link from 'next/link'
 import type { CSSProperties } from 'react'
 
 /** BcPill variant set — see file-header for visual semantics per variant. */
-export type BcPillVariant = 'A' | 'B' | 'C'
+export type BcPillVariant = 'A' | 'B' | 'C' | 'D'
 
 /** BcPill size set — controls padding and text size. */
 export type BcPillSize = 'standard' | 'small'
+
+/** Trailing arrow shape — 'right' (horizontal) or 'diagonal' (upward-right, ~45 deg). */
+export type BcPillArrowDirection = 'right' | 'diagonal'
 
 interface BcPillProps {
   /** Visible CTA copy. */
@@ -66,6 +78,11 @@ interface BcPillProps {
   size?: BcPillSize
   /** Render the trailing arrow icon. Default true. */
   showArrow?: boolean
+  /**
+   * Trailing arrow shape. Default 'right' (horizontal). 'diagonal' renders an upward-right
+   * arrow — used by the header "Join us" pill per pass-4 brief item 1.
+   */
+  arrowDirection?: BcPillArrowDirection
   /** Optional extra classes appended to the wrapper (layout overrides only). */
   className?: string
   /** Button type (only meaningful when as='button'). Defaults to 'button'. */
@@ -79,8 +96,18 @@ interface BcPillProps {
 /**
  * Inline arrow SVG — copy-paste safe across pill variants, currentColor stroke so the variant's
  * text colour drives the arrow tone. Sized at 14px (small) or 16px (standard).
+ *
+ * `direction` switches geometry:
+ *   'right'    — horizontal arrow (head 12,5 -> 19,12 -> 12,19; shaft 5,12 -> 19,12).
+ *   'diagonal' — upward-right arrow (head 11,5 -> 19,5 -> 19,13; shaft 6,18 -> 19,5).
  */
-function ArrowIcon({ size }: { size: number }) {
+function ArrowIcon({
+  size,
+  direction,
+}: {
+  size: number
+  direction: BcPillArrowDirection
+}) {
   return (
     <svg
       width={size}
@@ -94,8 +121,17 @@ function ArrowIcon({ size }: { size: number }) {
       aria-hidden="true"
       style={{ flexShrink: 0 }}
     >
-      <line x1="5" y1="12" x2="19" y2="12" />
-      <polyline points="12 5 19 12 12 19" />
+      {direction === 'diagonal' ? (
+        <>
+          <line x1="6" y1="18" x2="19" y2="5" />
+          <polyline points="11 5 19 5 19 13" />
+        </>
+      ) : (
+        <>
+          <line x1="5" y1="12" x2="19" y2="12" />
+          <polyline points="12 5 19 12 12 19" />
+        </>
+      )}
     </svg>
   )
 }
@@ -132,6 +168,20 @@ function resolveColours(
             backgroundColor: 'var(--bc-color-blue)',
             color: 'var(--bc-color-white)',
           }
+    case 'D':
+      // Outlined pill on BC Blue ground — transparent fill, white border, white text. Hover
+      // washes the background with white-at-12% so the affordance lights up without losing
+      // the outlined identity.
+      return hovered
+        ? {
+            backgroundColor:
+              'color-mix(in srgb, var(--bc-color-white) 12%, transparent)',
+            color: 'var(--bc-color-white)',
+          }
+        : {
+            backgroundColor: 'transparent',
+            color: 'var(--bc-color-white)',
+          }
   }
 }
 
@@ -148,6 +198,7 @@ export function BcPill({
   variant,
   size = 'standard',
   showArrow = true,
+  arrowDirection = 'right',
   className,
   type = 'button',
   onClick,
@@ -164,9 +215,14 @@ export function BcPill({
   const fontSize = size === 'small' ? '14px' : '15px'
   const arrowSize = size === 'small' ? 14 : 16
 
+  // Variant D wears a 1.5px white border in place of a fill — the outlined identity. All other
+  // variants render with no border.
+  const border = variant === 'D' ? '1.5px solid var(--bc-color-white)' : 'none'
+
   const style: CSSProperties = {
     backgroundColor,
     color,
+    border,
     borderRadius: 'var(--bc-pill-radius)',
     paddingTop: paddingY,
     paddingBottom: paddingY,
@@ -181,7 +237,7 @@ export function BcPill({
   const inner = (
     <>
       <span>{label}</span>
-      {showArrow && <ArrowIcon size={arrowSize} />}
+      {showArrow && <ArrowIcon size={arrowSize} direction={arrowDirection} />}
     </>
   )
 

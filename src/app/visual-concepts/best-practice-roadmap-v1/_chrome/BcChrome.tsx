@@ -5,13 +5,37 @@
  *   Clean fork of src/components/concept/BcChrome.tsx (commit 09839c6 / tag
  *   wireframe-lock-2026-05-26).
  *
- * Pass 3 v2 (2026-05-27 — per pass-3-v2 brief §3 + chrome brief §2 / §3 / §4)
+ * Pass 4 (2026-05-27 — five-item bundle, nav restore against BC live)
  *
  *   BcHeader
- *     - Desktop nav drops 7→3 items (Who we are / What we do / Why we do it). Driven by
- *       config.nav (now 3 items in roadmap-chrome.config.ts).
- *     - "Join us" → "Join Us" (capital U).
- *     - Header height 80px → 72px (mobile stays 64px).
+ *     - Desktop nav restored 3 -> 7 items (Who we are / What we do / Why we do it (caret) /
+ *       Roadmap / Cities / Voices of Breathe Cities / News). Roadmap is live and self-links
+ *       to this page, carrying the active-state cyan underline.
+ *     - "Why we do it" gains a small downward chevron via `hasCaret` in the config — visual
+ *       dropdown affordance only, no menu wired.
+ *     - "Join Us" (capital U) -> "Join us" (lowercase). Pill becomes variant D (outlined:
+ *       transparent fill, 1.5px white border, white text) and arrow becomes diagonal upward-
+ *       right (was horizontal). Both changes track the BC live header CTA.
+ *     - BC logo lockup enlarged: clamp range bumped from 110-140px to 140-180px to match the
+ *       live BC header proportions.
+ *     - Active-state detection upgraded from a hardcoded label match to a pathname-aware
+ *       compare via usePathname() so Roadmap correctly highlights only on the visual concept
+ *       v1 overview route.
+ *
+ *   Mobile menu overlay
+ *     - Nav restored to 7 items via config.mobileNav (was 5 items in pass 3 v2; mirrors the
+ *       desktop set per pass-4 brief item 1).
+ *     - Active-underline pattern preserved — Roadmap label now carries the underline when the
+ *       overlay is open on the visual concept v1 overview route.
+ *
+ *   BcFooter
+ *     - Col 2 site links: Roadmap added immediately after "Why we do it" so the footer column
+ *       mirrors the new header nav (pass-4 brief item 1, footer nav column delta).
+ *
+ * Pass 3 v2 (2026-05-27 — historical, per pass-3-v2 brief §3 + chrome brief §2 / §3 / §4)
+ *
+ *   BcHeader
+ *     - Header height 80px -> 72px (mobile stays 64px).
  *     - White-on-scroll variant DEFERRED per Jack's call — static BC Blue header at all
  *       scroll positions for this pass. Logo asset extraction (bc-horizontal-blue.svg)
  *       skipped accordingly.
@@ -74,10 +98,14 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import type { BcChromeConfig } from './bc-chrome.config'
+import { usePathname } from 'next/navigation'
+import type { BcChromeConfig, BcChromeNavItem } from './bc-chrome.config'
 import { BcPill } from './BcPill'
 import { MenuCloudArch } from './BcGraphics'
 import { SocialIconsRow } from './SocialIcons'
+
+/** This page's own route — the Roadmap nav item highlights as active when this matches pathname. */
+const ROADMAP_ACTIVE_PATH = '/visual-concepts/best-practice-roadmap-v1'
 
 // Static asset imports — Next.js resolves these to optimised public paths.
 import bcLogoWhite from '../_brand/graphics/logo/bc-horizontal-white.svg'
@@ -86,39 +114,67 @@ import c40CitiesLogo from '../_brand/graphics/partners/c40-cities.svg'
 import bloombergLogo from '../_brand/graphics/partners/bloomberg-philanthropies.svg'
 
 /**
- * Active-route detection helper for the header / mobile menu. Vestigial in pass 3 v2 — the
- * Roadmap item dropped out of the nav so no header label currently returns true, but the
- * renderer keeps the active-state branch live so a future live item can carry the cyan
- * underline. Could be lifted to usePathname() if more route-aware active states are needed
- * in future iterations.
+ * Active-route detection helper for the header / mobile menu. Pass 4 upgrade: a nav item is
+ * active when its href matches the current pathname AND the href is non-inert. Roadmap
+ * self-links so on the visual concept v1 overview the Roadmap label carries the active cyan
+ * underline; on the Cities listing, none of the current nav items is active (the prototype
+ * doesn't carry a Cities label in the active set yet).
  */
-function isActiveNavLabel(label: string): boolean {
-  // Vestigial: 'Roadmap' is no longer in the nav set. Keeping the mechanism in place for
-  // future iterations where a live destination needs the active-underline treatment.
-  return label === 'Roadmap'
+function isActiveNavItem(item: BcChromeNavItem, pathname: string | null): boolean {
+  if (item.href === '#' || !pathname) return false
+  return item.href === pathname
+}
+
+/**
+ * Small inline chevron-down SVG — pass 4 dropdown affordance for nav items with `hasCaret`.
+ * White currentColor stroke matched to the header text. Visual indicator only; no menu wired.
+ */
+function CaretDownIcon() {
+  return (
+    <svg
+      width="11"
+      height="11"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.25"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      style={{ flexShrink: 0, marginLeft: '4px', display: 'inline-block', verticalAlign: 'middle' }}
+    >
+      <polyline points="6 9 12 15 18 9" />
+    </svg>
+  )
 }
 
 /**
  * One desktop nav link in the BC Blue header. White Söhne Halbfett 15px at rest; hovers to
  * cyan. Active item renders with a cyan underline 2px solid at 4px offset. Inert items
  * (href === '#') render at white-60% with cursor-default and no hover.
+ *
+ * Pass 4: takes `active` from the parent (which derives it via usePathname) and renders a
+ * trailing chevron when `hasCaret` is true.
  */
 function HeaderNavLink({
   label,
   href,
+  active,
+  hasCaret,
 }: {
   label: string
   href: string
+  active: boolean
+  hasCaret: boolean
 }) {
   const live = href !== '#'
-  const active = isActiveNavLabel(label)
   const [hovered, setHovered] = useState(false)
 
   if (!live) {
     return (
       <span
         aria-disabled="true"
-        className="cursor-default"
+        className="cursor-default inline-flex items-center"
         style={{
           fontSize: '15px',
           fontWeight: 'var(--bc-font-weight-semibold)',
@@ -126,6 +182,7 @@ function HeaderNavLink({
         }}
       >
         {label}
+        {hasCaret && <CaretDownIcon />}
       </span>
     )
   }
@@ -133,6 +190,7 @@ function HeaderNavLink({
   return (
     <Link
       href={href}
+      className="inline-flex items-center"
       style={{
         fontSize: '15px',
         fontWeight: 'var(--bc-font-weight-semibold)',
@@ -151,7 +209,8 @@ function HeaderNavLink({
       onFocus={() => setHovered(true)}
       onBlur={() => setHovered(false)}
     >
-      {label}
+      <span>{label}</span>
+      {hasCaret && <CaretDownIcon />}
     </Link>
   )
 }
@@ -174,6 +233,7 @@ function HeaderNavLink({
  */
 export function BcHeader({ config }: { config: BcChromeConfig }) {
   const [menuOpen, setMenuOpen] = useState(false)
+  const pathname = usePathname()
   const overlayNavItems = config.mobileNav ?? config.nav
 
   // Side effect: prevent body scroll while the mobile overlay is open. Cleaned up on unmount.
@@ -202,8 +262,8 @@ export function BcHeader({ config }: { config: BcChromeConfig }) {
           className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4"
           style={{ height: '72px' }}
         >
-          {/* Logo (left) — white horizontal BC logo lockup. ~140px wide desktop, scales down
-           * on mobile via responsive width. Links to config.logoHref (the concept home). */}
+          {/* Logo (left) — white horizontal BC logo lockup. Pass 4: enlarged to clamp 140-180px
+           * (was 110-140px) to match the live BC header proportions. Links to config.logoHref. */}
           <Link
             href={config.logoHref}
             className="flex items-center flex-shrink-0"
@@ -214,25 +274,37 @@ export function BcHeader({ config }: { config: BcChromeConfig }) {
               alt="Breathe Cities"
               priority
               className="h-auto"
-              style={{ width: 'clamp(110px, 12vw, 140px)' }}
+              style={{ width: 'clamp(140px, 14vw, 180px)' }}
             />
           </Link>
 
-          {/* Primary nav — desktop only. Pass 3 v2: 3 items from the live BC site. */}
-          <nav className="hidden lg:flex items-center gap-x-6">
+          {/* Primary nav — desktop only. Pass 4: 7 items, gap-x-5 (tighter than the pass 3 v2
+           * gap-x-6 because the item count went up — keeps the row within the max-w-6xl shell
+           * on standard desktop widths). */}
+          <nav className="hidden lg:flex items-center gap-x-5">
             {config.nav.map((item) => (
-              <HeaderNavLink key={item.label} label={item.label} href={item.href} />
+              <HeaderNavLink
+                key={item.label}
+                label={item.label}
+                href={item.href}
+                active={isActiveNavItem(item, pathname)}
+                hasCaret={Boolean(item.hasCaret)}
+              />
             ))}
           </nav>
 
-          {/* Right cluster — Join Us pill CTA (desktop + tablet) + hamburger (mobile only). */}
+          {/* Right cluster — Join us pill CTA (desktop + tablet) + hamburger (mobile only).
+           * Pass 4: variant A -> D (outlined, transparent fill + white border + white text),
+           * arrow direction 'right' -> 'diagonal' (upward-right), label "Join Us" -> "Join us"
+           * — all changes track the BC live header CTA. */}
           <div className="flex items-center gap-3 flex-shrink-0">
             <div className="hidden md:block">
               <BcPill
-                label="Join Us"
+                label="Join us"
                 href="#"
-                variant="A"
+                variant="D"
                 size="small"
+                arrowDirection="diagonal"
               />
             </div>
 
@@ -310,11 +382,13 @@ export function BcHeader({ config }: { config: BcChromeConfig }) {
           </div>
 
           {/* Nav links — vertically centred, large Söhne Kräftig. Live = white at full opacity,
-           * inert = white at 50% with cursor-default. Active item gets cyan underline. */}
-          <nav className="flex flex-1 flex-col items-start justify-center gap-7 px-8 sm:px-12">
+           * inert = white at 50% with cursor-default. Active item gets cyan underline. Pass 4:
+           * scale ramp slightly compressed (clamp 1.75rem-3rem, was 2rem-3.5rem) to keep all 7
+           * items fitting comfortably without scrolling on standard mobile viewports. */}
+          <nav className="flex flex-1 flex-col items-start justify-center gap-5 px-8 sm:px-12">
             {overlayNavItems.map((item) => {
               const live = item.href !== '#'
-              const active = isActiveNavLabel(item.label)
+              const active = isActiveNavItem(item, pathname)
               return (
                 <Link
                   key={item.label}
@@ -323,9 +397,9 @@ export function BcHeader({ config }: { config: BcChromeConfig }) {
                   onClick={() => {
                     if (live) setMenuOpen(false)
                   }}
-                  className="tracking-tight"
+                  className="tracking-tight inline-flex items-center"
                   style={{
-                    fontSize: 'clamp(2rem, 6vw, 3.5rem)',
+                    fontSize: 'clamp(1.75rem, 5.5vw, 3rem)',
                     fontWeight: 'var(--bc-font-weight-medium)',
                     lineHeight: 1.05,
                     color: live
@@ -338,7 +412,8 @@ export function BcHeader({ config }: { config: BcChromeConfig }) {
                     textUnderlineOffset: '6px',
                   }}
                 >
-                  {item.label}
+                  <span>{item.label}</span>
+                  {item.hasCaret && <CaretDownIcon />}
                 </Link>
               )
             })}
@@ -504,12 +579,16 @@ export function BcFooter() {
           </div>
 
           {/* Col 2 — Site nav. "Who we are" rendered at Halbfett as column anchor; remaining
-           * items are FooterLink instances. */}
+           * items are FooterLink instances. Pass 4: Roadmap added between "Why we do it" and
+           * "Privacy" so the footer column mirrors the new header nav. Roadmap is live and
+           * self-links to the visual concept v1 overview; other items remain inert (the
+           * prototype carries no destinations for the BC org pages). */}
           <div>
             <FooterAnchorLink href="#" label="Who we are" />
             <div className="space-y-2.5 mt-3">
               <FooterLink href="#" label="What we do" />
               <FooterLink href="#" label="Why we do it" />
+              <FooterLink href="/visual-concepts/best-practice-roadmap-v1" label="Roadmap" />
               <FooterLink href="#" label="Privacy" />
               <FooterLink href="#" label="Imprint" />
             </div>
