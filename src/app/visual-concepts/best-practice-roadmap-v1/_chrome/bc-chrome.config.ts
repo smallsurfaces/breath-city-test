@@ -37,12 +37,18 @@ export type BcChromeNavItem = {
 
 /**
  * Per-concept chrome configuration. Carries where the brand mark (logo) links and the
- * primary-nav set (with the concept's own home in the live slot). One config drives both the
- * header and the mobile overlay; the footer is static and takes none.
+ * primary-nav sets for header + mobile overlay. The footer is static and takes none.
+ *
+ * Pass 3 v2 (2026-05-27) — split nav into desktop `nav` (3 items: Who/What/Why) and mobile
+ * `mobileNav` (5 items: Who/What/Why + Cities + News). The live BC site uses different nav
+ * sets per breakpoint and we now mirror that.
  */
 export type BcChromeConfig = {
   /** Where the brand logo links — the concept's own home route. */
   logoHref: string
-  /** The primary-nav set; the concept's home occupies the live "Cities" slot. */
+  /** Desktop header nav set — 3 items per pass-3-v2 chrome brief §2. */
   nav: BcChromeNavItem[]
+  /** Mobile overlay nav set — 5 items per pass-3-v2 chrome brief §3. Falls back to `nav`
+   *  when omitted so legacy configs still render the overlay with the same items. */
+  mobileNav?: BcChromeNavItem[]
 }

@@ -68,7 +68,6 @@ import {
 import {
   DOMAINS,
   PRACTICE_CARDS,
-  getCityBySlug,
   type Stage,
 } from '@/data/roadmap-data'
 import { PracticeCardHero } from './_components/PracticeCardHero'
@@ -270,7 +269,7 @@ export default function RoadmapV2Page() {
                     className="tracking-tight leading-[1.05]"
                     style={{
                       fontSize: 'var(--bc-font-size-title-medium)',
-                      fontWeight: 'var(--bc-font-weight-black)',
+                      fontWeight: 'var(--bc-font-weight-medium)',
                       color: 'var(--bc-color-dark-blue)',
                     }}
                   >
@@ -297,9 +296,9 @@ export default function RoadmapV2Page() {
                   const example = card?.cityExamples[featured?.exampleIndex ?? 0]
                   const isDark = DARK_CARD_DOMAINS.has(domain.id)
 
-                  // Resolve the city's region for the regional top border (pass 2 §6 final note).
-                  const cityForRegion = example ? getCityBySlug(example.citySlug) : undefined
-                  const cityRegion = cityForRegion?.region
+                  // Pass 3 v2 §4 — cityRegion / regional top-border removed. The 4px hairline
+                  // was a vestigial signifier between BC's navigation-tile saturated-fill
+                  // pattern (whole-card colour) and our data-card hairline; pass 3 v2 drops it.
 
                   // Pill variant: B (blue pill) on light cards, C (white pill) on dark cards.
                   const pillVariant = isDark ? 'C' : 'B'
@@ -339,7 +338,6 @@ export default function RoadmapV2Page() {
                         practice={card}
                         example={example}
                         variant={isDark ? 'dark' : 'light'}
-                        cityRegion={cityRegion}
                       />
                       {/* Pass 2 §8: per-card Explore CTA promoted from text link to pill. */}
                       <div className="pt-1">

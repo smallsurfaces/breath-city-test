@@ -1173,8 +1173,25 @@ function InvestmentROI({ data }: { data: any }) {
  * visualisation component based on its `type` field. Exported so sibling components
  * in this folder (PracticeCardHero) can reuse the same chart catalogue without
  * duplicating the switch.
+ *
+ * compactMode (pass 3 v2) — sibling consumers can hint that the chart is rendering inside
+ * the quiet sparkline-style hero card container (180×120, BG at 4%). The dispatcher accepts
+ * the flag for forward compatibility; individual chart components may consult it to suppress
+ * axis labels / legends / point markers in future iterations. Today the container demotion
+ * (size + padding + bg-opacity at the PracticeCardHero scope) does the visual demotion;
+ * acting on `compactMode` per-chart belongs to a follow-up refinement to keep this brief's
+ * PracticeCardView footprint minimal per §4.7.
  */
-export function ChartViz({ data, cityFlag }: { data: any; cityFlag?: string }) {
+export function ChartViz({
+  data,
+  cityFlag,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  compactMode = false,
+}: {
+  data: any;
+  cityFlag?: string;
+  compactMode?: boolean;
+}) {
   if (!data) return null;
   switch (data.type) {
     case "deltaBar":

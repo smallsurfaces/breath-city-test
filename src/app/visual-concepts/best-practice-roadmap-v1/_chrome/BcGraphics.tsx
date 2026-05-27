@@ -363,9 +363,56 @@ export function WindAccent({
 }
 
 /**
+ * MenuCloudArch — pass 3 v2 (chrome brief §3 delta 4). Decorative Window-arch shape anchored
+ * to the lower-right of the mobile menu overlay. Window 02 (half-dome on a square base) is
+ * the BC mobile-menu Figma's chosen shape; filled with `var(--bc-color-region-africa)` (the
+ * brand's bespoke teal) at low opacity as the acceptable v3 fallback per the chrome brief's
+ * "photo extraction time-pressed" note — the structurally-correct arch silhouette without
+ * the photograph fill yet.
+ *
+ * Sizing
+ *   Default 120px mobile / 240px tablet. Caller positions via parent's `position: absolute;
+ *   bottom: 0; right: 0` — this component renders only the shape itself, anchored bottom-right
+ *   inside its own bounding box.
+ *
+ * When the cloud-photograph asset lands at `_brand/graphics/menu/menu-cloud-arch.png` (+ the
+ * matching `menu-cloud-arch-mask.svg`), swap the inner fill for a masked photo container —
+ * the Window02 shape stays as the silhouette, the photo fills it.
+ */
+export function MenuCloudArch({
+  size = 240,
+  opacity = 0.5,
+}: {
+  /** Width in px; height matches viewBox aspect (square). */
+  size?: number
+  /** Fill opacity 0..1. */
+  opacity?: number
+}) {
+  return (
+    <div
+      style={{
+        width: `${size}px`,
+        height: `${size}px`,
+        pointerEvents: 'none',
+      }}
+      aria-hidden="true"
+    >
+      <Window02
+        fill="var(--bc-color-region-africa)"
+        opacity={opacity}
+        ariaHidden
+      />
+    </div>
+  )
+}
+
+/**
  * FooterWindowsStrip — brief §7 moment 3. Three small Window shapes (02, 04, 05) in a
  * horizontal row at the top of the BC Blue footer band. Each ~40px tall, white at 25%
  * opacity — decorative accent that wraps the page closing.
+ *
+ * Pass 3 v2 (2026-05-27): component definition preserved but NOT invoked in BcFooter
+ * anymore — the Figma footer carries no decorative window strip. Kept here for future reuse.
  *
  * If the footer-windows count needs to drop (per brief §7 warning about exceeding the
  * 4-per-layout brand-guide cap), reduce to 2 by removing one Window from the row.

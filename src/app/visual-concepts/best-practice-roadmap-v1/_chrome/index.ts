@@ -39,4 +39,9 @@ export {
   HeroWindComposition,
   WindAccent,
   FooterWindowsStrip,
+  MenuCloudArch,
 } from './BcGraphics'
+
+// Pass 3 v2 — shared social-icon helper (consumed by mobile menu + footer)
+export { SocialIconsRow } from './SocialIcons'
+export type { SocialIconMode } from './SocialIcons'

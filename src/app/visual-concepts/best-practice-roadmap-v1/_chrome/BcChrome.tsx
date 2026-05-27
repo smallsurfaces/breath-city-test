@@ -3,39 +3,54 @@
  *
  * Fork origin
  *   Clean fork of src/components/concept/BcChrome.tsx (commit 09839c6 / tag
- *   wireframe-lock-2026-05-26). The fork exists so visual evolution on the BC site chrome
- *   inside this sandbox cannot leak into the wireframe-locked UX concepts that depend on the
- *   shared original. First-deploy render was identical; pass 2 (2026-05-27) transforms the
- *   chrome to authentic BC-site fidelity per the brand-pass-2 brief §2, §3, §10.
+ *   wireframe-lock-2026-05-26).
  *
- *   The local BcChromeConfig type comes from ./bc-chrome.config (forked).
+ * Pass 3 v2 (2026-05-27 — per pass-3-v2 brief §3 + chrome brief §2 / §3 / §4)
  *
- * Pass 2 transformations (2026-05-27)
- *   BcHeader — solid BC Blue ground (was white/blurred). White horizontal BC logo (was BC badge
- *     + wordmark). 7-item full live-site nav verbatim (was 5 items). Söhne Halbfett 15px white,
- *     hover-to-cyan (was 14px text-foreground hover-to-primary). Active "Roadmap" item underlined
- *     in cyan. White pill "Join us" CTA via BcPill variant A with trailing arrow (was solid blue
- *     pill via inline style, no arrow). Mobile hamburger stroke flipped to white. Mobile overlay
- *     nav text white-on-navy (was teal/steel).
+ *   BcHeader
+ *     - Desktop nav drops 7→3 items (Who we are / What we do / Why we do it). Driven by
+ *       config.nav (now 3 items in roadmap-chrome.config.ts).
+ *     - "Join us" → "Join Us" (capital U).
+ *     - Header height 80px → 72px (mobile stays 64px).
+ *     - White-on-scroll variant DEFERRED per Jack's call — static BC Blue header at all
+ *       scroll positions for this pass. Logo asset extraction (bc-horizontal-blue.svg)
+ *       skipped accordingly.
  *
- *   BcNewsletter — NEW component, mint signup strip. Previously the signup strip was inside
- *     BcFooter as a teal-tinted band; pass 2 lifts it OUT of the footer per brief §10 so the
- *     mint band sits between the page content and the BC Blue footer. Composition: heading at
- *     title-medium 900 dark blue, body at body-size muted dark blue, email input pill + Sign up
- *     pill (BcPill variant B) in a horizontal flex.
+ *   Mobile menu overlay
+ *     - 7-nav reduced to 5 items via config.mobileNav (Who we are / What we do / Why we do it
+ *       / Cities / News). Falls back to config.nav when mobileNav is omitted.
+ *     - Join Us pill REMOVED from overlay bottom (Figma overlay is nav-only).
+ *     - Left-aligned social-icon row added in foot zone (circular BC-Blue treatment via
+ *       shared SocialIconsRow helper).
+ *     - Decorative MenuCloudArch added lower-right (teal Window02 silhouette — acceptable
+ *       v3 fallback per chrome brief §3 delta 4; photo lands in follow-up).
+ *     - Active-item cyan underline pattern added (2px BC Light Blue, 6px offset). No item
+ *       currently active in the overlay (the page identity is now hero-headline-led), but
+ *       the renderer applies the underline when isActiveNavLabel matches in future.
  *
- *   BcFooter — BC Blue full-bleed (was multi-coloured-bands). 4-column desktop grid (Brand+social
- *     / Site / Office / Contact), founding-org strip with brand-guide caveat copy ABOVE the three
- *     real founding-org SVGs (was grey placeholder text labels), copyright + tagline foot strip.
- *     All on one continuous BC Blue field with subtle white-at-15% hairline dividers between
- *     bands. Decorative window-shape strip (3 windows, white at 25%) at the top edge per brief
- *     §7 moment 3.
+ *   BcFooter
+ *     - FooterWindowsStrip REMOVED from invocation (Figma footer has no window strip).
+ *       Component definition preserved for future reuse.
+ *     - Grid restructured from equal 4-col to `2fr 1fr 1fr 1fr` (Col 1 wider; Cols 2-4 narrow).
+ *     - Col 1 (Brand block): logo + longer body paragraph + small copyright line + Ahoy
+ *       Studios credit. Social icons MOVED OUT to bottom-band right anchor.
+ *     - Col 2 (Site links): heading drops "Site" uppercase eyebrow; first link "Who we are"
+ *       at Halbfett 14px acts as column anchor; list = Who we are / What we do / Why we do it
+ *       / Privacy / Imprint.
+ *     - Col 3 (Offices): two short office address paragraphs side-by-side (lorem-ipsum
+ *       second-office per Jack's call — placeholder posture matching Figma).
+ *     - Col 4 (Contact): single short paragraph + Contact Us pill (BcPill variant A).
+ *     - Bottom band restructured: LEFT = navy-pill containing 3 founding-org logos
+ *       (CleanAirFund / vertical-hairline / C40 white-square / hairline / Bloomberg);
+ *       RIGHT = 3 circular BC-Blue social icons (shared SocialIconsRow circular mode).
+ *     - Copyright foot strip REMOVED (rights-reserved moved into Col 1; tagline absent
+ *       from Figma).
  *
- * Behaviour preserved verbatim from pass 1 / shared chrome:
- *   - sticky header,
- *   - mobile hamburger that opens a full-screen dark-navy overlay nav,
- *   - body-scroll-lock while the overlay is open (and cleaned up on unmount).
- *   - blur removed in pass 2 — header is now solid BC Blue per brief §2.
+ * BcNewsletter — NO CHANGES this pass. Mint signup strip preserved as-is.
+ *
+ * Behaviour preserved from pass 2
+ *   - sticky header, mobile hamburger that opens a full-screen dark-navy overlay nav,
+ *     body-scroll-lock while the overlay is open.
  *
  * Styling
  *   All BC BRAND colours applied via inline `style` with `var(--bc-*)` tokens — no `bg-bc-*`
@@ -43,15 +58,15 @@
  *
  * Key exports: BcHeader, BcNewsletter, BcFooter
  * External dependencies: next/link, next/image, react (useState, useEffect),
- *   ./bc-chrome.config (types), ./BcPill (CTA primitive), ./BcGraphics (FooterWindowsStrip).
+ *   ./bc-chrome.config (types), ./BcPill (CTA primitive), ./BcGraphics (MenuCloudArch),
+ *   ./SocialIcons (SocialIconsRow).
  *
  * Asset dependencies (imported below)
- *   _brand/graphics/logo/bc-horizontal-white.svg  — header + footer logo lockup
- *   _brand/graphics/partners/clean-air-fund.svg   — founding-org strip
- *   _brand/graphics/partners/c40-cities.svg       — founding-org strip (rendered with filter:
- *                                                   invert(1) per asset README — original is
- *                                                   black logo on white square)
- *   _brand/graphics/partners/bloomberg-philanthropies.svg — founding-org strip
+ *   _brand/graphics/logo/bc-horizontal-white.svg — header + footer logo lockup
+ *   _brand/graphics/partners/clean-air-fund.svg  — footer founding-org pill
+ *   _brand/graphics/partners/c40-cities.svg      — footer founding-org pill (rendered with
+ *                                                  filter: invert(1) per asset README)
+ *   _brand/graphics/partners/bloomberg-philanthropies.svg — footer founding-org pill
  */
 
 'use client'
@@ -61,7 +76,8 @@ import Link from 'next/link'
 import Image from 'next/image'
 import type { BcChromeConfig } from './bc-chrome.config'
 import { BcPill } from './BcPill'
-import { FooterWindowsStrip } from './BcGraphics'
+import { MenuCloudArch } from './BcGraphics'
+import { SocialIconsRow } from './SocialIcons'
 
 // Static asset imports — Next.js resolves these to optimised public paths.
 import bcLogoWhite from '../_brand/graphics/logo/bc-horizontal-white.svg'
@@ -70,20 +86,22 @@ import c40CitiesLogo from '../_brand/graphics/partners/c40-cities.svg'
 import bloombergLogo from '../_brand/graphics/partners/bloomberg-philanthropies.svg'
 
 /**
- * Active-route detection helper for the header. Pass 2 marks the "Roadmap" nav item as active
- * because the v1 overview route IS the roadmap. Live routes other than Roadmap are not currently
- * marked active (the prototype lacks the other live destinations to compare against).
- * Currently a simple label equality check; could be lifted to usePathname() if more route-aware
- * active states are needed in future iterations.
+ * Active-route detection helper for the header / mobile menu. Vestigial in pass 3 v2 — the
+ * Roadmap item dropped out of the nav so no header label currently returns true, but the
+ * renderer keeps the active-state branch live so a future live item can carry the cyan
+ * underline. Could be lifted to usePathname() if more route-aware active states are needed
+ * in future iterations.
  */
 function isActiveNavLabel(label: string): boolean {
+  // Vestigial: 'Roadmap' is no longer in the nav set. Keeping the mechanism in place for
+  // future iterations where a live destination needs the active-underline treatment.
   return label === 'Roadmap'
 }
 
 /**
  * One desktop nav link in the BC Blue header. White Söhne Halbfett 15px at rest; hovers to
- * cyan per brief §2. Active item (Roadmap) renders with a cyan underline 2px solid at 4px
- * offset. Inert items (href === '#') render at white-60% with cursor-default and no hover.
+ * cyan. Active item renders with a cyan underline 2px solid at 4px offset. Inert items
+ * (href === '#') render at white-60% with cursor-default and no hover.
  */
 function HeaderNavLink({
   label,
@@ -139,21 +157,24 @@ function HeaderNavLink({
 }
 
 /**
- * BcHeader — pass 2 BC site chrome. Solid BC Blue ground, white horizontal BC logo, 7-item live
- * nav verbatim (Who we are / What we do / Why we do it / Cities / Roadmap [active] / Voices /
- * News), white pill "Join us" CTA with trailing arrow, mobile hamburger that opens a full-screen
- * dark-navy overlay nav (preserved from pass 1, stroke flipped to white).
+ * BcHeader — pass 3 v2 BC site chrome. Solid BC Blue ground, white horizontal BC logo, 3-item
+ * desktop nav (Who we are / What we do / Why we do it), white pill "Join Us" CTA with trailing
+ * arrow, mobile hamburger that opens a full-screen dark-navy overlay nav.
  *
- * Driven entirely by `config`: logo links to `config.logoHref`, each `config.nav` item renders
- * live or inert based on `href !== '#'`. Active state derived from label === 'Roadmap' per the
- * active-route helper above.
+ * Driven entirely by `config`: logo links to `config.logoHref`, desktop nav reads `config.nav`,
+ * mobile overlay reads `config.mobileNav` (falls back to `config.nav` for legacy configs).
  *
  * No prototype/disclaimer bar is rendered here — the single visual-concept disclaimer is owned
  * by the forked PrototypeHeader above this in the visual concept layout (which also owns the
  * sole back-to-hub).
+ *
+ * White-on-scroll variant DEFERRED per Jack's call — header stays in single white-logo-on-BC-Blue
+ * state at all scroll positions. Can be added in a follow-up; the scroll listener + logo-swap
+ * mechanism would live in a useEffect here.
  */
 export function BcHeader({ config }: { config: BcChromeConfig }) {
   const [menuOpen, setMenuOpen] = useState(false)
+  const overlayNavItems = config.mobileNav ?? config.nav
 
   // Side effect: prevent body scroll while the mobile overlay is open. Cleaned up on unmount.
   useEffect(() => {
@@ -169,9 +190,8 @@ export function BcHeader({ config }: { config: BcChromeConfig }) {
 
   return (
     <>
-      {/* BC-style header — solid BC Blue, sticky, taller than pass 1 (80px desktop / 64px
-       * mobile) per brief §2. No backdrop blur, no bottom border — the solid blue field is the
-       * statement. */}
+      {/* BC-style header — solid BC Blue, sticky. Pass 3 v2: 72px desktop (was 80px), mobile
+       * stays 64px. No backdrop blur, no bottom border — the solid blue field is the statement. */}
       <header
         className="sticky top-0 z-30 w-full"
         style={{
@@ -180,7 +200,7 @@ export function BcHeader({ config }: { config: BcChromeConfig }) {
       >
         <div
           className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4"
-          style={{ height: '80px' }}
+          style={{ height: '72px' }}
         >
           {/* Logo (left) — white horizontal BC logo lockup. ~140px wide desktop, scales down
            * on mobile via responsive width. Links to config.logoHref (the concept home). */}
@@ -198,27 +218,26 @@ export function BcHeader({ config }: { config: BcChromeConfig }) {
             />
           </Link>
 
-          {/* Primary nav — desktop only. 7 items from the live BC site verbatim (per brief §2),
-           * with the concept-specific "Roadmap" inserted between Cities and Voices. */}
+          {/* Primary nav — desktop only. Pass 3 v2: 3 items from the live BC site. */}
           <nav className="hidden lg:flex items-center gap-x-6">
             {config.nav.map((item) => (
               <HeaderNavLink key={item.label} label={item.label} href={item.href} />
             ))}
           </nav>
 
-          {/* Right cluster — Join us pill CTA (desktop + tablet) + hamburger (mobile only). */}
+          {/* Right cluster — Join Us pill CTA (desktop + tablet) + hamburger (mobile only). */}
           <div className="flex items-center gap-3 flex-shrink-0">
             <div className="hidden md:block">
               <BcPill
-                label="Join us"
+                label="Join Us"
                 href="#"
                 variant="A"
                 size="small"
               />
             </div>
 
-            {/* Hamburger button — visible below lg breakpoint (mobile + tablet). Stroke flipped
-             * to white per brief §2 since the header is now BC Blue. */}
+            {/* Hamburger button — visible below lg breakpoint (mobile + tablet). Stroke white
+             * since the header is BC Blue. */}
             <button
               type="button"
               aria-label="Open navigation menu"
@@ -243,9 +262,12 @@ export function BcHeader({ config }: { config: BcChromeConfig }) {
         </div>
       </header>
 
-      {/* Mobile nav overlay — full-screen, dark navy background (preserved from pass 1).
-       * Pass 2: nav link colours flipped from teal/steel to white/transparent-white per
-       * brief §2. */}
+      {/* Mobile nav overlay — full-screen, dark navy ground. Pass 3 v2 deltas:
+       *   - 5 items via config.mobileNav (was config.nav 7 items)
+       *   - Join Us pill REMOVED from bottom (Figma overlay is nav-only)
+       *   - Social-icon row added in foot zone (circular BC-Blue treatment)
+       *   - MenuCloudArch decoration in lower-right (teal Window02 silhouette)
+       *   - Active-item cyan underline pattern */}
       {menuOpen && (
         <div
           className="fixed inset-0 z-50 flex flex-col"
@@ -287,11 +309,12 @@ export function BcHeader({ config }: { config: BcChromeConfig }) {
             </button>
           </div>
 
-          {/* Nav links — vertically centred, large text. Live = white at full opacity, inert =
-           * white at 50% with cursor-default. */}
-          <nav className="flex flex-1 flex-col items-center justify-center gap-6 px-4">
-            {config.nav.map((item) => {
+          {/* Nav links — vertically centred, large Söhne Kräftig. Live = white at full opacity,
+           * inert = white at 50% with cursor-default. Active item gets cyan underline. */}
+          <nav className="flex flex-1 flex-col items-start justify-center gap-7 px-8 sm:px-12">
+            {overlayNavItems.map((item) => {
               const live = item.href !== '#'
+              const active = isActiveNavLabel(item.label)
               return (
                 <Link
                   key={item.label}
@@ -300,13 +323,19 @@ export function BcHeader({ config }: { config: BcChromeConfig }) {
                   onClick={() => {
                     if (live) setMenuOpen(false)
                   }}
-                  className="text-2xl tracking-tight"
+                  className="tracking-tight"
                   style={{
-                    fontWeight: 'var(--bc-font-weight-semibold)',
+                    fontSize: 'clamp(2rem, 6vw, 3.5rem)',
+                    fontWeight: 'var(--bc-font-weight-medium)',
+                    lineHeight: 1.05,
                     color: live
                       ? 'var(--bc-color-white)'
                       : 'color-mix(in srgb, var(--bc-color-white) 50%, transparent)',
                     cursor: live ? 'pointer' : 'default',
+                    textDecoration: active ? 'underline' : 'none',
+                    textDecorationColor: 'var(--bc-color-light-blue)',
+                    textDecorationThickness: '2px',
+                    textUnderlineOffset: '6px',
                   }}
                 >
                   {item.label}
@@ -315,14 +344,19 @@ export function BcHeader({ config }: { config: BcChromeConfig }) {
             })}
           </nav>
 
-          {/* Join us pill — pinned to bottom of overlay for visibility on mobile */}
-          <div className="px-4 pb-8 flex justify-center">
-            <BcPill
-              label="Join us"
-              href="#"
-              variant="A"
-              size="standard"
-            />
+          {/* Foot zone — left-aligned social-icon row (circular treatment), plus the
+           * decorative cloud-arch shape anchored lower-right via absolute positioning. */}
+          <div className="relative px-8 sm:px-12 pb-10 pt-2">
+            <SocialIconsRow mode="circular" align="start" />
+
+            {/* Decorative cloud-arch in lower-right — teal Window02 silhouette per the
+             * chrome brief acceptable-v3 fallback. Photo lands in a follow-up. */}
+            <div
+              className="absolute pointer-events-none"
+              style={{ bottom: 0, right: 0 }}
+            >
+              <MenuCloudArch size={180} opacity={0.4} />
+            </div>
           </div>
         </div>
       )}
@@ -331,12 +365,11 @@ export function BcHeader({ config }: { config: BcChromeConfig }) {
 }
 
 /**
- * BcNewsletter — NEW component for pass 2. Mint signup strip that sits between the page
- * content and the BC Blue footer. Heading at title-medium 900 dark blue, body at body-size
- * muted, horizontal email input + Sign up pill on desktop / stacked on mobile.
+ * BcNewsletter — mint signup strip that sits between the page content and the BC Blue footer.
+ * Pass 3 v2: NO CHANGES — preserved as-is per pass-3-v2 brief §8 + §9.
  *
- * The form is non-functional (no onSubmit handler) — this is a prototype, not a real signup.
- * The intent is visual fidelity to the live BC site's signup strip.
+ * Heading at title-medium 900 dark blue, body at body-size muted dark blue, email input pill
+ * + Sign up pill (BcPill variant B) in a horizontal flex. Non-functional form (prototype).
  */
 export function BcNewsletter() {
   return (
@@ -400,16 +433,23 @@ export function BcNewsletter() {
 }
 
 /**
- * BcFooter — pass 2 BC Blue full-bleed footer. Three logical zones on one continuous BC Blue
- * field, separated by white-at-15% hairlines:
+ * BcFooter — pass 3 v2 BC Blue full-bleed footer. Per the chrome brief §4:
  *
- *   Zone 1 — Decorative top edge (window-shape strip, brief §7 moment 3)
- *   Zone 2 — Main 4-column footer (Brand+social / Site / Office / Contact)
- *   Zone 3 — Founding-org strip (caveat copy + three real founding-org SVGs)
- *   Zone 4 — Copyright + tagline foot strip
+ *   Top band  — 2fr/1fr/1fr/1fr grid:
+ *     Col 1 (2fr) — logo + body paragraph + rights-reserved line + Ahoy credit
+ *     Col 2 (1fr) — Who we are anchor + 4-link list (What/Why/Privacy/Imprint)
+ *     Col 3 (1fr) — Offices (London + lorem-ipsum second office)
+ *     Col 4 (1fr) — Contact paragraph + Contact Us pill
  *
- * All on `var(--bc-color-blue)` ground per brief §3; subtle white-at-15% hairlines between
- * bands derived from --bc-footer-divider token.
+ *   Bottom band — flex justify-between:
+ *     LEFT  — navy-pill with 3 founding-org logos inline (Clean Air Fund / C40 / Bloomberg)
+ *     RIGHT — 3 circular BC-Blue social icons (X / Instagram / Facebook)
+ *
+ * All on `var(--bc-color-blue)` ground. One subtle white-at-15% hairline between top and
+ * bottom bands. Copyright foot strip REMOVED (rights-reserved moved into Col 1).
+ *
+ * FooterWindowsStrip is NOT invoked here anymore — the Figma footer has no decorative window
+ * strip. The component definition remains in BcGraphics.tsx for future reuse.
  *
  * Static content, no props.
  */
@@ -419,131 +459,160 @@ export function BcFooter() {
       className="w-full"
       style={{ backgroundColor: 'var(--bc-color-blue)' }}
     >
-      {/* Zone 1 — decorative window-shape strip at the top edge, brief §7 moment 3. */}
-      <div className="pt-12 pb-8">
-        <FooterWindowsStrip />
-      </div>
-
-      {/* Zone 2 — main 4-column footer. Stacks to 1 column on mobile. */}
-      <div className="mx-auto max-w-6xl px-4 pb-16">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-10 lg:gap-8">
-          {/* Col 1 — Brand block: white logo + tagline + social icons */}
-          <div className="space-y-5">
+      {/* Top band — 4-column footer with 2fr/1fr/1fr/1fr proportions. Stacks to 1 column on mobile. */}
+      <div className="mx-auto max-w-6xl px-4 pt-16 pb-12">
+        <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr_1fr_1fr] gap-10 lg:gap-12">
+          {/* Col 1 — Brand block (wider). Logo + body paragraph + rights-reserved + Ahoy credit. */}
+          <div className="space-y-5 max-w-md">
             <Image
               src={bcLogoWhite}
               alt="Breathe Cities"
-              style={{ width: '160px', height: 'auto' }}
+              style={{ width: '180px', height: 'auto' }}
             />
             <p
               style={{
-                fontSize: '16px',
+                fontSize: 'var(--bc-font-size-body)',
                 lineHeight: 'var(--bc-line-height-snug)',
                 color: 'color-mix(in srgb, var(--bc-color-white) 90%, transparent)',
                 fontWeight: 'var(--bc-font-weight-regular)',
               }}
             >
-              Helping cities clean the air we breathe.
+              Breathe Cities is a partnership that supports sustainable cities and
+              communities by improving public health and cutting climate emissions.
             </p>
-            <SocialIconsRow />
+            <div className="space-y-1.5 pt-2">
+              <div
+                style={{
+                  fontSize: '13px',
+                  fontWeight: 'var(--bc-font-weight-regular)',
+                  color: 'color-mix(in srgb, var(--bc-color-white) 60%, transparent)',
+                }}
+              >
+                2025 — Breathe Cities | All rights reserved
+              </div>
+              <div
+                style={{
+                  fontSize: '13px',
+                  fontWeight: 'var(--bc-font-weight-regular)',
+                  color: 'color-mix(in srgb, var(--bc-color-white) 60%, transparent)',
+                }}
+              >
+                Website designed by Ahoy Studios | <AhoyLink />
+              </div>
+            </div>
           </div>
 
-          {/* Col 2 — Site nav */}
-          <FooterColumn heading="Site">
-            <FooterLink href="#" label="Who we are" />
-            <FooterLink href="#" label="What we do" />
-            <FooterLink href="#" label="Why we do it" />
-            <FooterLink href="#" label="Cities" />
-            <FooterLink href="#" label="Voices" />
-            <FooterLink href="#" label="News" />
-            <FooterLink href="#" label="Join us" />
+          {/* Col 2 — Site nav. "Who we are" rendered at Halbfett as column anchor; remaining
+           * items are FooterLink instances. */}
+          <div>
+            <FooterAnchorLink href="#" label="Who we are" />
+            <div className="space-y-2.5 mt-3">
+              <FooterLink href="#" label="What we do" />
+              <FooterLink href="#" label="Why we do it" />
+              <FooterLink href="#" label="Privacy" />
+              <FooterLink href="#" label="Imprint" />
+            </div>
+          </div>
+
+          {/* Col 3 — Offices. Two short address paragraphs stacked vertically. Second office
+           * is lorem-ipsum placeholder per Jack's call (matches Figma posture). */}
+          <FooterColumn heading="Offices">
+            <div className="space-y-1 mb-4">
+              <FooterText>Clean Air Fund</FooterText>
+              <FooterText>20 St Thomas Street</FooterText>
+              <FooterText>London SE1 9RS, UK</FooterText>
+            </div>
+            <div className="space-y-1">
+              <FooterText>Lorem Ipsum Office</FooterText>
+              <FooterText>Dolor sit amet 42</FooterText>
+              <FooterText>Consectetur 1000, BE</FooterText>
+            </div>
           </FooterColumn>
 
-          {/* Col 3 — Office */}
-          <FooterColumn heading="Office">
-            <FooterText>Clean Air Fund</FooterText>
-            <FooterText>20 St Thomas Street</FooterText>
-            <FooterText>London SE1 9RS, UK</FooterText>
-          </FooterColumn>
-
-          {/* Col 4 — Contact */}
+          {/* Col 4 — Contact. Short paragraph + Contact Us pill (variant A: white on BC Blue). */}
           <FooterColumn heading="Contact">
-            <FooterLink href="#" label="Press queries" />
-            <FooterLink href="#" label="Contact us" />
-            <FooterLink href="#" label="Privacy" small />
+            <p
+              className="mb-4"
+              style={{
+                fontSize: '14px',
+                lineHeight: 'var(--bc-line-height-snug)',
+                color: 'color-mix(in srgb, var(--bc-color-white) 90%, transparent)',
+                fontWeight: 'var(--bc-font-weight-regular)',
+              }}
+            >
+              Get in touch with the Breathe Cities team for press, partnerships, or city
+              enquiries.
+            </p>
+            <BcPill
+              label="Contact Us"
+              href="#"
+              variant="A"
+              size="small"
+            />
           </FooterColumn>
         </div>
       </div>
 
-      {/* Zone 3 — Founding-org strip. Caveat copy ABOVE the three logos. */}
+      {/* Bottom band — founding-org pill (LEFT) + circular social row (RIGHT). One hairline
+       * separator above this zone. */}
       <div
-        className="px-4 py-10"
+        className="px-4 py-8"
         style={{ borderTop: '1px solid var(--bc-footer-divider)' }}
       >
-        <div className="mx-auto max-w-4xl">
-          <p
-            className="text-center mb-6"
+        <div className="mx-auto max-w-6xl flex flex-col sm:flex-row items-center justify-between gap-6">
+          {/* LEFT — navy pill containing 3 founding-org logos inline with vertical-hairline
+           * separators. Dark Blue ground (#003574) wraps the trio as a single brand cluster. */}
+          <div
+            className="inline-flex items-center"
             style={{
-              fontSize: '13px',
-              color: 'color-mix(in srgb, var(--bc-color-white) 70%, transparent)',
-              fontWeight: 'var(--bc-font-weight-regular)',
-              lineHeight: 'var(--bc-line-height-snug)',
+              backgroundColor: 'var(--bc-color-dark-blue)',
+              borderRadius: '9999px',
+              padding: '12px 24px',
+              gap: '20px',
             }}
           >
-            An initiative delivered by Clean Air Fund, C40 Cities and Bloomberg
-            Philanthropies.
-          </p>
-          <div className="flex flex-wrap items-center justify-center gap-8 lg:gap-12">
-            {/* Clean Air Fund — already white-on-transparent. Render direct, opacity 90%. */}
             <Image
               src={cleanAirFundLogo}
               alt="Clean Air Fund"
-              style={{ height: '48px', width: 'auto', opacity: 0.9 }}
+              style={{ height: '32px', width: 'auto', opacity: 0.95 }}
             />
-            {/* C40 Cities — black logo on white square BG. filter:invert(1) flips both:
-             * background goes black (invisible on BC Blue), logo paths go white. Per the
-             * _brand/graphics/README.md asset notes. */}
+            <span
+              aria-hidden="true"
+              style={{
+                width: '1px',
+                height: '24px',
+                backgroundColor: 'color-mix(in srgb, var(--bc-color-white) 30%, transparent)',
+              }}
+            />
+            {/* C40 Cities — black logo on white square BG. filter: invert(1) was the pass-2
+             * approach; inside the dark navy pill, the inverted treatment reads cleaner as
+             * a white square containing the black mark (C40's canonical lockup). */}
             <Image
               src={c40CitiesLogo}
               alt="C40 Cities"
               style={{
-                height: '48px',
+                height: '32px',
                 width: 'auto',
-                opacity: 0.9,
                 filter: 'invert(1)',
               }}
             />
-            {/* Bloomberg Philanthropies — already white-on-transparent. */}
+            <span
+              aria-hidden="true"
+              style={{
+                width: '1px',
+                height: '24px',
+                backgroundColor: 'color-mix(in srgb, var(--bc-color-white) 30%, transparent)',
+              }}
+            />
             <Image
               src={bloombergLogo}
               alt="Bloomberg Philanthropies"
-              style={{ height: '48px', width: 'auto', opacity: 0.9 }}
+              style={{ height: '28px', width: 'auto', opacity: 0.95 }}
             />
           </div>
-        </div>
-      </div>
 
-      {/* Zone 4 — Copyright + tagline foot strip */}
-      <div
-        className="px-4 py-5"
-        style={{ borderTop: '1px solid var(--bc-footer-divider)' }}
-      >
-        <div className="mx-auto max-w-6xl flex flex-col sm:flex-row items-center justify-between gap-2 text-center sm:text-left">
-          <span
-            style={{
-              fontSize: '12px',
-              color: 'color-mix(in srgb, var(--bc-color-white) 60%, transparent)',
-            }}
-          >
-            © 2026 Breathe Cities. All rights reserved.
-          </span>
-          <span
-            style={{
-              fontSize: '12px',
-              color: 'color-mix(in srgb, var(--bc-color-white) 60%, transparent)',
-            }}
-          >
-            30% cleaner air by 2030.
-          </span>
+          {/* RIGHT — circular social icons (3 items) via shared SocialIconsRow circular mode. */}
+          <SocialIconsRow mode="circular" align="end" />
         </div>
       </div>
     </footer>
@@ -573,14 +642,50 @@ function FooterColumn({
       >
         {heading}
       </h3>
-      <div className="space-y-2.5">{children}</div>
+      <div>{children}</div>
     </div>
   )
 }
 
 /**
- * FooterLink — internal helper. Söhne Buch 15px white-at-90%, hover lifts to full white.
- * `small` variant drops to 13px for tertiary links (e.g. Privacy).
+ * FooterAnchorLink — internal helper, pass 3 v2. The column-anchor variant of FooterLink: same
+ * link mechanics, but rendered at Halbfett 14px white (column anchor weight). Used in Col 2
+ * for the "Who we are" header that doubles as the first link.
+ */
+function FooterAnchorLink({
+  href,
+  label,
+}: {
+  href: string
+  label: string
+}) {
+  const [hovered, setHovered] = useState(false)
+  return (
+    <Link
+      href={href}
+      className="block"
+      style={{
+        fontSize: '14px',
+        fontWeight: 'var(--bc-font-weight-semibold)',
+        color: hovered
+          ? 'var(--bc-color-light-blue)'
+          : 'var(--bc-color-white)',
+        transition: 'color 200ms ease',
+      }}
+      // Side effect: hover state drives colour swap via React re-render.
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      onFocus={() => setHovered(true)}
+      onBlur={() => setHovered(false)}
+    >
+      {label}
+    </Link>
+  )
+}
+
+/**
+ * FooterLink — internal helper. Söhne Buch 14px white-at-90%, hover lifts to full white.
+ * `small` variant drops to 13px for tertiary links.
  */
 function FooterLink({
   href,
@@ -597,7 +702,7 @@ function FooterLink({
       href={href}
       className="block"
       style={{
-        fontSize: small ? '13px' : '15px',
+        fontSize: small ? '13px' : '14px',
         fontWeight: 'var(--bc-font-weight-regular)',
         color: hovered
           ? 'var(--bc-color-white)'
@@ -616,16 +721,17 @@ function FooterLink({
 }
 
 /**
- * FooterText — internal helper. Same typography as FooterLink but renders as a plain span (no
+ * FooterText — internal helper. Same typography as FooterLink but renders as a plain div (no
  * interaction). Used for the Office address lines.
  */
 function FooterText({ children }: { children: React.ReactNode }) {
   return (
     <div
       style={{
-        fontSize: '15px',
+        fontSize: '14px',
         fontWeight: 'var(--bc-font-weight-regular)',
         color: 'color-mix(in srgb, var(--bc-color-white) 90%, transparent)',
+        lineHeight: 'var(--bc-line-height-snug)',
       }}
     >
       {children}
@@ -634,75 +740,29 @@ function FooterText({ children }: { children: React.ReactNode }) {
 }
 
 /**
- * SocialIconsRow — internal helper. Twitter (X), Instagram, Facebook, LinkedIn — inline SVG at
- * 22px, 1.75px stroke, white at 75% opacity, hover lifts to full white. Inline SVG (not
- * lucide-react) keeps the icon set deterministic and avoids pulling in a new icon dependency
- * when the existing set may render at different stroke weights.
- *
- * Side note: all icon hrefs are '#' (inert) — this is a prototype.
+ * AhoyLink — small internal helper for the Ahoy Studios credit hyperlink in Col 1. Underlined
+ * link, white at 60% non-hover / full white hover.
  */
-function SocialIconsRow() {
-  return (
-    <div className="flex items-center gap-4">
-      <SocialIcon label="Twitter">
-        {/* X / Twitter glyph — simplified inline */}
-        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-      </SocialIcon>
-      <SocialIcon label="Instagram">
-        {/* Instagram glyph — simplified inline */}
-        <g>
-          <rect x="3" y="3" width="18" height="18" rx="5" ry="5" fill="none" stroke="currentColor" strokeWidth="1.75" />
-          <circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" strokeWidth="1.75" />
-          <circle cx="17.5" cy="6.5" r="1" fill="currentColor" />
-        </g>
-      </SocialIcon>
-      <SocialIcon label="Facebook">
-        {/* Facebook 'f' glyph — simplified inline */}
-        <path d="M22 12a10 10 0 1 0-11.563 9.876v-6.987H7.898V12h2.539V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.261c-1.243 0-1.63.772-1.63 1.563V12h2.773l-.443 2.89h-2.33v6.986A10.001 10.001 0 0 0 22 12z" />
-      </SocialIcon>
-      <SocialIcon label="LinkedIn">
-        {/* LinkedIn glyph — simplified inline */}
-        <g>
-          <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zM6.83 20.452H3.84V9h2.99v11.452z" />
-          <path d="M22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" fill="none" />
-        </g>
-      </SocialIcon>
-    </div>
-  )
-}
-
-/** Single social icon — 22px inline SVG, hover-state colour swap. */
-function SocialIcon({
-  label,
-  children,
-}: {
-  label: string
-  children: React.ReactNode
-}) {
+function AhoyLink() {
   const [hovered, setHovered] = useState(false)
   return (
     <a
-      href="#"
-      aria-label={label}
+      href="https://ahoystudios.com"
+      target="_blank"
+      rel="noopener noreferrer"
       style={{
         color: hovered
           ? 'var(--bc-color-white)'
-          : 'color-mix(in srgb, var(--bc-color-white) 75%, transparent)',
+          : 'color-mix(in srgb, var(--bc-color-white) 60%, transparent)',
+        textDecoration: 'underline',
+        textUnderlineOffset: '2px',
         transition: 'color 200ms ease',
       }}
       // Side effect: hover state drives colour swap via React re-render.
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      <svg
-        width="22"
-        height="22"
-        viewBox="0 0 24 24"
-        fill="currentColor"
-        aria-hidden="true"
-      >
-        {children}
-      </svg>
+      ahoystudios.com
     </a>
   )
 }
