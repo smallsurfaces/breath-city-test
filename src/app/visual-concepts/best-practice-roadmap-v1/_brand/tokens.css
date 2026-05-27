@@ -162,13 +162,32 @@
   --bc-line-height-relaxed:      1.5;
 
   /* ─── Font weights ───
-   * The four "live-site-confirmed" weights from Arne's code plus the heaviest
-   * available (Extrafett — mapped to 900 in fonts.ts). */
-  --bc-font-weight-regular:  400;  /* Söhne Buch */
-  --bc-font-weight-medium:   500;  /* Söhne Kräftig */
-  --bc-font-weight-semibold: 600;  /* Söhne Halbfett */
-  --bc-font-weight-bold:     700;  /* Söhne Fett */
-  --bc-font-weight-black:    900;  /* Söhne Extrafett */
+   * Calibrated to BC live-site character (2026-05-27 typography-audit pass).
+   * BC live loads only four weights (400/500/600/800) and uses 500 (Kräftig) for
+   * EVERY title class — titleLarge / titleMedium / titleSmall all = 500. titleSub
+   * = 600. .stat-amount (homepage hero stat) is the only routine use of the
+   * heaviest weight at 800 (Fett). No use of 900 anywhere on the live site.
+   *
+   * The v1 fork loads six weights (300/400/500/600/700/900). Our heaviest LOADED
+   * weight is 700 (Söhne Fett — the same glyph outline BC live serves at 800;
+   * the numeric slot just differs across the two mappings). So:
+   *   --bc-font-weight-bold      = 700 (Söhne Fett) — semantic "bold"
+   *   --bc-font-weight-extrabold = 700 (Söhne Fett) — semantic "BC's stat-amount
+   *     weight". Aliased to the same value because requesting 800 would resolve
+   *     to Extrafett 900 via CSS font-weight matching (closest-darker-first when
+   *     requested > 500), which is the over-heavy character we're calibrating
+   *     AWAY from. Keeping the semantic name distinct so any future addition of
+   *     a true 800-weight asset is a single-token edit.
+   *
+   * --bc-font-weight-black (900, Söhne Extrafett) is preserved as a token but
+   * intentionally NOT used by any current consumer. Available for special
+   * display moments only; consult design-system-keeper before using. */
+  --bc-font-weight-regular:   400;  /* Söhne Buch */
+  --bc-font-weight-medium:    500;  /* Söhne Kräftig — BC's primary title weight (titleLarge / titleMedium / titleSmall) */
+  --bc-font-weight-semibold:  600;  /* Söhne Halbfett — BC's titleSub / nav-link weight */
+  --bc-font-weight-bold:      700;  /* Söhne Fett — semantic "bold" */
+  --bc-font-weight-extrabold: 700;  /* Söhne Fett — BC's .stat-amount weight (BC live declares at 800 slot; same outline) */
+  --bc-font-weight-black:     900;  /* Söhne Extrafett — RESERVED; not used by current consumers (consult design-system-keeper) */
 
   /* ─── Breakpoint reference (consumable as a comment) ───
    * Tailwind/CSS-side breakpoints from Arne's tailwind.config.js. Listed here

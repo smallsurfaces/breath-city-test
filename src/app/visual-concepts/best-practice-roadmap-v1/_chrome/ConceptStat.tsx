@@ -21,6 +21,13 @@
  *   The estimate pill (functional yellow) is unchanged across variants — it carries semantic
  *   meaning (this figure is a guesstimate) so its tone stays constant.
  *
+ *   Typography calibration (2026-05-27, post-pass-3-v2):
+ *     - Value weight dropped from `font-black` (Tailwind 900 = Söhne Extrafett) to
+ *       `--bc-font-weight-extrabold` (700 = Söhne Fett). BC live's `.stat-amount` uses Fett
+ *       (declared at slot 800 on the live site; same glyph outline as our 700 mapping).
+ *       Requesting 800 directly would resolve to Extrafett 900 via CSS font-weight matching
+ *       (closest-darker-first), which is the over-heavy character we're calibrating away from.
+ *
  * Key exports: ConceptStat (named)
  * External dependencies: react (ReactNode).
  */
@@ -101,9 +108,14 @@ export function ConceptStat({
         </div>
       )}
       <div
-        className="mt-2 font-black tracking-tight tabular-nums"
+        className="mt-2 tracking-tight tabular-nums"
         style={{
           fontSize: 'clamp(2.5rem, 4vw, 4rem)',
+          // Calibration 2026-05-27: was Tailwind `font-black` (900) — replaced with
+          // --bc-font-weight-extrabold (700 = Söhne Fett) to match BC live's `.stat-amount`
+          // character. Tailwind utility removed from className so this inline weight wins
+          // unambiguously.
+          fontWeight: 'var(--bc-font-weight-extrabold)',
           color: valueColor,
           lineHeight: 1.0,
         }}

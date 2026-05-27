@@ -382,7 +382,8 @@ export function BcNewsletter() {
           className="tracking-tight"
           style={{
             fontSize: 'var(--bc-font-size-title-medium)',
-            fontWeight: 'var(--bc-font-weight-black)',
+            // Calibration 2026-05-27: 900 → 500 to match BC live's `.font-titleMedium` weight.
+            fontWeight: 'var(--bc-font-weight-medium)',
             color: 'var(--bc-color-dark-blue)',
             lineHeight: 'var(--bc-line-height-title-medium)',
           }}

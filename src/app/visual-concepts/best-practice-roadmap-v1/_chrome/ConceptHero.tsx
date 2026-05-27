@@ -26,6 +26,12 @@
  *       A on dark surfaces, B on light) beneath the body with pt-8 separation.
  *     - Lead body bumped to `--bc-font-size-title-sub` (was --bc-font-size-body) per brief §11
  *       so the hero lead carries more weight relative to inner-section body text.
+ *   Typography calibration (2026-05-27, post-pass-3-v2):
+ *     - Headline weight 900 (Extrafett) → 500 (Kräftig) via --bc-font-weight-medium. This
+ *       matches BC live's `.font-titleLarge` rule (font-weight: 500), as defined in Arne's
+ *       _tailwind.css and verified against the deployed BC site CSS. At 900 the headline read
+ *       as "wrong font" because Söhne Extrafett's letterforms thicken and round visibly;
+ *       Kräftig is BC's actual headline character — vertical, restrained, grotesque.
  *
  * Key exports: ConceptHero (named)
  * External dependencies: react (ReactNode), ./BcPill (CTA primitive)
@@ -116,7 +122,8 @@ export function ConceptHero({
         className="tracking-tight"
         style={{
           fontSize: 'var(--bc-font-size-title-large)',
-          fontWeight: 'var(--bc-font-weight-black)',
+          // Calibration 2026-05-27: 900 → 500 to match BC live's `.font-titleLarge` weight.
+          fontWeight: 'var(--bc-font-weight-medium)',
           color: headlineColor,
           lineHeight: 'var(--bc-line-height-title-large)',
         }}
