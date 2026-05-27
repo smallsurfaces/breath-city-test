@@ -4,35 +4,31 @@
  * Fork origin
  *   Clean fork of src/components/concept/ConceptStat.tsx (commit 09839c6 / tag
  *   wireframe-lock-2026-05-26). The fork exists so future visual evolution on stat
- *   typography/colour inside this sandbox cannot leak into the wireframe-locked UX concepts
- *   that depend on the shared original. First-deploy render is identical to the shared version.
+ *   typography/colour inside this sandbox cannot leak into the wireframe-locked UX concepts.
  *
  * Purpose (carried forward from shared)
  *   The shared "stat" primitive: a large tabular figure with a muted label, an optional
- *   leading icon, and an optional "Estimate" pill. Renders INNER CONTENT ONLY (the icon/pill
- *   row, the value, the label). It does NOT draw a card surface — the caller wraps it in
- *   ConceptCard when a carded stat is wanted.
+ *   leading icon, and an optional "Estimate" pill. Renders INNER CONTENT ONLY (no card surface).
  *
- * Caps & functional colour (BC brand pass 1 — 2026-05-26)
- *   The text-3xl cap has been LIFTED for this forked variant per the brand-pass-1 brief §2 —
- *   the value now renders at `clamp(2.5rem, 4vw, 4rem)` in BC Blue at Söhne 900 (Extrafett),
- *   so the four hero stats read as the visual anchor of the page top.
- *   The `estimate` pill stays FUNCTIONAL — a soft yellow wash via color-mix on the BC yellow
- *   token. No emoji. The shared original at src/components/concept/ConceptStat.tsx stays put
- *   with its text-3xl cap and bridged-semantic colours.
+ * Caps & colour history
+ *   Pass 1 (2026-05-26): value cap lifted to `clamp(2.5rem, 4vw, 4rem)` in BC Blue at 900,
+ *     label muted dark-blue at 60%.
+ *   Pass 2 (2026-05-27 — per brand-pass-2 brief §5):
+ *     - Added `variant` prop ('light' | 'dark'). 'dark' (used by hero on BC Blue ground) flips
+ *       value to white and label to white-70%. 'light' (default) keeps pass-1 BC Blue value /
+ *       muted-dark-blue label.
  *
- * Styling (BC brand pass 1)
- *   Value: inline `var(--bc-color-blue)` at 900 weight + clamp font-size.
- *   Label: inline `color-mix(...dark-blue 60%, transparent)` at `--bc-font-size-body-smaller`
- *     and 500 weight (Söhne Kräftig); was bridged shadcn muted-foreground.
- *   Inline `style` with `var(--bc-*)` for the estimate pill's wash (unchanged). No `*-bc-*`
- *   utility classes; no hardcoded hex.
+ *   The estimate pill (functional yellow) is unchanged across variants — it carries semantic
+ *   meaning (this figure is a guesstimate) so its tone stays constant.
  *
  * Key exports: ConceptStat (named)
  * External dependencies: react (ReactNode).
  */
 
 import type { ReactNode } from 'react'
+
+/** Surface variant — 'light' (default, BC Blue value on white) or 'dark' (white value on BC Blue). */
+export type ConceptStatVariant = 'light' | 'dark'
 
 /** Props for ConceptStat. */
 type ConceptStatProps = {
@@ -46,12 +42,18 @@ type ConceptStatProps = {
   icon?: ReactNode
   /** Extra classes appended to the wrapper (layout/overrides only). */
   className?: string
+  /**
+   * Surface variant. 'light' (default) = BC Blue value on white; 'dark' = white value on BC
+   * Blue. Drives value and label colour.
+   */
+  variant?: ConceptStatVariant
 }
 
 /**
- * One stat block: an icon/estimate-pill row, the big tabular value (capped at text-3xl), and
- * the muted label. Inner content only — wrap in ConceptCard for a carded stat. The icon row
- * renders whenever an icon or the estimate pill is present.
+ * One stat block — icon/estimate-pill row → big tabular value → muted label. Inner content
+ * only — wrap in ConceptCard for a carded stat. Variant-driven colour switch — caller passes
+ * 'dark' when the stat sits on a BC Blue full-bleed section (hero row), 'light' (default)
+ * for any white/light surface.
  */
 export function ConceptStat({
   value,
@@ -59,8 +61,18 @@ export function ConceptStat({
   estimate,
   icon,
   className,
+  variant = 'light',
 }: ConceptStatProps) {
+  const isDark = variant === 'dark'
   const showTopRow = icon !== undefined || estimate === true
+
+  // Variant-driven colour resolutions — see file header for the full mapping.
+  const valueColor = isDark
+    ? 'var(--bc-color-white)'
+    : 'var(--bc-color-blue)'
+  const labelColor = isDark
+    ? 'color-mix(in srgb, var(--bc-color-white) 70%, transparent)'
+    : 'color-mix(in srgb, var(--bc-color-dark-blue) 60%, transparent)'
 
   return (
     <div className={className}>
@@ -92,7 +104,7 @@ export function ConceptStat({
         className="mt-2 font-black tracking-tight tabular-nums"
         style={{
           fontSize: 'clamp(2.5rem, 4vw, 4rem)',
-          color: 'var(--bc-color-blue)',
+          color: valueColor,
           lineHeight: 1.0,
         }}
       >
@@ -102,7 +114,7 @@ export function ConceptStat({
         className="mt-1 font-medium"
         style={{
           fontSize: 'var(--bc-font-size-body-smaller)',
-          color: 'color-mix(in srgb, var(--bc-color-dark-blue) 60%, transparent)',
+          color: labelColor,
         }}
       >
         {label}

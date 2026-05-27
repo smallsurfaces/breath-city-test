@@ -2,94 +2,81 @@
  * page.tsx — Visual Concept v1: BC AQ Roadmap overview, /visual-concepts/best-practice-roadmap-v1.
  *
  * Fork origin
- *   This file is a clean fork of src/app/ux-concepts/best-practice-roadmap-v2/page.tsx (commit
- *   09839c6 / tag wireframe-lock-2026-05-26). The fork exists so visual exploration on this
- *   concept cannot leak into the wireframe-locked UX concept. First-deploy render is identical
- *   to v2; visual evolution (BC brand layer — Söhne, BC blue, graphic elements) happens in
- *   subsequent sessions inside this folder only. The wireframe-locked v2 page must not be
- *   touched while visual work proceeds on this sandbox.
+ *   Clean fork of src/app/ux-concepts/best-practice-roadmap-v2/page.tsx (commit 09839c6 / tag
+ *   wireframe-lock-2026-05-26). Forked so visual exploration cannot leak into the
+ *   wireframe-locked UX concept.
  *
- * Purpose (carried forward from v2)
- *   The roadmap overview surface. Same data and interactions as v1, but with a redesigned
- *   visual hierarchy. Source iteration 2 (2026-05-26) — see workflow log
- *   `roadmap-v2-jack-fixes-2026-05-26.md` in the source repo for the design history of v2.
+ * BC brand pass 2 (2026-05-27 — per brand-pass-2 brief)
+ *   This restructures the page chrome from a single-`<main>`-with-white-background into a stack
+ *   of full-bleed coloured `<section>` elements that implement the alternating BC site colour
+ *   rhythm per brief §4:
  *
- *   Three-tier scale jumps (post-iteration-2):
- *     - Tier 1 — STAGE chapter headings (Seeing / Understanding / Acting / Enabling) rendered
- *       at ~clamp(2.25rem, 4vw, 3rem) bold dark-blue with a stage-coloured dot. NO numbered
- *       prefix ("01 / 04") — dropped in iteration 2 to clean the chapter-scale typography.
- *       Inline custom treatment — NOT the shared ConceptSectionHeader (this page consumes its
- *       own chapter scale; the shared component is untouched so other concepts render unchanged).
- *     - Tier 2 — DOMAIN titles ("Monitoring", "Data & Tech", etc.) rendered as quiet
- *       sentence-case column headers above each card. NO uppercase "domain" eyebrow label —
- *       dropped in iteration 2; the sentence-case name alone is sufficient.
- *     - Tier 3 — CARD content inverted via PracticeCardHero. The card is split into two
- *       columns: LEFT column = self-contained outcome hero, prominent city name, quiet
- *       practice description, footer metadata; RIGHT column = chart viz. Both columns
- *       top-aligned for predictable vertical rhythm card-to-card.
+ *     Hero          → BC Blue full-bleed (was white)
+ *     Stage 1 Seeing       → White
+ *     Stage 2 Understanding → Light-blue panel wash
+ *     Stage 3 Acting       → White (with Acting-tangerine Wind accent next to heading per §7)
+ *     Stage 4 Enabling     → Light-blue panel wash
  *
- *   Detail pages (city/[slug], domain/[slug]) continue to use PracticeCardTile so their
- *   behaviour is unchanged — the new hierarchy only applies to this overview surface.
+ *   The hero gets a two-column layout (brief §5) — headline + stats + pill CTA on the left,
+ *   Wind+Windows composition on the right. The hero is rendered with `<ConceptHero variant="dark">`
+ *   to flip type to white-on-blue. ConceptStat instances likewise use `variant="dark"`.
  *
- *   The hero (ConceptHero + four ConceptStat figures) is unchanged from the previous pass.
+ *   Each stage chapter gets a section eyebrow above the h2 per brief §9 — "Chapter NN · [Stage]"
+ *   in BC Blue or stage-coloured per the §9 mapping. The h2 itself stays clean (no chapter
+ *   prefix). Stage dot bumped to w-5 h-5 per brief §11.
+ *
+ *   Per-card "Explore" link becomes a BcPill (variant B on light cards, C on dark cards) per
+ *   brief §8.
+ *
+ *   Each card receives `cityRegion` for the optional 4px regional-colour top border per brief
+ *   §6 final note — the card surface picks up the regional accent.
+ *
+ * Three-tier scale jumps (preserved from iteration 2)
+ *   Tier 1 — STAGE chapter headings (Seeing / Understanding / Acting / Enabling) — title-medium
+ *     900 dark blue with stage-coloured dot. No numbered prefix on the h2; chapter number is in
+ *     the eyebrow above it (pass 2 §9 restoration).
+ *   Tier 2 — DOMAIN titles — quiet sentence-case at title-sub.
+ *   Tier 3 — CARD content via PracticeCardHero — outcome dominant, city prominent supporting,
+ *     metadata at foot.
+ *
+ * Detail pages (city/[slug], domain/[slug]) continue to use PracticeCardTile so their
+ * behaviour is unchanged — the new hierarchy only applies to this overview surface.
  *
  * Chrome: provided by visual-concepts/best-practice-roadmap-v1/layout.tsx (PrototypeHeader +
- *   BcHeader/BcFooter — all forked into ./_chrome in round 2 so future visual edits stay
- *   isolated). This page renders no chrome of its own. Light mode only. No emoji.
+ *   BcHeader + BcNewsletter + BcFooter — all forked into ./_chrome). This page renders no
+ *   chrome of its own. Light mode only. No emoji.
  *
- * Stage hue → tint mapping (BC brand pass 1 — 2026-05-26 — per design-director brief §3):
- *   Seeing        → var(--bc-color-blue)            BC Blue        — data/sensing = blue
- *   Understanding → var(--bc-color-region-africa)   bespoke teal   — analysis/insight = teal accent
- *   Acting        → var(--bc-color-tangerine)       tangerine      — intervention warmth/energy
- *   Enabling      → var(--bc-color-purple)          purple         — cross-cutting infra/support
- *
- *   Previous mapping referenced --bc-color-teal (not in the v1 token set; back-filled in
- *   _brand/tokens.css as an alias to region-africa) and --bc-color-dark-blue for Acting
- *   (the dot disappeared against the dark-blue heading) and --bc-color-steel for Enabling
- *   (also not in v1; back-filled as a muted neutral). Brand pass 1 swaps to the canonical
- *   BC palette per brief §3 — acknowledged overlap with AQI "unhealthy" semantic for
- *   Acting/tangerine, going with it for the warmth/intervention character.
- *
- * Unique build signal (for deploy-poll verification): the string
- * "120 low-cost sensors citywide" (London/Monitoring hero) appears in PracticeCardHero
- * composition only after this iteration — used as the unique-string poll target post-deploy.
+ * Stage hue → tint mapping (BC brand pass 1):
+ *   Seeing        → var(--bc-color-blue)            BC Blue
+ *   Understanding → var(--bc-color-region-africa)   bespoke teal
+ *   Acting        → var(--bc-color-tangerine)       tangerine
+ *   Enabling      → var(--bc-color-purple)          purple
  *
  * Key exports: default page component
- * External dependencies: next/link, ./_chrome (ConceptHero, ConceptStat — forked into the
- *   visual-concepts namespace so this concept has no remaining imports from the shared
- *   @/components/concept chrome), @/data/roadmap-data (DOMAINS, PRACTICE_CARDS, Stage),
- *   ./_components/PracticeCardHero (overview-only outcome-as-hero card)
+ * External dependencies: ./_chrome (ConceptHero, ConceptStat, BcPill, HeroWindComposition,
+ *   WindAccent), @/data/roadmap-data (DOMAINS, PRACTICE_CARDS, Stage, getCityBySlug),
+ *   ./_components/PracticeCardHero.
  */
 
-import Link from 'next/link'
 import {
   ConceptHero,
   ConceptStat,
+  BcPill,
+  HeroWindComposition,
+  WindAccent,
 } from './_chrome'
 import {
   DOMAINS,
   PRACTICE_CARDS,
+  getCityBySlug,
   type Stage,
 } from '@/data/roadmap-data'
 import { PracticeCardHero } from './_components/PracticeCardHero'
 
 /**
- * Stage dot style override — 4 DISTINCT --bc-* token tints applied at the presentation
- * layer so this overview uses the canonical BC brand palette instead of the tailwind
- * blue/amber/green/gray from STAGE_COLORS in roadmap-data.ts. The shared data file is NOT
- * edited.
- *
- * BC brand pass 1 (2026-05-26) — canonical mapping per design-director brief §3:
- *   Seeing        → --bc-color-blue            (BC Blue — data collection, sensing)
- *   Understanding → --bc-color-region-africa   (bespoke teal accent — analysis, insight)
- *   Acting        → --bc-color-tangerine       (intervention warmth and energy)
- *   Enabling      → --bc-color-purple          (cross-cutting infrastructure cue)
- *
- * Previous draft mapping used --bc-color-teal/--bc-color-dark-blue/--bc-color-steel — the
- * first and third tokens were not declared in the v1 token set; back-filled as aliases in
- * _brand/tokens.css so any stale lookup still resolves within-palette.
- *
- * dotColor is rendered as a w-4 h-4 chapter dot to the left of the stage heading.
+ * Stage dot style override — 4 distinct BC token tints applied at the presentation layer per
+ * brand-pass-1 brief §3 canonical mapping. Dot rendered at w-5 h-5 in pass 2 per brief §11
+ * (was w-4 h-4) so the dot balances the bumped h2 weight.
  */
 const STAGE_DOT_STYLE: Record<Stage, { dotColor: string }> = {
   Seeing: { dotColor: 'var(--bc-color-blue)' },
@@ -99,38 +86,70 @@ const STAGE_DOT_STYLE: Record<Stage, { dotColor: string }> = {
 }
 
 /**
- * DARK_CARD_DOMAINS — the four featured domains that render their PracticeCardHero in the
- * DARK variant (navy surface, white text, light-blue city, white-on-blue chart inset).
- * One dark card per stage row creates the editorial card-rhythm seen in the data-vis
- * reference image. Picks per brief §4:
- *   Seeing        → 1  (London / Monitoring   — BC Blue sensor count earns the navy stage)
+ * Stage eyebrow colour mapping — per brand-pass-2 brief §9. Seeing/Understanding eyebrows use
+ * BC Blue (stage h2 is on white/light-blue panel); Acting eyebrow uses tangerine; Enabling
+ * eyebrow uses purple. The eyebrow colour matches the stage dot colour for chapters 3 and 4
+ * (semantic reinforcement); chapters 1 and 2 use a single BC Blue to keep the cyan-tinted
+ * panel from being noisy.
+ */
+const STAGE_EYEBROW_COLOR: Record<Stage, string> = {
+  Seeing: 'var(--bc-color-blue)',
+  Understanding: 'var(--bc-color-blue)',
+  Acting: 'var(--bc-color-tangerine)',
+  Enabling: 'var(--bc-color-purple)',
+}
+
+/**
+ * Stage section background mapping — per brand-pass-2 brief §4. Alternating
+ * white → light-blue-wash → white → light-blue-wash so the four chapters read as visual breaks
+ * without breaking the reading. Returns 'transparent' for the white slots so the underlying
+ * page surface (set to white in the outer `<main>`) shows through.
+ */
+const STAGE_SECTION_BG: Record<Stage, string> = {
+  Seeing: 'var(--bc-color-white)',
+  Understanding: 'var(--bc-color-light-blue-wash)',
+  Acting: 'var(--bc-color-white)',
+  Enabling: 'var(--bc-color-light-blue-wash)',
+}
+
+/**
+ * Chapter number for the eyebrow ("Chapter 01 · Seeing"). The position in PILLAR_ORDER is the
+ * canonical chapter number; rendered as zero-padded for visual consistency.
+ */
+function chapterNumber(stage: Stage): string {
+  const ordinal = PILLAR_ORDER.findIndex((p) => p.stage === stage) + 1
+  return String(ordinal).padStart(2, '0')
+}
+
+/**
+ * DARK_CARD_DOMAINS — the four featured domains rendered with the dark PracticeCardHero
+ * variant (BC Blue surface, white text). Editorial rhythm: one dark card per stage row.
+ * Picks per brief §4 (pass 1):
+ *   Seeing        → 1  (London / Monitoring)
  *   Understanding → 2  (Accra / Source Analysis)
- *   Acting        → 4  (Brussels / Policy Timeline — the -42% PM2.5 figure)
+ *   Acting        → 4  (Brussels / Policy Timeline)
  *   Enabling      → 8  (Bangkok / Awareness)
- * If a stage only renders one card, that card stays light per brief §4. The alternation
- * is editorial rhythm, not a rule.
  */
 const DARK_CARD_DOMAINS = new Set<number>([1, 2, 4, 8])
 
 /**
  * Featured card per domain — picks the most visually compelling example.
- * Identical to v1: keyed by domainId; cardIndex/exampleIndex select within the practice data.
  */
 const FEATURED: Record<number, { cardIndex: number; exampleIndex: number }> = {
-  1: { cardIndex: 0, exampleIndex: 0 },   // London sensors
-  2: { cardIndex: 0, exampleIndex: 1 },   // Accra source analysis
-  3: { cardIndex: 0, exampleIndex: 0 },   // Paris health study
-  4: { cardIndex: 0, exampleIndex: 3 },   // Brussels policy timeline
-  5: { cardIndex: 1, exampleIndex: 0 },   // Mexico City vehicle restriction
-  6: { cardIndex: 0, exampleIndex: 1 },   // Johannesburg fuel transition
-  7: { cardIndex: 0, exampleIndex: 1 },   // Milan tree planting
-  8: { cardIndex: 0, exampleIndex: 3 },   // Bangkok awareness timeline
-  9: { cardIndex: 0, exampleIndex: 1 },   // Warsaw governance staircase
-  10: { cardIndex: 0, exampleIndex: 1 },  // Warsaw funding progression
-  12: { cardIndex: 0, exampleIndex: 3 },  // Bogota open data
+  1: { cardIndex: 0, exampleIndex: 0 },
+  2: { cardIndex: 0, exampleIndex: 1 },
+  3: { cardIndex: 0, exampleIndex: 0 },
+  4: { cardIndex: 0, exampleIndex: 3 },
+  5: { cardIndex: 1, exampleIndex: 0 },
+  6: { cardIndex: 0, exampleIndex: 1 },
+  7: { cardIndex: 0, exampleIndex: 1 },
+  8: { cardIndex: 0, exampleIndex: 3 },
+  9: { cardIndex: 0, exampleIndex: 1 },
+  10: { cardIndex: 0, exampleIndex: 1 },
+  12: { cardIndex: 0, exampleIndex: 3 },
 }
 
-/** Four pillars displayed in order with descriptions — identical to v1. */
+/** Four pillars displayed in order with descriptions. */
 const PILLAR_ORDER: { stage: Stage; label: string; description: string }[] = [
   { stage: 'Seeing', label: 'Seeing', description: 'Building the data infrastructure to see air quality clearly' },
   { stage: 'Understanding', label: 'Understanding', description: 'Turning data into evidence — where pollution comes from and who it hurts' },
@@ -140,59 +159,110 @@ const PILLAR_ORDER: { stage: Stage; label: string; description: string }[] = [
 
 export default function RoadmapV2Page() {
   return (
-    // BC brand pass 1: main background locked explicitly to BC white via inline style. The
-    // brand wrapper in layout.tsx sets [data-bc-brand="v1"] so var(--bc-color-white) resolves.
-    // Resists any shadcn bg-background bridging that might tint the page.
+    // BC brand pass 2 (2026-05-27): `<main>` is now a transparent shell. Each section inside
+    // sets its own full-bleed background via the alternating colour rhythm per brief §4. The
+    // outer white anchor remains to fall back to white between sections if any zero-height
+    // edge cases occur.
     <main
-      className="min-h-screen pb-0"
+      className="min-h-screen"
       style={{ backgroundColor: 'var(--bc-color-white)' }}
     >
-      <div className="mx-auto max-w-6xl px-4 py-12">
+      {/* ─── Hero section ─── BC Blue full-bleed per brief §4 + §5.
+       *  Two-column on desktop: headline+stats+CTA on the left, Wind+Windows composition on
+       *  the right. Stacks on mobile (composition hidden via lg:block — see comment below). */}
+      <section
+        id="hero"
+        className="w-full"
+        style={{ backgroundColor: 'var(--bc-color-blue)' }}
+      >
+        <div className="mx-auto max-w-6xl px-4 py-20 lg:py-24">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            {/* LEFT column — headline + stats + pill CTA. ConceptHero with variant='dark' flips
+             *  type to white-on-blue; the eyebrow gets the cyan underline treatment per §9. */}
+            <div>
+              <ConceptHero
+                variant="dark"
+                eyebrow="The Roadmap"
+                headline="Breathe Cities Air Quality Roadmap"
+                body="14 Breathe Cities serving 77 million people are on the same journey toward clean air: seeing, understanding, acting and enabling. This roadmap organises 12 domains of practice across those four stages, with measurable results."
+                cta={{ label: 'Read the roadmap', href: '#chapter-1' }}
+              >
+                {/* Stats row — four ConceptStat blocks with variant='dark' (white type on blue). */}
+                <div className="flex flex-wrap items-end gap-x-10 gap-y-4 pt-8">
+                  <ConceptStat variant="dark" value="14" label="cities" />
+                  <ConceptStat variant="dark" value="77M" label="people" />
+                  <ConceptStat variant="dark" value="12" label="domains" />
+                  <ConceptStat variant="dark" value="30%" label="reduction target by 2030" />
+                </div>
+              </ConceptHero>
+            </div>
 
-        {/* Hero — ConceptHero (h1 cap lifted to title-large in BC brand pass 1) +
-            four ConceptStat figures (value promoted to BC Blue 900 weight at clamp scale,
-            label muted dark-blue at 60%). gap bumped to gap-x-10 gap-y-4 pt-4 so the
-            big-numbers row reads as deliberate editorial pacing — was gap-6 pt-2. */}
-        <ConceptHero
-          headline="Breathe Cities Air Quality Roadmap"
-          body="14 Breathe Cities serving 77 million people are on the same journey toward clean air: seeing, understanding, acting and enabling. This roadmap organises 12 domains of practice across those four stages, with measurable results."
-        >
-          <div className="flex flex-wrap items-end gap-x-10 gap-y-4 pt-4">
-            <ConceptStat value="14" label="cities" />
-            <ConceptStat value="77M" label="people" />
-            <ConceptStat value="12" label="domains" />
-            <ConceptStat value="30%" label="reduction target by 2030" />
+            {/* RIGHT column — Wind + Windows composition per brief §5 / §7 moment 1.
+             *  Hidden on mobile via `hidden lg:block` to avoid crowding the headline column
+             *  on narrow viewports (per brief §5 — developer's call based on viewport testing).
+             *  Placeholder cyan panel inside the large window; real photography lands later. */}
+            <div className="hidden lg:block w-full">
+              <HeroWindComposition />
+            </div>
           </div>
-        </ConceptHero>
+        </div>
+      </section>
 
-        {/* Stage chapter sections — Tier 1 hierarchy. Each stage is its own section with a
-            chapter-scale heading and generous top margin so the four stages read as distinct
-            chapters rather than as siblings to the cards.
+      {/* ─── Stage chapter sections ─── alternating colour rhythm per brief §4.
+       *  Each section element gets the full-bleed background, with the inner content
+       *  constrained inside the max-w-6xl container. Scroll-anchor IDs (chapter-N) match the
+       *  hero CTA's href so 'Read the roadmap' scrolls to the first chapter. */}
+      {PILLAR_ORDER.map((pillar, pillarIndex) => {
+        const pillarDomains = DOMAINS.filter((d) => d.stage === pillar.stage)
+        const stageStyle = STAGE_DOT_STYLE[pillar.stage]
+        const eyebrowColor = STAGE_EYEBROW_COLOR[pillar.stage]
+        const sectionBg = STAGE_SECTION_BG[pillar.stage]
+        const chapterNum = chapterNumber(pillar.stage)
+        const isActing = pillar.stage === 'Acting'
 
-            Iteration 2: dropped the "01 / 04 ·" stage counter prefix. Stage number prefix is
-            no longer rendered — the dot + chapter title alone carry the hierarchy.
+        return (
+          <section
+            key={pillar.stage}
+            id={`chapter-${pillarIndex + 1}`}
+            className="w-full"
+            style={{ backgroundColor: sectionBg }}
+          >
+            <div className="mx-auto max-w-6xl px-4 py-16 lg:py-24">
+              {/* Chapter eyebrow above the h2 per brief §9 — 13px uppercase tracking-wider
+               *  Söhne Halbfett, BC Blue (chapters 1,2) / stage-coloured (chapters 3,4), with
+               *  2px solid same-colour underline 4px below. Restores the chapter counter that
+               *  pass 1 dropped, at a smaller scale where it doesn't compete with the h2. */}
+              <div className="mb-8 flex items-center gap-4">
+                <p
+                  className="inline-block uppercase tracking-wider"
+                  style={{
+                    fontSize: '13px',
+                    fontWeight: 'var(--bc-font-weight-semibold)',
+                    color: eyebrowColor,
+                    textDecoration: 'underline',
+                    textDecorationThickness: '2px',
+                    textUnderlineOffset: '4px',
+                    textDecorationColor: eyebrowColor,
+                  }}
+                >
+                  Chapter {chapterNum} &middot; {pillar.label}
+                </p>
+              </div>
 
-            mt-32 (was mt-24) gives extra clearance between stage sections so the next stage's
-            chapter heading cannot visually butt against the previous stage's card grid even
-            when cards in the last row have variable heights or trailing Explore links. */}
-        {PILLAR_ORDER.map((pillar) => {
-          const pillarDomains = DOMAINS.filter((d) => d.stage === pillar.stage)
-          const stageStyle = STAGE_DOT_STYLE[pillar.stage]
-
-          return (
-            <section key={pillar.stage} className="mt-32 first:mt-20">
-              {/* Tier 1 — STAGE chapter heading. Inline custom treatment (NOT the shared
-                  ConceptSectionHeader) so this page can carry its own chapter scale without
-                  rippling into other concepts. Stage dot + chapter title + quiet one-line
-                  description. The "01 / 04" stage counter prefix was removed in iteration 2.
-                  BC brand pass 1: h2 size bound to --bc-font-size-title-medium (24→46px clamp),
-                  weight bumped to 900 (Söhne Extrafett), colour to BC dark blue. Dot bumped to
-                  w-4 h-4 to balance the heavier weight. Description pl bumped to pl-7 to align
-                  with the larger dot. Description colour to muted dark-blue at 65%. */}
+              {/* Tier 1 — STAGE chapter heading + optional Acting Wind accent.
+               *  Per brief §7 moment 2: a tangerine Wind swirl sits to the left of the
+               *  Acting heading on desktop (hidden on mobile to avoid cramping). The other
+               *  three stages have no Wind accent — the singular Acting tangerine swirl earns
+               *  attention by being unique. */}
               <header className="mb-10 space-y-3">
                 <div className="flex items-center gap-3">
+                  {isActing && (
+                    <div className="hidden md:block">
+                      <WindAccent />
+                    </div>
+                  )}
                   <span
-                    className="inline-block w-4 h-4 rounded-full flex-shrink-0"
+                    className="inline-block w-5 h-5 rounded-full flex-shrink-0"
                     style={{ backgroundColor: stageStyle.dotColor }}
                     aria-hidden="true"
                   />
@@ -208,96 +278,94 @@ export default function RoadmapV2Page() {
                   </h2>
                 </div>
                 <p
-                  className="max-w-2xl pl-7"
+                  className="max-w-2xl pl-8"
                   style={{
                     fontSize: 'var(--bc-font-size-body)',
-                    color: 'color-mix(in srgb, var(--bc-color-dark-blue) 65%, transparent)',
+                    color: 'color-mix(in srgb, var(--bc-color-dark-blue) 75%, transparent)',
                   }}
                 >
                   {pillar.description}
                 </p>
               </header>
 
-              {/* Domain card grid — each cell renders the Tier 2 domain title above a Tier 3
-                  PracticeCardHero card. items-start on the grid keeps cards top-aligned when
-                  their heights differ (which they will, since chart types vary).
-
-                  Iteration 2 — the per-cell wrapper uses flex-col so the Explore link sits
-                  at a stable position relative to the card, and `min-h` is unset so cards
-                  size to their own content (top-alignment owned by grid items-start). */}
+              {/* Domain card grid — 2-column on desktop, items-start to top-align cards in a row. */}
               <div className="grid gap-x-6 gap-y-10 grid-cols-1 lg:grid-cols-2 items-start">
                 {pillarDomains.filter((d) => FEATURED[d.id]).map((domain) => {
                   const domainCards = PRACTICE_CARDS.filter((p) => p.domainId === domain.id)
                   const featured = FEATURED[domain.id]
                   const card = domainCards[featured?.cardIndex ?? 0]
                   const example = card?.cityExamples[featured?.exampleIndex ?? 0]
+                  const isDark = DARK_CARD_DOMAINS.has(domain.id)
+
+                  // Resolve the city's region for the regional top border (pass 2 §6 final note).
+                  const cityForRegion = example ? getCityBySlug(example.citySlug) : undefined
+                  const cityRegion = cityForRegion?.region
+
+                  // Pill variant: B (blue pill) on light cards, C (white pill) on dark cards.
+                  const pillVariant = isDark ? 'C' : 'B'
 
                   if (!card || !example) {
                     return (
                       <div key={domain.id} className="flex flex-col gap-2">
                         <DomainTitle name={domain.shortName} />
-                        <Link
-                          href={`/visual-concepts/best-practice-roadmap-v1/domain/${domain.slug}`}
-                          className="block"
+                        <div
+                          className="rounded-2xl p-5 border"
+                          style={{
+                            backgroundColor: 'var(--bc-color-white)',
+                            borderColor:
+                              'color-mix(in srgb, var(--bc-color-dark-blue) 8%, transparent)',
+                          }}
                         >
-                          <div className="rounded-2xl border border-border bg-background shadow-sm p-5 hover:bg-muted transition-colors">
-                            <p className="text-xs text-muted-foreground line-clamp-2">
-                              {domain.description}
-                            </p>
-                          </div>
-                        </Link>
+                          <p
+                            className="text-xs line-clamp-2"
+                            style={{
+                              color:
+                                'color-mix(in srgb, var(--bc-color-dark-blue) 65%, transparent)',
+                            }}
+                          >
+                            {domain.description}
+                          </p>
+                        </div>
                       </div>
                     )
                   }
 
                   return (
                     <div key={domain.id} className="flex flex-col gap-3">
-                      {/* Tier 2 — quiet domain title above the card. Sentence-case heading,
-                          no uppercase "domain" eyebrow label (dropped in iteration 2 — the
-                          name alone is sufficient). BC brand pass 1: lifted to title-sub scale
-                          in DomainTitle below. */}
+                      {/* Tier 2 — quiet domain title above the card. */}
                       <DomainTitle name={domain.shortName} />
-                      {/* BC brand pass 1: dark variant for the first featured domain per stage
-                          (the four IDs in DARK_CARD_DOMAINS), light variant otherwise — creates
-                          mixed light/dark card rhythm on the white field per brief §4. */}
+                      {/* Tier 3 — PracticeCardHero with variant + cityRegion props per pass 2. */}
                       <PracticeCardHero
                         practice={card}
                         example={example}
-                        variant={DARK_CARD_DOMAINS.has(domain.id) ? 'dark' : 'light'}
+                        variant={isDark ? 'dark' : 'light'}
+                        cityRegion={cityRegion}
                       />
-                      {/* BC brand pass 1: Explore link promoted to BC Blue at 600 weight.
-                          Hover underline (CSS-only utility) carries the affordance — full
-                          colour-state hover would require a CSS rule rather than inline style,
-                          accepting the default-blue-at-rest treatment per brief §8.7. */}
-                      <Link
-                        href={`/visual-concepts/best-practice-roadmap-v1/domain/${domain.slug}`}
-                        className="inline-flex items-center gap-1 text-sm font-semibold transition-colors hover:underline"
-                        style={{ color: 'var(--bc-color-blue)' }}
-                      >
-                        Explore {domain.shortName} &rarr;
-                      </Link>
+                      {/* Pass 2 §8: per-card Explore CTA promoted from text link to pill. */}
+                      <div className="pt-1">
+                        <BcPill
+                          label={`Explore ${domain.shortName}`}
+                          href={`/visual-concepts/best-practice-roadmap-v1/domain/${domain.slug}`}
+                          variant={pillVariant}
+                          size="small"
+                        />
+                      </div>
                     </div>
                   )
                 })}
               </div>
-            </section>
-          )
-        })}
-      </div>
+            </div>
+          </section>
+        )
+      })}
     </main>
   )
 }
 
 /**
- * DomainTitle — Tier 2 quiet column-header treatment for a domain title. Sentence-case
- * domain name; renders between the stage chapter heading (Tier 1) and the card outcome hero
- * (Tier 3) in the type hierarchy. Iteration 2 dropped the uppercase "domain" eyebrow label;
- * the name alone is sufficient signal.
- *
- * BC brand pass 1 (2026-05-26) — promoted to --bc-font-size-title-sub (18→26px clamp) in
- * full BC dark blue at 500 (Söhne Kräftig). Was text-base font-medium text-foreground/80,
- * which collapsed against the lifted hero stats and card outcome hero at this density.
- * The lift only works because the colour also goes to full-strength dark blue.
+ * DomainTitle — Tier 2 quiet column-header treatment for a domain title. Sentence-case domain
+ * name at title-sub scale in BC dark blue at 500 weight. Pass 1 lifted from text-base; pass 2
+ * keeps this treatment (no further changes per brief §11).
  */
 function DomainTitle({ name }: { name: string }) {
   return (

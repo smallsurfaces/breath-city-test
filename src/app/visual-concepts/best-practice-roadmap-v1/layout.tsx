@@ -49,7 +49,7 @@
  *   ./roadmap-chrome.config (ROADMAP_CHROME), ./_brand (soehne font + tokens.css side-effect).
  */
 
-import { PrototypeHeader, BcHeader, BcFooter } from './_chrome'
+import { PrototypeHeader, BcHeader, BcNewsletter, BcFooter } from './_chrome'
 import { ROADMAP_CHROME } from './roadmap-chrome.config'
 import { soehne } from './_brand'
 import './_brand/tokens.css'
@@ -57,6 +57,18 @@ import './_brand/tokens.css'
 /** Locked catalogue name for the Visual Concept v1 BC AQ Roadmap build — mirrors the home-hub label. */
 const BUILD_NAME = 'Global Site Visual Concept - BC AQ Roadmap V1'
 
+/**
+ * VisualRoadmapV1Layout — wraps all v1 visual-concept routes in the standard chrome stack:
+ *   1. PrototypeHeader (tooling: back-to-hub + comments + visual-concept disclaimer)
+ *   2. BcHeader (BC site nav — solid BC Blue ground, white logo, 7-item live nav)
+ *   3. children (page content)
+ *   4. BcNewsletter (NEW in pass 2 — mint signup strip, split out of BcFooter per brief §10)
+ *   5. BcFooter (BC Blue full-bleed, 4-column with founding-org logos)
+ *
+ * The brand wrapper `<div data-bc-brand="v1" className={soehne.variable}>` scopes the BC
+ * tokens (via tokens.css cascade) and Söhne font to this layout only — UX wireframe routes
+ * stay on the root layout with Geist + global tokens.
+ */
 export default function VisualRoadmapV1Layout({
   children,
 }: {
@@ -66,9 +78,12 @@ export default function VisualRoadmapV1Layout({
     <div data-bc-brand="v1" className={soehne.variable}>
       {/* Tooling bar (back-to-hub + comments) ABOVE the BC-site recreation. */}
       <PrototypeHeader buildName={BUILD_NAME} />
-      {/* BC site nav — the SHARED chrome, configured for visual concept v1 routes. */}
+      {/* BC site nav — the FORKED chrome, configured for visual concept v1 routes. */}
       <BcHeader config={ROADMAP_CHROME} />
       {children}
+      {/* Pass 2 (2026-05-27): mint newsletter signup strip, sits between page content and the
+       * BC Blue footer per brand-pass-2 brief §10. Static — no per-route variation. */}
+      <BcNewsletter />
       <BcFooter />
     </div>
   )

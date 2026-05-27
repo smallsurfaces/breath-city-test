@@ -194,6 +194,43 @@
   --bc-spacing-xxl: 120px;
   --bc-spacing-max: 200px;
 
+  /* ─── Pass 2 additions — newsletter strip + footer bands (2026-05-27) ───
+   * Added per design-director brand-pass-2 brief §14 to support the alternating
+   * section colour rhythm, mint newsletter strip, and BC Blue footer with a
+   * subtle hairline divider. All values are color-mix derivations of existing
+   * BC palette tokens — no raw new colours. Migration-safe under
+   * src/systems/bc-brand/ later. */
+  --bc-color-mint-wash: color-mix(in srgb, var(--bc-color-region-africa) 18%, var(--bc-color-white));
+  /* Soft mint signup-strip background. Wraps the brand mint at 18% over white
+   * for a tinted-mint surface that reads warmer than the cyan-tinted panel
+   * (which is light-blue-based). */
+
+  --bc-color-light-blue-wash: color-mix(in srgb, var(--bc-color-light-blue) 12%, var(--bc-color-white));
+  /* Soft cyan-tinted panel background for stage chapters 2 and 4. Lighter than
+   * the mint wash so chapter alternation reads as quiet rhythm, not as
+   * competing colour blocks. */
+
+  --bc-footer-divider: color-mix(in srgb, var(--bc-color-white) 15%, transparent);
+  /* Hairline divider between footer bands on BC Blue ground. Used between the
+   * 4-column main footer / founding-org strip / copyright foot strip. */
+
+  /* ─── Pass 2 additions — pill button shape tokens (2026-05-27) ───
+   * Explicit tokens for the universal CTA shape so any future radius/padding
+   * tweak is a single-token edit. The pill is the BC site's universal CTA
+   * shape (header, hero, card CTAs, newsletter submit). */
+  --bc-pill-radius:        9999px;
+  --bc-pill-padding-y:     0.75rem;
+  --bc-pill-padding-x:     1.5rem;
+  --bc-pill-padding-y-sm:  0.5rem;
+  --bc-pill-padding-x-sm:  1rem;
+
+  /* ─── Pass 2 additions — hero composition layering (2026-05-27) ───
+   * Default Wind colour and opacity inside the hero composition. Cyan against
+   * BC Blue ground reads as light-on-dark motion behind the static white
+   * Window frames. */
+  --bc-hero-wind-color:   var(--bc-color-light-blue);
+  --bc-hero-wind-opacity: 0.6;
+
   /* ─── Apply Söhne to everything inside this scope ───
    * The `next/font/local` className on the wrapper supplies the actual loaded
    * font-family; this declaration ensures cascade reaches every descendant. */
