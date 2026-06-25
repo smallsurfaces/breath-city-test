@@ -1,69 +1,55 @@
 /**
- * page.tsx — Global Network concept landing page, /ux-concepts/global-toolkit-network.
+ * page.tsx — BC Global Toolkit Network concept landing page, /ux-concepts/global-toolkit-network.
  *
  * Purpose
- *   A merged concept combining the existing AQ Toolkit catalogue with network membership
- *   elements (globe, stats, city stories, "how to implement"). The page shows:
- *     1. ConceptHero — framing the concept as the global network a city joins when it
- *        adopts the toolkit.
- *     2. Network stats + globe — the NetworkGlobe and city/sensor ConceptStat counters
- *        reused directly from the AQ Network v2 concept's snapshot data.
+ *   A merged concept combining the AQ Toolkit catalogue with a PROOF-DIRECTORY globe. The page shows:
+ *     1. ConceptHero — framing the concept as the global network a city joins when it adopts the toolkit.
+ *     2. Proof directory — the section header ("BC cities already on the path"), one aggregate
+ *        city-population stat (labelled Estimate), and the ProofGlobe: city pins in three states
+ *        (proven / newly-joined / member) where clicking a clickable pin opens a panel listing the
+ *        real tools that city runs. This is a FRESH, fully-isolated globe + data set owned by this
+ *        concept — it does NOT import aq-network-v2's NetworkGlobe, programme snapshot, or city data.
  *     3. Components catalogue — the COMPONENT_ENTRIES grid from the Toolkit concept.
  *     4. Guidance catalogue — the GUIDANCE_ENTRIES grid from the Toolkit concept.
  *     5. How to implement — placeholder section for implementation guides.
- *     6. City stories — three placeholder story cards showing cities using the tools.
  *
- *   All existing toolkit and aq-network-v2 source files are UNTOUCHED — this page imports
- *   from them read-only. Chrome is provided by layout.tsx (PrototypeHeader + BcHeader/BcFooter).
+ *   The toolkit catalogue is imported read-only (shared content, per the section brief). The
+ *   aq-network-v2 globe + snapshot are NO LONGER imported — the membership/sensor globe section
+ *   was replaced by the proof directory (the reframe: membership story → directory of proven tool
+ *   deployments). Chrome is provided by layout.tsx (PrototypeHeader + BcHeader/BcFooter).
+ *
+ * Honesty (the project's backbone)
+ *   The aggregate stat is CITY POPULATION across the plotted cities, labelled an estimate — never
+ *   implied "people reached/served". See proof-cities.ts + CityPanel.tsx for the full honesty model.
  *
  * Key exports: default page component, metadata.
  * External dependencies: next (Metadata), @/components/concept (ConceptHero, ConceptSectionHeader,
- *   ConceptStat, ConceptCard), NetworkGlobe, getProgrammeSnapshot,
- *   COMPONENT_ENTRIES / GUIDANCE_ENTRIES, CatalogueCard.
+ *   ConceptStat, ConceptCard), ./_components/ProofGlobe, ./_data/proof-cities,
+ *   COMPONENT_ENTRIES / GUIDANCE_ENTRIES + CatalogueCard (toolkit concept, read-only).
  *
  * Route: /ux-concepts/global-toolkit-network
  */
 
 import type { Metadata } from 'next'
 import { ConceptHero, ConceptSectionHeader, ConceptStat, ConceptCard } from '@/components/concept'
-import { NetworkGlobe } from '../aq-network-v2/_components/NetworkGlobe'
-import { getProgrammeSnapshot } from '../aq-network-v2/_data/sensor-snapshots/programme'
+import { ProofGlobe } from './_components/ProofGlobe'
+import { PROOF_CITIES, getTotalCityPopulation } from './_data/proof-cities'
 import { COMPONENT_ENTRIES, GUIDANCE_ENTRIES } from '../toolkit/_components/toolkit-catalogue.config'
 import { CatalogueCard } from '../toolkit/_components/CatalogueCard'
 
 export const metadata: Metadata = {
-  title: 'Global Network (concept)',
+  title: 'BC Global Toolkit Network (concept)',
 }
 
 /**
- * Placeholder city story data for the City Stories section.
- * These are illustrative examples — content to be replaced with real city contributions.
+ * The BC Global Toolkit Network landing page. Server component — the catalogue entries are static
+ * config and the proof-directory cities are static data; the ProofGlobe is the only client island.
+ * The aggregate city-population stat is computed once here on the server from PROOF_CITIES.
  */
-const CITY_STORIES = [
-  {
-    city: 'Accra, Ghana',
-    tool: 'Real-time monitoring',
-    excerpt: 'First city-wide AQ sensor network in West Africa.',
-  },
-  {
-    city: 'London, UK',
-    tool: 'AQI dashboard',
-    excerpt: 'Integrated BC data tools into open data portal.',
-  },
-  {
-    city: 'Bogotá, Colombia',
-    tool: 'Health alerts',
-    excerpt: 'Threshold alerts reaching 1.2M residents.',
-  },
-] as const
-
-/**
- * The Global Network landing page. Server component — all data is bundled JSON (programme
- * snapshot) or static config (catalogue entries). No client-side fetching.
- */
-export default function GlobalNetworkPage() {
-  // Programme snapshot is bundled JSON — read synchronously on the server.
-  const programme = getProgrammeSnapshot()
+export default function GlobalToolkitNetworkPage() {
+  // Aggregate CITY POPULATION across every plotted city — the section's "why it matters" stat.
+  // City population, NEVER implied reach (honesty rule 1); shown with an Estimate pill below.
+  const totalCityPopulation = getTotalCityPopulation(PROOF_CITIES)
 
   return (
     <main className="min-h-screen bg-background">
@@ -75,28 +61,29 @@ export default function GlobalNetworkPage() {
           body="A catalogue of the digital components and guidance a city needs to understand, communicate, and act on its air quality — and how cities around the world are already using them."
         />
 
-        {/* SECTION 1 — NETWORK STATS + GLOBE. City and sensor counters above the interactive
-            globe, reusing the programme snapshot and NetworkGlobe from AQ Network v2.
-            ConceptStat blocks are wrapped in ConceptCard to match the counter card pattern
-            used elsewhere in the AQ Network concept. */}
-        <section className="mt-10">
-          {/* Counter row — cities and sensors side by side, each in a card. */}
-          <div className="mb-6 flex gap-4">
-            <ConceptCard className="flex-1">
+        {/* SECTION 1 — PROOF DIRECTORY. Locked section header, one aggregate city-population stat,
+            then the proof-directory globe. Every pin is a real BC member city; clicking a clickable
+            pin opens a panel of the real tools that city runs. Replaces the old membership/sensor
+            globe (NetworkGlobe + counters) — the reframe from membership story to proven deployments. */}
+        <ConceptSectionHeader
+          heading="BC cities already on the path"
+          body="Breathe Cities members putting these tools to work on the way to the 2030 target. Every pin is a real city — open one to see what it deployed."
+          className="mt-12"
+        />
+        <section className="mt-6">
+          {/* Aggregate stat — combined city population across the plotted cities, labelled Estimate.
+              Single stat, carded (wrap ConceptStat in ConceptCard per the concept-layer pattern). */}
+          <div className="mb-6 max-w-xs">
+            <ConceptCard>
               <ConceptStat
-                value={String(programme.counts.cities)}
-                label="member cities"
-              />
-            </ConceptCard>
-            <ConceptCard className="flex-1">
-              <ConceptStat
-                value={programme.counts.sensors.toLocaleString()}
-                label="sensors in the network"
+                value={`~${totalCityPopulation.toLocaleString()}`}
+                label="combined city population across these cities"
+                estimate
               />
             </ConceptCard>
           </div>
-          {/* Interactive 3D globe — sourced from the programme snapshot. */}
-          <NetworkGlobe snapshot={programme} />
+          {/* The proof-directory globe — fresh, fully-isolated component + data for this concept. */}
+          <ProofGlobe cities={PROOF_CITIES} />
         </section>
 
         {/* SECTION 2 — COMPONENTS CATALOGUE. Live digital surfaces a city embeds — imported
@@ -142,29 +129,6 @@ export default function GlobalNetworkPage() {
             <p className="text-sm text-muted-foreground">
               Implementation guides — coming soon
             </p>
-          </div>
-        </section>
-
-        {/* SECTION 5 — CITY STORIES. Three placeholder story cards showing cities using
-            the toolkit tools. Layout: 3-column grid on large screens, stacked on mobile.
-            Each card uses ConceptCard for visual consistency with the rest of the concept layer. */}
-        <ConceptSectionHeader
-          heading="City stories"
-          body="How cities around the world are using these tools."
-          className="mt-16"
-        />
-        <section className="mt-6">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            {CITY_STORIES.map((story) => (
-              <ConceptCard key={story.city} className="flex flex-col gap-1.5">
-                {/* City name — prominent */}
-                <p className="text-sm font-semibold text-foreground">{story.city}</p>
-                {/* Tool name — muted, small */}
-                <p className="text-xs text-muted-foreground">{story.tool}</p>
-                {/* One-line excerpt */}
-                <p className="mt-1 text-sm text-foreground">{story.excerpt}</p>
-              </ConceptCard>
-            ))}
           </div>
         </section>
 
