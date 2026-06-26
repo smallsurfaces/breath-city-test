@@ -5,18 +5,22 @@
  *   A merged concept combining the AQ Toolkit catalogue with a PROOF-DIRECTORY globe. The page shows:
  *     1. ConceptHero — framing the concept as the global network a city joins when it adopts the toolkit.
  *     2. Proof directory — the section header ("BC cities already on the path"), one aggregate
- *        city-population stat (labelled Estimate), and the ProofGlobe: city pins in three states
- *        (proven / newly-joined / member) where clicking a clickable pin opens a panel listing the
- *        real tools that city runs. This is a FRESH, fully-isolated globe + data set owned by this
- *        concept — it does NOT import aq-network-v2's NetworkGlobe, programme snapshot, or city data.
- *     3. Components catalogue — the COMPONENT_ENTRIES grid from the Toolkit concept.
- *     4. Guidance catalogue — the GUIDANCE_ENTRIES grid from the Toolkit concept.
+ *        city-population stat (labelled Estimate), and the ProofGlobe: UNIFORM "BC member" pins
+ *        (v2 — no proven/newly-joined/member tier states) where clicking ANY pin opens a panel
+ *        listing the tools that city runs. Honesty rides the link state inside the panel (real
+ *        links for CDMX/Paris/Accra, illustrative-and-link-off elsewhere), not a city ranking.
+ *        This is a FRESH, fully-isolated globe + data set owned by this concept — it does NOT
+ *        import aq-network-v2's NetworkGlobe, programme snapshot, or city data.
+ *     3. Components catalogue — the COMPONENT_ENTRIES grid, rendered via the concept-local
+ *        ProofCatalogueCard (threads the "Used by N BC cities" proof line).
+ *     4. Guidance catalogue — the GUIDANCE_ENTRIES grid, same proof-card treatment.
  *     5. How to implement — placeholder section for implementation guides.
  *
- *   The toolkit catalogue is imported read-only (shared content, per the section brief). The
- *   aq-network-v2 globe + snapshot are NO LONGER imported — the membership/sensor globe section
- *   was replaced by the proof directory (the reframe: membership story → directory of proven tool
- *   deployments). Chrome is provided by layout.tsx (PrototypeHeader + BcHeader/BcFooter).
+ *   The toolkit catalogue ENTRIES + sketch preview are imported read-only (shared content, per the
+ *   section brief), but the CARD is a concept-local fork (ProofCatalogueCard) so the "Used by N BC
+ *   cities" proof line never mutates the locked toolkit card (isolation, spec §5). The aq-network-v2
+ *   globe + snapshot are NOT imported — the membership/sensor globe section was replaced by the
+ *   proof directory. Chrome is provided by layout.tsx (PrototypeHeader + BcHeader/BcFooter).
  *
  * Honesty (the project's backbone)
  *   The aggregate stat is CITY POPULATION across the plotted cities, labelled an estimate — never
@@ -33,9 +37,10 @@
 import type { Metadata } from 'next'
 import { ConceptHero, ConceptSectionHeader, ConceptStat, ConceptCard } from '@/components/concept'
 import { ProofGlobe } from './_components/ProofGlobe'
-import { PROOF_CITIES, getTotalCityPopulation } from './_data/proof-cities'
+import { PROOF_CITIES, getTotalCityPopulation, getToolUsageCounts } from './_data/proof-cities'
 import { COMPONENT_ENTRIES, GUIDANCE_ENTRIES } from '../toolkit/_components/toolkit-catalogue.config'
-import { CatalogueCard } from '../toolkit/_components/CatalogueCard'
+import { ProofCatalogueCard } from './_components/ProofCatalogueCard'
+import { CATALOGUE_PROOF_KEYWORDS } from './_components/catalogue-proof.config'
 
 export const metadata: Metadata = {
   title: 'BC Global Toolkit Network (concept)',
@@ -50,6 +55,11 @@ export default function GlobalToolkitNetworkPage() {
   // Aggregate CITY POPULATION across every plotted city — the section's "why it matters" stat.
   // City population, NEVER implied reach (honesty rule 1); shown with an Estimate pill below.
   const totalCityPopulation = getTotalCityPopulation(PROOF_CITIES)
+
+  // "Used by N BC cities" adoption counts per catalogue capability (proof-directory §5 second pass).
+  // Computed once on the server from the same PROOF_CITIES the globe uses, so the card claim and the
+  // globe stay consistent. Adoption breadth only — population never goes on the cards (number-homes).
+  const toolUsageCounts = getToolUsageCounts(PROOF_CITIES, CATALOGUE_PROOF_KEYWORDS)
 
   return (
     <main className="min-h-screen bg-background">
@@ -67,7 +77,7 @@ export default function GlobalToolkitNetworkPage() {
             globe (NetworkGlobe + counters) — the reframe from membership story to proven deployments. */}
         <ConceptSectionHeader
           heading="BC cities already on the path"
-          body="Breathe Cities members putting these tools to work on the way to the 2030 target. Every pin is a real city — open one to see what it deployed."
+          body="Breathe Cities members putting these tools to work toward the 2030 target. Every pin is a real city — open any one to see what it's running."
           className="mt-12"
         />
         <section className="mt-6">
@@ -96,7 +106,11 @@ export default function GlobalToolkitNetworkPage() {
         <section className="mt-6">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {COMPONENT_ENTRIES.map((entry) => (
-              <CatalogueCard key={entry.id} entry={entry} />
+              <ProofCatalogueCard
+                key={entry.id}
+                entry={entry}
+                cityCount={toolUsageCounts[entry.id] ?? 0}
+              />
             ))}
           </div>
         </section>
@@ -111,7 +125,11 @@ export default function GlobalToolkitNetworkPage() {
         <section className="mt-6">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {GUIDANCE_ENTRIES.map((entry) => (
-              <CatalogueCard key={entry.id} entry={entry} />
+              <ProofCatalogueCard
+                key={entry.id}
+                entry={entry}
+                cityCount={toolUsageCounts[entry.id] ?? 0}
+              />
             ))}
           </div>
         </section>

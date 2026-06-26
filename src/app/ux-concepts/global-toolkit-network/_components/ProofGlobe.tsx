@@ -1,44 +1,46 @@
 /**
- * ProofGlobe.tsx — the proof-directory globe for /ux-concepts/global-toolkit-network.
+ * ProofGlobe.tsx — the proof-directory globe for /ux-concepts/global-toolkit-network (v2).
  *
  * Purpose / what the user sees + does
  *   A 3D Mapbox GLOBE (light basemap) where every pin is a Breathe Cities member CITY (not a
- *   sensor). Pins read in three colour STATES:
- *     - PROVEN (CDMX, Paris, Accra) — clickable → a side panel listing the real tools that city
- *       runs, each with an honest link treatment.
- *     - NEWLY-JOINED (Addis Ababa, Madrid) — clickable → an honest empty-state panel (no rows).
- *     - MEMBER (other BC cities) — neutral presence dots, NOT clickable (no dead-end clicks).
- *   Pointer cursor + hover tooltip appear ONLY on clickable pins. Drag to spin, scroll/pinch to
- *   zoom, slow idle auto-rotate near globe zoom, and a "Reset to globe" button. NO timeline
- *   scrubber (the membership/growth story was dropped in the reframe).
+ *   sensor). v2 model: pins are UNIFORM — one pin treatment, one legend entry ("BC members"), NO
+ *   proven / newly-joined / member tier colours and NO league table. EVERY plotted city is
+ *   clickable → opens the city panel listing the tools that city runs. Pointer cursor + hover
+ *   tooltip appear on every pin, so the click invitation is honest and consistent.
  *
- *   Clicking a clickable pin opens a panel — a right-side panel on desktop, a bottom sheet on
- *   mobile — while the globe stays visible behind it.
+ *   Honesty rides the LINK STATE inside the panel, not a pin ranking: CDMX/Paris/Accra show real
+ *   tools with live links; every other city shows illustrative tools (tagged, links off). See
+ *   proof-cities.ts + CityPanel.tsx for the honesty model.
+ *
+ *   Drag to spin, scroll/pinch to zoom, slow idle auto-rotate near globe zoom, and a "Reset to
+ *   globe" button. NO timeline scrubber (the membership/growth story was dropped in the reframe).
+ *   Clicking a pin opens a panel — a right-side panel on desktop, a half-sheet on mobile — while
+ *   the globe stays visible behind it.
+ *
+ * Default framing — ATLANTIC-CENTRED (v2 re-centre)
+ *   v1 centred on the Americas, so only CDMX read clearly while Paris + Accra sat on the limb. v2
+ *   centres on the Atlantic (~-25°W) with a gentle pitch so CDMX (LatAm), Paris (EU) and Accra
+ *   (Africa) — the three real-data cities — all read on load.
  *
  * Isolation (full-isolation rule — section brief §"New build, full isolation")
  *   This is a FRESH component owned by this concept. It does NOT import aq-network-v2's
  *   NetworkGlobe, programme snapshot, or city data. It replicates the proven globe TECH pattern
- *   (light basemap, GeoJSON circle layers, ResizeObserver resize, time-based rAF auto-rotate,
+ *   (light basemap, GeoJSON circle layer, ResizeObserver resize, time-based rAF auto-rotate,
  *   flyTo reset) from that reference, but reads only this concept's own PROOF_CITIES data.
  *
  * RENDER PATTERN (proven — do not change to absolute inset-0)
  *   The map div is a FLOW CHILD `w-full h-full` inside an explicit-height `relative` wrapper, plus
  *   a load-time + ResizeObserver resize (the robust fix for the mid-page blank-canvas bug). City
- *   pins are a GL GeoJSON source + circle layers (NOT DOM markers).
- *
- * Honesty
- *   Pins encode directory state only. Population is city population, labelled an estimate. Tool
- *   links fire only on real URLs; absent URLs render a disabled "Link coming soon". See
- *   proof-cities.ts for the full honesty model.
+ *   pins are a GL GeoJSON source + a single circle layer (NOT DOM markers).
  *
  * Key exports: ProofGlobe (named)
  * External dependencies: react, mapbox-gl, lucide-react, ./CityPanel, ../_data/proof-cities.
  *
  * Side effects (all cleaned up on unmount):
  *   - Creates a Mapbox GL globe instance in the container ref; sets light fog on style load.
- *   - Adds a GeoJSON source + three circle layers (proven / newly-joined / member) keyed by state.
+ *   - Adds a GeoJSON source + ONE circle layer (uniform "BC members" pins).
  *   - Runs ONE rAF loop doing time-based idle auto-rotate (pauses on interaction, resumes on idle).
- *   - Attaches hover + click handlers on the two CLICKABLE layers only (pointer + panel-open).
+ *   - Attaches hover + click handlers on the pin layer (pointer + panel-open) — every pin clickable.
  *   - Reads process.env.NEXT_PUBLIC_MAPBOX_TOKEN (client-exposed token).
  */
 
@@ -60,11 +62,15 @@ const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN
 /** Light basemap (matches the page chrome); pins deepened for contrast on light. */
 const GLOBE_STYLE = 'mapbox://styles/mapbox/light-v11'
 
-/** The global "see the whole network" framing the Reset button (and initial load) flies to. */
+/**
+ * The default + reset framing. ATLANTIC-CENTRED (~-25°W) with a gentle pitch and a slight northward
+ * lift, so the three real-data cities — CDMX (LatAm, west), Paris (EU, north-east), Accra (Africa,
+ * east of the prime meridian) — all read on load rather than one sitting on the limb (the v1 bug).
+ */
 const GLOBE_VIEW = {
-  center: [10, 25] as [number, number],
-  zoom: 1.4,
-  pitch: 0,
+  center: [-25, 28] as [number, number],
+  zoom: 1.55,
+  pitch: 12,
   bearing: 0,
 }
 
@@ -84,28 +90,21 @@ const AUTO_ROTATE_PERIOD_MS = 400_000
 const AUTO_ROTATE_RESUME_MS = 3500
 
 /*
- * Pin colours. Mapbox paint properties cannot read CSS custom properties, so literal hex is the
- * documented exception here (the same exception the reference globe's tier colours use). Each
- * value is the RESOLVED hex of a real BC palette token (from dist/css/tokens.css) — kept in sync
- * with the token, never an off-palette invention:
- *   - proven        = --bc-color-dark-blue  (#003574) — the brand ink "go look here" pin.
- *   - newly-joined  = --bc-color-amber-warm (#e8a000) — the warm "fresh / estimate-adjacent" hue
- *                     (pure --bc-color-yellow #e8f000 is illegible as a small pin on a light map).
- *   - member        = --bc-color-steel      (#b2c2d5) — the muted presence dot (= --bc-semantic-muted).
+ * Pin colour. Mapbox paint properties cannot read CSS custom properties, so literal hex is the
+ * documented exception here (the same exception the reference globe's tier colours use). The value
+ * is the RESOLVED hex of a real BC palette token (from dist/css/tokens.css) — kept in sync with the
+ * token, never an off-palette invention. v2 uses ONE uniform pin (no tier states):
+ *   - BC member pin = --bc-color-dark-blue (#003574) — the brand ink "open me" pin.
  */
-/** Proven cities — brand dark-blue ink (= --bc-color-dark-blue). */
-const COLOR_PROVEN = '#003574'
-/** Newly-joined cities — warm amber (= --bc-color-amber-warm), the "fresh, profile coming" hue. */
-const COLOR_NEWLY_JOINED = '#e8a000'
-/** Member presence dots — muted steel (= --bc-color-steel / --bc-semantic-muted). */
-const COLOR_MEMBER = '#b2c2d5'
+/** Uniform BC-member pin — brand dark-blue ink (= --bc-color-dark-blue). */
+const COLOR_PIN = '#003574'
 /** White contrast ring so pins stay legible over land + ocean. */
 const PIN_RING = '#ffffff'
 
 /**
- * Build the city GeoJSON for the circle layers. Each feature carries `state` (drives which layer
- * paints it + colour), `slug` (so the click handler can resolve the city), and `clickable` (so the
- * hover handler only sets the pointer cursor on proven / newly-joined pins).
+ * Build the city GeoJSON for the circle layer. Each feature carries `slug` (so the click handler
+ * resolves the city), `name` and `country` (for the hover tooltip). v2: no `state`/`clickable`
+ * property — every city is a uniform, clickable BC member.
  */
 function citiesToGeoJSON(cities: ProofCity[]): GeoJSON.FeatureCollection<GeoJSON.Point> {
   return {
@@ -116,8 +115,6 @@ function citiesToGeoJSON(cities: ProofCity[]): GeoJSON.FeatureCollection<GeoJSON
         slug: c.slug,
         name: c.name,
         country: c.country,
-        state: c.state,
-        clickable: c.state !== 'member',
       },
       geometry: { type: 'Point', coordinates: c.coordinates },
     })),
@@ -132,8 +129,8 @@ type ProofGlobeProps = {
 
 /**
  * The proof-directory globe section. Holds the open-city state (drives the panel), the Mapbox
- * globe with three state-keyed circle layers, the idle auto-rotate + reset behaviour, and the
- * hover/click affordances on the clickable layers.
+ * globe with ONE uniform pin layer, the idle auto-rotate + reset behaviour, and the hover/click
+ * affordances (every pin clickable).
  */
 export function ProofGlobe({ cities }: ProofGlobeProps): ReactElement {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -174,13 +171,14 @@ export function ProofGlobe({ cities }: ProofGlobeProps): ReactElement {
 
     mapboxgl.accessToken = MAPBOX_TOKEN
 
-    // Side effect: create the Mapbox GLOBE on the light basemap at the global framing.
+    // Side effect: create the Mapbox GLOBE on the light basemap at the Atlantic framing.
     const map = new mapboxgl.Map({
       container: containerRef.current,
       style: GLOBE_STYLE,
       projection: { name: 'globe' },
       center: GLOBE_VIEW.center,
       zoom: GLOBE_VIEW.zoom,
+      pitch: GLOBE_VIEW.pitch,
       attributionControl: false,
     })
     map.addControl(new mapboxgl.AttributionControl({ compact: true }), 'bottom-right')
@@ -278,7 +276,7 @@ export function ProofGlobe({ cities }: ProofGlobeProps): ReactElement {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // ── Add the city source + three state-keyed circle layers once the map is ready. ──
+  // ── Add the city source + the single uniform pin layer once the map is ready. ──
   useEffect(() => {
     const map = mapRef.current
     if (!mapReady || map === null) {
@@ -291,54 +289,22 @@ export function ProofGlobe({ cities }: ProofGlobeProps): ReactElement {
     // Side effect: GeoJSON source with every plotted city.
     map.addSource('cities', { type: 'geojson', data: cityGeoJSON })
 
-    // Member layer (drawn first → beneath the clickable pins). Neutral slate presence dots — no
-    // ring emphasis, smaller, so the proven/newly-joined pins read as the foreground story.
+    // ONE uniform pin layer — brand ink, ringed. Every city reads the same (no tier states).
     map.addLayer({
-      id: 'cities-member',
+      id: 'cities-pin',
       type: 'circle',
       source: 'cities',
-      filter: ['==', ['get', 'state'], 'member'],
       paint: {
-        'circle-color': COLOR_MEMBER,
-        'circle-radius': ['interpolate', ['linear'], ['zoom'], 1, 3, 5, 6],
-        'circle-opacity': 0.7,
-        'circle-stroke-width': 0.4,
-        'circle-stroke-color': PIN_RING,
-      },
-    })
-
-    // Newly-joined layer (above member). BC yellow, ringed — clickable, fresh.
-    map.addLayer({
-      id: 'cities-newly-joined',
-      type: 'circle',
-      source: 'cities',
-      filter: ['==', ['get', 'state'], 'newly-joined'],
-      paint: {
-        'circle-color': COLOR_NEWLY_JOINED,
-        'circle-radius': ['interpolate', ['linear'], ['zoom'], 1, 5, 5, 9.5],
-        'circle-opacity': 0.92,
-        'circle-stroke-width': 1,
-        'circle-stroke-color': PIN_RING,
-      },
-    })
-
-    // Proven layer (drawn on top). Brand ink, ringed, largest — the "go look here" pins.
-    map.addLayer({
-      id: 'cities-proven',
-      type: 'circle',
-      source: 'cities',
-      filter: ['==', ['get', 'state'], 'proven'],
-      paint: {
-        'circle-color': COLOR_PROVEN,
-        'circle-radius': ['interpolate', ['linear'], ['zoom'], 1, 6, 5, 11],
+        'circle-color': COLOR_PIN,
+        'circle-radius': ['interpolate', ['linear'], ['zoom'], 1, 5.5, 5, 10],
         'circle-opacity': 0.95,
         'circle-stroke-width': 1.2,
         'circle-stroke-color': PIN_RING,
       },
     })
 
-    // Side effect: hover tooltip + pointer cursor on the CLICKABLE layers only (proven +
-    // newly-joined). Member dots get no pointer and no click handler → never a dead-end click.
+    // Side effect: hover tooltip + pointer cursor on the pin layer. Every pin is clickable, so the
+    // affordance is uniform — no dead-end clicks, no tier signalling.
     const popup = new mapboxgl.Popup({
       closeButton: false,
       closeOnClick: false,
@@ -358,7 +324,7 @@ export function ProofGlobe({ cities }: ProofGlobeProps): ReactElement {
           `<div style="font-family: system-ui; font-size: 12px; line-height: 1.35;">
              <strong>${String(p.name ?? '')}</strong><br/>
              <span style="color:#64748b;">${String(p.country ?? '')}</span><br/>
-             <span style="color:#64748b;">${p.state === 'proven' ? 'See the tools' : 'Newly joined'}</span>
+             <span style="color:#64748b;">Open to see its tools</span>
            </div>`,
         )
         .addTo(map)
@@ -367,7 +333,7 @@ export function ProofGlobe({ cities }: ProofGlobeProps): ReactElement {
       map.getCanvas().style.cursor = ''
       popup.remove()
     }
-    // Click-through: open the panel for the clicked city. Member dots have no handler bound.
+    // Click-through: open the panel for the clicked city.
     const onClick = (e: mapboxgl.MapLayerMouseEvent): void => {
       const f = e.features?.[0]
       if (f === undefined) {
@@ -380,12 +346,9 @@ export function ProofGlobe({ cities }: ProofGlobeProps): ReactElement {
         setOpenCity(city)
       }
     }
-    map.on('mouseenter', 'cities-proven', onEnter)
-    map.on('mouseenter', 'cities-newly-joined', onEnter)
-    map.on('mouseleave', 'cities-proven', onLeave)
-    map.on('mouseleave', 'cities-newly-joined', onLeave)
-    map.on('click', 'cities-proven', onClick)
-    map.on('click', 'cities-newly-joined', onClick)
+    map.on('mouseenter', 'cities-pin', onEnter)
+    map.on('mouseleave', 'cities-pin', onLeave)
+    map.on('click', 'cities-pin', onClick)
     // The hover/click handlers live for the map's lifetime; map.remove() in the init cleanup drops them.
   }, [mapReady, cityGeoJSON, cityBySlug])
 
@@ -448,37 +411,16 @@ export function ProofGlobe({ cities }: ProofGlobeProps): ReactElement {
             Reset to globe
           </button>
 
-          {/* Legend (bottom-left, over the canvas) — directory state, not air quality. */}
-          <div className="absolute bottom-3 left-3 z-20 rounded-xl border border-white/15 bg-black/50 px-3 py-2.5 text-white backdrop-blur">
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-white/70">
-              City status
-            </p>
-            <ul className="mt-1.5 space-y-1.5">
-              <li className="flex items-center gap-2 text-xs">
-                <span
-                  aria-hidden="true"
-                  className="inline-block h-3 w-3 rounded-full border border-white"
-                  style={{ backgroundColor: COLOR_PROVEN }}
-                />
-                Proven — see the tools
-              </li>
-              <li className="flex items-center gap-2 text-xs">
-                <span
-                  aria-hidden="true"
-                  className="inline-block h-3 w-3 rounded-full border border-white"
-                  style={{ backgroundColor: COLOR_NEWLY_JOINED }}
-                />
-                Newly joined
-              </li>
-              <li className="flex items-center gap-2 text-xs">
-                <span
-                  aria-hidden="true"
-                  className="inline-block h-3 w-3 rounded-full border border-white"
-                  style={{ backgroundColor: COLOR_MEMBER }}
-                />
-                Member city
-              </li>
-            </ul>
+          {/* Legend (bottom-left, over the canvas) — a SINGLE uniform entry (v2: no tier states). */}
+          <div className="absolute bottom-3 left-3 z-20 rounded-xl border border-white/15 bg-black/50 px-3 py-2 text-white backdrop-blur">
+            <div className="flex items-center gap-2 text-xs">
+              <span
+                aria-hidden="true"
+                className="inline-block h-3 w-3 rounded-full border border-white"
+                style={{ backgroundColor: COLOR_PIN }}
+              />
+              BC members — open any city
+            </div>
           </div>
         </div>
       </div>
@@ -486,11 +428,11 @@ export function ProofGlobe({ cities }: ProofGlobeProps): ReactElement {
       {/* Honest framing line. */}
       <p className="mt-3 text-xs text-muted-foreground">
         <Globe2 className="mr-1 inline h-3 w-3 align-[-1px]" aria-hidden="true" />
-        Every pin is a Breathe Cities member city. Open a proven or newly-joined city to see what it
-        deployed. City populations shown in panels are estimates.
+        Every pin is a Breathe Cities member city — open any one to see the tools it runs. City
+        populations shown in panels are estimates.
       </p>
 
-      {/* City panel — slides in over the globe when a clickable pin is opened. */}
+      {/* City panel — slides in over the globe when a pin is opened. */}
       <CityPanel city={openCity} onClose={closePanel} />
     </div>
   )
