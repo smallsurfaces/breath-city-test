@@ -35,9 +35,10 @@
  *   pins are a GL GeoJSON source + TWO circle layers: a pulse halo beneath, and the pin on top.
  *
  * PULSATING PINS (so BC members "look special")
- *   Beneath the pin layer sits a `cities-pulse` halo layer (same brand-ink colour, blurred edge)
- *   whose radius + opacity are animated by a sine on the rAF tick — every member city pulses like a
- *   beacon. The technique AND tuning are copied from aq-network-v2's NetworkGlobe glow layer (NOT
+ *   Beneath the pin layer sits a `cities-pulse` halo layer (a DISTINCT brighter blue glow, blurred
+ *   edge) whose radius + opacity are animated by a sine on the rAF tick — every member city pulses
+ *   like a beacon, the brighter blue glow breathing behind the darker pin. The colour, technique AND
+ *   tuning are copied from aq-network-v2's NetworkGlobe glow layer (NOT
  *   imported — that concept is locked and fully isolated); the pulse spread/timing/easing now match
  *   the reference EXACTLY (Jack reverted the earlier wider-pulse steer).
  *
@@ -136,10 +137,12 @@ const PULSE_OPACITY_MAX = 0.32
 /** Uniform BC-member pin — brand dark-blue ink (= --bc-color-dark-blue). */
 const COLOR_PIN = '#003574'
 /**
- * Pulse-halo colour. Matches COLOR_PIN (same brand dark-blue ink) so the pulsating beacon reads as
- * an extension of the pin, not a second colour. Same literal-hex Mapbox-paint exception as COLOR_PIN.
+ * Pulse-halo colour. A DISTINCT brighter blue glow (blue-500) that sits behind the darker pin so the
+ * pulsating beacon reads as a separate breathing glow, not as the pin ink. COPIED EXACTLY from
+ * aq-network-v2's NetworkGlobe glow layer (COLOR_GLOW = '#3b82f6') — the whole point of the reference
+ * is a brighter blue glow behind the markers. Same literal-hex Mapbox-paint exception as COLOR_PIN.
  */
-const COLOR_PULSE = '#003574'
+const COLOR_PULSE = '#3b82f6'
 /** White contrast ring so pins stay legible over land + ocean. */
 const PIN_RING = '#ffffff'
 
@@ -346,7 +349,7 @@ export function ProofGlobe({ cities }: ProofGlobeProps): ReactElement {
     // Side effect: GeoJSON source with every plotted city.
     map.addSource('cities', { type: 'geojson', data: cityGeoJSON })
 
-    // Pulse layer (added FIRST → sits BENEATH the pin). A soft brand-ink halo per member city; its
+    // Pulse layer (added FIRST → sits BENEATH the pin). A soft, distinct blue glow per member city;
     // radius + opacity are animated by the rAF tick to pulse (the "BC members look special" beacon).
     // Initial radius/opacity are mid-range so it looks right before the first pulse frame lands. The
     // blurred edge makes it read as a halo, not a hard disc behind the pin.
