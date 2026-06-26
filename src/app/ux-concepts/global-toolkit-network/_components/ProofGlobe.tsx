@@ -78,7 +78,7 @@ const AUTO_ROTATE_MAX_ZOOM = 2.2
  * Milliseconds for one full 360° rotation. TIME-BASED (not per-frame) so a full turn takes the
  * same wall-clock time on any refresh rate — each rAF tick advances by (deltaMs / PERIOD) * 360.
  */
-const AUTO_ROTATE_PERIOD_MS = 40_000
+const AUTO_ROTATE_PERIOD_MS = 400_000
 
 /** Idle delay (ms) after the last user interaction before auto-rotate resumes. */
 const AUTO_ROTATE_RESUME_MS = 3500
