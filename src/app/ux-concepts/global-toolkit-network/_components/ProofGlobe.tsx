@@ -17,10 +17,11 @@
  *   Clicking a pin opens a panel — a right-side panel on desktop, a half-sheet on mobile — while
  *   the globe stays visible behind it.
  *
- * Default framing — ATLANTIC-CENTRED (v2 re-centre)
- *   v1 centred on the Americas, so only CDMX read clearly while Paris + Accra sat on the limb. v2
- *   centres on the Atlantic (~-25°W) with a gentle pitch so CDMX (LatAm), Paris (EU) and Accra
- *   (Africa) — the three real-data cities — all read on load.
+ * Default framing — COPIED from the membership concept's globe
+ *   The default + reset framing (center, zoom, container height) is copied verbatim from
+ *   aq-network-v2's NetworkGlobe so the proof globe loads at the SAME visual size as the original
+ *   membership concept's globe (Jack reverted the earlier immersive bigger-globe steer). The 3×
+ *   faster auto-rotate is NOT copied — that steer is retained (see AUTO_ROTATE_PERIOD_MS).
  *
  * Isolation (full-isolation rule — section brief §"New build, full isolation")
  *   This is a FRESH component owned by this concept. It does NOT import aq-network-v2's
@@ -36,9 +37,9 @@
  * PULSATING PINS (so BC members "look special")
  *   Beneath the pin layer sits a `cities-pulse` halo layer (same brand-ink colour, blurred edge)
  *   whose radius + opacity are animated by a sine on the rAF tick — every member city pulses like a
- *   beacon. The technique is replicated from aq-network-v2's NetworkGlobe glow layer (NOT imported —
- *   that concept is locked and fully isolated); the pulse spread here is deliberately WIDER than the
- *   reference (Jack steer: bigger pulse reach).
+ *   beacon. The technique AND tuning are copied from aq-network-v2's NetworkGlobe glow layer (NOT
+ *   imported — that concept is locked and fully isolated); the pulse spread/timing/easing now match
+ *   the reference EXACTLY (Jack reverted the earlier wider-pulse steer).
  *
  * Key exports: ProofGlobe (named)
  * External dependencies: react, mapbox-gl, lucide-react, ./CityPanel, ../_data/proof-cities.
@@ -72,27 +73,21 @@ const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN
 const GLOBE_STYLE = 'mapbox://styles/mapbox/light-v11'
 
 /**
- * The default + reset framing. IMMERSIVE BIG-GLOBE, AFRICA-CENTRED (v3 framing).
+ * The default + reset framing. COPIED EXACTLY from aq-network-v2's NetworkGlobe `GLOBE_VIEW`
+ * (Jack reverted the earlier "bigger globe" steer — the proof globe now loads at the SAME visual
+ * size and framing as the original membership concept's globe).
  *
- * Jack's steer: the default view should be a large, immersive sphere that FILLS the frame — Africa
- * fills the centre, Europe reads across the top, the Middle East / South Asia run down the right.
- * The centre is pulled to ~18°E / ~10°N (over Africa) and the zoom raised from 1.55 → 2.1 so the
- * sphere reads big rather than as a small clipped globe in a short box.
- *
- * On the three real-data cities: Paris (2.35°E) and Accra (-0.19°E) both sit clearly inside this
- * frame (Europe top, equatorial west-Africa centre). CDMX (-99°E) is ~117° of longitude west of the
- * centre — at this immersive zoom it cannot stay on the left limb without shrinking the globe, so
- * per Jack's explicit steer we favour the bigger globe and let CDMX come in on the idle rotation.
- *
- * `padding` lifts the optical centre of the sphere down slightly within the (now taller) container so
- * the full globe is vertically centred with no bottom clip at 390px — see also the container height.
+ * Reverts the prior immersive `center [18,10] / zoom 2.1` back to the membership globe's
+ * `center [10, 25] / zoom 1.4 / pitch 0 / bearing 0`. NetworkGlobe uses no camera padding, so the
+ * `padding` field + the `setPadding` call are dropped here too — a faithful 1:1 of the reference
+ * framing. Applied to BOTH the default load and the "Reset to globe" reset state (resetToGlobe
+ * flies to this same object).
  */
 const GLOBE_VIEW = {
-  center: [18, 10] as [number, number],
-  zoom: 2.1,
+  center: [10, 25] as [number, number],
+  zoom: 1.4,
   pitch: 0,
   bearing: 0,
-  padding: { top: 0, bottom: 0, left: 0, right: 0 },
 }
 
 /**
@@ -105,8 +100,9 @@ const AUTO_ROTATE_MAX_ZOOM = 2.2
  * Milliseconds for one full 360° rotation. TIME-BASED (not per-frame) so a full turn takes the
  * same wall-clock time on any refresh rate — each rAF tick advances by (deltaMs / PERIOD) * 360.
  *
- * Tuned ~3× faster than the prior 400_000 (Jack steer) so the spin reads lively at the 2.1 default
- * — at ~133s/turn it's still slow enough not to be disorienting near globe zoom.
+ * Tuned ~3× faster than the prior 400_000 (Jack steer) so the spin reads lively — at ~133s/turn
+ * it's still slow enough not to be disorienting near globe zoom. KEPT at this value when the framing
+ * reverted to the membership globe's zoom 1.4 (the 3× faster spin steer is explicitly retained).
  */
 const AUTO_ROTATE_PERIOD_MS = 133_000
 
@@ -119,15 +115,16 @@ const AUTO_ROTATE_RESUME_MS = 3500
  * (PULSE_OPACITY_MIN→MAX) so every member city pulses like a beacon. It animates on the SAME rAF
  * tick as the rotation (one loop, not two) via setPaintProperty — no per-frame feature rebuild.
  *
- * Technique replicated (not imported) from aq-network-v2's NetworkGlobe glow layer, per the
- * full-isolation rule. Spread is DELIBERATELY WIDER than that reference's 7→12 (Jack steer: bigger
- * pulse reach) — here the halo expands to a generous 9→26.
+ * Technique AND tuning COPIED (not imported) from aq-network-v2's NetworkGlobe glow layer, per the
+ * full-isolation rule. Jack reverted the earlier "wider pulse" steer — the spread, timing and
+ * easing now match the reference EXACTLY: period 1800ms, radius 7→12, opacity 0.1→0.32 (same sine
+ * easing on the shared rAF tick). Reverts the prior wider 9→26 / 0.08→0.3 halo.
  */
 const PULSE_PERIOD_MS = 1800
-const PULSE_RADIUS_MIN = 9
-const PULSE_RADIUS_MAX = 26
-const PULSE_OPACITY_MIN = 0.08
-const PULSE_OPACITY_MAX = 0.3
+const PULSE_RADIUS_MIN = 7
+const PULSE_RADIUS_MAX = 12
+const PULSE_OPACITY_MIN = 0.1
+const PULSE_OPACITY_MAX = 0.32
 
 /*
  * Pin colour. Mapbox paint properties cannot read CSS custom properties, so literal hex is the
@@ -226,11 +223,6 @@ export function ProofGlobe({ cities }: ProofGlobeProps): ReactElement {
       pitch: GLOBE_VIEW.pitch,
       attributionControl: false,
     })
-    // Side effect: set the camera padding directly (the Map constructor's MapOptions does not accept
-    // `padding`; CameraOptions does). Keeps the immersive sphere vertically centred in the taller
-    // container with no bottom clip at 390px — paired with the container height below. The reset
-    // (`flyTo({ ...GLOBE_VIEW })`) re-applies the same padding via CameraOptions.
-    map.setPadding(GLOBE_VIEW.padding)
     map.addControl(new mapboxgl.AttributionControl({ compact: true }), 'bottom-right')
     map.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'bottom-right')
     mapRef.current = map
@@ -371,14 +363,16 @@ export function ProofGlobe({ cities }: ProofGlobeProps): ReactElement {
     })
 
     // ONE uniform pin layer — brand ink, ringed. Every city reads the same (no tier states).
-    // Radius bumped up (was 5.5/10) so pins read bigger + more present at the 2.1 default zoom.
+    // Radius COPIED from aq-network-v2's NetworkGlobe member/reference dot (the emphasised "BC
+    // member" treatment there): zoom 1 → 5.4, zoom 5 → 12. Reverts the prior enlarged 8/14 back to
+    // the original membership-concept pin size.
     map.addLayer({
       id: 'cities-pin',
       type: 'circle',
       source: 'cities',
       paint: {
         'circle-color': COLOR_PIN,
-        'circle-radius': ['interpolate', ['linear'], ['zoom'], 1, 8, 5, 14],
+        'circle-radius': ['interpolate', ['linear'], ['zoom'], 1, 5.4, 5, 12],
         'circle-opacity': 0.95,
         'circle-stroke-width': 1.2,
         'circle-stroke-color': PIN_RING,
@@ -471,10 +465,11 @@ export function ProofGlobe({ cities }: ProofGlobeProps): ReactElement {
           PROVEN RENDER PATTERN: explicit-height `relative` wrapper with the map div as a FLOW
           CHILD `w-full h-full` (NOT absolute inset-0 — that pattern blanked on this hub).
 
-          Height raised 520 → 600 (and to 640 from sm:) so the immersive big-globe framing (zoom
-          2.1, Africa-centred) reads vertically centred with no bottom clip at 390px.
+          Height COPIED from aq-network-v2's NetworkGlobe (h-[520px]) — reverts the enlarged
+          600/640px container so the proof globe loads at the same on-screen size as the membership
+          concept's globe at the copied zoom 1.4 framing.
         */}
-        <div className="relative h-[600px] w-full sm:h-[640px]">
+        <div className="relative h-[520px] w-full">
           {/* Loading veil until the globe canvas paints. */}
           {!mapReady && (
             <div className="absolute inset-0 z-10 flex items-center justify-center bg-muted">
