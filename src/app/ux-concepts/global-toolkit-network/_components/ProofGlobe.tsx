@@ -63,15 +63,27 @@ const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN
 const GLOBE_STYLE = 'mapbox://styles/mapbox/light-v11'
 
 /**
- * The default + reset framing. ATLANTIC-CENTRED (~-25°W) with a gentle pitch and a slight northward
- * lift, so the three real-data cities — CDMX (LatAm, west), Paris (EU, north-east), Accra (Africa,
- * east of the prime meridian) — all read on load rather than one sitting on the limb (the v1 bug).
+ * The default + reset framing. IMMERSIVE BIG-GLOBE, AFRICA-CENTRED (v3 framing).
+ *
+ * Jack's steer: the default view should be a large, immersive sphere that FILLS the frame — Africa
+ * fills the centre, Europe reads across the top, the Middle East / South Asia run down the right.
+ * The centre is pulled to ~18°E / ~10°N (over Africa) and the zoom raised from 1.55 → 2.1 so the
+ * sphere reads big rather than as a small clipped globe in a short box.
+ *
+ * On the three real-data cities: Paris (2.35°E) and Accra (-0.19°E) both sit clearly inside this
+ * frame (Europe top, equatorial west-Africa centre). CDMX (-99°E) is ~117° of longitude west of the
+ * centre — at this immersive zoom it cannot stay on the left limb without shrinking the globe, so
+ * per Jack's explicit steer we favour the bigger globe and let CDMX come in on the idle rotation.
+ *
+ * `padding` lifts the optical centre of the sphere down slightly within the (now taller) container so
+ * the full globe is vertically centred with no bottom clip at 390px — see also the container height.
  */
 const GLOBE_VIEW = {
-  center: [-25, 28] as [number, number],
-  zoom: 1.55,
-  pitch: 12,
+  center: [18, 10] as [number, number],
+  zoom: 2.1,
+  pitch: 0,
   bearing: 0,
+  padding: { top: 0, bottom: 0, left: 0, right: 0 },
 }
 
 /**
@@ -181,6 +193,11 @@ export function ProofGlobe({ cities }: ProofGlobeProps): ReactElement {
       pitch: GLOBE_VIEW.pitch,
       attributionControl: false,
     })
+    // Side effect: set the camera padding directly (the Map constructor's MapOptions does not accept
+    // `padding`; CameraOptions does). Keeps the immersive sphere vertically centred in the taller
+    // container with no bottom clip at 390px — paired with the container height below. The reset
+    // (`flyTo({ ...GLOBE_VIEW })`) re-applies the same padding via CameraOptions.
+    map.setPadding(GLOBE_VIEW.padding)
     map.addControl(new mapboxgl.AttributionControl({ compact: true }), 'bottom-right')
     map.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'bottom-right')
     mapRef.current = map
@@ -388,8 +405,11 @@ export function ProofGlobe({ cities }: ProofGlobeProps): ReactElement {
         {/*
           PROVEN RENDER PATTERN: explicit-height `relative` wrapper with the map div as a FLOW
           CHILD `w-full h-full` (NOT absolute inset-0 — that pattern blanked on this hub).
+
+          Height raised 520 → 600 (and to 640 from sm:) so the immersive big-globe framing (zoom
+          2.1, Africa-centred) reads vertically centred with no bottom clip at 390px.
         */}
-        <div className="relative h-[520px] w-full">
+        <div className="relative h-[600px] w-full sm:h-[640px]">
           {/* Loading veil until the globe canvas paints. */}
           {!mapReady && (
             <div className="absolute inset-0 z-10 flex items-center justify-center bg-muted">
