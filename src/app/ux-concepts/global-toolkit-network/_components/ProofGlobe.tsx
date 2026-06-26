@@ -31,15 +31,24 @@
  * RENDER PATTERN (proven — do not change to absolute inset-0)
  *   The map div is a FLOW CHILD `w-full h-full` inside an explicit-height `relative` wrapper, plus
  *   a load-time + ResizeObserver resize (the robust fix for the mid-page blank-canvas bug). City
- *   pins are a GL GeoJSON source + a single circle layer (NOT DOM markers).
+ *   pins are a GL GeoJSON source + TWO circle layers: a pulse halo beneath, and the pin on top.
+ *
+ * PULSATING PINS (so BC members "look special")
+ *   Beneath the pin layer sits a `cities-pulse` halo layer (same brand-ink colour, blurred edge)
+ *   whose radius + opacity are animated by a sine on the rAF tick — every member city pulses like a
+ *   beacon. The technique is replicated from aq-network-v2's NetworkGlobe glow layer (NOT imported —
+ *   that concept is locked and fully isolated); the pulse spread here is deliberately WIDER than the
+ *   reference (Jack steer: bigger pulse reach).
  *
  * Key exports: ProofGlobe (named)
  * External dependencies: react, mapbox-gl, lucide-react, ./CityPanel, ../_data/proof-cities.
  *
  * Side effects (all cleaned up on unmount):
  *   - Creates a Mapbox GL globe instance in the container ref; sets light fog on style load.
- *   - Adds a GeoJSON source + ONE circle layer (uniform "BC members" pins).
- *   - Runs ONE rAF loop doing time-based idle auto-rotate (pauses on interaction, resumes on idle).
+ *   - Adds a GeoJSON source + TWO circle layers (a pulse halo beneath, the uniform "BC members" pin
+ *     on top).
+ *   - Runs ONE rAF loop doing two things: time-based idle auto-rotate (pauses on interaction,
+ *     resumes on idle) AND the pin pulse (sine-driven radius/opacity on the pulse layer's paint).
  *   - Attaches hover + click handlers on the pin layer (pointer + panel-open) — every pin clickable.
  *   - Reads process.env.NEXT_PUBLIC_MAPBOX_TOKEN (client-exposed token).
  */
@@ -95,11 +104,30 @@ const AUTO_ROTATE_MAX_ZOOM = 2.2
 /**
  * Milliseconds for one full 360° rotation. TIME-BASED (not per-frame) so a full turn takes the
  * same wall-clock time on any refresh rate — each rAF tick advances by (deltaMs / PERIOD) * 360.
+ *
+ * Tuned ~3× faster than the prior 400_000 (Jack steer) so the spin reads lively at the 2.1 default
+ * — at ~133s/turn it's still slow enough not to be disorienting near globe zoom.
  */
-const AUTO_ROTATE_PERIOD_MS = 400_000
+const AUTO_ROTATE_PERIOD_MS = 133_000
 
 /** Idle delay (ms) after the last user interaction before auto-rotate resumes. */
 const AUTO_ROTATE_RESUME_MS = 3500
+
+/**
+ * Pulsating-pin tuning. A soft pulse circle sits BENEATH the BC-member pin layer and breathes via
+ * a sine over PULSE_PERIOD_MS, oscillating its radius (PULSE_RADIUS_MIN→MAX) and opacity
+ * (PULSE_OPACITY_MIN→MAX) so every member city pulses like a beacon. It animates on the SAME rAF
+ * tick as the rotation (one loop, not two) via setPaintProperty — no per-frame feature rebuild.
+ *
+ * Technique replicated (not imported) from aq-network-v2's NetworkGlobe glow layer, per the
+ * full-isolation rule. Spread is DELIBERATELY WIDER than that reference's 7→12 (Jack steer: bigger
+ * pulse reach) — here the halo expands to a generous 9→26.
+ */
+const PULSE_PERIOD_MS = 1800
+const PULSE_RADIUS_MIN = 9
+const PULSE_RADIUS_MAX = 26
+const PULSE_OPACITY_MIN = 0.08
+const PULSE_OPACITY_MAX = 0.3
 
 /*
  * Pin colour. Mapbox paint properties cannot read CSS custom properties, so literal hex is the
@@ -110,6 +138,11 @@ const AUTO_ROTATE_RESUME_MS = 3500
  */
 /** Uniform BC-member pin — brand dark-blue ink (= --bc-color-dark-blue). */
 const COLOR_PIN = '#003574'
+/**
+ * Pulse-halo colour. Matches COLOR_PIN (same brand dark-blue ink) so the pulsating beacon reads as
+ * an extension of the pin, not a second colour. Same literal-hex Mapbox-paint exception as COLOR_PIN.
+ */
+const COLOR_PULSE = '#003574'
 /** White contrast ring so pins stay legible over land + ocean. */
 const PIN_RING = '#ffffff'
 
@@ -246,9 +279,12 @@ export function ProofGlobe({ cities }: ProofGlobeProps): ReactElement {
     map.on('wheel', pauseRotation)
     map.on('dragstart', pauseRotation)
 
-    // Side effect: ONE rAF loop driving the time-based idle spin. Rotation only runs while idle +
-    // near globe zoom; when paused we reset the delta baseline so resume doesn't apply an
-    // accumulated jump.
+    // Side effect: ONE rAF loop driving BOTH the time-based idle spin AND the pin pulse.
+    //   - Rotation only runs while idle + near globe zoom; when paused we reset the delta baseline
+    //     so resume doesn't apply an accumulated jump.
+    //   - The pin pulse runs EVERY frame (independent of the rotation pause) — it's the "BC members
+    //     look special" beacon — by oscillating the pulse layer's paint props with a sine of the
+    //     clock. Technique replicated from aq-network-v2's glow layer (not imported; full isolation).
     const tick = (ts: number): void => {
       const m = mapRef.current
       if (m !== null) {
@@ -256,6 +292,7 @@ export function ProofGlobe({ cities }: ProofGlobeProps): ReactElement {
         const deltaMs = last === null ? 0 : ts - last
         lastFrameTsRef.current = ts
 
+        // ── Time-based rotation ──
         if (!interactingRef.current && m.getZoom() <= AUTO_ROTATE_MAX_ZOOM) {
           if (deltaMs > 0) {
             const center = m.getCenter()
@@ -268,13 +305,24 @@ export function ProofGlobe({ cities }: ProofGlobeProps): ReactElement {
           // is the single-frame gap, not the whole paused span — prevents a sudden spin jump.
           lastFrameTsRef.current = ts
         }
+
+        // ── Pin pulse (always, while the pulse layer exists) ──
+        if (m.getLayer('cities-pulse') !== undefined) {
+          // sine in [0,1] over the pulse period → breathe radius + opacity together.
+          const phase = (Math.sin((ts / PULSE_PERIOD_MS) * Math.PI * 2) + 1) / 2
+          const radius = PULSE_RADIUS_MIN + (PULSE_RADIUS_MAX - PULSE_RADIUS_MIN) * phase
+          const opacity = PULSE_OPACITY_MIN + (PULSE_OPACITY_MAX - PULSE_OPACITY_MIN) * phase
+          // Side effect: animate paint props on the existing layer (no per-frame feature rebuild).
+          m.setPaintProperty('cities-pulse', 'circle-radius', radius)
+          m.setPaintProperty('cities-pulse', 'circle-opacity', opacity)
+        }
       }
       rotateFrameRef.current = requestAnimationFrame(tick)
     }
     rotateFrameRef.current = requestAnimationFrame(tick)
 
-    // Side effect cleanup: stop the rAF, clear resume timer, reset the frame baseline, disconnect
-    // the observer, remove the map.
+    // Side effect cleanup: stop the rAF (rotation + pin pulse), clear resume timer, reset the frame
+    // baseline, disconnect the observer, remove the map. No leaked loops on unmount.
     return () => {
       if (rotateFrameRef.current !== null) {
         cancelAnimationFrame(rotateFrameRef.current)
@@ -306,14 +354,31 @@ export function ProofGlobe({ cities }: ProofGlobeProps): ReactElement {
     // Side effect: GeoJSON source with every plotted city.
     map.addSource('cities', { type: 'geojson', data: cityGeoJSON })
 
+    // Pulse layer (added FIRST → sits BENEATH the pin). A soft brand-ink halo per member city; its
+    // radius + opacity are animated by the rAF tick to pulse (the "BC members look special" beacon).
+    // Initial radius/opacity are mid-range so it looks right before the first pulse frame lands. The
+    // blurred edge makes it read as a halo, not a hard disc behind the pin.
+    map.addLayer({
+      id: 'cities-pulse',
+      type: 'circle',
+      source: 'cities',
+      paint: {
+        'circle-color': COLOR_PULSE,
+        'circle-radius': (PULSE_RADIUS_MIN + PULSE_RADIUS_MAX) / 2,
+        'circle-opacity': (PULSE_OPACITY_MIN + PULSE_OPACITY_MAX) / 2,
+        'circle-blur': 1, // soft edge so it reads as a pulse halo, not a hard disc behind the pin
+      },
+    })
+
     // ONE uniform pin layer — brand ink, ringed. Every city reads the same (no tier states).
+    // Radius bumped up (was 5.5/10) so pins read bigger + more present at the 2.1 default zoom.
     map.addLayer({
       id: 'cities-pin',
       type: 'circle',
       source: 'cities',
       paint: {
         'circle-color': COLOR_PIN,
-        'circle-radius': ['interpolate', ['linear'], ['zoom'], 1, 5.5, 5, 10],
+        'circle-radius': ['interpolate', ['linear'], ['zoom'], 1, 8, 5, 14],
         'circle-opacity': 0.95,
         'circle-stroke-width': 1.2,
         'circle-stroke-color': PIN_RING,
