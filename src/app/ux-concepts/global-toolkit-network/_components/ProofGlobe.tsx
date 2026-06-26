@@ -37,10 +37,11 @@
  * PULSATING PINS (so BC members "look special")
  *   Beneath the pin layer sits a `cities-pulse` halo layer (a DISTINCT brighter blue glow, blurred
  *   edge) whose radius + opacity are animated by a sine on the rAF tick — every member city pulses
- *   like a beacon, the brighter blue glow breathing behind the darker pin. The colour, technique AND
- *   tuning are copied from aq-network-v2's NetworkGlobe glow layer (NOT
- *   imported — that concept is locked and fully isolated); the pulse spread/timing/easing now match
- *   the reference EXACTLY (Jack reverted the earlier wider-pulse steer).
+ *   like a beacon, the brighter blue glow breathing behind the darker pin. The colour + technique are
+ *   copied from aq-network-v2's NetworkGlobe glow layer (NOT imported — that concept is locked and
+ *   fully isolated). The TUNING is NOT value-parity with the reference: it is tuned up for this
+ *   globe's default zoom 1.4, where the reference's copied values render to almost nothing behind the
+ *   pin (see PULSE_* consts for the why). Goal here is an obviously throbbing beacon at globe view.
  *
  * Key exports: ProofGlobe (named)
  * External dependencies: react, mapbox-gl, lucide-react, ./CityPanel, ../_data/proof-cities.
@@ -116,16 +117,24 @@ const AUTO_ROTATE_RESUME_MS = 3500
  * (PULSE_OPACITY_MIN→MAX) so every member city pulses like a beacon. It animates on the SAME rAF
  * tick as the rotation (one loop, not two) via setPaintProperty — no per-frame feature rebuild.
  *
- * Technique AND tuning COPIED (not imported) from aq-network-v2's NetworkGlobe glow layer, per the
- * full-isolation rule. Jack reverted the earlier "wider pulse" steer — the spread, timing and
- * easing now match the reference EXACTLY: period 1800ms, radius 7→12, opacity 0.1→0.32 (same sine
- * easing on the shared rAF tick). Reverts the prior wider 9→26 / 0.08→0.3 halo.
+ * NOT value-parity with the reference. The technique is copied (not imported) from aq-network-v2's
+ * NetworkGlobe glow layer per the full-isolation rule, but the TUNING is tuned UP for this concept's
+ * default framing. WHY: the reference's copied values (radius 7→12, opacity 0.1→0.32, blur 1) render
+ * to almost nothing HERE because the membership map is viewed zoomed-IN, whereas this globe loads at
+ * zoom 1.4 where the pin is only ~6px. At that zoom a 7→12px halo at ≤0.32 opacity extends barely
+ * 1–6px past the solid 0.95-opacity pin and is blurred away — effectively invisible behind the pin.
+ *
+ * So the pulse is given real REACH beyond the pin and more PRESENCE: radius 10→24 (halo clearly
+ * breathes well past the ~6px pin), opacity 0.25→0.6 (actually paints against the light basemap),
+ * blur 0.6 (softer than a disc but not so diffuse it disappears). Bright blue #3b82f6 + period 1800ms
+ * kept. Goal is "obviously pulsing at the default globe view" — a visibly throbbing beacon, not
+ * parity with a reference that renders to nothing at this zoom. Needs Jack's eyes to confirm.
  */
 const PULSE_PERIOD_MS = 1800
-const PULSE_RADIUS_MIN = 7
-const PULSE_RADIUS_MAX = 12
-const PULSE_OPACITY_MIN = 0.1
-const PULSE_OPACITY_MAX = 0.32
+const PULSE_RADIUS_MIN = 10
+const PULSE_RADIUS_MAX = 24
+const PULSE_OPACITY_MIN = 0.25
+const PULSE_OPACITY_MAX = 0.6
 
 /*
  * Pin colour. Mapbox paint properties cannot read CSS custom properties, so literal hex is the
@@ -349,10 +358,13 @@ export function ProofGlobe({ cities }: ProofGlobeProps): ReactElement {
     // Side effect: GeoJSON source with every plotted city.
     map.addSource('cities', { type: 'geojson', data: cityGeoJSON })
 
-    // Pulse layer (added FIRST → sits BENEATH the pin). A soft, distinct blue glow per member city;
-    // radius + opacity are animated by the rAF tick to pulse (the "BC members look special" beacon).
-    // Initial radius/opacity are mid-range so it looks right before the first pulse frame lands. The
-    // blurred edge makes it read as a halo, not a hard disc behind the pin.
+    // Pulse layer (added FIRST → sits BENEATH the pin — confirmed: this addLayer precedes the
+    // cities-pin addLayer below, and Mapbox draws in add-order). A soft, distinct blue glow per
+    // member city; radius + opacity are animated EVERY rAF frame to pulse (the "BC members look
+    // special" beacon) — the tick's setPaintProperty('cities-pulse', …) branch is gated only by the
+    // layer existing, and runs on the same loop that drives the spin. Initial radius/opacity are
+    // mid-range so it looks right before the first pulse frame lands. Tuned for reach + presence at
+    // zoom 1.4 (see PULSE_* consts) so the halo clearly breathes past the ~6px pin, not behind it.
     map.addLayer({
       id: 'cities-pulse',
       type: 'circle',
@@ -361,7 +373,9 @@ export function ProofGlobe({ cities }: ProofGlobeProps): ReactElement {
         'circle-color': COLOR_PULSE,
         'circle-radius': (PULSE_RADIUS_MIN + PULSE_RADIUS_MAX) / 2,
         'circle-opacity': (PULSE_OPACITY_MIN + PULSE_OPACITY_MAX) / 2,
-        'circle-blur': 1, // soft edge so it reads as a pulse halo, not a hard disc behind the pin
+        // 0.6 (not the reference's 1): softer than a hard disc but tight enough that the bigger,
+        // brighter halo still PAINTS at zoom 1.4 — blur 1 diffused the copied small halo to nothing.
+        'circle-blur': 0.6,
       },
     })
 
