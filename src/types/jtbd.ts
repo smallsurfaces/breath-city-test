@@ -9,6 +9,8 @@ export interface City {
   id: string;
   name: string;
   tier: 1 | 2 | 3;
+  /** Primary owner of the city's resident-facing live AQ data (channel-to-city axis; independent of tier). */
+  dataOwnership: "city" | "regional" | "national" | "third-party" | "mixed";
   continent: string;
   globalSouth: boolean;
   bcMember: boolean;
