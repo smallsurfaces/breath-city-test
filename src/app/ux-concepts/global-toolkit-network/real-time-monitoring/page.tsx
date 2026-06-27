@@ -91,7 +91,7 @@ export default function GlobalNetworkRtMonitoringPage() {
         <section className="space-y-4">
           <ConceptSectionHeader
             heading="BC cities offering something like this"
-            body="These cities each run their OWN real-time monitoring for their residents — their own networks and tools, not the BC component. Where we hold a proven-live link, it points at that city's own tool."
+            body="These cities each run their OWN real-time monitoring for their residents: their own networks and tools, not the BC component. Where we hold a proven-live link, it points at that city's own tool."
           />
           <ConceptCard>
             <ul className="divide-y divide-border">

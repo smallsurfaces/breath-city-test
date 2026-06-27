@@ -1,6 +1,9 @@
 /**
  * NetworkStateOverlay.tsx — Calm inline state notes for empty / empty-but-stale / error.
  *
+ * Provenance: part of the BC Global Toolkit Network concept (/ux-concepts/global-toolkit-network/real-time-monitoring).
+ *   Concept-local copy of toolkit/real-time-monitoring/_components/NetworkStateOverlay.tsx: copied, original (a locked concept) untouched.
+ *
  * Purpose:
  *   Renders the non-marker feedback for three of the four network states. Component copy of
  *   direction-2-live-data/NetworkStateOverlay.tsx, changed only in positioning: `position: absolute`

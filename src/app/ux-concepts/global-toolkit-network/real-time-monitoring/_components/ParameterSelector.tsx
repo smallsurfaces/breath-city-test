@@ -1,6 +1,9 @@
 /**
  * ParameterSelector.tsx — Segmented parameter control with NO2 disabled, for the RT monitoring map.
  *
+ * Provenance: part of the BC Global Toolkit Network concept (/ux-concepts/global-toolkit-network/real-time-monitoring).
+ *   Concept-local copy of toolkit/real-time-monitoring/_components/ParameterSelector.tsx: copied, original (a locked concept) untouched.
+ *
  * Purpose:
  *   Lists the three parameters (PM2.5, PM10, NO2). Exactly one active. PM2.5 and PM10 are
  *   selectable; NO2 is present-but-DISABLED ("coming soon") because its AQI standard/averaging-

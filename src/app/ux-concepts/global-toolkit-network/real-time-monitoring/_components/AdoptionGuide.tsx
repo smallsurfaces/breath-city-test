@@ -1,6 +1,9 @@
 /**
  * AdoptionGuide.tsx — the mock "Bring it to your city" adoption block for the component page.
  *
+ * Provenance: part of the BC Global Toolkit Network concept (/ux-concepts/global-toolkit-network/real-time-monitoring).
+ *   Concept-local copy of toolkit/real-time-monitoring/_components/AdoptionGuide.tsx: copied, original (a locked concept) untouched.
+ *
  * Purpose:
  *   Frames the real-time monitoring map as an ADOPTABLE open-source component: a short, illustrative
  *   set of steps a city or partner would follow to stand it up, plus a mock embed/code snippet. The

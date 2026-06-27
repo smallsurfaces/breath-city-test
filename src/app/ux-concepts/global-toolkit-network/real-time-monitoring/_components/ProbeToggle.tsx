@@ -1,6 +1,9 @@
 /**
  * ProbeToggle.tsx — Centre-top "Check air quality" probe toggle with a 0-fresh disabled state.
  *
+ * Provenance: part of the BC Global Toolkit Network concept (/ux-concepts/global-toolkit-network/real-time-monitoring).
+ *   Concept-local copy of toolkit/real-time-monitoring/_components/ProbeToggle.tsx: copied, original (a locked concept) untouched.
+ *
  * Purpose:
  *   The control that turns on the triangulation probe — surfaced, clearly labelled, as
  *   "Check air quality". Component copy of direction-2-live-data/ProbeToggle.tsx, changed only in

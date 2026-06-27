@@ -1,6 +1,9 @@
 /**
  * ProbeResultPopup.tsx — Nearest-live-sensors probe result (sensor LIST, no averaged value).
  *
+ * Provenance: part of the BC Global Toolkit Network concept (/ux-concepts/global-toolkit-network/real-time-monitoring).
+ *   Concept-local copy of toolkit/real-time-monitoring/_components/ProbeResultPopup.tsx: copied, original (a locked concept) untouched.
+ *
  * Purpose:
  *   The popup shown after a "Check air quality" probe click resolves. This is the honesty rework of
  *   the increment-1 popup: it NO LONGER computes or shows a single averaged number. Triangulating a

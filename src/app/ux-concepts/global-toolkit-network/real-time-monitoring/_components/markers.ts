@@ -1,6 +1,9 @@
 /**
  * markers.ts — Live-data station marker construction (three-channel encoding), light basemap.
  *
+ * Provenance: part of the BC Global Toolkit Network concept (/ux-concepts/global-toolkit-network/real-time-monitoring).
+ *   Concept-local copy of toolkit/real-time-monitoring/_components/markers.ts: copied, original (a locked concept) untouched.
+ *
  * Purpose:
  *   Builds the detached DOM/SVG element for a single Station marker on the real-time monitoring
  *   map. Component copy of direction-2-live-data/markers.ts carrying the LIGHT-BASEMAP re-tune

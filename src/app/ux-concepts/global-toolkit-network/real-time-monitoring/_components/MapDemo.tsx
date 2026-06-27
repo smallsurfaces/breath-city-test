@@ -1,6 +1,9 @@
 /**
  * MapDemo.tsx — the contained live-demo block for the real-time monitoring component page.
  *
+ * Provenance: part of the BC Global Toolkit Network concept (/ux-concepts/global-toolkit-network/real-time-monitoring).
+ *   Concept-local copy of toolkit/real-time-monitoring/_components/MapDemo.tsx: copied, original (a locked concept) untouched.
+ *
  * Purpose:
  *   The interactive map demo, extracted from the old full-viewport page so it can be EMBEDDED as a
  *   bordered block inside the restructured component page (intro → this demo → adoption steps).

@@ -1,6 +1,9 @@
 /**
  * HeaderReadout.tsx — "N of M sensors live" honesty readout for the real-time monitoring map.
  *
+ * Provenance: part of the BC Global Toolkit Network concept (/ux-concepts/global-toolkit-network/real-time-monitoring).
+ *   Concept-local copy of toolkit/real-time-monitoring/_components/HeaderReadout.tsx: copied, original (a locked concept) untouched.
+ *
  * Purpose:
  *   The single honesty indicator at the top-left of the map. Reflects, for the active city +
  *   parameter, how much of the data is actually current. Component copy of

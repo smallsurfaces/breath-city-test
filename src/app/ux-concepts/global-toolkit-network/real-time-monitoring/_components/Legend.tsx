@@ -1,6 +1,9 @@
 /**
  * Legend.tsx — Parameter-aware AQI legend for the real-time monitoring map (light basemap).
  *
+ * Provenance: part of the BC Global Toolkit Network concept (/ux-concepts/global-toolkit-network/real-time-monitoring).
+ *   Concept-local copy of toolkit/real-time-monitoring/_components/Legend.tsx: copied, original (a locked concept) untouched.
+ *
  * Purpose:
  *   The map legend. Title, bands, ranges, and units ALL switch with the active parameter — there is
  *   no fixed PM2.5 table. Component copy of direction-2-live-data/Legend.tsx with two changes:

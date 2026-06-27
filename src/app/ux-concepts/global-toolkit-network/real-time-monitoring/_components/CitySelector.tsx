@@ -1,6 +1,9 @@
 /**
  * CitySelector.tsx — Segmented city control for the real-time monitoring map.
  *
+ * Provenance: part of the BC Global Toolkit Network concept (/ux-concepts/global-toolkit-network/real-time-monitoring).
+ *   Concept-local copy of toolkit/real-time-monitoring/_components/CitySelector.tsx: copied, original (a locked concept) untouched.
+ *
  * Purpose:
  *   Top-centre segmented control listing the cities served by the data-core registry. Exactly one
  *   city is active. Component copy of direction-2-live-data/CitySelector.tsx, changed only in

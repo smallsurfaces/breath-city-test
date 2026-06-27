@@ -1,6 +1,9 @@
 /**
  * StationPopup.tsx — Per-station popup with reading, freshness age, owner, start date, provenance.
  *
+ * Provenance: part of the BC Global Toolkit Network concept (/ux-concepts/global-toolkit-network/real-time-monitoring).
+ *   Concept-local copy of toolkit/real-time-monitoring/_components/StationPopup.tsx: copied, original (a locked concept) untouched.
+ *
  * Purpose:
  *   The popup shown when a user clicks a station marker. Component copy of
  *   direction-2-live-data/StationPopup.tsx, EXTENDED for the real-time monitoring brief to also

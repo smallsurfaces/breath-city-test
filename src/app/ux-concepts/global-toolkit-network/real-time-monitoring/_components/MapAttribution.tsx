@@ -1,6 +1,9 @@
 /**
  * MapAttribution.tsx — Persistent map-level data credit for the real-time monitoring map.
  *
+ * Provenance: part of the BC Global Toolkit Network concept (/ux-concepts/global-toolkit-network/real-time-monitoring).
+ *   Concept-local copy of toolkit/real-time-monitoring/_components/MapAttribution.tsx: copied, original (a locked concept) untouched.
+ *
  * Purpose:
  *   The always-visible "Air quality data from OpenAQ" credit. It must persist across every network
  *   state — loading, ready, empty, empty-stale, and error — so it is rendered by the page

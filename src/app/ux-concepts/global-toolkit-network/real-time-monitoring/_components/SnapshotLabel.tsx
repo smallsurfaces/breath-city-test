@@ -1,6 +1,9 @@
 /**
  * SnapshotLabel.tsx — honest data-source label for the map demo (top-right overlay).
  *
+ * Provenance: part of the BC Global Toolkit Network concept (/ux-concepts/global-toolkit-network/real-time-monitoring).
+ *   Concept-local copy of toolkit/real-time-monitoring/_components/SnapshotLabel.tsx: copied, original (a locked concept) untouched.
+ *
  * Purpose:
  *   Surfaces WHICH data the map is showing so frozen snapshot timestamps never masquerade as
  *   live-fresh. When the route served the committed snapshot, this reads "Snapshot · data as of
