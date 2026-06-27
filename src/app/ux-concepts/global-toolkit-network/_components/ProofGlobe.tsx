@@ -8,9 +8,10 @@
  *   clickable → opens the city panel listing the tools that city runs. Pointer cursor + hover
  *   tooltip appear on every pin, so the click invitation is honest and consistent.
  *
- *   Honesty rides the LINK STATE inside the panel, not a pin ranking: CDMX/Paris/Accra show real
- *   tools with live links; every other city shows illustrative tools (tagged, links off). See
- *   proof-cities.ts + CityPanel.tsx for the honesty model.
+ *   Honesty rides the LINK STATE inside the panel, not a pin ranking: every city shows real,
+ *   research-grounded tools (v3 — the illustrative-tools model is retired), and each tool's CTA is
+ *   active only where a proven-live link exists, otherwise visibly disabled. See proof-cities.ts +
+ *   CityPanel.tsx for the honesty model.
  *
  *   Drag to spin, scroll/pinch to zoom, slow idle auto-rotate near globe zoom, and a "Reset to
  *   globe" button. NO timeline scrubber (the membership/growth story was dropped in the reframe).

@@ -10,29 +10,33 @@
  *   STICKY HEADER (every city): city name + country, region tag, city POPULATION with an Estimate
  *   pill, and a one-line proof summary ("Running 5 AQ tools.").
  *
+ *   STORY LEAD (every city): a short, real one-line adoption story rendered at the TOP of the
+ *   scrollable body, above the tool list (the approved hybrid: story first, then tools).
+ *
  *   CONDENSED TOOL ROWS (the core v2 rework — kills the v1 scroll):
  *     - Each tool is ONE LINE by default: name (truncates) + a small category tag (Component /
  *       Guidance) + a trailing chevron affordance. The blurb is HIDDEN.
  *     - Tap a row → it expands as an accordion (ONE open at a time), revealing the one-line blurb,
- *       the optional "via <provider>" third-party label, the optional "illustrative" tag, and the
- *       action: a real URL renders the primary "See the tool →" (right-aligned, thumb-reachable);
- *       no URL renders a visibly DISABLED "Link coming soon".
+ *       the optional "via <provider>" third-party label, and the action: a real URL renders the
+ *       primary "See the tool →" (right-aligned, thumb-reachable); no URL renders a visibly
+ *       DISABLED "Link coming soon".
  *
  * Mobile half-sheet mechanic
  *   Opens at ~55% viewport height (peek — globe stays visible above). A drag handle / tap expands it
  *   to full height for cities with many tools; tapping again collapses back to peek. Desktop ignores
  *   the peek/full state — it is a full-height right-side panel.
  *
- * Honesty (the project's backbone)
- *   The CTA is the honest bit: it fires ONLY on a real researched URL and is otherwise disabled — so
- *   a city can show it RUNS a tool even where we hold no link. Illustrative (educated-guess) rows
- *   carry a quiet "illustrative" tag and always fall through to the disabled CTA. Third-party links
- *   are framed "see the tool this city uses" via the provider label. Population is city population,
- *   labelled an estimate, never implied reach.
+ * Honesty (the project's backbone — v3)
+ *   The CTA link-state is the SOLE honesty mechanic: it fires ONLY on a real proven-live URL and is
+ *   otherwise visibly disabled — so a city can show it RUNS a tool even where we hold no proven link.
+ *   Every tool is real and research-grounded (the illustrative/educated-guess concept is retired);
+ *   most cities deliberately carry some disabled CTAs. Third-party links are framed "see the tool
+ *   this city uses" via the provider label. Population is city population, labelled an estimate,
+ *   never implied reach.
  *
  * Styling (concept-prototyping standard)
  *   BC tokens only, no hardcoded hex. Bridged shadcn semantics for neutrals; inline `var(--bc-*)`
- *   for the functional category / illustrative / estimate tints. Light mode only.
+ *   for the functional category / estimate tints. Light mode only.
  *
  * Key exports: CityPanel (named)
  * External dependencies: react, lucide-react, ../_data/proof-cities (types).
@@ -82,10 +86,9 @@ type ToolRowProps = {
 
 /**
  * One CONDENSED tool row. Collapsed: a single line — name (truncates) + category tag + chevron.
- * Expanded (accordion, one at a time): reveals the blurb, the optional provider + illustrative
- * tags, and the conditional CTA. The CTA is the honesty mechanic: a real `url` → active "See the
+ * Expanded (accordion, one at a time): reveals the blurb, the optional provider tag, and the
+ * conditional CTA. The CTA link-state is the sole honesty mechanic: a real `url` → active "See the
  * tool →" link (new tab); a null `url` → a visibly DISABLED "Link coming soon" (never a dead link).
- * Illustrative rows always carry `url: null`, so they always render the disabled treatment.
  */
 function ToolRow({ tool, isOpen, onToggle }: ToolRowProps): ReactElement {
   const hasLink = tool.url !== null
@@ -117,24 +120,16 @@ function ToolRow({ tool, isOpen, onToggle }: ToolRowProps): ReactElement {
         />
       </button>
 
-      {/* Expanded content — blurb + provider/illustrative tags + the conditional CTA. */}
+      {/* Expanded content — blurb + provider tag + the conditional CTA. */}
       {isOpen && (
         <div className="px-4 pb-4">
           {/* One-line blurb. */}
           <p className="text-sm text-muted-foreground">{tool.blurb}</p>
 
-          {/* Provider + illustrative tags. */}
+          {/* Provider tag + conditional CTA. */}
           <div className="mt-2.5 flex flex-wrap items-center gap-2">
             {tool.provider !== null && (
               <span className="text-xs text-muted-foreground">via {tool.provider}</span>
-            )}
-            {tool.illustrative && (
-              <span
-                className="rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground"
-                style={{ backgroundColor: 'color-mix(in srgb, var(--bc-color-steel) 30%, var(--bc-color-white))' }}
-              >
-                Illustrative
-              </span>
             )}
 
             {/* Conditional CTA — right-aligned (thumb-reachable), active link or disabled label. */}
@@ -171,7 +166,8 @@ function ToolRow({ tool, isOpen, onToggle }: ToolRowProps): ReactElement {
  * The city panel. Renders nothing when `city` is null. Otherwise: a light scrim over the globe; a
  * MOBILE HALF-SHEET (peek ~55%, drag handle expands to full) that becomes a RIGHT-SIDE panel on
  * desktop (`sm:` and up); a STICKY header (name / country / region / city population with Estimate
- * pill / one-line proof summary); and a scrollable body of condensed, one-open-at-a-time tool rows.
+ * pill / one-line proof summary); and a scrollable body that leads with the one-line adoption story
+ * then lists the condensed, one-open-at-a-time tool rows.
  */
 export function CityPanel({ city, onClose }: CityPanelProps): ReactElement | null {
   // Which tool row is expanded (slug-scoped id). null = all collapsed. Accordion: one open at a time.
@@ -286,8 +282,10 @@ export function CityPanel({ city, onClose }: CityPanelProps): ReactElement | nul
           </div>
         </div>
 
-        {/* SCROLLABLE BODY — condensed tool rows, one expanded at a time. */}
+        {/* SCROLLABLE BODY — a short real adoption story (lead), then condensed tool rows. */}
         <div className="flex-1 overflow-y-auto px-5 py-4 sm:px-6">
+          {/* Story lead — the approved hybrid: story first, tools below. Muted concept-layer copy. */}
+          <p className="mb-4 text-sm leading-relaxed text-muted-foreground">{city.story}</p>
           <ul className="space-y-2.5">
             {city.tools.map((tool) => (
               <ToolRow

@@ -1,5 +1,5 @@
 /**
- * proof-cities.ts — concept-local city + tool directory for the proof-directory globe (v2).
+ * proof-cities.ts — concept-local city + tool directory for the proof-directory globe (v3).
  *
  * Purpose
  *   The single data source for the /ux-concepts/global-toolkit-network proof-directory section.
@@ -7,33 +7,34 @@
  *   by this concept and built fresh — it deliberately does NOT read from the aq-network-v2
  *   programme snapshot or any other concept's data (full-isolation rule from the section brief).
  *
- * v2 model (supersedes v1's three pin states)
- *   v1 split cities into 'proven' / 'newly-joined' / 'member' pin states with three pin colours and
- *   a league-table feel. v2 REVERSES that lock (Jack, founder call, 2026-06-26): every plotted city
- *   is a UNIFORM "BC member" — one pin treatment, every pin clickable, no tier ranking. Honesty
- *   rides the LINK STATE, not a city ranking:
- *     - CDMX, Paris, Accra carry REAL researched tools with REAL live-link URLs.
- *     - Every other city carries 2–3 PLAUSIBLE, region-appropriate ILLUSTRATIVE tools — each tagged
- *       `illustrative: true`, each with `url: null` so its live-link CTA renders visibly DISABLED.
- *   Guessed PRESENCE is allowed (Jack's product call); a fabricated LINK or an unlabelled claim is
- *   never allowed (Discovery Finding 1; the data-attribution decision).
+ * v3 model — the honesty swap (supersedes v2's illustrative-tools model)
+ *   v2 carried three "anchor" cities with real tools and links, and filled every other city with
+ *   PLAUSIBLE but invented "illustrative" tool rows (each tagged `illustrative: true`, links off).
+ *   v3 REMOVES that invention entirely (Jack, founder call, 2026-06-26): EVERY tool in EVERY city is
+ *   now REAL and research-grounded — drawn from the 16-city City Product Mapping. The `illustrative`
+ *   flag is RETIRED; there are no guessed tools left to flag. Honesty now rides the LINK STATE alone:
+ *     - A tool with a real proven-live `url` renders the active "See the tool →" CTA.
+ *     - A tool with `url: null` renders the existing visibly DISABLED "Link coming soon".
+ *   Most cities deliberately carry some `null` links — that absence IS the honesty mechanic (we hold
+ *   no proven-live URL for that tool), not a gap to be filled. Each city also carries a one-line
+ *   `story`: a real, research-grounded adoption note shown at the top of the panel body.
  *
  * The honesty model (the project's backbone — see proof-directory-v2-design-spec.md §4)
  *   - Population is CITY POPULATION, always a labelled estimate — never "people reached/served".
- *   - A tool ROW may exist on educated-guess presence, but its live-link CTA only fires on a REAL
- *     researched URL. Where we hold no URL the CTA is rendered visibly DISABLED ("Link coming
- *     soon"). Illustrative rows carry `illustrative: true` and never an active CTA.
+ *   - Every tool ROW is real and research-grounded; its live-link CTA only fires on a real,
+ *     proven-live URL. Where we hold no URL the CTA is rendered visibly DISABLED ("Link coming
+ *     soon"). There is no longer any invented/illustrative row — the link state is the only signal.
  *   - Third-party tool links are framed "see the tool this city uses" via `provider` (e.g. WAQI,
- *     OpenAQ, AirQo) — not "visit the city's own site".
+ *     OpenAQ, AirQo) — not "visit the city's own site". `provider: null` = city/region-owned tool.
  *
- * Data provenance (real where it exists — Jack's locked call 2026-06-25)
- *   - CDMX + Paris tool rows + URLs: research/landscape/analysis/
- *       "JTBD Job Chains — City Product Mapping — NOTES.md" (deep CDMX + Paris mapping).
- *   - Accra tool rows + URLs: research/landscape/archive/
- *       "Global South AQ Products — SUM.md" (AirQo, Breathe Accra, Ghana EPA, GHAir, AfriqAir,
- *       Clean Air Network Africa — all real URLs).
- *   - Every other city's rows are ILLUSTRATIVE (region-appropriate, plausible, links off).
+ * Data provenance (every tool real & research-grounded — Jack's locked call 2026-06-26)
+ *   - Tool rows (name / blurb / category / provider) + per-city stories: the 16-city
+ *       "City Product Mapping" research set.
+ *   - Live-link URLs: the Live-Link Manifest (2026-06-26) — the proven-live set as of that date.
  *   - Coordinates + city populations are public-knowledge estimates (labelled as estimates in UI).
+ *   Corollary (re-ping at promotion): these URLs are the 2026-06-26 proven-live set ONLY. They must
+ *   be re-pinged for liveness at any client-tier promotion before this concept goes client-facing —
+ *   a link proven live today is not guaranteed live at promotion.
  *
  * Key exports: ProofCity, ProofTool, ToolCategory (types); PROOF_CITIES (const);
  *   getTotalCityPopulation, getToolUsageCounts (pure helpers).
@@ -44,10 +45,11 @@
 export type ToolCategory = 'Component' | 'Guidance'
 
 /**
- * One tool row inside a city panel. `url` is the honest bit: a real researched URL renders the
- * active "See the tool →" CTA; `null` renders a visibly DISABLED "Link coming soon". `provider`
- * labels third-party products ("via AirQo" etc.). `illustrative` flags an educated-guess presence
- * (carries a small "illustrative" tag and never an active CTA — its `url` is always `null`).
+ * One tool row inside a city panel. Every tool is real and research-grounded (v3 — the illustrative
+ * concept is retired). `url` is the honest bit: a real proven-live URL renders the active "See the
+ * tool →" CTA; `null` renders a visibly DISABLED "Link coming soon" (most cities carry some `null`
+ * links deliberately — absence of a proven link is the honesty mechanic). `provider` labels
+ * third-party products ("via AirQo" etc.); `null` means the tool is city/region-owned.
  */
 export type ProofTool = {
   /** Stable id, unique within a city (used as React key). */
@@ -58,19 +60,17 @@ export type ProofTool = {
   blurb: string
   /** Catalogue category tag. */
   category: ToolCategory
-  /** Real researched URL → active CTA. `null` → disabled "Link coming soon" (always null when illustrative). */
+  /** Real proven-live URL → active CTA. `null` → disabled "Link coming soon" (no proven link held). */
   url: string | null
   /** Third-party product label, e.g. "AirQo", "WAQI", "OpenAQ". `null` for none/city-owned. */
   provider: string | null
-  /** True when tool PRESENCE is an educated guess (not confirmed in research) — carries a tag, CTA off. */
-  illustrative: boolean
 }
 
 /**
- * One city on the globe. v2: every city is a uniform BC member — there is no pin-state field.
- * `population` is CITY POPULATION (a labelled estimate), never reach. `tools` is the list of tools
- * that city runs (real for CDMX/Paris/Accra, illustrative for the rest). Every city carries tools —
- * there is no honest-empty-state panel in v2 (it was replaced by illustrative-tools-with-links-off).
+ * One city on the globe. v2+: every city is a uniform BC member — there is no pin-state field.
+ * `population` is CITY POPULATION (a labelled estimate), never reach. `story` is a one-line, real
+ * adoption note shown at the top of the panel body. `tools` is the list of real tools that city
+ * runs (v3 — all real and research-grounded). Every city carries at least one tool.
  */
 export type ProofCity = {
   /** Stable slug / React key. */
@@ -87,23 +87,21 @@ export type ProofCity = {
   population: number
   /** One-line proof summary surfaced in the sticky panel header (e.g. "Running 5 AQ tools."). */
   summary: string
-  /** Tools this city runs (real or illustrative). Every city has at least one. */
+  /** One-line real adoption story, shown as a lead paragraph at the top of the panel body. */
+  story: string
+  /** Tools this city runs — all real and research-grounded. Every city has at least one. */
   tools: ProofTool[]
 }
 
 /**
- * The directory. CDMX / Paris / Accra carry REAL researched tool rows + real links. Every other
- * city carries 2–3 ILLUSTRATIVE rows (region-appropriate, tagged, links off). Every city is a
- * uniform clickable BC member — no tier states. City populations are public estimates
- * (UN/national-census order of magnitude) — labelled as estimates throughout the UI.
+ * The directory — 16 cities, every tool real and research-grounded (v3 honesty swap). Honesty rides
+ * the link state: a tool has an active CTA only where its `url` is a proven-live link, otherwise the
+ * CTA is visibly disabled. Most cities deliberately carry some `null` links. Every city is a uniform
+ * clickable BC member — no tier states. City populations are public estimates (UN/national-census
+ * order of magnitude) — labelled as estimates throughout the UI.
  */
 export const PROOF_CITIES: ProofCity[] = [
-  // ─────────────────────────────────────────────────────────────────────────────
-  // REAL DATA — researched tool rows + real live-link URLs (the honesty anchor cities).
-  // ─────────────────────────────────────────────────────────────────────────────
-
-  // CDMX (Mexico City). LatAm. Tools + URLs from City Product Mapping NOTES (deep CDMX chain map).
-  // SIMAT is the city's own official monitoring; WAQI / OpenAQ are the third-party access layers.
+  // ── LatAm ──────────────────────────────────────────────────────────────────────
   {
     slug: 'cdmx',
     name: 'Mexico City',
@@ -111,16 +109,17 @@ export const PROOF_CITIES: ProofCity[] = [
     region: 'LatAm',
     coordinates: [-99.1332, 19.4326],
     population: 9_200_000,
-    summary: 'Running 4 AQ tools.',
+    summary: 'Running 3 AQ tools.',
+    story:
+      'Mexico City runs SIMAT, its own roughly 35-station monitoring network, but its official IMECA index reads safer than the WHO guideline.',
     tools: [
       {
         id: 'cdmx-simat',
         name: 'SIMAT',
-        blurb: "The city's own real-time monitoring network — ~35 fixed stations across the metro area.",
+        blurb: "The city's own real-time monitoring network, around 35 fixed stations across the metro area.",
         category: 'Component',
-        url: 'http://www.aire.cdmx.gob.mx',
+        url: null,
         provider: null,
-        illustrative: false,
       },
       {
         id: 'cdmx-waqi',
@@ -129,30 +128,19 @@ export const PROOF_CITIES: ProofCity[] = [
         category: 'Component',
         url: 'https://waqi.info',
         provider: 'WAQI',
-        illustrative: false,
       },
       {
         id: 'cdmx-openaq',
         name: 'Open data API',
-        blurb: 'SIMAT data made machine-readable — documented, downloadable for researchers.',
+        blurb: 'SIMAT data made machine-readable, documented and downloadable for researchers.',
         category: 'Component',
         url: 'https://api.openaq.org',
         provider: 'OpenAQ',
-        illustrative: false,
-      },
-      {
-        id: 'cdmx-compare',
-        name: 'Compare across places & times',
-        blurb: 'Historical SIMAT records ingested for trend and cross-place comparison.',
-        category: 'Guidance',
-        url: 'https://openaq.org',
-        provider: 'OpenAQ',
-        illustrative: false,
       },
     ],
   },
 
-  // Paris. EU. Tools + URLs from City Product Mapping NOTES (Paris = the reference model — Airparif).
+  // ── EU ─────────────────────────────────────────────────────────────────────────
   {
     slug: 'paris',
     name: 'Paris',
@@ -160,34 +148,25 @@ export const PROOF_CITIES: ProofCity[] = [
     region: 'EU',
     coordinates: [2.3522, 48.8566],
     population: 2_100_000,
-    summary: 'Running 4 AQ tools.',
+    summary: 'Running 3 AQ tools.',
+    story:
+      'Airparif gives Paris a dense real-time network with neighbourhood coverage, WHO-referenced framing, and a public 72-hour forecast.',
     tools: [
       {
         id: 'paris-airparif',
         name: 'Airparif',
-        blurb: "Dense real-time network, neighbourhood-level coverage, WHO standards shown — the city's monitoring backbone.",
+        blurb: 'Dense real-time network with neighbourhood-level coverage and a public 72-hour forecast.',
         category: 'Component',
         url: 'https://www.airparif.fr',
         provider: 'Airparif',
-        illustrative: false,
-      },
-      {
-        id: 'paris-forecast',
-        name: '72-hour forecast',
-        blurb: 'Localised AQ forecast integrated with weather, available in the public app.',
-        category: 'Component',
-        url: 'https://www.airparif.fr',
-        provider: 'Airparif',
-        illustrative: false,
       },
       {
         id: 'paris-opendata',
         name: 'Open data portal',
         blurb: 'Documented AQ datasets available for download and reuse.',
         category: 'Component',
-        url: 'https://data-airparif-asso.opendata.arcgis.com',
+        url: null,
         provider: 'Airparif',
-        illustrative: false,
       },
       {
         id: 'paris-eea',
@@ -196,111 +175,6 @@ export const PROOF_CITIES: ProofCity[] = [
         category: 'Guidance',
         url: 'https://www.eea.europa.eu',
         provider: 'EEA',
-        illustrative: false,
-      },
-    ],
-  },
-
-  // Accra. Africa. Tools + URLs from Global South AQ Products SUM (richest linkable GS set).
-  {
-    slug: 'accra',
-    name: 'Accra',
-    country: 'Ghana',
-    region: 'Africa',
-    coordinates: [-0.1870, 5.6037],
-    population: 2_600_000,
-    summary: 'Running 5 AQ tools.',
-    tools: [
-      {
-        id: 'accra-airqo',
-        name: 'AirQo',
-        blurb: 'Low-cost sensor network built for African cities, with open data and an API.',
-        category: 'Component',
-        url: 'https://airqo.net',
-        provider: 'AirQo',
-        illustrative: false,
-      },
-      {
-        id: 'accra-breathe-accra',
-        name: 'Breathe Accra',
-        blurb: 'Hyperlocal sensor map using Clarity Node devices — data plus public communication.',
-        category: 'Component',
-        url: 'https://breatheaccra.org',
-        provider: 'Breathe Accra',
-        illustrative: false,
-      },
-      {
-        id: 'accra-ghana-epa',
-        name: 'Ghana EPA AQ portal',
-        blurb: "The national environment agency's official monitoring portal, including Accra station data.",
-        category: 'Component',
-        url: 'https://epa.gov.gh',
-        provider: 'Ghana EPA',
-        illustrative: false,
-      },
-      {
-        id: 'accra-ghair',
-        name: 'GHAir',
-        blurb: 'Community platform aggregating PurpleAir and other low-cost sensor data for Ghana.',
-        category: 'Component',
-        url: 'https://aqi-gh.org',
-        provider: 'GHAir',
-        illustrative: false,
-      },
-      {
-        id: 'accra-cana',
-        name: 'Clean Air Network Africa',
-        blurb: 'Pan-African clean-air network — capacity building and shared monitoring data.',
-        category: 'Guidance',
-        url: 'https://cana.africa',
-        provider: 'Clean Air Network Africa',
-        illustrative: false,
-      },
-    ],
-  },
-
-  // ─────────────────────────────────────────────────────────────────────────────
-  // ILLUSTRATIVE — region-appropriate, plausible tools. Every row tagged `illustrative`
-  // with `url: null` (CTA disabled). Guessed presence is allowed; a fabricated link is not.
-  // These read as real BC members running plausible AQ stacks — the link state carries the honesty.
-  // ─────────────────────────────────────────────────────────────────────────────
-
-  // EU
-  {
-    slug: 'madrid',
-    name: 'Madrid',
-    country: 'Spain',
-    region: 'EU',
-    coordinates: [-3.7038, 40.4168],
-    population: 3_300_000,
-    summary: 'Running 3 AQ tools.',
-    tools: [
-      {
-        id: 'madrid-network',
-        name: 'Municipal monitoring network',
-        blurb: 'City-run reference stations reporting PM2.5, NO₂ and ozone across the metro area.',
-        category: 'Component',
-        url: null,
-        provider: null,
-        illustrative: true,
-      },
-      {
-        id: 'madrid-alerts',
-        name: 'Public air-quality alerts',
-        blurb: 'High-pollution episode warnings tied to the city traffic-restriction protocol.',
-        category: 'Component',
-        url: null,
-        provider: null,
-        illustrative: true,
-      },
-      {
-        id: 'madrid-eea',
-        name: 'European peer comparison',
-        blurb: 'Standing against EU cities benchmarked through the European Environment Agency.',
-        category: 'Guidance',
-        url: null,
-        provider: null,
-        illustrative: true,
       },
     ],
   },
@@ -311,34 +185,131 @@ export const PROOF_CITIES: ProofCity[] = [
     region: 'EU',
     coordinates: [-0.1278, 51.5074],
     population: 8_900_000,
-    summary: 'Running 3 AQ tools.',
+    summary: 'Running 4 AQ tools.',
+    story:
+      'London layers a reference network, a 400-site community sensor map, an emissions inventory, and a forecast with health advice.',
     tools: [
       {
-        id: 'london-network',
-        name: 'City-wide monitoring network',
-        blurb: 'A dense reference + low-cost sensor network reporting street-level air quality.',
+        id: 'london-laqn',
+        name: 'LondonAir (LAQN)',
+        blurb: 'Imperial College reference network across all London boroughs, with a real-time map and forecast.',
         category: 'Component',
-        url: null,
-        provider: null,
-        illustrative: true,
+        url: 'https://www.londonair.org.uk',
+        provider: 'Imperial College ERG',
       },
       {
-        id: 'london-forecast',
-        name: 'Daily air-quality forecast',
-        blurb: 'Next-day pollution outlook with health advice for sensitive groups.',
+        id: 'london-breathe',
+        name: 'Breathe London',
+        blurb: 'A 400-site hyperlocal community sensor network sited near roads, schools and hospitals.',
         category: 'Component',
         url: null,
-        provider: null,
-        illustrative: true,
+        provider: 'Imperial College ERG',
       },
       {
-        id: 'london-sourceid',
-        name: 'Source apportionment study',
-        blurb: 'Attributing pollution to traffic, domestic and industrial sources to target action.',
+        id: 'london-ukair',
+        name: 'UK-AIR national data',
+        blurb: 'National reference stations, the daily air-quality index, and bulk open data.',
+        category: 'Component',
+        url: 'https://uk-air.defra.gov.uk',
+        provider: 'Defra',
+      },
+      {
+        id: 'london-airtext',
+        name: 'airTEXT forecast',
+        blurb: 'Three-day forecast with action guidance for at-risk groups via SMS, email and app.',
         category: 'Guidance',
+        url: 'https://www.airtext.info',
+        provider: 'CERC',
+      },
+    ],
+  },
+  {
+    slug: 'madrid',
+    name: 'Madrid',
+    country: 'Spain',
+    region: 'EU',
+    coordinates: [-3.7038, 40.4168],
+    population: 3_400_000,
+    summary: 'Running 5 AQ tools.',
+    story:
+      'Madrid owns a 24-station network, an AI forecast, and an interactive street-level concentration map across the city.',
+    tools: [
+      {
+        id: 'madrid-portal',
+        name: 'Air-quality portal',
+        blurb: 'City-owned hub: 24 reference stations updated every 20 minutes, with index and history.',
+        category: 'Component',
+        url: 'https://airedemadrid.madrid.es/portal/site/calidadaire',
+        provider: null,
+      },
+      {
+        id: 'madrid-streetmap',
+        name: 'Street-level concentration map',
+        blurb: 'NO2 and PM10 modelled across 56,000 points, queryable by address with route exposure.',
+        category: 'Component',
+        url: 'https://airedemadrid.madrid.es/portales/calidadaire/es/En-portada/Mapa-de-concentracion-de-contaminantes-por-calle-estimacion-/',
+        provider: null,
+      },
+      {
+        id: 'madrid-opendata',
+        name: 'Open data portal',
+        blurb: 'Real-time and historical data from 2001 in JSON, XML and CSV with an API.',
+        category: 'Component',
+        url: 'https://datos.madrid.es/egob/catalogo/212531-0-calidad-aire-tiempo-real',
+        provider: null,
+      },
+      {
+        id: 'madrid-lez',
+        name: 'Low Emission Zone (Madrid 360)',
+        blurb: 'City-wide low-emission zone with a documented drop in roadside NO2 since 2019.',
+        category: 'Guidance',
+        url: 'https://www.madrid.es/portales/munimadrid/es/Inicio/Movilidad-y-transportes/Zonas-de-Bajas-Emisiones/Madrid-Zona-de-Bajas-Emisiones/Madrid-Zona-de-Bajas-Emisiones-ZBE-/',
+        provider: null,
+      },
+      {
+        id: 'madrid-socaire',
+        name: 'SOCAIRE forecast',
+        blurb: "The city's own AI forecast for NO2, ozone, PM10 and PM2.5.",
+        category: 'Component',
         url: null,
         provider: null,
-        illustrative: true,
+      },
+    ],
+  },
+  {
+    slug: 'milan',
+    name: 'Milan',
+    country: 'Italy',
+    region: 'EU',
+    coordinates: [9.1900, 45.4642],
+    population: 1_370_000,
+    summary: 'Running 3 AQ tools.',
+    story:
+      'Milan reads its air through the regional ARPA Lombardia reference network plus a citizen-science NO2 map run by a local NGO.',
+    tools: [
+      {
+        id: 'milan-arpa',
+        name: 'ARPA Lombardia',
+        blurb: 'Regional reference network of around 83 stations with real-time maps and a daily forecast.',
+        category: 'Component',
+        url: 'https://www.arpalombardia.it/temi-ambientali/aria/',
+        provider: 'ARPA Lombardia',
+      },
+      {
+        id: 'milan-amat',
+        name: 'AMAT daily report',
+        blurb: "The city's own daily air-quality report, derived from regional data; suspended April to September.",
+        category: 'Component',
+        url: null,
+        provider: 'AMAT / Comune di Milano',
+      },
+      {
+        id: 'milan-cittadini',
+        name: "Cittadini per l'aria",
+        blurb: 'Citizen-science NO2 map benchmarked against WHO, run by a Milan NGO.',
+        category: 'Guidance',
+        url: 'https://cittadiniperlaria.org',
+        provider: "Cittadini per l'aria",
       },
     ],
   },
@@ -349,56 +320,162 @@ export const PROOF_CITIES: ProofCity[] = [
     region: 'EU',
     coordinates: [21.0122, 52.2297],
     population: 1_800_000,
-    summary: 'Running 2 AQ tools.',
+    summary: 'Running 3 AQ tools.',
+    story:
+      'Warsaw runs a city-owned 165-sensor network on top of the national system, and has cut PM2.5 substantially over the past decade.',
     tools: [
       {
-        id: 'warsaw-network',
-        name: 'Smog monitoring network',
-        blurb: 'Reference + low-cost sensors tracking winter smog from heating and traffic.',
+        id: 'warsaw-gios',
+        name: 'GIOŚ air-quality portal',
+        blurb: 'National reference network with nine Warsaw stations and a 72-hour forecast.',
         category: 'Component',
-        url: null,
-        provider: null,
-        illustrative: true,
+        url: 'https://powietrze.gios.gov.pl/pjp/current',
+        provider: 'GIOŚ',
       },
       {
-        id: 'warsaw-alerts',
-        name: 'Smog alert notifications',
-        blurb: 'Public warnings on high-pollution heating-season days.',
+        id: 'warsaw-waqi',
+        name: 'Warsaw Air Quality Index',
+        blurb: 'City-owned 165-sensor network across every district, in the Warszawa 19115 app.',
         category: 'Component',
         url: null,
+        provider: 'City of Warsaw / Airly',
+      },
+      {
+        id: 'warsaw-smogalert',
+        name: 'Smog alert advocacy',
+        blurb: 'A national clean-air movement running boiler-replacement and coal-ban campaigns.',
+        category: 'Guidance',
+        url: null,
+        provider: 'Polski Alarm Smogowy',
+      },
+    ],
+  },
+  {
+    slug: 'sofia',
+    name: 'Sofia',
+    country: 'Bulgaria',
+    region: 'EU',
+    coordinates: [23.3219, 42.6977],
+    population: 1_300_000,
+    summary: 'Running 3 AQ tools.',
+    story:
+      'Sofia tracks its air through 300-plus citizen sensors, and a city programme has replaced thousands of polluting home heaters.',
+    tools: [
+      {
+        id: 'sofia-airbg',
+        name: 'AirBG.info citizen network',
+        blurb: 'Over 300 real-time citizen PM sensors, the densest neighbourhood layer in the set.',
+        category: 'Component',
+        url: null,
+        provider: 'Sensor.Community',
+      },
+      {
+        id: 'sofia-eea',
+        name: 'EEA European index',
+        blurb: 'Live Sofia stations benchmarked against WHO and EU air-quality bands.',
+        category: 'Component',
+        url: 'https://airindex.eea.europa.eu/AQI/index.html',
+        provider: 'EEA',
+      },
+      {
+        id: 'sofia-breathe',
+        name: 'Breathe Sofia',
+        blurb: 'City and Clean Air Fund programme behind the heating-system replacement push.',
+        category: 'Guidance',
+        url: null,
+        provider: 'Clean Air Fund',
+      },
+    ],
+  },
+  {
+    slug: 'brussels',
+    name: 'Brussels',
+    country: 'Belgium',
+    region: 'EU',
+    coordinates: [4.3517, 50.8503],
+    population: 1_200_000,
+    summary: 'Running 4 AQ tools.',
+    story:
+      'Brussels mapped its air with 3,000 citizen sites in 2021 and runs a region-wide low-emission zone.',
+    tools: [
+      {
+        id: 'brussels-environnement',
+        name: 'Bruxelles Environnement',
+        blurb: 'Region-owned real-time dashboard, 14 stations, with a mobile app and peak alerts.',
+        category: 'Component',
+        url: 'https://qualitedelair.brussels',
+        provider: 'Bruxelles Environnement',
+      },
+      {
+        id: 'brussels-irceline',
+        name: 'IRCELINE / BelAQI index',
+        blurb: 'Belgium-wide real-time maps and a WHO-aligned air-quality index with forecast.',
+        category: 'Component',
+        url: 'https://www.irceline.be/en',
+        provider: 'IRCELINE',
+      },
+      {
+        id: 'brussels-curieuzenair',
+        name: 'CurieuzenAir',
+        blurb: 'World-first citizen-science campaign mapping NO2 at 3,000 sites across the region.',
+        category: 'Guidance',
+        url: 'https://curieuzenair.brussels',
+        provider: 'CurieuzenAir consortium',
+      },
+      {
+        id: 'brussels-lez',
+        name: 'Low Emission Zone',
+        blurb: 'Region-wide low-emission zone with a documented drop in roadside NO2.',
+        category: 'Guidance',
+        url: 'https://lez.brussels',
         provider: null,
-        illustrative: true,
       },
     ],
   },
 
-  // Africa
+  // ── Africa ─────────────────────────────────────────────────────────────────────
   {
-    slug: 'addis-ababa',
-    name: 'Addis Ababa',
-    country: 'Ethiopia',
+    slug: 'accra',
+    name: 'Accra',
+    country: 'Ghana',
     region: 'Africa',
-    coordinates: [38.7578, 9.0250],
-    population: 3_900_000,
-    summary: 'Running 2 AQ tools.',
+    coordinates: [-0.1870, 5.6037],
+    population: 2_600_000,
+    summary: 'Running 4 AQ tools.',
+    story:
+      "Accra reads its air through AirQo's low-cost sensor network, with the national EPA portal anchoring official monitoring.",
     tools: [
       {
-        id: 'addis-sensors',
-        name: 'Low-cost sensor pilot',
-        blurb: 'A growing network of low-cost PM2.5 sensors across the city.',
+        id: 'accra-airqo',
+        name: 'AirQo',
+        blurb: 'Low-cost sensor network built for African cities, with open data and an API.',
         category: 'Component',
-        url: null,
-        provider: null,
-        illustrative: true,
+        url: 'https://airqo.net',
+        provider: 'AirQo',
       },
       {
-        id: 'addis-health',
-        name: 'Health & education guidance',
-        blurb: 'Plain-language advice tied to daily readings for the people most at risk.',
-        category: 'Guidance',
+        id: 'accra-ghana-epa',
+        name: 'Ghana EPA AQ portal',
+        blurb: "The national environment agency's official monitoring portal, including Accra station data.",
+        category: 'Component',
         url: null,
-        provider: null,
-        illustrative: true,
+        provider: 'Ghana EPA',
+      },
+      {
+        id: 'accra-cana',
+        name: 'Clean Air Network Africa',
+        blurb: 'Pan-African clean-air network for capacity building and shared monitoring data.',
+        category: 'Guidance',
+        url: 'https://cleanairafrica.org',
+        provider: 'Clean Air Network Africa',
+      },
+      {
+        id: 'accra-breathecities',
+        name: 'Breathe Cities',
+        blurb: 'Programme partner for clean-air monitoring and funding in the city.',
+        category: 'Guidance',
+        url: 'https://breathecities.org',
+        provider: 'Clean Air Fund',
       },
     ],
   },
@@ -409,34 +486,78 @@ export const PROOF_CITIES: ProofCity[] = [
     region: 'Africa',
     coordinates: [36.8219, -1.2921],
     population: 4_400_000,
-    summary: 'Running 3 AQ tools.',
+    summary: 'Running 4 AQ tools.',
+    story:
+      "Nairobi launched its first 50-sensor city network in 2025, on top of AirQo's live data layer.",
     tools: [
       {
-        id: 'nairobi-sensors',
-        name: 'Low-cost sensor network',
-        blurb: 'Community-sited PM2.5 sensors filling the reference-station gap.',
+        id: 'nairobi-airqo',
+        name: 'AirQo',
+        blurb: 'The de facto live data layer: real-time PM2.5 map, app, forecast and open API for Nairobi.',
         category: 'Component',
-        url: null,
-        provider: null,
-        illustrative: true,
+        url: 'https://airqo.net',
+        provider: 'AirQo',
       },
       {
-        id: 'nairobi-map',
-        name: 'Public air-quality map',
-        blurb: 'A live neighbourhood map of current readings for residents.',
-        category: 'Component',
-        url: null,
-        provider: null,
-        illustrative: true,
-      },
-      {
-        id: 'nairobi-advocacy',
-        name: 'Advocacy & storytelling',
-        blurb: 'Turning the data into a case for cleaner-air policy with local partners.',
+        id: 'nairobi-cana',
+        name: 'Clean Air Network Africa',
+        blurb: 'AirQo-led pan-African convening network; hosted its 2025 forum in Nairobi.',
         category: 'Guidance',
-        url: null,
-        provider: null,
-        illustrative: true,
+        url: 'https://cleanairafrica.org',
+        provider: 'Clean Air Network Africa',
+      },
+      {
+        id: 'nairobi-afriqair',
+        name: 'AfriqAir',
+        blurb: 'Hybrid research monitoring network with a Nairobi node via the University of Nairobi.',
+        category: 'Component',
+        url: 'https://www.cmu.edu/epp/afriqair',
+        provider: 'AfriqAir',
+      },
+      {
+        id: 'nairobi-breathecities',
+        name: 'Breathe Cities',
+        blurb: "Programme behind the city's 2025 50-sensor network and clean-air commitments.",
+        category: 'Guidance',
+        url: 'https://breathecities.org',
+        provider: 'Clean Air Fund',
+      },
+    ],
+  },
+  {
+    slug: 'addis-ababa',
+    name: 'Addis Ababa',
+    country: 'Ethiopia',
+    region: 'Africa',
+    coordinates: [38.7578, 9.0250],
+    population: 5_000_000,
+    summary: 'Running 3 AQ tools.',
+    story:
+      'Addis has fragmented institutional monitoring and no city dashboard; its most reliable public feed went dark in March 2026.',
+    tools: [
+      {
+        id: 'addis-airqo',
+        name: 'AirQo',
+        blurb: 'Regional low-cost network with around six Ethiopia monitors; Addis is under-represented.',
+        category: 'Component',
+        url: 'https://airqo.net',
+        provider: 'AirQo',
+      },
+      {
+        id: 'addis-cana',
+        name: 'Clean Air Network Africa',
+        blurb: 'Pan-African convening network; Addis sits within its regional clean-air projects.',
+        category: 'Guidance',
+        url: 'https://cleanairafrica.org',
+        provider: 'Clean Air Network Africa',
+      },
+      {
+        id: 'addis-breathecities',
+        name: 'Breathe Cities',
+        blurb: "Programme membership behind the city's clean-air management plan and declarations.",
+        category: 'Guidance',
+        url: 'https://breathecities.org',
+        provider: 'Clean Air Fund',
       },
     ],
   },
@@ -447,30 +568,46 @@ export const PROOF_CITIES: ProofCity[] = [
     region: 'Africa',
     coordinates: [28.0473, -26.2041],
     population: 5_600_000,
-    summary: 'Running 2 AQ tools.',
+    summary: 'Running 4 AQ tools.',
+    story:
+      "Johannesburg's city stations are public but most are offline, and it is building Africa's first Clean Air Zone.",
     tools: [
       {
-        id: 'joburg-network',
-        name: 'Municipal monitoring network',
-        blurb: 'Reference stations reporting against the national ambient standard.',
+        id: 'johannesburg-saaqis',
+        name: 'SAAQIS national portal',
+        blurb: 'National platform carrying live City of Johannesburg stations, though most are offline.',
         category: 'Component',
         url: null,
-        provider: null,
-        illustrative: true,
+        provider: 'DFFE / SAWS',
       },
       {
-        id: 'joburg-benchmark',
-        name: 'Standards benchmarking',
-        blurb: 'Readings judged against the WHO guideline and the national standard.',
+        id: 'johannesburg-cana',
+        name: 'Clean Air Network Africa',
+        blurb: 'Pan-African convening network with South Africa in scope.',
         category: 'Guidance',
-        url: null,
-        provider: null,
-        illustrative: true,
+        url: 'https://cleanairafrica.org',
+        provider: 'Clean Air Network Africa',
+      },
+      {
+        id: 'johannesburg-afriqair',
+        name: 'AfriqAir',
+        blurb: 'Research monitoring network with South Africa as a deployment country.',
+        category: 'Component',
+        url: 'https://www.cmu.edu/epp/afriqair',
+        provider: 'AfriqAir',
+      },
+      {
+        id: 'johannesburg-breathecities',
+        name: 'Breathe Cities',
+        blurb: "Programme behind the city's Clean Air Zone and a commissioned source-apportionment study.",
+        category: 'Guidance',
+        url: 'https://breathecities.org',
+        provider: 'Clean Air Fund',
       },
     ],
   },
 
-  // LatAm
+  // ── LatAm ──────────────────────────────────────────────────────────────────────
   {
     slug: 'bogota',
     name: 'Bogotá',
@@ -478,34 +615,41 @@ export const PROOF_CITIES: ProofCity[] = [
     region: 'LatAm',
     coordinates: [-74.0721, 4.7110],
     population: 7_900_000,
-    summary: 'Running 3 AQ tools.',
+    summary: 'Running 4 AQ tools.',
+    story:
+      'Bogotá runs the RMCAB reference network and the IBOCA health-risk index, with a public forecast and health-banded alerts.',
     tools: [
       {
-        id: 'bogota-network',
-        name: 'City monitoring network',
-        blurb: "The district's reference network reporting PM2.5 across the city.",
+        id: 'bogota-rmcab',
+        name: 'RMCAB monitoring network',
+        blurb: 'City-owned reference network running since 1997, reporting hourly across about 20 stations.',
         category: 'Component',
         url: null,
         provider: null,
-        illustrative: true,
       },
       {
-        id: 'bogota-forecast',
-        name: 'Air-quality forecast',
-        blurb: 'Short-range outlook to plan around poor-air days.',
-        category: 'Component',
-        url: null,
-        provider: null,
-        illustrative: true,
-      },
-      {
-        id: 'bogota-action',
-        name: 'Action & behaviour change',
-        blurb: 'Interventions tied to high-pollution episodes — traffic and burning measures.',
+        id: 'bogota-iboca',
+        name: 'IBOCA health-risk index',
+        blurb: 'City health-risk index with a 90-hour forecast and colour-banded health advice.',
         category: 'Guidance',
         url: null,
         provider: null,
-        illustrative: true,
+      },
+      {
+        id: 'bogota-waqi',
+        name: 'Real-time AQI map',
+        blurb: "Live consumer AQI sourced from the city's official observatory feed.",
+        category: 'Component',
+        url: 'https://aqicn.org/city/bogota/',
+        provider: 'WAQI',
+      },
+      {
+        id: 'bogota-iqair',
+        name: 'Annual trend record',
+        blurb: "WHO-referenced consumer AQI with the city's multi-year PM2.5 trend.",
+        category: 'Guidance',
+        url: 'https://www.iqair.com/us/colombia/bogota-dc/bogota',
+        provider: 'IQAir',
       },
     ],
   },
@@ -516,30 +660,38 @@ export const PROOF_CITIES: ProofCity[] = [
     region: 'LatAm',
     coordinates: [-43.1729, -22.9068],
     population: 6_700_000,
-    summary: 'Running 2 AQ tools.',
+    summary: 'Running 3 AQ tools.',
+    story:
+      'Rio owns MonitorAr-Rio with a 14-year open data series, but its official IQAr index reads safer than WHO.',
     tools: [
       {
-        id: 'rio-network',
-        name: 'State monitoring network',
-        blurb: 'Reference stations reporting regional air quality to the public.',
+        id: 'rio-monitorar',
+        name: 'MonitorAr-Rio',
+        blurb: 'City-owned network since 2000, eight reference plus compact stations, with a daily public dashboard.',
         category: 'Component',
-        url: null,
+        url: 'https://ambienteclima.prefeitura.rio/monitoramento-diario-da-qualidade-do-ar/',
         provider: null,
-        illustrative: true,
       },
       {
-        id: 'rio-opendata',
-        name: 'Open data access',
-        blurb: 'Underlying readings made downloadable for researchers and developers.',
+        id: 'rio-datario',
+        name: 'data.rio open data',
+        blurb: 'Hourly MonitorAr data from 2011 onward, downloadable via CSV, GeoJSON and API.',
+        category: 'Component',
+        url: 'https://www.data.rio/datasets/5b1bf5c3e5114564bbf9b7a372b85e17_2',
+        provider: null,
+      },
+      {
+        id: 'rio-inea',
+        name: 'State monitoring network',
+        blurb: 'State-level real-time index and daily bulletin across the metro region.',
         category: 'Component',
         url: null,
-        provider: null,
-        illustrative: true,
+        provider: 'INEA',
       },
     ],
   },
 
-  // SE Asia
+  // ── SE Asia ────────────────────────────────────────────────────────────────────
   {
     slug: 'jakarta',
     name: 'Jakarta',
@@ -547,34 +699,41 @@ export const PROOF_CITIES: ProofCity[] = [
     region: 'SE Asia',
     coordinates: [106.8456, -6.2088],
     population: 10_600_000,
-    summary: 'Running 3 AQ tools.',
+    summary: 'Running 4 AQ tools.',
+    story:
+      "Jakarta runs a public city dashboard, and a 2021 court ruling ordered the government to clean the city's air.",
     tools: [
       {
-        id: 'jakarta-network',
-        name: 'Air-quality monitoring network',
-        blurb: 'Reference + low-cost sensors tracking the city PM2.5 burden.',
+        id: 'jakarta-dashboard',
+        name: 'Jakarta air-quality dashboard',
+        blurb: 'City-owned real-time dashboard from the environment agency, reporting PM2.5 across the city.',
         category: 'Component',
-        url: null,
-        provider: null,
-        illustrative: true,
+        url: 'https://udara.jakarta.go.id',
+        provider: 'DLH DKI Jakarta',
       },
       {
-        id: 'jakarta-alerts',
-        name: 'Public health alerts',
-        blurb: 'Episode warnings and mask/limit guidance on high-pollution days.',
+        id: 'jakarta-nafas',
+        name: 'Nafas',
+        blurb: "Indonesia's densest hyperlocal sensor app, with education content and pre-activity checks.",
         category: 'Component',
-        url: null,
-        provider: null,
-        illustrative: true,
+        url: 'https://www.nafas.dev/learn',
+        provider: 'Nafas',
       },
       {
-        id: 'jakarta-sourceid',
-        name: 'Source identification study',
-        blurb: 'Attributing pollution to traffic, industry and regional burning.',
+        id: 'jakarta-iqair',
+        name: 'Real-time AQI',
+        blurb: 'WHO-referenced consumer AQI aggregating dozens of Jakarta stations, with forecast.',
+        category: 'Component',
+        url: 'https://www.iqair.com/indonesia/jakarta',
+        provider: 'IQAir',
+      },
+      {
+        id: 'jakarta-sourceapp',
+        name: 'Source apportionment study',
+        blurb: "First multisite study of Jakarta's airshed, naming transport and burning as top sources.",
         category: 'Guidance',
         url: null,
-        provider: null,
-        illustrative: true,
+        provider: 'Vital Strategies / ITB',
       },
     ],
   },
@@ -585,25 +744,33 @@ export const PROOF_CITIES: ProofCity[] = [
     region: 'SE Asia',
     coordinates: [100.5018, 13.7563],
     population: 10_700_000,
-    summary: 'Running 2 AQ tools.',
+    summary: 'Running 3 AQ tools.',
+    story:
+      'Bangkok\'s metropolitan administration runs a city dashboard, and Breathe Bangkok built a 2024 emissions inventory.',
     tools: [
       {
-        id: 'bangkok-network',
-        name: 'City monitoring network',
-        blurb: 'Reference stations reporting PM2.5, with a focus on the seasonal haze period.',
+        id: 'bangkok-airbkk',
+        name: 'AirBKK (BMA)',
+        blurb: 'The city-owned dashboard: real-time PM2.5 across district stations, updated three times daily.',
         category: 'Component',
-        url: null,
-        provider: null,
-        illustrative: true,
+        url: 'https://www.airbkk.com',
+        provider: 'BMA',
       },
       {
-        id: 'bangkok-forecast',
-        name: 'Haze-season forecast',
-        blurb: 'Short-range outlook for the burning season, with health guidance.',
+        id: 'bangkok-waqi',
+        name: 'Real-time AQI',
+        blurb: 'Live Bangkok AQI converted to the US EPA standard, with a forecast page.',
         category: 'Component',
-        url: null,
-        provider: null,
-        illustrative: true,
+        url: 'https://aqicn.org/city/bangkok/',
+        provider: 'WAQI',
+      },
+      {
+        id: 'bangkok-iqair',
+        name: 'Air-quality with forecast',
+        blurb: 'WHO-referenced consumer AQI aggregating 400-plus Bangkok-area stations, with forecast.',
+        category: 'Component',
+        url: 'https://www.iqair.com/thailand/bangkok/bangkok',
+        provider: 'IQAir',
       },
     ],
   },
@@ -622,11 +789,11 @@ export function getTotalCityPopulation(cities: ProofCity[]): number {
  * Count, per tool CATEGORY label, how many cities run a tool whose name matches that catalogue
  * capability. Used to thread the "Used by N BC cities" proof line onto the catalogue cards.
  *
- * Why a keyword map rather than a hard join: the proof-cities tool names are city-voice ("Municipal
- * monitoring network") while the catalogue entries are capability-voice ("Real-time Monitoring").
- * This maps each catalogue capability id to the keywords that signal its presence in a city's tool
- * list, then counts distinct cities — an honest "adoption breadth" approximation for the concept,
- * not a production data contract (the cards carry breadth, not human scale — number-homes rule).
+ * Why a keyword map rather than a hard join: the proof-cities tool names are product/city-voice
+ * ("LondonAir (LAQN)", "ARPA Lombardia") while the catalogue entries are capability-voice ("Real-time
+ * Monitoring"). This maps each catalogue capability id to the keywords that signal its presence in a
+ * city's tool list, then counts distinct cities — an honest "adoption breadth" approximation for the
+ * concept, not a production data contract (the cards carry breadth, not human scale — number-homes rule).
  */
 export function getToolUsageCounts(
   cities: ProofCity[],

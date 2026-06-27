@@ -4,8 +4,9 @@
  *
  * Purpose
  *   The catalogue entries are capability-voice ("Real-time Monitoring", id `monitoring`) while the
- *   proof-cities tool rows are city-voice ("Municipal monitoring network"). To thread an honest
- *   "Used by N BC cities" adoption count onto each card we map each catalogue capability id (the
+ *   proof-cities tool rows are product/city-voice ("LondonAir (LAQN)", "ARPA Lombardia"). To thread
+ *   an honest "Used by N BC cities" adoption count onto each card we map each catalogue capability id
+ *   (the
  *   ToolId from the shared toolkit config) to the KEYWORDS that signal that capability's presence in
  *   a city's tool list, then count distinct cities via getToolUsageCounts (proof-cities.ts).
  *
@@ -25,17 +26,37 @@
 /**
  * Keyword sets per catalogue capability id. A city "uses" the capability if any of its tool
  * name/blurb strings contains one of these keywords (case-insensitive substring). Keywords are
- * chosen to match the city-voice tool names in proof-cities.ts without over-matching.
+ * tuned to the v3 real-tool vocabulary (product names + research-grounded blurbs) in proof-cities.ts,
+ * chosen as an honest adoption-breadth approximation — broad enough that every capability matches
+ * somewhere, narrow enough that none over-matches into a meaningless "all 16".
  */
 export const CATALOGUE_PROOF_KEYWORDS: Record<string, readonly string[]> = {
   // Components
-  monitoring: ['monitoring', 'sensor', 'airparif', 'airqo', 'simat', 'monitor', 'air-quality map', 'air-quality network'],
-  benchmarking: ['benchmark', 'standards', 'peer comparison', 'who guideline'],
-  forecasting: ['forecast', 'outlook'],
-  health: ['health', 'alert', 'guidance tied', 'mask', 'sensitive groups', 'most at risk'],
-  openData: ['open data', 'open-data', 'downloadable', 'api', 'machine-readable'],
+  monitoring: [
+    'monitoring network',
+    'reference network',
+    'sensor network',
+    'sensor app',
+    'dashboard',
+    'londonair',
+    'arpa',
+    'airbkk',
+    'gioś',
+    'rmcab',
+    'monitorar',
+    'simat',
+    'airparif',
+    'airqo',
+    'saaqis',
+    'afriqair',
+    'real-time aqi',
+  ],
+  openData: ['open data', 'open-data', 'uk-air', 'data.rio', ' api', 'machine-readable', 'downloadable'],
+  forecasting: ['forecast'],
+  health: ['health-risk', 'health advice', 'airtext', 'action guidance', 'pre-activity', 'mask'],
+  benchmarking: ['eea', 'european', 'peer comparison', ' index', 'benchmarked'],
   // Guidance
-  sourceId: ['source apportionment', 'source identification', 'source-apportionment', 'attributing pollution'],
-  advocacy: ['advocacy', 'storytelling', 'case for'],
-  action: ['action & behaviour', 'behaviour change', 'interventions', 'nudges'],
+  sourceId: ['source apportionment', 'emissions inventory', 'source-apportionment'],
+  advocacy: ['advocacy', 'citizen', 'curieuzenair', "cittadini"],
+  action: ['low emission zone', 'boiler', 'clean air zone', 'heating-system replacement'],
 }

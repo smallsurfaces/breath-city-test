@@ -8,11 +8,13 @@
  *        too"). The network-JOIN invitation deliberately lives in the closing section (6), not here.
  *     2. Proof directory — the section header ("BC cities already on the path"), one aggregate
  *        city-population stat (labelled Estimate), and the ProofGlobe: UNIFORM "BC member" pins
- *        (v2 — no proven/newly-joined/member tier states) where clicking ANY pin opens a panel
- *        listing the tools that city runs. Honesty rides the link state inside the panel (real
- *        links for CDMX/Paris/Accra, illustrative-and-link-off elsewhere), not a city ranking.
- *        This is a FRESH, fully-isolated globe + data set owned by this concept — it does NOT
- *        import aq-network-v2's NetworkGlobe, programme snapshot, or city data.
+ *        (no proven/newly-joined/member tier states) across 16 cities, where clicking ANY pin opens
+ *        a panel that leads with the city's one-line adoption story then lists the real tools that
+ *        city runs. Honesty rides the link state inside the panel alone (v3 — every tool is real and
+ *        research-grounded; a tool's CTA is active only where a proven-live URL exists, otherwise
+ *        visibly disabled), not a city ranking and not invented tools. This is a FRESH, fully-isolated
+ *        globe + data set owned by this concept — it does NOT import aq-network-v2's NetworkGlobe,
+ *        programme snapshot, or city data.
  *     3. Components catalogue — the COMPONENT_ENTRIES grid, rendered via the concept-local
  *        ProofCatalogueCard (threads the "Used by N BC cities" proof line).
  *     4. Guidance catalogue — the GUIDANCE_ENTRIES grid, same proof-card treatment.
@@ -113,9 +115,11 @@ export default function GlobalToolkitNetworkPage() {
         />
 
         {/* SECTION 1 — PROOF DIRECTORY. Locked section header, one aggregate city-population stat,
-            then the proof-directory globe. Every pin is a real BC member city; clicking a clickable
-            pin opens a panel of the real tools that city runs. Replaces the old membership/sensor
-            globe (NetworkGlobe + counters) — the reframe from membership story to proven deployments. */}
+            then the proof-directory globe (16 cities). Every pin is a real BC member city; clicking a
+            pin opens a panel that leads with the city's adoption story then lists the real tools it
+            runs (every tool research-grounded; honesty rides the per-tool link state). Replaces the
+            old membership/sensor globe (NetworkGlobe + counters) — the reframe from membership story
+            to proven deployments. */}
         <ConceptSectionHeader
           heading="BC cities already on the path"
           body="Breathe Cities members putting these tools to work toward the 2030 target. Every pin is a real city — open any one to see what it's running."
