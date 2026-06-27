@@ -27,9 +27,15 @@
  *   untouched. The ToolPreview sketch + the CatalogueEntry type ARE imported read-only from the
  *   toolkit concept (shared content, allowed).
  *
+ * Concept-local route override (added with the detail-page copy)
+ *   The available 'monitoring' entry's `href` (from the LOCKED toolkit catalogue config) points at the
+ *   toolkit's own detail route. This concept owns a COPY of that detail page, so the card consults
+ *   CONCEPT_ROUTE_OVERRIDES (concept-routes.config.ts) first and links to the concept-local route when
+ *   one is registered for the entry id, else falls back to `entry.href`. The locked config is untouched.
+ *
  * Key exports: ProofCatalogueCard
  * External dependencies: next/link, @/components/concept (ConceptCard), toolkit ToolPreview +
- *   CatalogueEntry (read-only imports).
+ *   CatalogueEntry (read-only imports), ./concept-routes.config (CONCEPT_ROUTE_OVERRIDES).
  *
  * Token discipline: badge and counter line use bridged/inline BC tokens — functional status colour
  *   and muted neutral, not decoration. Light mode. No emoji. Server-compatible (no client state).
@@ -39,6 +45,7 @@ import Link from 'next/link'
 import { ConceptCard } from '@/components/concept'
 import { ToolPreview } from '../../toolkit/_components/ToolPreview'
 import type { CatalogueEntry } from '../../toolkit/_components/toolkit-catalogue.config'
+import { CONCEPT_ROUTE_OVERRIDES } from './concept-routes.config'
 
 /** Status badge — brand chip for Available, muted chip for Coming soon. Text only, no emoji. */
 function StatusBadge({ status }: { status: CatalogueEntry['status'] }) {
@@ -124,12 +131,16 @@ type ProofCatalogueCardProps = {
  * Server-compatible — no client state.
  */
 export function ProofCatalogueCard({ entry, cityCount }: ProofCatalogueCardProps) {
+  // Concept-local route override: this concept owns a copy of the detail page, so the card links to
+  // the concept-local route when one is registered for this entry id, else falls back to entry.href.
+  const resolvedHref = CONCEPT_ROUTE_OVERRIDES[entry.id] ?? entry.href
+
   // Available + has a route → the whole card content links to the route.
-  if (entry.status === 'available' && entry.href !== null) {
+  if (entry.status === 'available' && resolvedHref !== null) {
     return (
       <ConceptCard className="flex h-full flex-col gap-2.5">
         <Link
-          href={entry.href}
+          href={resolvedHref}
           className="group flex h-full flex-col gap-2.5 rounded-2xl transition-transform hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           aria-label={`${entry.title} — available, open the component`}
         >
