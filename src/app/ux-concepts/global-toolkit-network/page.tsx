@@ -117,7 +117,7 @@ export default function GlobalToolkitNetworkPage() {
             onramp section, not here. */}
         <ConceptHero
           headline="Everything your city needs to act on its air quality"
-          body="The digital tools and guidance that help a city understand its air, communicate the risks, and act on them — shown through the cities already putting them to work."
+          body="The digital tools and guidance that help a city understand its air, communicate the risks, and act on them. Shown through the cities already putting them to work."
         />
 
         {/* SECTION 1 — PROOF DIRECTORY. Locked section header, one aggregate city-population stat,
@@ -128,7 +128,7 @@ export default function GlobalToolkitNetworkPage() {
             to proven deployments. */}
         <ConceptSectionHeader
           heading="Cities already using these tools"
-          body="Breathe Cities member cities, each with tools deployed for their residents. Every pin is real — open any city to see what it runs."
+          body="Breathe Cities member cities, each with tools deployed for their residents. Every pin is real. Open any city to see what it runs."
           className="mt-12"
         />
         <section className="mt-6">
@@ -151,7 +151,7 @@ export default function GlobalToolkitNetworkPage() {
             directly from the Toolkit concept's catalogue config. Source files are untouched. */}
         <ConceptSectionHeader
           heading="Components"
-          body="Interactive tools residents and city teams use directly — dashboards, maps, alerts, and data feeds."
+          body="Interactive tools residents and city teams use directly: dashboards, maps, alerts, and data feeds."
           className="mt-16"
         />
         <section className="mt-6">
@@ -192,7 +192,7 @@ export default function GlobalToolkitNetworkPage() {
             page — every other onward action is inert per the concept honesty rule. */}
         <ConceptSectionHeader
           heading="How to implement"
-          body="Four steps from first assessment to residents receiving guidance — and where the resources for each step live."
+          body="Four steps from first assessment to residents receiving guidance, and where the resources for each step live."
           className="mt-16"
         />
         <section className="mt-6">

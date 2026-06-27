@@ -142,7 +142,7 @@ export function ProofCatalogueCard({ entry, cityCount }: ProofCatalogueCardProps
         <Link
           href={resolvedHref}
           className="group flex h-full flex-col gap-2.5 rounded-2xl transition-transform hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          aria-label={`${entry.title} — available, explore this tool`}
+          aria-label={`${entry.title}: available. Explore this tool.`}
         >
           <CardInner entry={entry} />
           <span
