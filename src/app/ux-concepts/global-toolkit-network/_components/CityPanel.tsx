@@ -21,9 +21,11 @@
  *       primary "See the tool →" (right-aligned, thumb-reachable); no URL renders a visibly
  *       DISABLED "Link coming soon".
  *
- *   "CITIES LIKE YOURS" PEER BLOCK (Finding 6 peer-learning cue — at the FOOT of the body):
- *     Below the tool list, a small muted "Cities like yours" label followed by the OTHER plotted
- *     cities in the SAME region as tappable chips. This is peer-learning, NOT a ranking: no scores,
+ *   REGION-FACTUAL PEER BLOCK (Finding 6 peer-learning cue — at the FOOT of the body):
+ *     Below the tool list, a small muted region-factual label (peerBlockLabel — e.g. "Other African
+ *     cities", with a neutral "Other cities in the region" fallback; the retired "Cities like yours"
+ *     wrongly presumed we knew the visitor's own city) followed by the OTHER plotted cities in the
+ *     SAME region as tappable chips. This is peer-learning, NOT a ranking: no scores,
  *     no order-by-anything, no leading/behind language. Tapping a chip swaps the open city
  *     (onSelectPeer), and the panel's city-change effect resets row/sheet state so the peer opens
  *     clean. The block renders nothing when there are no peers.
@@ -67,12 +69,12 @@ type CityPanelProps = {
   /** Called when the panel requests close (close button, scrim click, or Escape). */
   onClose: () => void
   /**
-   * Peer cities for the "Cities like yours" block — the other plotted cities in the SAME region as
+   * Peer cities for the region-factual peer block — the other plotted cities in the SAME region as
    * the open city (caller computes; excludes the open city itself). These are comparable peers for
    * peer-learning, NOT a ranking: pass them in natural array order, no sorting. Empty = block hidden.
    */
   peers: ProofCity[]
-  /** Called with a peer city when a "Cities like yours" chip is tapped (caller swaps the open city). */
+  /** Called with a peer city when a peer chip is tapped (caller swaps the open city). */
   onSelectPeer: (city: ProofCity) => void
 }
 
@@ -87,6 +89,26 @@ function categoryTagStyle(category: ProofTool['category']): { backgroundColor: s
     backgroundColor: `color-mix(in srgb, ${base} 16%, var(--bc-color-white))`,
     color: 'var(--bc-semantic-text)',
   }
+}
+
+/**
+ * Region-factual peer-block label. Maps a city's `region` to a region adjective and returns a label
+ * that makes NO assumption about the visitor's own city (the retired "Cities like yours" presumed
+ * we knew where the visitor was). Known regions read "Other <adjective> cities"; any unmapped region
+ * falls back to the neutral "Other cities in the region".
+ *
+ * EU → "Other European cities", Africa → "Other African cities",
+ * LatAm → "Other Latin American cities", SE Asia → "Other Southeast Asian cities".
+ */
+function peerBlockLabel(region: ProofCity['region']): string {
+  const adjectiveByRegion: Record<string, string> = {
+    EU: 'European',
+    Africa: 'African',
+    LatAm: 'Latin American',
+    'SE Asia': 'Southeast Asian',
+  }
+  const adjective = adjectiveByRegion[region]
+  return adjective === undefined ? 'Other cities in the region' : `Other ${adjective} cities`
 }
 
 /** Props for one condensed, expandable tool row. */
@@ -313,16 +335,17 @@ export function CityPanel({ city, onClose, peers, onSelectPeer }: CityPanelProps
           </ul>
 
           {/*
-            "CITIES LIKE YOURS" PEER BLOCK — Finding 6 peer-learning cue, appended below the tools.
+            REGION-FACTUAL PEER BLOCK — Finding 6 peer-learning cue, appended below the tools.
             Peers are the same-region cities (computed + passed by the caller). Peer-learning, NOT a
             ranking: chips render in natural order, no scores, no leading/behind copy. Hidden when
             there are no peers.
           */}
           {peers.length > 0 && (
             <div className="mt-6 border-t border-border pt-4">
-              {/* Small muted label — matches the file's uppercase/tracking-wide/muted small-label idiom. */}
+              {/* Small muted label — matches the file's uppercase/tracking-wide/muted small-label idiom.
+                  Region-factual copy (peerBlockLabel) — no presumption of the visitor's own city. */}
               <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                Cities like yours
+                {peerBlockLabel(city.region)}
               </p>
               {/* Tappable peer chips — bordered, rounded-full, neutral on-token surface; ~44px tap size. */}
               <div className="mt-2.5 flex flex-wrap gap-2">

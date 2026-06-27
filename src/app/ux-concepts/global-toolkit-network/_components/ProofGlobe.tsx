@@ -16,9 +16,9 @@
  *   Drag to spin, scroll/pinch to zoom, slow idle auto-rotate near globe zoom, and a "Reset to
  *   globe" button. NO timeline scrubber (the membership/growth story was dropped in the reframe).
  *   Clicking a pin opens a panel — a right-side panel on desktop, a half-sheet on mobile — while
- *   the globe stays visible behind it. This component also feeds the panel its "Cities like yours"
- *   PEERS (the same-region cities, excluding the open one, in natural order — peer-learning, not a
- *   ranking) and an `onSelectPeer` handler that swaps the open city when a peer chip is tapped.
+ *   the globe stays visible behind it. This component also feeds the panel its region-factual peer
+ *   block PEERS (the same-region cities, excluding the open one, in natural order — peer-learning,
+ *   not a ranking) and an `onSelectPeer` handler that swaps the open city when a peer chip is tapped.
  *
  * Default framing — COPIED from the membership concept's globe
  *   The default + reset framing (center, zoom, container height) is copied verbatim from
