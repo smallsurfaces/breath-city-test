@@ -3,7 +3,9 @@
  *
  * Purpose
  *   A merged concept combining the AQ Toolkit catalogue with a PROOF-DIRECTORY globe. The page shows:
- *     1. ConceptHero — framing the concept as the global network a city joins when it adopts the toolkit.
+ *     1. ConceptHero — framing the concept as ENABLEMENT: "everything your city needs to act on its
+ *        air quality", shown through the cities already running the toolkit ("this could be your city
+ *        too"). The network-JOIN invitation deliberately lives in the closing section (6), not here.
  *     2. Proof directory — the section header ("BC cities already on the path"), one aggregate
  *        city-population stat (labelled Estimate), and the ProofGlobe: UNIFORM "BC member" pins
  *        (v2 — no proven/newly-joined/member tier states) where clicking ANY pin opens a panel
@@ -14,7 +16,12 @@
  *     3. Components catalogue — the COMPONENT_ENTRIES grid, rendered via the concept-local
  *        ProofCatalogueCard (threads the "Used by N BC cities" proof line).
  *     4. Guidance catalogue — the GUIDANCE_ENTRIES grid, same proof-card treatment.
- *     5. How to implement — placeholder section for implementation guides.
+ *     5. How to implement — a 4-step adoption path (Assess → Choose → Deploy → Communicate),
+ *        each step a ConceptCard, plus one muted reference line pointing at the Guidance catalogue
+ *        and the two confirmed-live BC partner links (OpenAQ, Clean Air Fund).
+ *     6. Bring the toolkit to your city — the closing onramp: completes the "you could have this
+ *        too" arc and carries the network-join invitation moved out of the hero. ConceptSectionHeader
+ *        + ConceptCard + one INERT soft CTA (href="#", shown-not-dead per the no-dead-ends rule).
  *
  *   The toolkit catalogue ENTRIES + sketch preview are imported read-only (shared content, per the
  *   section brief), but the CARD is a concept-local fork (ProofCatalogueCard) so the "Used by N BC
@@ -46,6 +53,38 @@ export const metadata: Metadata = {
   title: 'BC Global Toolkit Network (concept)',
 }
 
+/** One step in the "How to implement" adoption path. */
+type ImplementationStep = {
+  /** The step's short imperative title (rendered as an h3). */
+  title: string
+  /** The one-line description of what the city does in this step. */
+  body: string
+}
+
+/**
+ * The 4-step adoption path shown under "How to implement". Static content — order IS the sequence
+ * (Assess → Choose → Deploy → Communicate); the step number is derived from the array index at
+ * render time, so the numbering can never drift from the order.
+ */
+const IMPLEMENTATION_STEPS: ImplementationStep[] = [
+  {
+    title: 'Assess',
+    body: 'Map what your city already monitors, and where the gaps are.',
+  },
+  {
+    title: 'Choose your components',
+    body: 'Pick the monitoring, forecasting, and communication pieces that fit your context, from the catalogue above.',
+  },
+  {
+    title: 'Deploy & integrate',
+    body: 'Stand up sensors and data pipelines, and connect them to public-facing surfaces.',
+  },
+  {
+    title: 'Communicate & act',
+    body: 'Turn readings into guidance residents act on, and into the case for policy.',
+  },
+]
+
 /**
  * The BC Global Toolkit Network landing page. Server component — the catalogue entries are static
  * config and the proof-directory cities are static data; the ProofGlobe is the only client island.
@@ -65,10 +104,12 @@ export default function GlobalToolkitNetworkPage() {
     <main className="min-h-screen bg-background">
       <div className="mx-auto max-w-5xl px-4 py-12 sm:py-16">
 
-        {/* SECTION 0 — HERO. Frames the page as the global network story. */}
+        {/* SECTION 0 — HERO. Reframed from membership (a network you JOIN) to ENABLEMENT
+            (what your city could be running too). The join invitation now lives in the closing
+            onramp section, not here. */}
         <ConceptHero
-          headline="The global network your city joins when it adopts the toolkit"
-          body="A catalogue of the digital components and guidance a city needs to understand, communicate, and act on its air quality — and how cities around the world are already using them."
+          headline="Everything your city needs to act on its air quality"
+          body="A toolkit of the digital components and guidance a city adopts to understand, communicate, and act on air quality — shown through the cities already putting them to work. This is what your city could be running, too."
         />
 
         {/* SECTION 1 — PROOF DIRECTORY. Locked section header, one aggregate city-population stat,
@@ -134,20 +175,84 @@ export default function GlobalToolkitNetworkPage() {
           </div>
         </section>
 
-        {/* SECTION 4 — HOW TO IMPLEMENT. Placeholder for implementation guides — content
-            coming in a future pass. */}
+        {/* SECTION 4 — HOW TO IMPLEMENT. The "coming soon" placeholder is replaced with the real
+            4-step adoption path: each step is a numbered ConceptCard, followed by one muted
+            reference line pointing at the Guidance catalogue and the two confirmed-live BC partner
+            links. These two URLs (OpenAQ, Clean Air Fund) are the ONLY real external links on the
+            page — every other onward action is inert per the concept honesty rule. */}
         <ConceptSectionHeader
           heading="How to implement"
-          body="Step-by-step guides for every tool — from sensor procurement to public-facing deployment."
+          body="Adopting the toolkit is a path, not a switch. Here is how a city moves from first reading to public action — and where the guides for each step live."
           className="mt-16"
         />
         <section className="mt-6">
-          {/* Placeholder card — implementation guides to be added in a future pass. */}
-          <div className="rounded-xl border border-border p-6">
-            <p className="text-sm text-muted-foreground">
-              Implementation guides — coming soon
-            </p>
-          </div>
+          <ol className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            {IMPLEMENTATION_STEPS.map((step, index) => (
+              <li key={step.title}>
+                <ConceptCard className="h-full">
+                  {/* Step number — brand-blue marker; encodes sequence (functional colour). */}
+                  <p
+                    className="text-xs font-semibold uppercase tracking-widest"
+                    style={{ color: 'var(--bc-color-blue)' }}
+                  >
+                    Step {index + 1}
+                  </p>
+                  <h3 className="mt-2 text-lg font-semibold text-foreground">
+                    {step.title}
+                  </h3>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {step.body}
+                  </p>
+                </ConceptCard>
+              </li>
+            ))}
+          </ol>
+          {/* Reference line — the ONLY two real external links on the page (both confirmed live).
+              New tab + rel="noopener noreferrer" per the external-link safety convention. */}
+          <p className="mt-4 text-sm text-muted-foreground">
+            Step-by-step guides come from the Guidance catalogue above and Breathe Cities partners
+            —{' '}
+            <a
+              href="https://openaq.org"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline hover:text-primary"
+            >
+              OpenAQ
+            </a>{' '}
+            and the{' '}
+            <a
+              href="https://cleanairfund.org"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline hover:text-primary"
+            >
+              Clean Air Fund
+            </a>
+            .
+          </p>
+        </section>
+
+        {/* SECTION 5 — BRING THE TOOLKIT TO YOUR CITY. The closing onramp — completes the
+            "you could have this too" arc and carries the network-join invitation deliberately
+            moved out of the hero. The CTA is INERT (href="#"): shown as a real styled button per
+            the no-dead-ends rule, but it goes nowhere in this concept. Brand-blue fill, white
+            label, 56px minimum touch target. */}
+        <ConceptSectionHeader
+          heading="Bring the toolkit to your city"
+          body="Every city here started where yours is now. Breathe Cities works with you to assess, choose, and deploy the tools that fit your context — and to join the network of cities already on the path to 2030."
+          className="mt-16"
+        />
+        <section className="mt-6">
+          <ConceptCard>
+            <a
+              href="#"
+              className="inline-flex min-h-[56px] items-center justify-center rounded-xl px-6 text-base font-semibold text-white transition-opacity hover:opacity-90"
+              style={{ backgroundColor: 'var(--bc-color-blue)' }}
+            >
+              Start the conversation
+            </a>
+          </ConceptCard>
         </section>
 
       </div>
