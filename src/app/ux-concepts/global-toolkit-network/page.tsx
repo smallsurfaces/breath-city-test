@@ -16,8 +16,10 @@
  *        globe + data set owned by this concept — it does NOT import aq-network-v2's NetworkGlobe,
  *        programme snapshot, or city data.
  *     3. Components catalogue — the COMPONENT_ENTRIES grid, rendered via the concept-local
- *        ProofCatalogueCard (threads the "Used by N BC cities" proof line).
- *     4. Guidance catalogue — the GUIDANCE_ENTRIES grid, same proof-card treatment.
+ *        ProofCatalogueCard. Each card carries the honest deployment footer: "{N} cities run their
+ *        own version" plus an expandable list of those cities, each linking to that city's OWN real
+ *        tool (manifest-gated url; null → unlinked). NOT an implied adoption of the BC component.
+ *     4. Guidance catalogue — the GUIDANCE_ENTRIES grid, same honest-deployment card treatment.
  *     5. How to implement — a 4-step adoption path (Assess → Choose → Deploy → Communicate),
  *        each step a ConceptCard, plus one muted reference line pointing at the Guidance catalogue
  *        and the two confirmed-live BC partner links (OpenAQ, Clean Air Fund).
@@ -26,8 +28,9 @@
  *        + ConceptCard + one INERT soft CTA (href="#", shown-not-dead per the no-dead-ends rule).
  *
  *   The toolkit catalogue ENTRIES + sketch preview are imported read-only (shared content, per the
- *   section brief), but the CARD is a concept-local fork (ProofCatalogueCard) so the "Used by N BC
- *   cities" proof line never mutates the locked toolkit card (isolation, spec §5). The aq-network-v2
+ *   section brief), but the CARD is a concept-local fork (ProofCatalogueCard) so the honest
+ *   "cities run their own version" deployment footer never mutates the locked toolkit card
+ *   (isolation, spec §5). The aq-network-v2
  *   globe + snapshot are NOT imported — the membership/sensor globe section was replaced by the
  *   proof directory. Chrome is provided by layout.tsx (PrototypeHeader + BcHeader/BcFooter).
  *
@@ -46,7 +49,7 @@
 import type { Metadata } from 'next'
 import { ConceptHero, ConceptSectionHeader, ConceptStat, ConceptCard } from '@/components/concept'
 import { ProofGlobe } from './_components/ProofGlobe'
-import { PROOF_CITIES, getTotalCityPopulation, getToolUsageCounts } from './_data/proof-cities'
+import { PROOF_CITIES, getTotalCityPopulation, getToolDeploymentsByCapability } from './_data/proof-cities'
 import { COMPONENT_ENTRIES, GUIDANCE_ENTRIES } from '../toolkit/_components/toolkit-catalogue.config'
 import { ProofCatalogueCard } from './_components/ProofCatalogueCard'
 import { CATALOGUE_PROOF_KEYWORDS } from './_components/catalogue-proof.config'
@@ -97,10 +100,11 @@ export default function GlobalToolkitNetworkPage() {
   // City population, NEVER implied reach (honesty rule 1); shown with an Estimate pill below.
   const totalCityPopulation = getTotalCityPopulation(PROOF_CITIES)
 
-  // "Used by N BC cities" adoption counts per catalogue capability (proof-directory §5 second pass).
-  // Computed once on the server from the same PROOF_CITIES the globe uses, so the card claim and the
-  // globe stay consistent. Adoption breadth only — population never goes on the cards (number-homes).
-  const toolUsageCounts = getToolUsageCounts(PROOF_CITIES, CATALOGUE_PROOF_KEYWORDS)
+  // Honest per-capability deployment lists: for each catalogue capability, the cities that run their
+  // OWN version of it (SIMAT, Airparif, AirQo, …) — NOT cities that adopted the BC component. Computed
+  // once on the server from the same PROOF_CITIES the globe uses, so card and globe stay consistent.
+  // Each entry carries the city's real tool name + its manifest-gated url (null → rendered unlinked).
+  const deploymentsByCapability = getToolDeploymentsByCapability(PROOF_CITIES, CATALOGUE_PROOF_KEYWORDS)
 
   return (
     <main className="min-h-screen bg-background">
@@ -154,7 +158,7 @@ export default function GlobalToolkitNetworkPage() {
               <ProofCatalogueCard
                 key={entry.id}
                 entry={entry}
-                cityCount={toolUsageCounts[entry.id] ?? 0}
+                deployments={deploymentsByCapability[entry.id] ?? []}
               />
             ))}
           </div>
@@ -173,7 +177,7 @@ export default function GlobalToolkitNetworkPage() {
               <ProofCatalogueCard
                 key={entry.id}
                 entry={entry}
-                cityCount={toolUsageCounts[entry.id] ?? 0}
+                deployments={deploymentsByCapability[entry.id] ?? []}
               />
             ))}
           </div>

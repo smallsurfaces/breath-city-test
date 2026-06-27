@@ -1,38 +1,51 @@
+'use client'
+
 /**
- * ProofCatalogueCard.tsx — concept-local catalogue card for the proof-directory page (v2 §5).
+ * ProofCatalogueCard.tsx — concept-local catalogue card for the proof-directory page (honest reframe).
  *
  * Purpose
- *   A FORK of the toolkit `CatalogueCard`, owned by this concept so the proof-directory can thread a
- *   muted "Used by N BC cities" proof line onto each card WITHOUT mutating the shared/locked toolkit
+ *   A FORK of the toolkit `CatalogueCard`, owned by this concept so the proof-directory can show, per
+ *   capability, the cities that run their OWN version of it WITHOUT mutating the shared/locked toolkit
  *   card (isolation constraint, spec §5 + section brief §"full isolation"). It renders the same
- *   capability card — status badge, title + blurb, sketch preview — and adds, in the card FOOTER, a
- *   quiet adoption line that says "the globe shows where this is running".
+ *   capability card — status badge, title + blurb, sketch preview — and adds an honest, explorable
+ *   deployment list in the card FOOTER.
  *
- *   The proof line is the card's job (number-homes rule): cards carry ADOPTION BREADTH ("Used by N
- *   BC cities"), never population / human scale. Population lives only on the globe panel.
+ * The honesty reframe (the point of this component)
+ *   The earlier "Used by N BC cities" line FALSELY implied those cities had adopted the BC toolkit's
+ *   component. They have not — each city runs its OWN version of the capability (SIMAT, Airparif,
+ *   AirQo, …). This card now says "{N} cities run their own version" and lets the reader EXPAND a
+ *   wrapped list of those cities, each linking to that city's REAL tool. The link state is the honesty
+ *   mechanic, mirrored from the globe panel: a chip links out only where a proven-live `url` exists;
+ *   where the data holds no url the chip is plain (unlinked) text. No url is inferred, fixed, or
+ *   pointed at a BC product — a link always goes to the city's own tool.
  *
  *   Affordance mirrors the shared card:
- *     - AVAILABLE → the whole card is a link to the live route (hover lift, "Available" badge).
+ *     - AVAILABLE → the card content is a link to the live route (hover lift, "Available" badge); the
+ *       deployment toggle is a real button inside the card so its clicks never trigger the route link.
  *     - COMING SOON → a de-emphasised, unlinked card with a muted "Coming soon" badge.
  *
  * Why a fork, not a prop on the shared card
- *   The shared toolkit `CatalogueCard` is consumed by the locked toolkit landing; adding a proof
- *   line there would change that surface too. Forking concept-local keeps the locked concept
- *   untouched while letting this concept show the adoption proof. The ToolPreview sketch + the
- *   CatalogueEntry type ARE imported read-only from the toolkit concept (shared content, allowed).
+ *   The shared toolkit `CatalogueCard` is consumed by the locked toolkit landing; adding this
+ *   treatment there would change that surface too. Forking concept-local keeps the locked concept
+ *   untouched. The ToolPreview sketch + the CatalogueEntry type ARE imported read-only from the
+ *   toolkit concept (shared content, allowed).
  *
  * Key exports: ProofCatalogueCard
- * External dependencies: next/link, @/components/concept (ConceptCard), toolkit ToolPreview +
- *   CatalogueEntry (read-only imports).
+ * External dependencies: next/link, react (useState), lucide-react (ChevronDown, ArrowUpRight),
+ *   @/components/concept (ConceptCard), toolkit ToolPreview + CatalogueEntry (read-only imports),
+ *   ../_data/proof-cities (CapabilityDeployment type).
  *
- * Token discipline: badges + proof line use bridged/inline BC tokens — functional status colour and
- *   muted neutral, not decoration. Light mode. No emoji.
+ * Token discipline: badges, count line, toggle, and chips use bridged/inline BC tokens — functional
+ *   status colour and muted neutral, not decoration. Light mode. No emoji.
  */
 
+import { useState } from 'react'
 import Link from 'next/link'
+import { ChevronDown, ArrowUpRight } from 'lucide-react'
 import { ConceptCard } from '@/components/concept'
 import { ToolPreview } from '../../toolkit/_components/ToolPreview'
 import type { CatalogueEntry } from '../../toolkit/_components/toolkit-catalogue.config'
+import type { CapabilityDeployment } from '../_data/proof-cities'
 
 /** Status badge — brand chip for Available, muted chip for Coming soon. Text only, no emoji. */
 function StatusBadge({ status }: { status: CatalogueEntry['status'] }) {
@@ -57,19 +70,78 @@ function StatusBadge({ status }: { status: CatalogueEntry['status'] }) {
 }
 
 /**
- * The muted proof line: "Used by N BC cities". Renders only when at least one city runs the
- * capability — a zero count shows nothing rather than an awkward "Used by 0 cities". Muted so it
- * never competes with the tool name (spec §5). Adoption breadth only — never population.
+ * One city chip in the expanded deployment list. The honesty mechanic, mirrored from the globe panel:
+ * a city with a proven-live `url` renders an external link to its OWN tool (new tab + noopener); a
+ * city with `url: null` renders a plain, unlinked muted chip. Either way the title carries the city's
+ * real tool name so hovering reveals what that city actually runs.
  */
-function ProofLine({ cityCount }: { cityCount: number }) {
-  if (cityCount <= 0) {
+function DeploymentChip({ deployment }: { deployment: CapabilityDeployment }) {
+  if (deployment.url !== null) {
+    return (
+      <a
+        href={deployment.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        title={deployment.toolName}
+        className="inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium transition-colors hover:bg-muted"
+        style={{ borderColor: 'var(--bc-color-steel)', color: 'var(--bc-semantic-brand)' }}
+      >
+        {deployment.name}
+        <ArrowUpRight className="h-3 w-3" aria-hidden="true" />
+      </a>
+    )
+  }
+  return (
+    <span
+      title={`${deployment.toolName} — no public link yet`}
+      className="inline-flex items-center rounded-full border border-border bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground"
+    >
+      {deployment.name}
+    </span>
+  )
+}
+
+/**
+ * The honest proof footer: an "{N} cities run their own version" count line plus an expand/collapse
+ * toggle revealing the city chips. Renders nothing when no city runs the capability (an empty list
+ * shows no footer at all). The count uses the real deployment length, with a singular form at N===1.
+ */
+function DeploymentProof({ deployments }: { deployments: CapabilityDeployment[] }) {
+  const [expanded, setExpanded] = useState<boolean>(false)
+
+  if (deployments.length === 0) {
     return null
   }
-  const label = cityCount === 1 ? 'Used by 1 BC city' : `Used by ${cityCount} BC cities`
+
+  const count = deployments.length
+  const countLabel =
+    count === 1 ? '1 city runs its own version' : `${count} cities run their own version`
+
   return (
-    <p className="mt-auto border-t border-border pt-2.5 text-xs font-medium text-muted-foreground">
-      {label}
-    </p>
+    <div className="mt-auto border-t border-border pt-2.5">
+      <p className="text-xs font-medium text-muted-foreground">{countLabel}</p>
+      {/* Real button so a click never bubbles to an enclosing route link; comfortable tap height. */}
+      <button
+        type="button"
+        onClick={() => setExpanded((prev) => !prev)}
+        aria-expanded={expanded}
+        className="mt-1.5 inline-flex min-h-[40px] items-center gap-1 text-xs font-semibold transition-colors hover:underline"
+        style={{ color: 'var(--bc-semantic-brand)' }}
+      >
+        {expanded ? 'Hide how cities deploy this' : 'See how cities deploy this'}
+        <ChevronDown
+          className={`h-3.5 w-3.5 transition-transform ${expanded ? 'rotate-180' : ''}`}
+          aria-hidden="true"
+        />
+      </button>
+      {expanded && (
+        <div className="mt-2 flex flex-wrap gap-2">
+          {deployments.map((deployment) => (
+            <DeploymentChip key={deployment.slug} deployment={deployment} />
+          ))}
+        </div>
+      )}
+    </div>
   )
 }
 
@@ -101,25 +173,26 @@ function CardInner({ entry }: { entry: CatalogueEntry }) {
 type ProofCatalogueCardProps = {
   /** The catalogue entry (read-only from the toolkit config). */
   entry: CatalogueEntry
-  /** How many plotted BC cities run a tool of this capability — drives the proof line. */
-  cityCount: number
+  /** Cities that run their OWN version of this capability — drives the honest deployment footer. */
+  deployments: CapabilityDeployment[]
 }
 
 /**
- * A catalogue card with the proof line. Available entries wrap the whole card in a Link (full
- * opacity + hover lift); coming-soon entries render a plain de-emphasised card with no link. The
- * proof line sits in the footer under the content in both states.
+ * A catalogue card with the honest deployment footer. Available entries link the card content to the
+ * live route (full opacity + hover lift); the deployment toggle is a real button so exploring the
+ * city list never navigates. Coming-soon entries render a plain de-emphasised card with no route link.
+ * The deployment footer sits under the content in both states.
  */
-export function ProofCatalogueCard({ entry, cityCount }: ProofCatalogueCardProps) {
-  // Available + has a route → the whole card is a link.
+export function ProofCatalogueCard({ entry, deployments }: ProofCatalogueCardProps) {
+  // Available + has a route → the card content links to the route; the toggle stays an inner button.
   if (entry.status === 'available' && entry.href !== null) {
     return (
-      <Link
-        href={entry.href}
-        className="group block rounded-2xl transition-transform hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        aria-label={`${entry.title} — available, open the component`}
-      >
-        <ConceptCard className="flex h-full flex-col gap-2.5 transition-shadow group-hover:shadow-md">
+      <ConceptCard className="flex h-full flex-col gap-2.5">
+        <Link
+          href={entry.href}
+          className="group flex flex-col gap-2.5 rounded-2xl transition-transform hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          aria-label={`${entry.title} — available, open the component`}
+        >
           <CardInner entry={entry} />
           <span
             className="pt-1 text-sm font-medium"
@@ -127,9 +200,9 @@ export function ProofCatalogueCard({ entry, cityCount }: ProofCatalogueCardProps
           >
             Open the component →
           </span>
-          <ProofLine cityCount={cityCount} />
-        </ConceptCard>
-      </Link>
+        </Link>
+        <DeploymentProof deployments={deployments} />
+      </ConceptCard>
     )
   }
 
@@ -137,7 +210,7 @@ export function ProofCatalogueCard({ entry, cityCount }: ProofCatalogueCardProps
   return (
     <ConceptCard className="flex h-full flex-col gap-2.5 opacity-90">
       <CardInner entry={entry} />
-      <ProofLine cityCount={cityCount} />
+      <DeploymentProof deployments={deployments} />
     </ConceptCard>
   )
 }

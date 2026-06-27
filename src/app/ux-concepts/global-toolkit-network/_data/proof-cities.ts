@@ -36,8 +36,8 @@
  *   be re-pinged for liveness at any client-tier promotion before this concept goes client-facing —
  *   a link proven live today is not guaranteed live at promotion.
  *
- * Key exports: ProofCity, ProofTool, ToolCategory (types); PROOF_CITIES (const);
- *   getTotalCityPopulation, getToolUsageCounts (pure helpers).
+ * Key exports: ProofCity, ProofTool, ToolCategory, CapabilityDeployment (types); PROOF_CITIES (const);
+ *   getTotalCityPopulation, getToolUsageCounts, getToolDeploymentsByCapability (pure helpers).
  * External dependencies: none (plain data + pure functions).
  */
 
@@ -786,8 +786,9 @@ export function getTotalCityPopulation(cities: ProofCity[]): number {
 }
 
 /**
- * Count, per tool CATEGORY label, how many cities run a tool whose name matches that catalogue
- * capability. Used to thread the "Used by N BC cities" proof line onto the catalogue cards.
+ * Count, per catalogue capability, how many cities run a tool matching that capability. Retained as
+ * a pure aggregate helper; the catalogue cards now use getToolDeploymentsByCapability (which also
+ * surfaces WHICH cities + their own tool links), so this count is no longer wired into the UI.
  *
  * Why a keyword map rather than a hard join: the proof-cities tool names are product/city-voice
  * ("LondonAir (LAQN)", "ARPA Lombardia") while the catalogue entries are capability-voice ("Real-time
@@ -815,4 +816,61 @@ export function getToolUsageCounts(
     counts[capabilityId] = cityCount
   }
   return counts
+}
+
+/**
+ * One city's OWN deployment of a catalogue capability — the honest unit behind the catalogue card's
+ * explorable city list. A deployment means "this city runs its OWN version of this capability" (e.g.
+ * SIMAT, Airparif, AirQo), NOT that the city adopted the BC toolkit's component. The `url` is the
+ * manifest-gated link to that city's REAL tool (carried straight off the matched ProofTool, never
+ * synthesised): a proven-live URL → render a link to the city's own tool; `null` → render unlinked
+ * (no proven-live link held). `toolName` is the city's real product name, surfaced as the chip title.
+ */
+export type CapabilityDeployment = {
+  /** City slug (stable key). */
+  slug: string
+  /** City display name — the chip label. */
+  name: string
+  /** The city's OWN tool name that matched this capability — shown as the chip title. */
+  toolName: string
+  /** Manifest-gated link to the city's own tool. Proven-live URL → linked; `null` → unlinked. */
+  url: string | null
+}
+
+/**
+ * Build, per catalogue capability id, the list of cities that run their OWN version of that
+ * capability. For each capability, scans cities in natural order (no sorting); for each city takes
+ * the FIRST tool whose name+blurb matches any keyword (same case-insensitive substring logic as
+ * getToolUsageCounts) and records that city's own tool name + manifest-gated url.
+ *
+ * Honesty (the point of this helper): a listed city runs ITS OWN version of the capability — it has
+ * NOT adopted the BC toolkit's component. The `url` is the link to that city's real tool exactly as
+ * held in the data (`null` = no proven-live link, render the city unlinked). No url is inferred,
+ * fixed, or pointed at a BC product. Replaces the misleading "Used by N BC cities" adoption count.
+ */
+export function getToolDeploymentsByCapability(
+  cities: ProofCity[],
+  keywordsByCapability: Record<string, readonly string[]>,
+): Record<string, CapabilityDeployment[]> {
+  const deployments: Record<string, CapabilityDeployment[]> = {}
+  for (const capabilityId of Object.keys(keywordsByCapability)) {
+    const keywords = keywordsByCapability[capabilityId]
+    const cityDeployments: CapabilityDeployment[] = []
+    for (const city of cities) {
+      const matchedTool = city.tools.find((tool) => {
+        const haystack = `${tool.name} ${tool.blurb}`.toLowerCase()
+        return keywords.some((kw) => haystack.includes(kw.toLowerCase()))
+      })
+      if (matchedTool !== undefined) {
+        cityDeployments.push({
+          slug: city.slug,
+          name: city.name,
+          toolName: matchedTool.name,
+          url: matchedTool.url,
+        })
+      }
+    }
+    deployments[capabilityId] = cityDeployments
+  }
+  return deployments
 }
