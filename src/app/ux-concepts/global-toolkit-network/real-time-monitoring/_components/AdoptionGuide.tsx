@@ -37,20 +37,20 @@ type AdoptionStep = {
  */
 const STEPS: readonly AdoptionStep[] = [
   {
-    title: 'Point it at your city',
-    body: 'Add your city to the registry with a map centre and a bounding box. One entry is all the data layer needs to start pulling stations for that area.',
+    title: 'Configure for your city',
+    body: 'Add your city to the system with a location and coverage area. One configuration entry is enough to start pulling in your monitoring stations.',
   },
   {
     title: 'Connect an open data source',
-    body: 'The component reads from OpenAQ out of the box. Bring your own monitoring network the same way — any source that can return stations, readings, and timestamps.',
+    body: 'The component reads from OpenAQ by default. Connect your own monitoring network using the same approach: any source that returns stations, readings, and timestamps.',
   },
   {
-    title: 'Embed the map',
-    body: 'Drop the component into any page. It ships with the city switcher, the parameter toggle, station provenance, and the "check air quality" probe already wired.',
+    title: 'Deploy to a city page',
+    body: 'Add the map to any public-facing city page. It comes ready with a city switcher, pollutant selector, station-level detail, and the air-quality probe. No additional configuration needed.',
   },
   {
     title: 'Keep it honest',
-    body: 'Freshness is shown per sensor, sparse coverage is labelled, and the probe lists the live sensors behind a reading rather than inventing a single number. Your residents see exactly what the network knows.',
+    body: 'Freshness is shown per sensor, sparse coverage is labelled, and the probe lists the live sensors behind any reading. Residents see exactly what the network knows, nothing more.',
   },
 ]
 
@@ -72,7 +72,7 @@ export function AdoptionGuide(): React.ReactElement {
     <section className="space-y-6">
       <ConceptSectionHeader
         heading="Bring it to your city"
-        body="Real-time monitoring is an open-source component, built to be adopted. Here is the shape of standing it up for a new city — illustrative, to show how the pieces fit."
+        body="Real-time monitoring is an open-source component, built to be adopted. These steps show the shape of deploying it for a new city. They are illustrative, not a full install guide."
       />
 
       <div className="grid gap-4 sm:grid-cols-2">

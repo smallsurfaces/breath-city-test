@@ -79,15 +79,15 @@ const IMPLEMENTATION_STEPS: ImplementationStep[] = [
   },
   {
     title: 'Choose your components',
-    body: 'Pick the monitoring, forecasting, and communication pieces that fit your context, from the catalogue above.',
+    body: 'Pick the monitoring, forecasting, and communication pieces that fit your city, from the catalogue on this page.',
   },
   {
-    title: 'Deploy & integrate',
-    body: 'Stand up sensors and data pipelines, and connect them to public-facing surfaces.',
+    title: 'Deploy',
+    body: 'Commission sensors and data infrastructure, then connect them to the tools residents can access: dashboards, maps, and alerts.',
   },
   {
     title: 'Communicate & act',
-    body: 'Turn readings into guidance residents act on, and into the case for policy.',
+    body: 'Turn readings into practical guidance for residents, and into the evidence base city leaders need to act.',
   },
 ]
 
@@ -117,7 +117,7 @@ export default function GlobalToolkitNetworkPage() {
             onramp section, not here. */}
         <ConceptHero
           headline="Everything your city needs to act on its air quality"
-          body="A toolkit of the digital components and guidance a city adopts to understand, communicate, and act on air quality — shown through the cities already putting them to work. This is what your city could be running, too."
+          body="The digital tools and guidance that help a city understand its air, communicate the risks, and act on them — shown through the cities already putting them to work."
         />
 
         {/* SECTION 1 — PROOF DIRECTORY. Locked section header, one aggregate city-population stat,
@@ -127,8 +127,8 @@ export default function GlobalToolkitNetworkPage() {
             old membership/sensor globe (NetworkGlobe + counters) — the reframe from membership story
             to proven deployments. */}
         <ConceptSectionHeader
-          heading="BC cities already on the path"
-          body="Breathe Cities members putting these tools to work toward the 2030 target. Every pin is a real city — open any one to see what it's running."
+          heading="Cities already using these tools"
+          body="Breathe Cities member cities, each with tools deployed for their residents. Every pin is real — open any city to see what it runs."
           className="mt-12"
         />
         <section className="mt-6">
@@ -138,7 +138,7 @@ export default function GlobalToolkitNetworkPage() {
             <ConceptCard>
               <ConceptStat
                 value={`~${totalCityPopulation.toLocaleString()}`}
-                label="combined city population across these cities"
+                label="combined population across these cities"
                 estimate
               />
             </ConceptCard>
@@ -151,7 +151,7 @@ export default function GlobalToolkitNetworkPage() {
             directly from the Toolkit concept's catalogue config. Source files are untouched. */}
         <ConceptSectionHeader
           heading="Components"
-          body="Live digital surfaces a city embeds — interactive pieces residents and city teams use directly."
+          body="Interactive tools residents and city teams use directly — dashboards, maps, alerts, and data feeds."
           className="mt-16"
         />
         <section className="mt-6">
@@ -170,7 +170,7 @@ export default function GlobalToolkitNetworkPage() {
             directly from the Toolkit concept's catalogue config. Source files are untouched. */}
         <ConceptSectionHeader
           heading="Guidance"
-          body="Studies, methodologies, and programmes — the expertise that turns data into action."
+          body="Studies, methodologies, and programmes that help cities interpret data, set standards, and make the case for action."
           className="mt-16"
         />
         <section className="mt-6">
@@ -192,7 +192,7 @@ export default function GlobalToolkitNetworkPage() {
             page — every other onward action is inert per the concept honesty rule. */}
         <ConceptSectionHeader
           heading="How to implement"
-          body="Adopting the toolkit is a path, not a switch. Here is how a city moves from first reading to public action — and where the guides for each step live."
+          body="Four steps from first assessment to residents receiving guidance — and where the resources for each step live."
           className="mt-16"
         />
         <section className="mt-6">
@@ -220,8 +220,7 @@ export default function GlobalToolkitNetworkPage() {
           {/* Reference line — the ONLY two real external links on the page (both confirmed live).
               New tab + rel="noopener noreferrer" per the external-link safety convention. */}
           <p className="mt-4 text-sm text-muted-foreground">
-            Step-by-step guides come from the Guidance catalogue above and Breathe Cities partners
-            —{' '}
+            Step-by-step guides are available from the Guidance catalogue on this page and through Breathe Cities partners, including{' '}
             <a
               href="https://openaq.org"
               target="_blank"
@@ -250,7 +249,7 @@ export default function GlobalToolkitNetworkPage() {
             label, 56px minimum touch target. */}
         <ConceptSectionHeader
           heading="Bring the toolkit to your city"
-          body="Every city here started where yours is now. Breathe Cities works with you to assess, choose, and deploy the tools that fit your context — and to join the network of cities already on the path to 2030."
+          body="Every city here started where yours is now. Breathe Cities works with you to assess, choose, and deploy the tools that fit your context and your residents."
           className="mt-16"
         />
         <section className="mt-6">
@@ -260,7 +259,7 @@ export default function GlobalToolkitNetworkPage() {
               className="inline-flex min-h-[56px] items-center justify-center rounded-xl px-6 text-base font-semibold text-white transition-opacity hover:opacity-90"
               style={{ backgroundColor: 'var(--bc-color-blue)' }}
             >
-              Start the conversation
+              Get in touch
             </a>
           </ConceptCard>
         </section>

@@ -82,8 +82,8 @@ function PrevalenceCounter({ cityCount }: { cityCount: number }) {
 
   const countLabel =
     cityCount === 1
-      ? '1 BC city offers something like this for its citizens'
-      : `${cityCount} BC cities offer something like this for their citizens`
+      ? '1 city in the network runs their own version of this'
+      : `${cityCount} cities in the network run their own version of this`
 
   return (
     <p className="mt-auto border-t border-border pt-2.5 text-xs font-medium text-muted-foreground">
@@ -142,14 +142,14 @@ export function ProofCatalogueCard({ entry, cityCount }: ProofCatalogueCardProps
         <Link
           href={resolvedHref}
           className="group flex h-full flex-col gap-2.5 rounded-2xl transition-transform hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          aria-label={`${entry.title} — available, open the component`}
+          aria-label={`${entry.title} — available, explore this tool`}
         >
           <CardInner entry={entry} />
           <span
             className="pt-1 text-sm font-medium"
             style={{ color: 'var(--bc-semantic-brand)' }}
           >
-            Open the component →
+            Explore this tool →
           </span>
           <PrevalenceCounter cityCount={cityCount} />
         </Link>

@@ -70,7 +70,7 @@ export function ProbeToggle({ isActive, isAvailable, onToggle }: Props): React.R
   const label = disabled
     ? 'No live sensors to probe here yet'
     : isActive
-      ? 'Probe active — click map'
+      ? 'Probe active. Click the map.'
       : 'Check air quality'
 
   const iconColor = disabled ? MUTED : isActive ? '#ffffff' : TEXT
@@ -154,7 +154,7 @@ export function ProbeToggle({ isActive, isAvailable, onToggle }: Props): React.R
             disabled
               ? 'Probe unavailable — no live sensors to probe here yet'
               : isActive
-                ? 'Probe mode active — click to deactivate'
+                ? 'Probe mode active. Click to deactivate.'
                 : 'Activate probe mode to check air quality'
           }
           style={{
