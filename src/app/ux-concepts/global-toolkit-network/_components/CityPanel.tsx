@@ -21,6 +21,13 @@
  *       primary "See the tool →" (right-aligned, thumb-reachable); no URL renders a visibly
  *       DISABLED "Link coming soon".
  *
+ *   "CITIES LIKE YOURS" PEER BLOCK (Finding 6 peer-learning cue — at the FOOT of the body):
+ *     Below the tool list, a small muted "Cities like yours" label followed by the OTHER plotted
+ *     cities in the SAME region as tappable chips. This is peer-learning, NOT a ranking: no scores,
+ *     no order-by-anything, no leading/behind language. Tapping a chip swaps the open city
+ *     (onSelectPeer), and the panel's city-change effect resets row/sheet state so the peer opens
+ *     clean. The block renders nothing when there are no peers.
+ *
  * Mobile half-sheet mechanic
  *   Opens at ~55% viewport height (peek — globe stays visible above). A drag handle / tap expands it
  *   to full height for cities with many tools; tapping again collapses back to peek. Desktop ignores
@@ -59,6 +66,14 @@ type CityPanelProps = {
   city: ProofCity | null
   /** Called when the panel requests close (close button, scrim click, or Escape). */
   onClose: () => void
+  /**
+   * Peer cities for the "Cities like yours" block — the other plotted cities in the SAME region as
+   * the open city (caller computes; excludes the open city itself). These are comparable peers for
+   * peer-learning, NOT a ranking: pass them in natural array order, no sorting. Empty = block hidden.
+   */
+  peers: ProofCity[]
+  /** Called with a peer city when a "Cities like yours" chip is tapped (caller swaps the open city). */
+  onSelectPeer: (city: ProofCity) => void
 }
 
 /**
@@ -169,7 +184,7 @@ function ToolRow({ tool, isOpen, onToggle }: ToolRowProps): ReactElement {
  * pill / one-line proof summary); and a scrollable body that leads with the one-line adoption story
  * then lists the condensed, one-open-at-a-time tool rows.
  */
-export function CityPanel({ city, onClose }: CityPanelProps): ReactElement | null {
+export function CityPanel({ city, onClose, peers, onSelectPeer }: CityPanelProps): ReactElement | null {
   // Which tool row is expanded (slug-scoped id). null = all collapsed. Accordion: one open at a time.
   const [openToolId, setOpenToolId] = useState<string | null>(null)
   // Mobile half-sheet: false = peek (~55%), true = full height. Ignored on desktop (always full).
@@ -296,6 +311,34 @@ export function CityPanel({ city, onClose }: CityPanelProps): ReactElement | nul
               />
             ))}
           </ul>
+
+          {/*
+            "CITIES LIKE YOURS" PEER BLOCK — Finding 6 peer-learning cue, appended below the tools.
+            Peers are the same-region cities (computed + passed by the caller). Peer-learning, NOT a
+            ranking: chips render in natural order, no scores, no leading/behind copy. Hidden when
+            there are no peers.
+          */}
+          {peers.length > 0 && (
+            <div className="mt-6 border-t border-border pt-4">
+              {/* Small muted label — matches the file's uppercase/tracking-wide/muted small-label idiom. */}
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                Cities like yours
+              </p>
+              {/* Tappable peer chips — bordered, rounded-full, neutral on-token surface; ~44px tap size. */}
+              <div className="mt-2.5 flex flex-wrap gap-2">
+                {peers.map((peer) => (
+                  <button
+                    key={peer.slug}
+                    type="button"
+                    onClick={() => onSelectPeer(peer)}
+                    className="inline-flex min-h-[44px] items-center rounded-full border border-border bg-background px-3.5 text-sm font-medium text-foreground transition-colors hover:bg-muted"
+                  >
+                    {peer.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </aside>
     </div>
