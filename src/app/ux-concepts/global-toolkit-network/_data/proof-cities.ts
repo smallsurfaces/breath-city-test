@@ -786,9 +786,10 @@ export function getTotalCityPopulation(cities: ProofCity[]): number {
 }
 
 /**
- * Count, per catalogue capability, how many cities run a tool matching that capability. Retained as
- * a pure aggregate helper; the catalogue cards now use getToolDeploymentsByCapability (which also
- * surfaces WHICH cities + their own tool links), so this count is no longer wired into the UI.
+ * Count, per catalogue capability, how many cities run a tool matching that capability. WIRED into
+ * the UI: this count drives the catalogue cards' prevalence-counter line ("{N} BC cities offer
+ * something like this for their citizens"). The detailed WHICH-cities list is reserved for the
+ * component detail page (see getToolDeploymentsByCapability).
  *
  * Why a keyword map rather than a hard join: the proof-cities tool names are product/city-voice
  * ("LondonAir (LAQN)", "ARPA Lombardia") while the catalogue entries are capability-voice ("Real-time
@@ -846,7 +847,12 @@ export type CapabilityDeployment = {
  * Honesty (the point of this helper): a listed city runs ITS OWN version of the capability — it has
  * NOT adopted the BC toolkit's component. The `url` is the link to that city's real tool exactly as
  * held in the data (`null` = no proven-live link, render the city unlinked). No url is inferred,
- * fixed, or pointed at a BC product. Replaces the misleading "Used by N BC cities" adoption count.
+ * fixed, or pointed at a BC product.
+ *
+ * RESERVED FOR THE COMPONENT DETAIL PAGE: this helper (and the CapabilityDeployment type) is retained
+ * but NOT currently wired into the landing cards — the cards now show only a prevalence counter via
+ * getToolUsageCounts. The detailed WHICH-cities + per-city tool-link list this builds is intended for
+ * the per-component detail page (separate task).
  */
 export function getToolDeploymentsByCapability(
   cities: ProofCity[],

@@ -16,10 +16,11 @@
  *        globe + data set owned by this concept — it does NOT import aq-network-v2's NetworkGlobe,
  *        programme snapshot, or city data.
  *     3. Components catalogue — the COMPONENT_ENTRIES grid, rendered via the concept-local
- *        ProofCatalogueCard. Each card carries the honest deployment footer: "{N} cities run their
- *        own version" plus an expandable list of those cities, each linking to that city's OWN real
- *        tool (manifest-gated url; null → unlinked). NOT an implied adoption of the BC component.
- *     4. Guidance catalogue — the GUIDANCE_ENTRIES grid, same honest-deployment card treatment.
+ *        ProofCatalogueCard. Each card carries a prevalence counter ("N BC cities offer something
+ *        like this for their citizens") — an honest adoption-breadth approximation, NOT an implied
+ *        adoption of the BC component. The per-city deployment list is reserved for the component
+ *        detail page (the data helper is retained but no longer rendered on the card).
+ *     4. Guidance catalogue — the GUIDANCE_ENTRIES grid, same prevalence-counter card treatment.
  *     5. How to implement — a 4-step adoption path (Assess → Choose → Deploy → Communicate),
  *        each step a ConceptCard, plus one muted reference line pointing at the Guidance catalogue
  *        and the two confirmed-live BC partner links (OpenAQ, Clean Air Fund).
@@ -49,7 +50,7 @@
 import type { Metadata } from 'next'
 import { ConceptHero, ConceptSectionHeader, ConceptStat, ConceptCard } from '@/components/concept'
 import { ProofGlobe } from './_components/ProofGlobe'
-import { PROOF_CITIES, getTotalCityPopulation, getToolDeploymentsByCapability } from './_data/proof-cities'
+import { PROOF_CITIES, getTotalCityPopulation, getToolUsageCounts } from './_data/proof-cities'
 import { COMPONENT_ENTRIES, GUIDANCE_ENTRIES } from '../toolkit/_components/toolkit-catalogue.config'
 import { ProofCatalogueCard } from './_components/ProofCatalogueCard'
 import { CATALOGUE_PROOF_KEYWORDS } from './_components/catalogue-proof.config'
@@ -100,11 +101,12 @@ export default function GlobalToolkitNetworkPage() {
   // City population, NEVER implied reach (honesty rule 1); shown with an Estimate pill below.
   const totalCityPopulation = getTotalCityPopulation(PROOF_CITIES)
 
-  // Honest per-capability deployment lists: for each catalogue capability, the cities that run their
-  // OWN version of it (SIMAT, Airparif, AirQo, …) — NOT cities that adopted the BC component. Computed
-  // once on the server from the same PROOF_CITIES the globe uses, so card and globe stay consistent.
-  // Each entry carries the city's real tool name + its manifest-gated url (null → rendered unlinked).
-  const deploymentsByCapability = getToolDeploymentsByCapability(PROOF_CITIES, CATALOGUE_PROOF_KEYWORDS)
+  // Per-capability prevalence counts: for each catalogue capability, HOW MANY cities offer their own
+  // version of it (SIMAT, Airparif, AirQo, …) — an honest adoption-breadth approximation, NOT cities
+  // that adopted the BC component. Computed once on the server from the same PROOF_CITIES the globe
+  // uses. The detailed WHICH-cities list is reserved for the component detail page, so the card needs
+  // only the count here (getToolDeploymentsByCapability remains available for that page).
+  const counts = getToolUsageCounts(PROOF_CITIES, CATALOGUE_PROOF_KEYWORDS)
 
   return (
     <main className="min-h-screen bg-background">
@@ -158,7 +160,7 @@ export default function GlobalToolkitNetworkPage() {
               <ProofCatalogueCard
                 key={entry.id}
                 entry={entry}
-                deployments={deploymentsByCapability[entry.id] ?? []}
+                cityCount={counts[entry.id] ?? 0}
               />
             ))}
           </div>
@@ -177,7 +179,7 @@ export default function GlobalToolkitNetworkPage() {
               <ProofCatalogueCard
                 key={entry.id}
                 entry={entry}
-                deployments={deploymentsByCapability[entry.id] ?? []}
+                cityCount={counts[entry.id] ?? 0}
               />
             ))}
           </div>
