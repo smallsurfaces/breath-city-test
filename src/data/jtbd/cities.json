@@ -3,6 +3,7 @@
     "id": "paris",
     "name": "Paris",
     "tier": 1,
+    "dataOwnership": "city",
     "continent": "Europe",
     "globalSouth": false,
     "bcMember": true,
@@ -12,6 +13,7 @@
     "id": "cdmx",
     "name": "Mexico City",
     "tier": 2,
+    "dataOwnership": "city",
     "continent": "Latin America",
     "globalSouth": true,
     "bcMember": true,
@@ -21,9 +23,140 @@
     "id": "accra",
     "name": "Accra",
     "tier": 3,
+    "dataOwnership": "third-party",
     "continent": "Africa",
     "globalSouth": true,
     "bcMember": true,
     "structuralContext": "4–5 reference grade monitors, not real-time (SD card only). 55 low-cost sensors across 13 of 25 city councils. Fragmented governance. No unified portal."
+  },
+  {
+    "id": "madrid",
+    "name": "Madrid",
+    "tier": 1,
+    "dataOwnership": "city",
+    "continent": "Europe",
+    "globalSouth": false,
+    "bcMember": true,
+    "structuralContext": "Ayuntamiento de Madrid operates the Sistema Integral de la Calidad del Aire: 24 city-owned reference-grade stations plus a mobile unit, real-time data updated every 20 minutes. City also operates SOCAIRE (city-owned AI forecast), an annual municipal emissions inventory by source sector (since 1999), and an interactive 56,000-point street-level concentration map (NO2/PM10, hourly, address-queryable). No standard-sovereignty problem — EU/WHO-referenced benchmark; PM2.5 ~1.2× WHO annual guideline. Decade of LEZ policy (Madrid Central 2018; Madrid 360/ZBE 2021 city-wide) producing documented progress trajectory (NO2 −41.5% at Plaza Elíptica since 2019)."
+  },
+  {
+    "id": "london",
+    "name": "London",
+    "tier": 1,
+    "dataOwnership": "city",
+    "continent": "Europe",
+    "globalSouth": false,
+    "bcMember": true,
+    "structuralContext": "High-coverage multi-layer ecosystem: GLA/Mayor (official map, ULEZ, London Environment Strategy) + Imperial College ERG (LAQN/LondonAir + Breathe London, ~400 hyperlocal sites, Mayor-funded) + Defra UK-AIR (national, DAQI) + airTEXT (forecast + action alerts) + Breathe London Communities (citizen science + collective action). Source apportionment SERVED via LAEI 2019/2022 (sector-resolved, forecast-bearing, downloadable) — stronger than Paris. Benchmark default is DAQI not WHO (softer cousin of IMECA, not risk-masking). ULEZ progress record is the strongest Path-B trajectory asset in the BC portfolio. Population ~9.1M (ONS mid-2024 estimate)."
+  },
+  {
+    "id": "brussels",
+    "name": "Brussels",
+    "tier": 1,
+    "dataOwnership": "city",
+    "continent": "Europe",
+    "globalSouth": false,
+    "bcMember": true,
+    "structuralContext": "Bruxelles Environnement (Brussels-Capital Region environment agency) operates a city-owned real-time dashboard (qualitedelair.brussels, 14 stations, bilingual FR/NL) + app + peak alerts. IRCELINE provides the WHO-2021-aligned BelAQI index + forecast + Belgium-wide maps. No IMECA-style standards problem. Annual public emission inventory with sectoral source apportionment (transport ~41% NOx). LEZ since 2018 with annual assessment (NO2 -30%) gives a genuine Path-B trajectory product and a city-owned individual-action layer (Mobility Coach, premiums). CurieuzenAir (2021, 3,000-site citizen NO2 map, world-first) is a narrative differentiator. Breaks only at advocacy packaging + collective action — a Paris-grade T1 peer."
+  },
+  {
+    "id": "warsaw",
+    "name": "Warsaw",
+    "tier": 1,
+    "dataOwnership": "city",
+    "continent": "Europe",
+    "globalSouth": false,
+    "bcMember": true,
+    "structuralContext": "Warsaw has a genuine city-owned consumer product — the Warszawski Indeks Powietrza (Warsaw Air Quality Index): 165 city-contracted Airly low-cost sensors across every district, EU-funded, surfaced via the Warszawa 19115 app and Warsaw IoT platform. Plus 9 GIOŚ reference stations under a city–Chief Inspector agreement and the national GIOŚ network with a 72-hour IoŚ-PIB forecast. EEA European city air quality viewer exposes spatial/sectoral PM2.5 contributions for Warsaw across 761 cities. Soft benchmark issue: EU/Polish index (~14.5 µg/m³ PM2.5, ~2.9× WHO annual), but far less misleading than IMECA. Documented progress trajectory: PM2.5 down ~46% (2010–2024), 2nd of 19 cities in the Breathe Cities study (coal-heating ban, clean transport zone)."
+  },
+  {
+    "id": "milan",
+    "name": "Milan",
+    "tier": 1,
+    "dataOwnership": "regional",
+    "continent": "Europe",
+    "globalSouth": false,
+    "bcMember": true,
+    "structuralContext": "Best-served non-Paris city. ARPA Lombardia (REGIONAL agency, not the city) runs ~83 reference-grade stations, daily forecasting, INEMAR emission inventory, and open data. City layer (AMAT/Comune di Milano) is a derived daily report, EU-limit benchmarked (not WHO), suspended 1 Apr–30 Sep. Po Valley basin — PM2.5 ~18.1 µg/m³ (2024), ~3.6x WHO guideline, EU non-compliant. Cittadini per l'aria NGO partially backfills narrative/advocacy/collective steps (NO2 citizen-science map, secured diesel-ban pledge, city-sponsored 2023). City population ~1.37M (city proper, estimate). Honesty axis: best product is regional, not city-owned."
+  },
+  {
+    "id": "nairobi",
+    "name": "Nairobi",
+    "tier": 3,
+    "dataOwnership": "third-party",
+    "continent": "Africa",
+    "globalSouth": true,
+    "bcMember": true,
+    "structuralContext": "City-owned ~50-sensor network launched June 2025 (2 reference sites + ~37 low-cost prior); no verified public dashboard. AirQo (third-party Makerere University NGO) is the de facto live data layer for residents and researchers. NEMA national standards (no IMECA-style lenient-index problem). Source apportionment well-established academically (transport ~40%, waste ~25%, biomass ~15%, industry ~15%) but unpackaged as a product."
+  },
+  {
+    "id": "addis-ababa",
+    "name": "Addis Ababa",
+    "tier": 3,
+    "dataOwnership": "third-party",
+    "continent": "Africa",
+    "globalSouth": true,
+    "bcMember": true,
+    "structuralContext": "No city-owned public-facing real-time dashboard. Monitoring is fragmented across institutions holding a handful of devices each (Ethiopian Meteorology Institute federal-equivalent AQM; NASA MAIA PurpleAir; Addis Ababa EPA Kunak cloud; GeoHealth/UNDP BAM), all degraded by power cuts, sensor failure and maintenance gaps — 'real time data is barely available to the public' (Tamiru 2024). The single most reliable real-time source, the US Embassy reference monitor (via AirNow/aqicn/IQAir/OpenAQ), went 'Not Available' after the US State Department ended global embassy AQ data-sharing in March 2026. AirQo lists ~6 monitors in Ethiopia but does not foreground Addis on its explore-data map. Source apportionment is well-established academically (Tefera et al. 2021: vehicles ~28%, biomass ~18%, soil dust ~17%) but unpackaged as a product. National standards sit between WHO interim targets 1 and 2 (~25-35 ug/m3) and there is no national AQ index. Real Path-B assets exist: 2021 Addis AQMP, C40 Clean Air Declaration (2022), Breathe Cities membership (2026). Population ~5.0M city proper (labelled estimate), ~5.7M metro."
+  },
+  {
+    "id": "bogota",
+    "name": "Bogotá",
+    "tier": 2,
+    "dataOwnership": "city",
+    "continent": "Latin America",
+    "globalSouth": true,
+    "bcMember": true,
+    "structuralContext": "Strongest Global South city in the set. City-owned RMCAB reference network (~20 stations since 1997, hourly real-time PM2.5/PM10/BC) + IBOCA 2.0 — a city-owned real-time health-risk index with a 90-hour forecast and health recommendations (the embryonic BC City Tools). Resolución 2254/2017 is WHO-aligned (no IMECA-style lenient-index problem). City-owned emissions inventory + established source apportionment (mobile sources 65% PM10; vehicles+industry+road dust >60% PM2.5). Improving trend (~10 µg/m³ 2025). Breathe Cities/C40 member + 2025 Earthshot 'Clean Our Air' winner. Top of T2, above CDMX — strong-and-unblocked vs CDMX's capable-but-blocked. Below Paris (T1) only on hyperlocal density, interactive apportionment, and advocacy-export layer."
+  },
+  {
+    "id": "jakarta",
+    "name": "Jakarta",
+    "tier": 2,
+    "dataOwnership": "city",
+    "continent": "Asia",
+    "globalSouth": true,
+    "bcMember": true,
+    "structuralContext": "First Global South city with a genuine city-owned, live, public-facing real-time AQ dashboard (udara.jakarta.go.id, DLH DKI Jakarta) feeding ISPU + PM2.5 from an integrated reference + low-cost network. Densest third-party hyperlocal layer of any mapped city (Nafas/Airly, 48->160+ sensors). ISPU national index ~6-11x more permissive than WHO at typical Jakarta levels - the CDMX-type benchmark problem, but inside a good city-owned product. Source apportionment established (Vital Strategies/ITB: transport up to ~57% dry-season, plus open burning, coal, dust, transboundary) but unpackaged as a product. Strongest civil-society/legal layer of any mapped city (2021 landmark citizen lawsuit; Bicara Udara)."
+  },
+  {
+    "id": "rio-de-janeiro",
+    "name": "Rio de Janeiro",
+    "tier": 2,
+    "dataOwnership": "city",
+    "continent": "Latin America",
+    "globalSouth": true,
+    "bcMember": true,
+    "structuralContext": "CDMX profile with stronger data ownership. City-owned MonitorAr-Rio network (SMAC, since 2000): 8 reference stations + compact-sensor layer (Google/COR 2025 expansion, +21 stations), daily public dashboard/bulletin + open hourly data API (data.rio, 2011–2025 series). Parallel state network (INEA/SIGQAR, real-time state index + daily bulletin). Benchmark compromised by CONAMA 491/2018 IQAr index ≈4× more lenient than WHO (PM2.5 IT-1 annual 20 vs WHO 5 µg/m³) — the IMECA-equivalent problem; CONAMA 506/2024 aligns the final goal with WHO on interim timelines. Source apportionment vehicular-dominant but academic/unpackaged and thinner than Nairobi. Population ~6.2M (city of Rio de Janeiro, estimate)."
+  },
+  {
+    "id": "bangkok",
+    "name": "Bangkok",
+    "tier": 2,
+    "dataOwnership": "mixed",
+    "continent": "Asia",
+    "globalSouth": true,
+    "bcMember": true,
+    "structuralContext": "Bangkok has a genuine city-owned public-facing AQ dashboard (AirBKK/BMA), distinct from the national PCD product (Air4Thai). Standards regime carries a CDMX-style benchmark problem, milder: Thailand's 2023 PM2.5 standard is WHO IT-3 (37.5 µg/m³ daily / 15 annual, ~3× WHO annual guideline). Source apportionment in active productisation via the 2024 Breathe Bangkok Emissions Inventory and a 50-district vulnerability mapping tool in build. Bangkok joined Breathe Cities 10 September 2024, implemented by the BMA."
+  },
+  {
+    "id": "sofia",
+    "name": "Sofia",
+    "tier": 3,
+    "dataOwnership": "third-party",
+    "continent": "Europe",
+    "globalSouth": false,
+    "bcMember": true,
+    "structuralContext": "Data-rich, action-poor EU capital. Three monitoring layers: ~5 national ExEA reference stations, ~22 city-owned municipal sensors (2019), and 300+ citizen sensors (AirBG.info / Sensor.Community) — the densest citizen-science AQ network in the set. EU-bound standards (no IMECA equivalent); uncompromised WHO/EU benchmark via EEA. Source apportionment known (domestic heating ~56%, dust ~31%, transport ~11%) but unpackaged. Breathe Sofia launched September 2022 (City + Clean Air Fund); BC reports ~24,500 heating systems replaced and 52% fewer days above norms. EU infringement record for PM10 limit breaches (CJEU 2017, Commission referral 2019/2020)."
+  },
+  {
+    "id": "johannesburg",
+    "name": "Johannesburg",
+    "tier": 3,
+    "dataOwnership": "national",
+    "continent": "Africa",
+    "globalSouth": true,
+    "bcMember": true,
+    "structuralContext": "City of Johannesburg stations publicly visible in real time via national SAAQIS (DFFE/SAWS) - city-owned data has a public face, unlike Nairobi. But Gauteng reference network in crisis (12/31 municipal stations operational, Oct 2025); SACAQM AI low-cost network (500-sensor Gauteng rollout from Aug 2025) fills gaps. SA NAAQS annual PM2.5 20 ug/m3 (4x WHO, tightening to WHO-aligned by 2030) - milder standard-sovereignty issue than CDMX/IMECA. City-scale source apportionment commissioned (Clean Air Fund RFP) but not yet delivered. Building sub-Saharan Africa's first Clean Air Zone; genuine youth/civic collective-action energy (Joburg Cityzens, SAIIA Youth Air Champions)."
   }
 ]
