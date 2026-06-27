@@ -63,7 +63,7 @@ export default function GlobalNetworkRtMonitoringPage() {
 
         <ConceptSectionHeader
           heading="Why it comes first"
-          body="You cannot benchmark against a standard, forecast a trend, or warn a resident without first knowing what the sensors say — and how much to trust them. This component leads with that honesty: per-sensor freshness, sparse-coverage labelling, and a probe that shows the live sensors behind a reading rather than inventing a single number."
+          body="Reliable benchmarking, forecasting, and resident guidance all depend on one thing: a trustworthy, current picture of the sensor network. This component puts that picture first, with per-sensor freshness indicators, honest sparse-coverage labelling, and a probe that shows the live sensors behind any reading."
         />
 
         {/* ── 2. Live demo — the map, contained as a bordered block (not full-bleed) ── */}
@@ -90,8 +90,8 @@ export default function GlobalNetworkRtMonitoringPage() {
             The detail page has room, so the full list shows (no expander). */}
         <section className="space-y-4">
           <ConceptSectionHeader
-            heading="BC cities offering something like this"
-            body="These cities each run their OWN real-time monitoring for their residents: their own networks and tools, not the BC component. Where we hold a proven-live link, it points at that city's own tool."
+            heading="Cities running real-time monitoring"
+            body="Each city listed here runs its own monitoring network and tools, serving its residents. Links go directly to that city's tool, where a public link is available."
           />
           <ConceptCard>
             <ul className="divide-y divide-border">

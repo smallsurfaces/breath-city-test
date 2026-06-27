@@ -109,9 +109,9 @@ export const PROOF_CITIES: ProofCity[] = [
     region: 'LatAm',
     coordinates: [-99.1332, 19.4326],
     population: 9_200_000,
-    summary: 'Running 3 AQ tools.',
+    summary: 'Running 3 air quality tools.',
     story:
-      'Mexico City runs SIMAT, its own roughly 35-station monitoring network, but its official IMECA index reads safer than the WHO guideline.',
+      'Mexico City runs SIMAT, a 35-station fixed monitoring network. Its readings are publicly available through WAQI and the OpenAQ API.',
     tools: [
       {
         id: 'cdmx-simat',
@@ -148,7 +148,7 @@ export const PROOF_CITIES: ProofCity[] = [
     region: 'EU',
     coordinates: [2.3522, 48.8566],
     population: 2_100_000,
-    summary: 'Running 3 AQ tools.',
+    summary: 'Running 3 air quality tools.',
     story:
       'Airparif gives Paris a dense real-time network with neighbourhood coverage, WHO-referenced framing, and a public 72-hour forecast.',
     tools: [
@@ -185,7 +185,7 @@ export const PROOF_CITIES: ProofCity[] = [
     region: 'EU',
     coordinates: [-0.1278, 51.5074],
     population: 8_900_000,
-    summary: 'Running 4 AQ tools.',
+    summary: 'Running 4 air quality tools.',
     story:
       'London layers a reference network, a 400-site community sensor map, an emissions inventory, and a forecast with health advice.',
     tools: [
@@ -230,7 +230,7 @@ export const PROOF_CITIES: ProofCity[] = [
     region: 'EU',
     coordinates: [-3.7038, 40.4168],
     population: 3_400_000,
-    summary: 'Running 5 AQ tools.',
+    summary: 'Running 5 air quality tools.',
     story:
       'Madrid owns a 24-station network, an AI forecast, and an interactive street-level concentration map across the city.',
     tools: [
@@ -283,7 +283,7 @@ export const PROOF_CITIES: ProofCity[] = [
     region: 'EU',
     coordinates: [9.1900, 45.4642],
     population: 1_370_000,
-    summary: 'Running 3 AQ tools.',
+    summary: 'Running 3 air quality tools.',
     story:
       'Milan reads its air through the regional ARPA Lombardia reference network plus a citizen-science NO2 map run by a local NGO.',
     tools: [
@@ -298,7 +298,7 @@ export const PROOF_CITIES: ProofCity[] = [
       {
         id: 'milan-amat',
         name: 'AMAT daily report',
-        blurb: "The city's own daily air-quality report, derived from regional data; suspended April to September.",
+        blurb: "The city's own daily air-quality report, derived from regional data. Published October to March only.",
         category: 'Component',
         url: null,
         provider: 'AMAT / Comune di Milano',
@@ -320,9 +320,9 @@ export const PROOF_CITIES: ProofCity[] = [
     region: 'EU',
     coordinates: [21.0122, 52.2297],
     population: 1_800_000,
-    summary: 'Running 3 AQ tools.',
+    summary: 'Running 3 air quality tools.',
     story:
-      'Warsaw runs a city-owned 165-sensor network on top of the national system, and has cut PM2.5 substantially over the past decade.',
+      'Warsaw runs a city-owned 165-sensor network on top of the national system and has steadily reduced its PM2.5 levels over the past decade.',
     tools: [
       {
         id: 'warsaw-gios',
@@ -357,9 +357,9 @@ export const PROOF_CITIES: ProofCity[] = [
     region: 'EU',
     coordinates: [23.3219, 42.6977],
     population: 1_300_000,
-    summary: 'Running 3 AQ tools.',
+    summary: 'Running 3 air quality tools.',
     story:
-      'Sofia tracks its air through 300-plus citizen sensors, and a city programme has replaced thousands of polluting home heaters.',
+      'Sofia tracks its air through 300-plus citizen sensors. A city programme has replaced thousands of solid-fuel home heating systems as part of its clean-air plan.',
     tools: [
       {
         id: 'sofia-airbg',
@@ -394,7 +394,7 @@ export const PROOF_CITIES: ProofCity[] = [
     region: 'EU',
     coordinates: [4.3517, 50.8503],
     population: 1_200_000,
-    summary: 'Running 4 AQ tools.',
+    summary: 'Running 4 air quality tools.',
     story:
       'Brussels mapped its air with 3,000 citizen sites in 2021 and runs a region-wide low-emission zone.',
     tools: [
@@ -441,7 +441,7 @@ export const PROOF_CITIES: ProofCity[] = [
     region: 'Africa',
     coordinates: [-0.1870, 5.6037],
     population: 2_600_000,
-    summary: 'Running 4 AQ tools.',
+    summary: 'Running 4 air quality tools.',
     story:
       "Accra reads its air through AirQo's low-cost sensor network, with the national EPA portal anchoring official monitoring.",
     tools: [
@@ -486,14 +486,14 @@ export const PROOF_CITIES: ProofCity[] = [
     region: 'Africa',
     coordinates: [36.8219, -1.2921],
     population: 4_400_000,
-    summary: 'Running 4 AQ tools.',
+    summary: 'Running 4 air quality tools.',
     story:
       "Nairobi launched its first 50-sensor city network in 2025, on top of AirQo's live data layer.",
     tools: [
       {
         id: 'nairobi-airqo',
         name: 'AirQo',
-        blurb: 'The de facto live data layer: real-time PM2.5 map, app, forecast and open API for Nairobi.',
+        blurb: "Nairobi's main live data layer: real-time PM2.5 map, app, forecast, and open API.",
         category: 'Component',
         url: 'https://airqo.net',
         provider: 'AirQo',
@@ -531,14 +531,14 @@ export const PROOF_CITIES: ProofCity[] = [
     region: 'Africa',
     coordinates: [38.7578, 9.0250],
     population: 5_000_000,
-    summary: 'Running 3 AQ tools.',
+    summary: 'Running 3 air quality tools.',
     story:
-      'Addis has fragmented institutional monitoring and no city dashboard; its most reliable public feed went dark in March 2026.',
+      "Addis Ababa's monitoring is fragmented and its most accessible public data source went offline in early 2026. It represents a city where the toolkit's open data and forecasting components would have the most impact.",
     tools: [
       {
         id: 'addis-airqo',
         name: 'AirQo',
-        blurb: 'Regional low-cost network with around six Ethiopia monitors; Addis is under-represented.',
+        blurb: 'Regional low-cost network with around six Ethiopia monitors. Addis Ababa has limited coverage.',
         category: 'Component',
         url: 'https://airqo.net',
         provider: 'AirQo',
@@ -568,9 +568,9 @@ export const PROOF_CITIES: ProofCity[] = [
     region: 'Africa',
     coordinates: [28.0473, -26.2041],
     population: 5_600_000,
-    summary: 'Running 4 AQ tools.',
+    summary: 'Running 4 air quality tools.',
     story:
-      "Johannesburg's city stations are public but most are offline, and it is building Africa's first Clean Air Zone.",
+      "Johannesburg is developing Africa's first Clean Air Zone. Its official monitoring stations are public, though most have been offline, making community and open-data feeds the practical data layer.",
     tools: [
       {
         id: 'johannesburg-saaqis',
@@ -615,7 +615,7 @@ export const PROOF_CITIES: ProofCity[] = [
     region: 'LatAm',
     coordinates: [-74.0721, 4.7110],
     population: 7_900_000,
-    summary: 'Running 4 AQ tools.',
+    summary: 'Running 4 air quality tools.',
     story:
       'Bogotá runs the RMCAB reference network and the IBOCA health-risk index, with a public forecast and health-banded alerts.',
     tools: [
@@ -660,9 +660,9 @@ export const PROOF_CITIES: ProofCity[] = [
     region: 'LatAm',
     coordinates: [-43.1729, -22.9068],
     population: 6_700_000,
-    summary: 'Running 3 AQ tools.',
+    summary: 'Running 3 air quality tools.',
     story:
-      'Rio owns MonitorAr-Rio with a 14-year open data series, but its official IQAr index reads safer than WHO.',
+      'Rio owns MonitorAr-Rio, a city monitoring network with more than a decade of open data covering PM2.5 and other pollutants.',
     tools: [
       {
         id: 'rio-monitorar',
@@ -699,9 +699,9 @@ export const PROOF_CITIES: ProofCity[] = [
     region: 'SE Asia',
     coordinates: [106.8456, -6.2088],
     population: 10_600_000,
-    summary: 'Running 4 AQ tools.',
+    summary: 'Running 4 air quality tools.',
     story:
-      "Jakarta runs a public city dashboard, and a 2021 court ruling ordered the government to clean the city's air.",
+      'Jakarta runs a public city dashboard, and a landmark 2021 court ruling set a legal mandate for air quality improvement across the city.',
     tools: [
       {
         id: 'jakarta-dashboard',
@@ -744,7 +744,7 @@ export const PROOF_CITIES: ProofCity[] = [
     region: 'SE Asia',
     coordinates: [100.5018, 13.7563],
     population: 10_700_000,
-    summary: 'Running 3 AQ tools.',
+    summary: 'Running 3 air quality tools.',
     story:
       'Bangkok\'s metropolitan administration runs a city dashboard, and Breathe Bangkok built a 2024 emissions inventory.',
     tools: [

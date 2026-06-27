@@ -133,9 +133,9 @@ export function NetworkStateOverlay({
             textAlign: 'center',
           }}
         >
-          <span style={{ fontWeight: 600 }}>Sensors here haven&rsquo;t reported recently.</span>{' '}
+          <span style={{ fontWeight: 600 }}>Sensors here have not reported recently.</span>{' '}
           <span style={{ color: CALM_MUTED }}>
-            Showing last-known locations; nothing live to probe right now.
+            Showing last-known locations. Nothing live to probe right now.
           </span>
         </div>
       </div>
