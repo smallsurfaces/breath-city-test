@@ -46,7 +46,7 @@ const STEPS: readonly AdoptionStep[] = [
   },
   {
     title: 'Deploy to a city page',
-    body: 'Add the map to any public-facing city page. It comes ready with a city switcher, pollutant selector, station-level detail, and the air-quality probe. No additional configuration needed.',
+    body: 'Add the map to any public-facing city page. Residents arrive to a working tool: switch city, choose a pollutant, open a station, or check the air at any point. No extra setup needed.',
   },
   {
     title: 'Keep it honest',

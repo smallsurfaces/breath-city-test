@@ -240,7 +240,7 @@ export default function GlobalToolkitNetworkPage() {
             gone, every onward action on the page is now inert — an accepted concept state, not a bug. */}
         <ConceptSectionHeader
           heading="How to implement"
-          body="Four steps from first assessment to residents receiving guidance, and where the resources for each step live."
+          body="Four steps, from first assessment to residents receiving real guidance."
           className="mt-16"
         />
         <section className="mt-6">

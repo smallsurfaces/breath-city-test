@@ -74,9 +74,9 @@ export default function GlobalNetworkRtMonitoringPage() {
             <MapDemo />
           </ConceptCard>
           <p className="text-xs text-muted-foreground">
-            Switch cities, toggle the parameter, click a station for its provenance, or use
-            &ldquo;Check air quality&rdquo; to list the live sensors nearest a point. Data is a
-            committed snapshot by default — the label on the map shows when it was captured.
+            Switch cities, change the pollutant, or open a station to see where its reading comes
+            from. &ldquo;Check air quality&rdquo; lists the live sensors nearest any point. Readings
+            are a saved snapshot by default; the map label shows when it was captured.
           </p>
         </section>
 
@@ -90,8 +90,8 @@ export default function GlobalNetworkRtMonitoringPage() {
             The detail page has room, so the full list shows (no expander). */}
         <section className="space-y-4">
           <ConceptSectionHeader
-            heading="Cities running real-time monitoring"
-            body="Each city listed here runs its own monitoring network and tools, serving its residents. Links go directly to that city's tool, where a public link is available."
+            heading="Cities already monitoring their air in real time"
+            body="Every one of these cities runs its own monitoring network for its residents. Where a city publishes its tool, you can open it directly."
           />
           <ConceptCard>
             <ul className="divide-y divide-border">
