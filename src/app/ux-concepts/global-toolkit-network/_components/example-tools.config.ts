@@ -1,39 +1,34 @@
 /**
- * example-tools.config.ts — concept-local data for the three illustrative example tools shown in the
- * "Tailored tools, designed with cities" section of the Global Toolkit Network concept.
+ * example-tools.config.ts — concept-local data for the three illustrative example tools shown as
+ * "Coming soon" catalogue cards inside the Components grid of the Global Toolkit Network concept.
  *
  * Purpose
- *   These are founder-named, honesty-framed ILLUSTRATIVE concepts — NOT tools in use. They are the
- *   reference examples Santiago presented in the Data Visualisation briefing Annex ("brain teasers …
- *   reference examples only … do not represent final products"). Each entry pairs a name + description
- *   with two state screenshots (a "good" condition and a "moderate" condition) drawn from the pitch
- *   deck concepts, embedded as static images from `public/ux-concepts/global-toolkit-network/
- *   example-tools/`.
+ *   These are founder-named ILLUSTRATIVE concepts — tools NOT yet in use. They are the reference
+ *   examples Santiago presented in the Data Visualisation briefing Annex ("brain teasers … reference
+ *   examples only … do not represent final products"). After the v2 founder review they no longer live
+ *   in a standalone section: each tool is now a "Coming soon" card appended to the Components catalogue
+ *   grid (page.tsx Section 2), sitting uniformly alongside the real COMPONENT_ENTRIES cards.
+ *
+ * What each entry carries (v2)
+ *   A name + locked description + ONE representative full-colour preview image (the positive state),
+ *   embedded from `public/ux-concepts/global-toolkit-network/example-tools/`. The card renders a muted
+ *   "Coming soon" badge (matching the ProofCatalogueCard coming-soon treatment) — there is NO
+ *   prevalence counter, NO stat line, and NO link/CTA. The other three state PNGs remain in the repo
+ *   (unused for now; a future detail page may use them).
  *
  * Honesty (this concept's backbone)
- *   These carry NO prevalence counter and NO available/coming-soon status badge — the section framing
- *   and a muted "Concept" tag (rendered by ExampleToolCard) carry the illustrative status instead.
- *   The placeholder content inside the images is illustrative mock content, covered by the section
- *   framing copy; do not present it as a real BC city.
+ *   The "Coming soon" badge is the only status marker; these tools are not in use. The image stays
+ *   full-colour (it is the showcase) — it does NOT take the grayscale/opacity de-emphasis the sketch
+ *   coming-soon cards use. The placeholder content inside the image is illustrative mock content.
  *
  * Copy is LOCKED (ux-writer pass 2026-06-29) — British English, founder-locked names. Verbatim from
  * the build spec; do not alter.
  *
- * Key exports: EXAMPLE_TOOLS (readonly ExampleTool[]), ExampleTool / ExampleToolImage (types).
- * External dependencies: none (plain config consumed by ExampleToolCard).
+ * Key exports: EXAMPLE_TOOLS (readonly ExampleTool[]), ExampleTool (type).
+ * External dependencies: none (plain config consumed by ComingSoonToolCard).
  */
 
-/** One state screenshot for an example tool: the image plus its accessible alt and short caption. */
-export type ExampleToolImage = {
-  /** Public path to the screenshot under /public. */
-  src: string
-  /** Descriptive alt text for accessibility — describes what the screenshot shows. */
-  alt: string
-  /** Short condition label rendered as the caption beneath the image. */
-  caption: string
-}
-
-/** One illustrative example tool: a name + description and its two state screenshots. */
+/** One illustrative example tool: name, locked description, and its single full-colour preview image. */
 export type ExampleTool = {
   /** Stable id, used as the React key. */
   id: string
@@ -41,15 +36,18 @@ export type ExampleTool = {
   name: string
   /** The locked description copy, rendered muted beneath the name. */
   description: string
-  /** Always true — marks the entry as an illustrative concept, surfaced as the muted "Concept" tag. */
-  concept: true
-  /** The two state screenshots, shown side by side (good condition then moderate condition). */
-  images: [ExampleToolImage, ExampleToolImage]
+  /** Status — always 'coming-soon' for these illustrative tools; drives the muted badge. */
+  status: 'coming-soon'
+  /** Public path to the single representative (positive-state) preview screenshot under /public. */
+  image: string
+  /** Descriptive alt text for accessibility — describes what the preview screenshot shows. */
+  imageAlt: string
 }
 
 /**
  * The three illustrative example tools, in presentation order (AQ Patterns → Air Window →
- * City Futures). Copy is locked and verbatim; image paths point at the concept-local public folder.
+ * City Futures). Copy is locked and verbatim; the image path points at the concept-local public
+ * folder and uses the positive-state PNG as the single representative thumbnail.
  */
 export const EXAMPLE_TOOLS: readonly ExampleTool[] = [
   {
@@ -57,56 +55,26 @@ export const EXAMPLE_TOOLS: readonly ExampleTool[] = [
     name: 'AQ Patterns',
     description:
       'A pattern view of air quality over time. See which days, weeks, and months tend to be clean or poor, filtered by pollutant or by the groups most affected. It turns the data a city already collects into trends people can read at a glance.',
-    concept: true,
-    images: [
-      {
-        src: '/ux-concepts/global-toolkit-network/example-tools/aq-patterns-good.png',
-        alt: 'AQ Patterns calendar view showing a month of mostly clean air-quality days.',
-        caption: 'Good month',
-      },
-      {
-        src: '/ux-concepts/global-toolkit-network/example-tools/aq-patterns-moderate.png',
-        alt: 'AQ Patterns calendar view showing a month with several moderate, sensitive-group air-quality days.',
-        caption: 'Moderate month',
-      },
-    ],
+    status: 'coming-soon',
+    image: '/ux-concepts/global-toolkit-network/example-tools/aq-patterns-good.png',
+    imageAlt: 'AQ Patterns calendar view showing a month of mostly clean air-quality days.',
   },
   {
     id: 'air-window',
     name: 'Air Window',
     description:
       'A neighbourhood view of air quality through the day, so residents can time outdoor activity for the cleanest hours. Built for the people who run, cycle, walk the school run, or play sport outside.',
-    concept: true,
-    images: [
-      {
-        src: '/ux-concepts/global-toolkit-network/example-tools/air-window-good.png',
-        alt: 'Air Window neighbourhood view showing good air quality across the day.',
-        caption: 'Good air',
-      },
-      {
-        src: '/ux-concepts/global-toolkit-network/example-tools/air-window-moderate.png',
-        alt: 'Air Window neighbourhood view showing moderate air quality across the day.',
-        caption: 'Moderate air',
-      },
-    ],
+    status: 'coming-soon',
+    image: '/ux-concepts/global-toolkit-network/example-tools/air-window-good.png',
+    imageAlt: 'Air Window neighbourhood view showing good air quality across the day.',
   },
   {
     id: 'city-futures',
     name: 'City Futures',
     description:
       "An interactive city model that turns air quality into cause and effect. Change a city's transport and infrastructure choices and watch the air respond from 2026 to 2030. It doubles as a learning tool, helping students, residents, and decision-makers see how today's choices shape tomorrow's air.",
-    concept: true,
-    images: [
-      {
-        src: '/ux-concepts/global-toolkit-network/example-tools/city-futures-2026.png',
-        alt: 'City Futures interactive model showing the simulated city in 2026.',
-        caption: '2026',
-      },
-      {
-        src: '/ux-concepts/global-toolkit-network/example-tools/city-futures-2030.png',
-        alt: 'City Futures interactive model showing the simulated city in 2030 after infrastructure changes.',
-        caption: '2030',
-      },
-    ],
+    status: 'coming-soon',
+    image: '/ux-concepts/global-toolkit-network/example-tools/city-futures-2030.png',
+    imageAlt: 'City Futures interactive model showing the simulated city in 2030 after infrastructure changes.',
   },
 ]

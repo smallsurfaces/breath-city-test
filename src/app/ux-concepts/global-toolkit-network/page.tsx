@@ -16,17 +16,15 @@
  *        globe + data set owned by this concept — it does NOT import aq-network-v2's NetworkGlobe,
  *        programme snapshot, or city data.
  *     3. Components catalogue — the COMPONENT_ENTRIES grid, rendered via the concept-local
- *        ProofCatalogueCard. Each card carries a prevalence counter ("N BC cities offer something
- *        like this for their citizens") — an honest adoption-breadth approximation, NOT an implied
- *        adoption of the BC component. The per-city deployment list is reserved for the component
- *        detail page (the data helper is retained but no longer rendered on the card).
+ *        ProofCatalogueCard, with three ILLUSTRATIVE example tools (AQ Patterns, Air Window,
+ *        City Futures) appended to the SAME grid as "Coming soon" cards (v2 founder direction —
+ *        replaced the former standalone "Tailored tools" section). The real component cards carry a
+ *        prevalence counter ("N cities run their own version") — an honest adoption-breadth
+ *        approximation, NOT an implied adoption of the BC component; the example-tool cards carry NO
+ *        counter and NO link, only a muted "Coming soon" badge and a single full-colour preview image,
+ *        because they are concepts not yet in use. The per-city deployment list is reserved for the
+ *        component detail page (the data helper is retained but no longer rendered on the card).
  *     4. Guidance catalogue — the GUIDANCE_ENTRIES grid, same prevalence-counter card treatment.
- *     4b. Tailored tools — three ILLUSTRATIVE example tools (AQ Patterns, Air Window, City Futures),
- *        rendered via the concept-local ExampleToolCard from EXAMPLE_TOOLS as embedded pitch-deck
- *        screenshots (two states each). Honesty-framed as concepts NOT yet in use: NO prevalence
- *        counter, NO status badge, NO link — only a muted "Concept" tag per card and the section
- *        framing. Placed after the real Components/Guidance capabilities so the counter-vs-no-counter
- *        honesty distinction stays clean.
  *     5. How to implement — a 4-step adoption path (Assess → Choose → Deploy → Communicate),
  *        each step a ConceptCard, plus one muted reference line pointing at the Guidance catalogue
  *        and the two confirmed-live BC partner links (OpenAQ, Clean Air Fund).
@@ -49,7 +47,7 @@
  * External dependencies: next (Metadata), @/components/concept (ConceptHero, ConceptSectionHeader,
  *   ConceptStat, ConceptCard), ./_components/ProofGlobe, ./_data/proof-cities,
  *   COMPONENT_ENTRIES / GUIDANCE_ENTRIES + CatalogueCard (toolkit concept, read-only),
- *   ./_components/ExampleToolCard + ./_components/example-tools.config (illustrative example tools).
+ *   ./_components/ComingSoonToolCard + ./_components/example-tools.config (illustrative example tools).
  *
  * Route: /ux-concepts/global-toolkit-network
  */
@@ -62,7 +60,7 @@ import { COMPONENT_ENTRIES, GUIDANCE_ENTRIES } from '../toolkit/_components/tool
 import { ProofCatalogueCard } from './_components/ProofCatalogueCard'
 import { CATALOGUE_PROOF_KEYWORDS } from './_components/catalogue-proof.config'
 import { EXAMPLE_TOOLS } from './_components/example-tools.config'
-import { ExampleToolCard } from './_components/ExampleToolCard'
+import { ComingSoonToolCard } from './_components/ComingSoonToolCard'
 
 export const metadata: Metadata = {
   title: 'BC Global Toolkit Network (concept)',
@@ -172,6 +170,14 @@ export default function GlobalToolkitNetworkPage() {
                 cityCount={counts[entry.id] ?? 0}
               />
             ))}
+            {/* Illustrative example tools (AQ Patterns, Air Window, City Futures), appended AFTER the
+                real COMPONENT_ENTRIES so they sit uniformly in the same grid. Each is a "Coming soon"
+                card with a single full-colour preview image and the locked blurb — NO counter, NO link
+                (concept honesty: these are not yet in use). v2 founder direction replaced the former
+                standalone "Tailored tools" section with this in-grid placement. */}
+            {EXAMPLE_TOOLS.map((tool) => (
+              <ComingSoonToolCard key={tool.id} tool={tool} />
+            ))}
           </div>
         </section>
 
@@ -190,25 +196,6 @@ export default function GlobalToolkitNetworkPage() {
                 entry={entry}
                 cityCount={counts[entry.id] ?? 0}
               />
-            ))}
-          </div>
-        </section>
-
-        {/* SECTION 3b — TAILORED TOOLS. Three illustrative example tools (AQ Patterns, Air Window,
-            City Futures) shown as embedded pitch-deck screenshots. Placed AFTER the real Components /
-            Guidance capabilities (which carry the prevalence counter) and BEFORE How-to-implement, so
-            the honesty line stays clean: these are illustrative bespoke-tool concepts NOT yet in use,
-            so they carry NO counter and NO status badge — only a muted "Concept" tag per card and the
-            section framing below. */}
-        <ConceptSectionHeader
-          heading="Tailored tools, designed with cities"
-          body="Beyond the components above, Breathe Cities works with a city to design visualisations shaped around the resident groups that matter most locally. The examples below are illustrative concepts, not yet in use. They show what a tailored tool can look like."
-          className="mt-16"
-        />
-        <section className="mt-6">
-          <div className="space-y-6">
-            {EXAMPLE_TOOLS.map((tool) => (
-              <ExampleToolCard key={tool.id} tool={tool} />
             ))}
           </div>
         </section>
