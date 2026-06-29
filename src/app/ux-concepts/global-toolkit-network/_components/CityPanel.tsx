@@ -1,54 +1,66 @@
 /**
- * CityPanel.tsx — the city detail panel for the proof-directory globe (v2, low-scroll redesign).
+ * CityPanel.tsx — the city detail panel for the proof-directory globe (v3, category-led redesign).
  *
  * Purpose / what the user sees + does
  *   When a pin is opened on the ProofGlobe, this panel slides in — a MOBILE HALF-SHEET (peek, then
  *   drag to full) on small screens, a RIGHT-SIDE slide-in panel on desktop — while the globe stays
- *   visible behind a light scrim. It is the payoff of the toolkit hero: "here is exactly what a city
- *   like yours runs."
+ *   visible behind a light scrim. It is the payoff of the toolkit hero: "here is exactly which of OUR
+ *   catalogue capabilities this city already runs."
  *
- *   STICKY HEADER (every city): city name + country, region tag, city POPULATION with an Estimate
- *   pill, and a one-line proof summary ("Running 5 AQ tools.").
+ *   STICKY HEADER (every city): city name + country, region tag, and city POPULATION (the `~` carries
+ *   the approximation — no Estimate pill; Fix 1/2). The one-line "Running N tools" proof summary was
+ *   removed (Fix 2).
  *
  *   STORY LEAD (every city): a short, real one-line adoption story rendered at the TOP of the
- *   scrollable body, above the tool list (the approved hybrid: story first, then tools).
+ *   scrollable body, above the capability list (the approved hybrid: story first, then capabilities).
  *
- *   CONDENSED TOOL ROWS (the core v2 rework — kills the v1 scroll):
- *     - Each tool is ONE LINE by default: name (truncates) + a small category tag (Component /
- *       Guidance) + a trailing chevron affordance. The blurb is HIDDEN.
- *     - Tap a row → it expands as an accordion (ONE open at a time), revealing the one-line blurb,
- *       the optional "via <provider>" third-party label, and the action: a real URL renders the
- *       primary "See the tool →" (right-aligned, thumb-reachable); no URL renders a visibly
- *       DISABLED "Link coming soon".
+ *   CATEGORY-LED CAPABILITY ROWS (the core v3 inversion — Fix 2):
+ *     The panel now leads with OUR catalogue categories, not the city's tools. Rows are AUTO-DERIVED:
+ *     for the open city we iterate the catalogue capabilities in CATALOGUE ORDER (COMPONENT_ENTRIES
+ *     then GUIDANCE_ENTRIES, imported read-only from the locked toolkit config) and, for each, collect
+ *     the city's tools that match it. The match uses the SHARED toolMatchesCapability predicate (same
+ *     one the catalogue prevalence counts use, factored into proof-cities.ts) keyed off
+ *     CATALOGUE_PROOF_KEYWORDS, so the panel and the counts can never disagree. A capability with >=1
+ *     matching tool becomes a row; a capability with none is omitted. One tool may match several
+ *     capabilities and therefore appear under several rows (intended — it shows one product covering
+ *     several capabilities). Tools matching NO capability are hidden entirely.
+ *     - Collapsed row LEADS WITH OUR CATEGORY: capability.title + a small tier tag (Component /
+ *       Guidance, from capability.tier) + a trailing chevron affordance.
+ *     - Tap a row → it expands as an accordion (ONE open at a time), listing the city's matching
+ *       product(s) for that capability. For EACH product: its name + one-line blurb + optional
+ *       "via <provider>" label + the CTA. CTA (Fix 3): a real URL renders the primary "See the tool →"
+ *       (new tab); NO URL renders NOTHING (the old disabled "Link coming soon" placeholder is gone).
  *
  *   REGION-FACTUAL PEER BLOCK (Finding 6 peer-learning cue — at the FOOT of the body):
- *     Below the tool list, a small muted region-factual label (peerBlockLabel — e.g. "Other African
- *     cities", with a neutral "Other cities in the region" fallback; the retired "Cities like yours"
- *     wrongly presumed we knew the visitor's own city) followed by the OTHER plotted cities in the
- *     SAME region as tappable chips. This is peer-learning, NOT a ranking: no scores,
+ *     Below the capability list, a small muted region-factual label (peerBlockLabel — e.g. "Other
+ *     African cities", with a neutral "Other cities in the region" fallback; the retired "Cities like
+ *     yours" wrongly presumed we knew the visitor's own city) followed by the OTHER plotted cities in
+ *     the SAME region as tappable chips. This is peer-learning, NOT a ranking: no scores,
  *     no order-by-anything, no leading/behind language. Tapping a chip swaps the open city
  *     (onSelectPeer), and the panel's city-change effect resets row/sheet state so the peer opens
  *     clean. The block renders nothing when there are no peers.
  *
  * Mobile half-sheet mechanic
  *   Opens at ~55% viewport height (peek — globe stays visible above). A drag handle / tap expands it
- *   to full height for cities with many tools; tapping again collapses back to peek. Desktop ignores
- *   the peek/full state — it is a full-height right-side panel.
+ *   to full height for cities with many capabilities; tapping again collapses back to peek. Desktop
+ *   ignores the peek/full state — it is a full-height right-side panel.
  *
  * Honesty (the project's backbone — v3)
- *   The CTA link-state is the SOLE honesty mechanic: it fires ONLY on a real proven-live URL and is
- *   otherwise visibly disabled — so a city can show it RUNS a tool even where we hold no proven link.
- *   Every tool is real and research-grounded (the illustrative/educated-guess concept is retired);
- *   most cities deliberately carry some disabled CTAs. Third-party links are framed "see the tool
- *   this city uses" via the provider label. Population is city population, labelled an estimate,
- *   never implied reach.
+ *   The CTA link-state is the SOLE honesty mechanic: a "See the tool →" link fires ONLY on a real
+ *   proven-live URL; where we hold no URL the CTA slot renders NOTHING (Fix 3) — so a city can still
+ *   show it RUNS a capability even where we hold no proven link, without a dead/placeholder control.
+ *   Every tool is real and research-grounded (the illustrative/educated-guess concept is retired).
+ *   Third-party links are framed "see the tool this city uses" via the provider label. Population is
+ *   city population (the `~` signals approximation), never implied reach.
  *
  * Styling (concept-prototyping standard)
  *   BC tokens only, no hardcoded hex. Bridged shadcn semantics for neutrals; inline `var(--bc-*)`
- *   for the functional category / estimate tints. Light mode only.
+ *   for the functional category tint. Light mode only.
  *
  * Key exports: CityPanel (named)
- * External dependencies: react, lucide-react, ../_data/proof-cities (types).
+ * External dependencies: react, lucide-react, ../_data/proof-cities (types + shared match predicate),
+ *   ../_components/catalogue-proof.config (keyword map, read-only),
+ *   ../../toolkit/_components/toolkit-catalogue.config (catalogue capabilities, read-only).
  *
  * Side effects (all cleaned up):
  *   - Attaches a keydown listener for Escape-to-close while a city is open; removed on close/unmount.
@@ -61,6 +73,52 @@ import { useEffect, useState } from 'react'
 import type { ReactElement } from 'react'
 import { X, ArrowRight, ChevronDown } from 'lucide-react'
 import type { ProofCity, ProofTool } from '../_data/proof-cities'
+import { toolMatchesCapability } from '../_data/proof-cities'
+import { CATALOGUE_PROOF_KEYWORDS } from './catalogue-proof.config'
+import {
+  COMPONENT_ENTRIES,
+  GUIDANCE_ENTRIES,
+} from '../../toolkit/_components/toolkit-catalogue.config'
+import type {
+  CatalogueEntry,
+  CatalogueTier,
+} from '../../toolkit/_components/toolkit-catalogue.config'
+
+/**
+ * Catalogue capabilities in CANONICAL ORDER — components first, then guidance — read-only from the
+ * locked toolkit config. This is the iteration order for the panel's category-led rows (Fix 2): the
+ * panel walks this list and keeps the capabilities the open city has >=1 matching tool for.
+ */
+const CATALOGUE_CAPABILITIES: readonly CatalogueEntry[] = [...COMPONENT_ENTRIES, ...GUIDANCE_ENTRIES]
+
+/**
+ * One category-led row for the open city: a catalogue capability plus the city's tools that match it
+ * (>=1 — rows with no match are never built). The auto-derived unit the panel renders (Fix 2).
+ */
+type CapabilityRow = {
+  /** The catalogue capability this row leads with. */
+  capability: CatalogueEntry
+  /** The open city's tools that matched this capability, in the city's natural array order. */
+  tools: ProofTool[]
+}
+
+/**
+ * Build the open city's category-led rows: iterate catalogue capabilities in canonical order, collect
+ * each city's tools that match (shared toolMatchesCapability predicate keyed off CATALOGUE_PROOF_KEYWORDS),
+ * and keep only capabilities with >=1 match. A tool may appear under several capabilities (intended);
+ * tools matching no capability are dropped. Pure — no side effects.
+ */
+function buildCapabilityRows(city: ProofCity): CapabilityRow[] {
+  const rows: CapabilityRow[] = []
+  for (const capability of CATALOGUE_CAPABILITIES) {
+    const keywords = CATALOGUE_PROOF_KEYWORDS[capability.id] ?? []
+    const matchedTools = city.tools.filter((tool) => toolMatchesCapability(tool, keywords))
+    if (matchedTools.length > 0) {
+      rows.push({ capability, tools: matchedTools })
+    }
+  }
+  return rows
+}
 
 /** Props for CityPanel. `city` null = closed (the panel renders nothing). */
 type CityPanelProps = {
@@ -79,16 +137,22 @@ type CityPanelProps = {
 }
 
 /**
- * Functional tint for a category tag. Component vs Guidance get distinct BC token tints via
- * color-mix (no new hex, no collision) — mirrors the roadmap StageBadge tinting pattern.
+ * Functional tint for a tier tag. Component vs Guidance get distinct BC token tints via color-mix
+ * (no new hex, no collision) — mirrors the roadmap StageBadge tinting pattern. Keyed off the catalogue
+ * capability's tier ('component' | 'guidance') now that the row leads with OUR category (Fix 2).
  */
-function categoryTagStyle(category: ProofTool['category']): { backgroundColor: string; color: string } {
-  // Component → brand-blue tint; Guidance → teal tint. Distinct base tokens, tinted to a soft wash.
-  const base = category === 'Component' ? 'var(--bc-color-blue)' : 'var(--bc-color-teal)'
+function tierTagStyle(tier: CatalogueTier): { backgroundColor: string; color: string } {
+  // component → brand-blue tint; guidance → teal tint. Distinct base tokens, tinted to a soft wash.
+  const base = tier === 'component' ? 'var(--bc-color-blue)' : 'var(--bc-color-teal)'
   return {
     backgroundColor: `color-mix(in srgb, ${base} 16%, var(--bc-color-white))`,
     color: 'var(--bc-semantic-text)',
   }
+}
+
+/** Human-readable label for a catalogue tier — the small tag shown beside the capability title. */
+function tierLabel(tier: CatalogueTier): string {
+  return tier === 'component' ? 'Component' : 'Guidance'
 }
 
 /**
@@ -111,10 +175,10 @@ function peerBlockLabel(region: ProofCity['region']): string {
   return adjective === undefined ? 'Other cities in the region' : `Other ${adjective} cities`
 }
 
-/** Props for one condensed, expandable tool row. */
-type ToolRowProps = {
-  /** The tool to render. */
-  tool: ProofTool
+/** Props for one category-led capability row. */
+type CapabilityRowItemProps = {
+  /** The auto-derived row: a catalogue capability + the open city's tools that matched it. */
+  row: CapabilityRow
   /** Whether this row is the one currently expanded (accordion — one open at a time). */
   isOpen: boolean
   /** Toggle this row open/closed. */
@@ -122,13 +186,55 @@ type ToolRowProps = {
 }
 
 /**
- * One CONDENSED tool row. Collapsed: a single line — name (truncates) + category tag + chevron.
- * Expanded (accordion, one at a time): reveals the blurb, the optional provider tag, and the
- * conditional CTA. The CTA link-state is the sole honesty mechanic: a real `url` → active "See the
- * tool →" link (new tab); a null `url` → a visibly DISABLED "Link coming soon" (never a dead link).
+ * One product entry inside an expanded capability row: the city's matched product name + blurb +
+ * optional "via <provider>" + the conditional CTA. CTA (Fix 3): a real `url` renders the active
+ * "See the tool →" link (new tab); a null `url` renders NOTHING in the CTA slot — the old disabled
+ * "Link coming soon" placeholder is gone.
  */
-function ToolRow({ tool, isOpen, onToggle }: ToolRowProps): ReactElement {
+function MatchedProduct({ tool }: { tool: ProofTool }): ReactElement {
   const hasLink = tool.url !== null
+
+  return (
+    <div className="border-t border-border pt-3 first:border-t-0 first:pt-0">
+      {/* Product name — the city's real product, under OUR category heading. */}
+      <p className="text-sm font-semibold text-foreground">{tool.name}</p>
+      {/* One-line blurb. */}
+      <p className="mt-0.5 text-sm text-muted-foreground">{tool.blurb}</p>
+
+      {/* Provider tag + conditional CTA. */}
+      <div className="mt-2 flex flex-wrap items-center gap-2">
+        {tool.provider !== null && (
+          <span className="text-xs text-muted-foreground">via {tool.provider}</span>
+        )}
+
+        {/* Conditional CTA — right-aligned (thumb-reachable). Real url → active link; null → nothing. */}
+        {hasLink && (
+          <span className="ml-auto">
+            <a
+              href={tool.url ?? '#'}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-sm font-semibold transition-colors hover:underline"
+              style={{ color: 'var(--bc-semantic-brand)' }}
+            >
+              See the tool
+              <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+            </a>
+          </span>
+        )}
+      </div>
+    </div>
+  )
+}
+
+/**
+ * One CATEGORY-LED capability row (Fix 2). Collapsed: a single line — OUR capability title (truncates)
+ * + a small tier tag (Component / Guidance) + chevron. Expanded (accordion, one at a time): lists the
+ * open city's matching product(s) for that capability, each rendered via MatchedProduct (name + blurb
+ * + optional provider + conditional CTA). One row can carry several products.
+ */
+function CapabilityRowItem({ row, isOpen, onToggle }: CapabilityRowItemProps): ReactElement {
+  const { capability, tools } = row
 
   return (
     <li className="overflow-hidden rounded-xl border border-border bg-background">
@@ -139,16 +245,16 @@ function ToolRow({ tool, isOpen, onToggle }: ToolRowProps): ReactElement {
         aria-expanded={isOpen}
         className="flex min-h-[56px] w-full items-center gap-2.5 px-4 text-left transition-colors hover:bg-muted/50"
       >
-        {/* Tool name — truncates on one line so the row never wraps when collapsed. */}
+        {/* OUR category title — leads the row (Fix 2). Truncates so the row never wraps when collapsed. */}
         <span className="min-w-0 flex-1 truncate text-sm font-semibold text-foreground">
-          {tool.name}
+          {capability.title}
         </span>
-        {/* Small category tag — functional colour (Component / Guidance). */}
+        {/* Small tier tag — functional colour (Component / Guidance), from capability.tier. */}
         <span
           className="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide"
-          style={categoryTagStyle(tool.category)}
+          style={tierTagStyle(capability.tier)}
         >
-          {tool.category}
+          {tierLabel(capability.tier)}
         </span>
         {/* Trailing affordance — rotates to signal expanded. */}
         <ChevronDown
@@ -157,42 +263,12 @@ function ToolRow({ tool, isOpen, onToggle }: ToolRowProps): ReactElement {
         />
       </button>
 
-      {/* Expanded content — blurb + provider tag + the conditional CTA. */}
+      {/* Expanded content — the city's matched product(s) for this capability. */}
       {isOpen && (
-        <div className="px-4 pb-4">
-          {/* One-line blurb. */}
-          <p className="text-sm text-muted-foreground">{tool.blurb}</p>
-
-          {/* Provider tag + conditional CTA. */}
-          <div className="mt-2.5 flex flex-wrap items-center gap-2">
-            {tool.provider !== null && (
-              <span className="text-xs text-muted-foreground">via {tool.provider}</span>
-            )}
-
-            {/* Conditional CTA — right-aligned (thumb-reachable), active link or disabled label. */}
-            <span className="ml-auto">
-              {hasLink ? (
-                <a
-                  href={tool.url ?? '#'}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-sm font-semibold transition-colors hover:underline"
-                  style={{ color: 'var(--bc-semantic-brand)' }}
-                >
-                  See the tool
-                  <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
-                </a>
-              ) : (
-                <span
-                  className="inline-flex cursor-not-allowed items-center gap-1 text-sm font-medium text-muted-foreground opacity-60"
-                  aria-disabled="true"
-                  title="No public link yet for this tool"
-                >
-                  Link coming soon
-                </span>
-              )}
-            </span>
-          </div>
+        <div className="space-y-3 px-4 pb-4">
+          {tools.map((tool) => (
+            <MatchedProduct key={tool.id} tool={tool} />
+          ))}
         </div>
       )}
     </li>
@@ -202,20 +278,21 @@ function ToolRow({ tool, isOpen, onToggle }: ToolRowProps): ReactElement {
 /**
  * The city panel. Renders nothing when `city` is null. Otherwise: a light scrim over the globe; a
  * MOBILE HALF-SHEET (peek ~55%, drag handle expands to full) that becomes a RIGHT-SIDE panel on
- * desktop (`sm:` and up); a STICKY header (name / country / region / city population with Estimate
- * pill / one-line proof summary); and a scrollable body that leads with the one-line adoption story
- * then lists the condensed, one-open-at-a-time tool rows.
+ * desktop (`sm:` and up); a STICKY header (name / country / region / city population — `~` carries the
+ * approximation, no Estimate pill, no proof-summary line); and a scrollable body that leads with the
+ * one-line adoption story then lists the auto-derived, category-led capability rows (one open at a time).
  */
 export function CityPanel({ city, onClose, peers, onSelectPeer }: CityPanelProps): ReactElement | null {
-  // Which tool row is expanded (slug-scoped id). null = all collapsed. Accordion: one open at a time.
-  const [openToolId, setOpenToolId] = useState<string | null>(null)
+  // Which capability row is expanded (catalogue capability id). null = all collapsed. Accordion: one
+  // open at a time.
+  const [openCapabilityId, setOpenCapabilityId] = useState<string | null>(null)
   // Mobile half-sheet: false = peek (~55%), true = full height. Ignored on desktop (always full).
   const [sheetExpanded, setSheetExpanded] = useState<boolean>(false)
 
   // Side effect: reset row + sheet state whenever a DIFFERENT city opens (or the panel closes), so a
   // newly opened city starts collapsed at peek height rather than inheriting the last city's state.
   useEffect(() => {
-    setOpenToolId(null)
+    setOpenCapabilityId(null)
     setSheetExpanded(false)
   }, [city])
 
@@ -239,6 +316,11 @@ export function CityPanel({ city, onClose, peers, onSelectPeer }: CityPanelProps
   if (city === null) {
     return null
   }
+
+  // Auto-derived category-led rows for the open city (Fix 2): catalogue capabilities (canonical order)
+  // the city has >=1 matching tool for. A city that matches no capability yields an empty list and the
+  // capability section renders nothing (the story still shows) — no invented fallback.
+  const capabilityRows = buildCapabilityRows(city)
 
   // Mobile sheet height: peek vs full. Desktop overrides both via `sm:inset-y-0` + `sm:h-auto`.
   const sheetHeightClass = sheetExpanded ? 'h-[90vh]' : 'h-[55vh]'
@@ -301,38 +383,33 @@ export function CityPanel({ city, onClose, peers, onSelectPeer }: CityPanelProps
           <h3 className="mt-2.5 text-2xl font-bold tracking-tight text-foreground">{city.name}</h3>
           <p className="mt-0.5 text-sm text-muted-foreground">{city.country}</p>
 
-          {/* Proof summary + city population with Estimate pill — one compact row. */}
-          <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5">
-            <span className="text-sm font-medium text-foreground">{city.summary}</span>
-            <span className="inline-flex items-center gap-1.5 text-sm text-muted-foreground">
-              <span className="tabular-nums">{`~${city.population.toLocaleString()}`} residents</span>
-              <span
-                className="rounded-full px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide"
-                style={{
-                  backgroundColor: 'color-mix(in srgb, var(--bc-color-yellow) 30%, var(--bc-color-white))',
-                  color: 'var(--bc-semantic-text)',
-                }}
-              >
-                Estimate
-              </span>
-            </span>
+          {/* City population — one compact line. The leading `~` carries the approximation; the old
+              Estimate pill and the "Running N tools" proof-summary line were removed (Fix 2). */}
+          <div className="mt-3 text-sm text-muted-foreground">
+            <span className="tabular-nums">{`~${city.population.toLocaleString()}`} residents</span>
           </div>
         </div>
 
-        {/* SCROLLABLE BODY — a short real adoption story (lead), then condensed tool rows. */}
+        {/* SCROLLABLE BODY — a short real adoption story (lead), then category-led capability rows. */}
         <div className="flex-1 overflow-y-auto px-5 py-4 sm:px-6">
-          {/* Story lead — the approved hybrid: story first, tools below. Muted concept-layer copy. */}
+          {/* Story lead — the approved hybrid: story first, capabilities below. Muted concept-layer copy. */}
           <p className="mb-4 text-sm leading-relaxed text-muted-foreground">{city.story}</p>
-          <ul className="space-y-2.5">
-            {city.tools.map((tool) => (
-              <ToolRow
-                key={tool.id}
-                tool={tool}
-                isOpen={openToolId === tool.id}
-                onToggle={() => setOpenToolId((cur) => (cur === tool.id ? null : tool.id))}
-              />
-            ))}
-          </ul>
+          {/* Category-led rows (Fix 2): OUR catalogue capabilities the city has matching tools for.
+              Renders nothing if the city matched no capability (story still shows above). */}
+          {capabilityRows.length > 0 && (
+            <ul className="space-y-2.5">
+              {capabilityRows.map((row) => (
+                <CapabilityRowItem
+                  key={row.capability.id}
+                  row={row}
+                  isOpen={openCapabilityId === row.capability.id}
+                  onToggle={() =>
+                    setOpenCapabilityId((cur) => (cur === row.capability.id ? null : row.capability.id))
+                  }
+                />
+              ))}
+            </ul>
+          )}
 
           {/*
             REGION-FACTUAL PEER BLOCK — Finding 6 peer-learning cue, appended below the tools.
