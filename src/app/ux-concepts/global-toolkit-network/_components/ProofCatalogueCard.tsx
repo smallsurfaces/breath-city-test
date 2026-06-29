@@ -82,8 +82,8 @@ function PrevalenceCounter({ cityCount }: { cityCount: number }) {
 
   const countLabel =
     cityCount === 1
-      ? '1 city in the network runs their own version of this'
-      : `${cityCount} cities in the network run their own version of this`
+      ? '1 city already runs its own version'
+      : `${cityCount} cities already run their own version`
 
   return (
     <p className="mt-auto border-t border-border pt-2.5 text-xs font-medium text-muted-foreground">

@@ -6,24 +6,30 @@
  *     1. ConceptHero — framing the concept as ENABLEMENT: "everything your city needs to act on its
  *        air quality", shown through the cities already running the toolkit ("this could be your city
  *        too"). The network-JOIN invitation deliberately lives in the closing section (6), not here.
- *     2. Proof directory — the section header ("BC cities already on the path"), one aggregate
- *        city-population stat (labelled Estimate), and the ProofGlobe: UNIFORM "BC member" pins
+ *     2. Proof directory — ONE merged proof block (Fix 1): the locked heading with the readable
+ *        "~82 million" combined-population figure as the visual hero (data-derived, no Estimate pill —
+ *        the `~` carries the approximation), and the ProofGlobe: UNIFORM "BC member" pins
  *        (no proven/newly-joined/member tier states) across 16 cities, where clicking ANY pin opens
- *        a panel that leads with the city's one-line adoption story then lists the real tools that
- *        city runs. Honesty rides the link state inside the panel alone (v3 — every tool is real and
- *        research-grounded; a tool's CTA is active only where a proven-live URL exists, otherwise
- *        visibly disabled), not a city ranking and not invented tools. This is a FRESH, fully-isolated
+ *        a panel that leads with the city's one-line adoption story then lists OUR catalogue categories
+ *        matched to the real tools that city runs (Fix 2 — category-led, see CityPanel.tsx). Honesty
+ *        rides the link state inside the panel alone (v3 — every tool is real and research-grounded; a
+ *        tool's CTA is active only where a proven-live URL exists, otherwise the CTA slot renders
+ *        nothing, Fix 3), not a city ranking and not invented tools. This is a FRESH, fully-isolated
  *        globe + data set owned by this concept — it does NOT import aq-network-v2's NetworkGlobe,
  *        programme snapshot, or city data.
  *     3. Components catalogue — the COMPONENT_ENTRIES grid, rendered via the concept-local
- *        ProofCatalogueCard. Each card carries a prevalence counter ("N BC cities offer something
- *        like this for their citizens") — an honest adoption-breadth approximation, NOT an implied
- *        adoption of the BC component. The per-city deployment list is reserved for the component
- *        detail page (the data helper is retained but no longer rendered on the card).
+ *        ProofCatalogueCard, with three ILLUSTRATIVE example tools (AQ Patterns, Air Window,
+ *        City Futures) appended to the SAME grid as "Coming soon" cards (v2 founder direction —
+ *        replaced the former standalone "Tailored tools" section). The real component cards carry a
+ *        prevalence counter ("N cities run their own version") — an honest adoption-breadth
+ *        approximation, NOT an implied adoption of the BC component; the example-tool cards carry NO
+ *        counter and NO link, only a muted "Coming soon" badge and a single full-colour preview image,
+ *        because they are concepts not yet in use. The per-city deployment list is reserved for the
+ *        component detail page (the data helper is retained but no longer rendered on the card).
  *     4. Guidance catalogue — the GUIDANCE_ENTRIES grid, same prevalence-counter card treatment.
  *     5. How to implement — a 4-step adoption path (Assess → Choose → Deploy → Communicate),
- *        each step a ConceptCard, plus one muted reference line pointing at the Guidance catalogue
- *        and the two confirmed-live BC partner links (OpenAQ, Clean Air Fund).
+ *        each step a ConceptCard. The former muted partner-reference line (OpenAQ, Clean Air Fund) was
+ *        removed (Fix 5): every onward action on the page is now inert, an accepted concept state.
  *     6. Bring the toolkit to your city — the closing onramp: completes the "you could have this
  *        too" arc and carries the network-join invitation moved out of the hero. ConceptSectionHeader
  *        + ConceptCard + one INERT soft CTA (href="#", shown-not-dead per the no-dead-ends rule).
@@ -36,13 +42,15 @@
  *   proof directory. Chrome is provided by layout.tsx (PrototypeHeader + BcHeader/BcFooter).
  *
  * Honesty (the project's backbone)
- *   The aggregate stat is CITY POPULATION across the plotted cities, labelled an estimate — never
- *   implied "people reached/served". See proof-cities.ts + CityPanel.tsx for the full honesty model.
+ *   The aggregate figure is CITY POPULATION across the plotted cities — never implied "people
+ *   reached/served". It is shown as "~N million": the leading `~` carries the approximation (the
+ *   Estimate pill was dropped in Fix 1). See proof-cities.ts + CityPanel.tsx for the full honesty model.
  *
  * Key exports: default page component, metadata.
  * External dependencies: next (Metadata), @/components/concept (ConceptHero, ConceptSectionHeader,
  *   ConceptStat, ConceptCard), ./_components/ProofGlobe, ./_data/proof-cities,
- *   COMPONENT_ENTRIES / GUIDANCE_ENTRIES + CatalogueCard (toolkit concept, read-only).
+ *   COMPONENT_ENTRIES / GUIDANCE_ENTRIES + CatalogueCard (toolkit concept, read-only),
+ *   ./_components/ComingSoonToolCard + ./_components/example-tools.config (illustrative example tools).
  *
  * Route: /ux-concepts/global-toolkit-network
  */
@@ -54,10 +62,40 @@ import { PROOF_CITIES, getTotalCityPopulation, getToolUsageCounts } from './_dat
 import { COMPONENT_ENTRIES, GUIDANCE_ENTRIES } from '../toolkit/_components/toolkit-catalogue.config'
 import { ProofCatalogueCard } from './_components/ProofCatalogueCard'
 import { CATALOGUE_PROOF_KEYWORDS } from './_components/catalogue-proof.config'
+import { EXAMPLE_TOOLS } from './_components/example-tools.config'
+import { ComingSoonToolCard } from './_components/ComingSoonToolCard'
 
 export const metadata: Metadata = {
   title: 'BC Global Toolkit Network (concept)',
 }
+
+/**
+ * LOCKED proof-block copy (ux-writer pass 2026-06-29). Build ships Variant A; B and C are retained
+ * here as easy-swap constants so the founder can switch the live wording at review without touching
+ * markup. The `~82 million` figure is data-derived at render time (see PROOF_POPULATION_DISPLAY) and
+ * is NOT part of this copy — the `~` carries the approximation, so no Estimate pill is used. The label
+ * NEVER claims reach: population framing only.
+ */
+const PROOF_COPY = {
+  /** Variant A — the shipped copy. */
+  a: {
+    heading: 'Breathe Cities member cities already run these tools for their residents.',
+    label: 'the combined population of these cities',
+  },
+  /** Variant B — retained for live swap. */
+  b: {
+    heading: 'These tools are already in use across Breathe Cities member cities.',
+    label: 'people live in the cities already using them',
+  },
+  /** Variant C — retained for live swap. */
+  c: {
+    heading: 'Already in use across Breathe Cities member cities.',
+    label: 'residents call these cities home',
+  },
+} as const
+
+/** The proof-block copy variant currently shipped. Swap to `b` or `c` to change the live wording. */
+const PROOF_COPY_ACTIVE = PROOF_COPY.a
 
 /** One step in the "How to implement" adoption path. */
 type ImplementationStep = {
@@ -98,8 +136,13 @@ const IMPLEMENTATION_STEPS: ImplementationStep[] = [
  */
 export default function GlobalToolkitNetworkPage() {
   // Aggregate CITY POPULATION across every plotted city — the section's "why it matters" stat.
-  // City population, NEVER implied reach (honesty rule 1); shown with an Estimate pill below.
+  // City population, NEVER implied reach (honesty rule 1). Rendered as a readable "~N million" figure
+  // (Fix 1): data-derived from the same PROOF_CITIES the globe uses, never hardcoded. The exact total
+  // is ~82.77M; floored to whole millions so the figure reads ~82 million, matching the locked copy
+  // (rounding to nearest would read 83 and contradict the verbatim ux-writer figure). The leading `~`
+  // carries the approximation, so the old Estimate pill is dropped.
   const totalCityPopulation = getTotalCityPopulation(PROOF_CITIES)
+  const proofPopulationDisplay = `~${Math.floor(totalCityPopulation / 1_000_000)} million`
 
   // Per-capability prevalence counts: for each catalogue capability, HOW MANY cities offer their own
   // version of it (SIMAT, Airparif, AirQo, …) — an honest adoption-breadth approximation, NOT cities
@@ -114,37 +157,35 @@ export default function GlobalToolkitNetworkPage() {
 
         {/* SECTION 0 — HERO. Reframed from membership (a network you JOIN) to ENABLEMENT
             (what your city could be running too). The join invitation now lives in the closing
-            onramp section, not here. */}
+            onramp section, not here. Body reframed (Fix 4) from the page-mechanic line to the
+            verified 2030 OUTCOME: cities using these tools are working toward the Breathe Cities goal.
+            "Contributing to" framing — the goal is stated as an aim, never as achieved. Locked copy. */}
         <ConceptHero
           headline="Everything your city needs to act on its air quality"
-          body="The digital tools and guidance that help a city understand its air, communicate the risks, and act on them. Shown through the cities already putting them to work."
+          body="The digital tools and guidance that help a city understand its air, communicate the risks, and act on them. Cities already using them are working toward the Breathe Cities goal: contributing to a 30% reduction in air pollution by 2030."
         />
 
-        {/* SECTION 1 — PROOF DIRECTORY. Locked section header, one aggregate city-population stat,
-            then the proof-directory globe (16 cities). Every pin is a real BC member city; clicking a
-            pin opens a panel that leads with the city's adoption story then lists the real tools it
-            runs (every tool research-grounded; honesty rides the per-tool link state). Replaces the
-            old membership/sensor globe (NetworkGlobe + counters) — the reframe from membership story
-            to proven deployments. */}
-        <ConceptSectionHeader
-          heading="Cities already using these tools"
-          body="Breathe Cities member cities, each with tools deployed for their residents. Every pin is real. Open any city to see what it runs."
-          className="mt-12"
-        />
-        <section className="mt-6">
-          {/* Aggregate stat — combined city population across the plotted cities, labelled Estimate.
-              Single stat, carded (wrap ConceptStat in ConceptCard per the concept-layer pattern). */}
-          <div className="mb-6 max-w-xs">
-            <ConceptCard>
-              <ConceptStat
-                value={`~${totalCityPopulation.toLocaleString()}`}
-                label="combined population across these cities"
-                estimate
-              />
-            </ConceptCard>
-          </div>
+        {/* SECTION 1 — PROOF DIRECTORY (Fix 1: header + stat merged into ONE block).
+            The big "~82 million" figure is the visual hero, sitting directly under the locked Variant A
+            heading — no separate section-header sentence, no "Every pin is real." line, no Estimate pill
+            (the `~` carries the approximation). Then the proof-directory globe (16 cities). Every pin is
+            a real BC member city; clicking a pin opens a panel that leads with the city's adoption story
+            then lists OUR catalogue categories matched to the real tools it runs. */}
+        <section className="mt-12">
+          {/* Merged proof block: heading + the population figure as the visual hero, in one card.
+              ConceptStat renders the big figure; the heading sits above it. */}
+          <ConceptCard>
+            <h2 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
+              {PROOF_COPY_ACTIVE.heading}
+            </h2>
+            <div className="mt-4">
+              <ConceptStat value={proofPopulationDisplay} label={PROOF_COPY_ACTIVE.label} />
+            </div>
+          </ConceptCard>
           {/* The proof-directory globe — fresh, fully-isolated component + data for this concept. */}
-          <ProofGlobe cities={PROOF_CITIES} />
+          <div className="mt-6">
+            <ProofGlobe cities={PROOF_CITIES} />
+          </div>
         </section>
 
         {/* SECTION 2 — COMPONENTS CATALOGUE. Live digital surfaces a city embeds — imported
@@ -162,6 +203,14 @@ export default function GlobalToolkitNetworkPage() {
                 entry={entry}
                 cityCount={counts[entry.id] ?? 0}
               />
+            ))}
+            {/* Illustrative example tools (AQ Patterns, Air Window, City Futures), appended AFTER the
+                real COMPONENT_ENTRIES so they sit uniformly in the same grid. Each is a "Coming soon"
+                card with a single full-colour preview image and the locked blurb — NO counter, NO link
+                (concept honesty: these are not yet in use). v2 founder direction replaced the former
+                standalone "Tailored tools" section with this in-grid placement. */}
+            {EXAMPLE_TOOLS.map((tool) => (
+              <ComingSoonToolCard key={tool.id} tool={tool} />
             ))}
           </div>
         </section>
@@ -186,13 +235,12 @@ export default function GlobalToolkitNetworkPage() {
         </section>
 
         {/* SECTION 4 — HOW TO IMPLEMENT. The "coming soon" placeholder is replaced with the real
-            4-step adoption path: each step is a numbered ConceptCard, followed by one muted
-            reference line pointing at the Guidance catalogue and the two confirmed-live BC partner
-            links. These two URLs (OpenAQ, Clean Air Fund) are the ONLY real external links on the
-            page — every other onward action is inert per the concept honesty rule. */}
+            4-step adoption path: each step is a numbered ConceptCard. The former muted reference line
+            (Guidance catalogue + OpenAQ / Clean Air Fund partner links) was removed (Fix 5): with it
+            gone, every onward action on the page is now inert — an accepted concept state, not a bug. */}
         <ConceptSectionHeader
           heading="How to implement"
-          body="Four steps from first assessment to residents receiving guidance, and where the resources for each step live."
+          body="Four steps, from first assessment to residents receiving real guidance."
           className="mt-16"
         />
         <section className="mt-6">
@@ -217,29 +265,6 @@ export default function GlobalToolkitNetworkPage() {
               </li>
             ))}
           </ol>
-          {/* Reference line — the ONLY two real external links on the page (both confirmed live).
-              New tab + rel="noopener noreferrer" per the external-link safety convention. */}
-          <p className="mt-4 text-sm text-muted-foreground">
-            Step-by-step guides are available from the Guidance catalogue on this page and through Breathe Cities partners, including{' '}
-            <a
-              href="https://openaq.org"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="underline hover:text-primary"
-            >
-              OpenAQ
-            </a>{' '}
-            and the{' '}
-            <a
-              href="https://cleanairfund.org"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="underline hover:text-primary"
-            >
-              Clean Air Fund
-            </a>
-            .
-          </p>
         </section>
 
         {/* SECTION 5 — BRING THE TOOLKIT TO YOUR CITY. The closing onramp — completes the

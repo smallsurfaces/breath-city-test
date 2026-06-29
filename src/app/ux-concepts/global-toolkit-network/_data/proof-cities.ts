@@ -37,7 +37,8 @@
  *   a link proven live today is not guaranteed live at promotion.
  *
  * Key exports: ProofCity, ProofTool, ToolCategory, CapabilityDeployment (types); PROOF_CITIES (const);
- *   getTotalCityPopulation, getToolUsageCounts, getToolDeploymentsByCapability (pure helpers).
+ *   toolMatchesCapability, getTotalCityPopulation, getToolUsageCounts, getToolDeploymentsByCapability
+ *   (pure helpers).
  * External dependencies: none (plain data + pure functions).
  */
 
@@ -786,6 +787,20 @@ export function getTotalCityPopulation(cities: ProofCity[]): number {
 }
 
 /**
+ * The SINGLE match predicate for "does this tool express this capability". A tool matches a capability
+ * when any of that capability's keywords is a case-insensitive substring of the tool's name + blurb
+ * (the only two fields the match has ever read). Factored out so every consumer — the catalogue
+ * prevalence counts (getToolUsageCounts), the per-capability deployment list
+ * (getToolDeploymentsByCapability), AND the city panel's category-led rows (getCityCapabilityRows) —
+ * shares ONE definition and can never disagree. Changing matching behaviour now means changing this
+ * one function.
+ */
+export function toolMatchesCapability(tool: ProofTool, keywords: readonly string[]): boolean {
+  const haystack = `${tool.name} ${tool.blurb}`.toLowerCase()
+  return keywords.some((kw) => haystack.includes(kw.toLowerCase()))
+}
+
+/**
  * Count, per catalogue capability, how many cities run a tool matching that capability. WIRED into
  * the UI: this count drives the catalogue cards' prevalence-counter line ("{N} BC cities offer
  * something like this for their citizens"). The detailed WHICH-cities list is reserved for the
@@ -796,6 +811,7 @@ export function getTotalCityPopulation(cities: ProofCity[]): number {
  * Monitoring"). This maps each catalogue capability id to the keywords that signal its presence in a
  * city's tool list, then counts distinct cities — an honest "adoption breadth" approximation for the
  * concept, not a production data contract (the cards carry breadth, not human scale — number-homes rule).
+ * Uses the shared toolMatchesCapability predicate so the count and the panel rows never diverge.
  */
 export function getToolUsageCounts(
   cities: ProofCity[],
@@ -806,11 +822,7 @@ export function getToolUsageCounts(
     const keywords = keywordsByCapability[capabilityId]
     let cityCount = 0
     for (const city of cities) {
-      const matches = city.tools.some((tool) => {
-        const haystack = `${tool.name} ${tool.blurb}`.toLowerCase()
-        return keywords.some((kw) => haystack.includes(kw.toLowerCase()))
-      })
-      if (matches) {
+      if (city.tools.some((tool) => toolMatchesCapability(tool, keywords))) {
         cityCount += 1
       }
     }
@@ -863,10 +875,7 @@ export function getToolDeploymentsByCapability(
     const keywords = keywordsByCapability[capabilityId]
     const cityDeployments: CapabilityDeployment[] = []
     for (const city of cities) {
-      const matchedTool = city.tools.find((tool) => {
-        const haystack = `${tool.name} ${tool.blurb}`.toLowerCase()
-        return keywords.some((kw) => haystack.includes(kw.toLowerCase()))
-      })
+      const matchedTool = city.tools.find((tool) => toolMatchesCapability(tool, keywords))
       if (matchedTool !== undefined) {
         cityDeployments.push({
           slug: city.slug,

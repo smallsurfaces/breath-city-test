@@ -420,7 +420,7 @@ export function ProofGlobe({ cities }: ProofGlobeProps): ReactElement {
           `<div style="font-family: system-ui; font-size: 12px; line-height: 1.35;">
              <strong>${String(p.name ?? '')}</strong><br/>
              <span style="color:#64748b;">${String(p.country ?? '')}</span><br/>
-             <span style="color:#64748b;">Open to see its tools</span>
+             <span style="color:#64748b;">See the tools this city runs</span>
            </div>`,
         )
         .addTo(map)
@@ -519,7 +519,7 @@ export function ProofGlobe({ cities }: ProofGlobeProps): ReactElement {
                 className="inline-block h-3 w-3 rounded-full border border-white"
                 style={{ backgroundColor: COLOR_PIN }}
               />
-              BC members — open any city
+              Breathe Cities members. Tap any city.
             </div>
           </div>
         </div>
@@ -528,8 +528,8 @@ export function ProofGlobe({ cities }: ProofGlobeProps): ReactElement {
       {/* Honest framing line. */}
       <p className="mt-3 text-xs text-muted-foreground">
         <Globe2 className="mr-1 inline h-3 w-3 align-[-1px]" aria-hidden="true" />
-        Every pin is a Breathe Cities member city — open any one to see the tools it runs. City
-        populations shown in panels are estimates.
+        Every pin is a Breathe Cities member city already putting these tools to work for its
+        residents. Population figures shown in panels are estimates.
       </p>
 
       {/*
