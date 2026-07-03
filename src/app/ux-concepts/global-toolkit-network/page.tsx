@@ -197,7 +197,10 @@ export default function GlobalToolkitNetworkPage() {
         />
         <section className="mt-6">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {COMPONENT_ENTRIES.map((entry) => (
+            {/* Zero-count cards are hidden: a capability no plotted city runs (count 0) carries no honest
+                adoption proof, so it is filtered out rather than shown with a "0 cities" line. Generic
+                count > 0 filter — not a hardcoded id list — so it self-corrects as the data changes. */}
+            {COMPONENT_ENTRIES.filter((entry) => (counts[entry.id] ?? 0) > 0).map((entry) => (
               <ProofCatalogueCard
                 key={entry.id}
                 entry={entry}
@@ -224,7 +227,9 @@ export default function GlobalToolkitNetworkPage() {
         />
         <section className="mt-6">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {GUIDANCE_ENTRIES.map((entry) => (
+            {/* Same zero-count hide as the Components grid: with the Santiago single-platform data this
+                drops Source ID and Advocacy (both 0). Generic count > 0 filter, not a hardcode. */}
+            {GUIDANCE_ENTRIES.filter((entry) => (counts[entry.id] ?? 0) > 0).map((entry) => (
               <ProofCatalogueCard
                 key={entry.id}
                 entry={entry}
