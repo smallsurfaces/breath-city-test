@@ -14,7 +14,8 @@
  *   now REAL and research-grounded — drawn from the 16-city City Product Mapping. The `illustrative`
  *   flag is RETIRED; there are no guessed tools left to flag. Honesty now rides the LINK STATE alone:
  *     - A tool with a real proven-live `url` renders the active "See the tool →" CTA.
- *     - A tool with `url: null` renders the existing visibly DISABLED "Link coming soon".
+ *     - A tool with `url: null` renders NO CTA at all (the disabled "Link coming soon" affordance was
+ *       removed 2026-07-03 — the row shows name/tag/blurb/provider, just with no link).
  *   Most cities deliberately carry some `null` links — that absence IS the honesty mechanic (we hold
  *   no proven-live URL for that tool), not a gap to be filled. Each city also carries a one-line
  *   `story`: a real, research-grounded adoption note shown at the top of the panel body.
@@ -49,9 +50,9 @@ export type ToolCategory = 'Component' | 'Guidance'
 /**
  * One tool row inside a city panel. Every tool is real and research-grounded (v3 — the illustrative
  * concept is retired). `url` is the honest bit: a real proven-live URL renders the active "See the
- * tool →" CTA; `null` renders a visibly DISABLED "Link coming soon" (most cities carry some `null`
- * links deliberately — absence of a proven link is the honesty mechanic). `provider` labels
- * third-party products ("via AirQo" etc.); `null` means the tool is city/region-owned.
+ * tool →" CTA; `null` renders NO CTA at all (most cities carry some `null` links deliberately —
+ * absence of a proven link is the honesty mechanic). `provider` labels third-party products
+ * ("via AirQo" etc.); `null` means the tool is city/region-owned.
  */
 export type ProofTool = {
   /** Stable id, unique within a city (used as React key). */
@@ -69,7 +70,7 @@ export type ProofTool = {
    * getToolDeploymentsByCapability). Ids are the shared toolkit `ToolId` union.
    */
   capabilities: ToolId[]
-  /** Real proven-live URL → active CTA. `null` → disabled "Link coming soon" (no proven link held). */
+  /** Real proven-live URL → active CTA. `null` → no CTA rendered (no proven link held). */
   url: string | null
   /** Third-party product label, e.g. "AirQo", "WAQI", "OpenAQ". `null` for none/city-owned. */
   provider: string | null

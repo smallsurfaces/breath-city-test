@@ -23,7 +23,7 @@
  *     Each row shows: the tool NAME, a small CATEGORY tag (Component / Guidance, from `tool.category`),
  *     the one-line BLURB, an optional "via <provider>" label, and the CTA. CTA is the SOLE honesty
  *     mechanic: a real `tool.url` renders the active "See the tool →" (new tab); a `null` url renders
- *     the visibly DISABLED "Link coming soon" state (no dead href).
+ *     NO CTA element at all (no disabled affordance) — the row simply ends after name/tag/blurb/provider.
  *
  *   REGION-FACTUAL PEER BLOCK (Finding 6 peer-learning cue — at the FOOT of the body):
  *     Below the capability list, a small muted region-factual label (peerBlockLabel — e.g. "Other
@@ -41,8 +41,8 @@
  *
  * Honesty (the project's backbone — v3)
  *   The CTA link-state is the SOLE honesty mechanic: a "See the tool →" link fires ONLY on a real
- *   proven-live URL; where we hold no URL the CTA renders the visibly DISABLED "Link coming soon" state
- *   (no dead href) — so a city still shows the platform it RUNS even where we hold no proven link.
+ *   proven-live URL; where we hold no URL NO CTA renders at all — the row still shows the platform the
+ *   city RUNS (name / tag / blurb / provider), just with no link and no placeholder affordance.
  *   Every tool is real and research-grounded (the illustrative/educated-guess concept is retired).
  *   Third-party links are framed "see the tool this city uses" via the provider label. Population is
  *   city population (the `~` signals approximation), never implied reach.
@@ -129,9 +129,9 @@ function peerBlockLabel(region: ProofCity['region']): string {
  * one row rather than being dropped when its tool matches no catalogue keyword.
  *
  * A row shows: the tool NAME, a small CATEGORY tag ('Component' / 'Guidance', from `tool.category`),
- * the one-line BLURB, an optional "via <provider>" label, and the CTA. CTA is the sole honesty
- * mechanic: a real `tool.url` renders the active "See the tool →" link (new tab); a `null` url renders
- * the visibly DISABLED "Link coming soon" state (no dead href, not focusable).
+ * the one-line BLURB, and an optional "via <provider>" label. The CTA is the sole honesty mechanic:
+ * a real `tool.url` renders the active "See the tool →" link (new tab); a `null` url renders NO CTA
+ * element at all — the row simply ends after the provider line, with no disabled affordance.
  */
 function ToolRow({ tool }: { tool: ProofTool }): ReactElement {
   const hasLink = tool.url !== null
@@ -153,35 +153,32 @@ function ToolRow({ tool }: { tool: ProofTool }): ReactElement {
       {/* One-line blurb. */}
       <p className="mt-1 text-sm text-muted-foreground">{tool.blurb}</p>
 
-      {/* Provider tag + CTA (active link or disabled "Link coming soon"). */}
-      <div className="mt-2.5 flex flex-wrap items-center gap-2">
-        {tool.provider !== null && (
-          <span className="text-xs text-muted-foreground">via {tool.provider}</span>
-        )}
+      {/* Provider tag + CTA. The CTA renders ONLY when a real url is held; a null url renders no CTA
+          element at all (no disabled "coming soon" affordance). The whole row hides if it would be
+          empty (no provider AND no link) so we don't leave a stray margin gap. */}
+      {(tool.provider !== null || hasLink) && (
+        <div className="mt-2.5 flex flex-wrap items-center gap-2">
+          {tool.provider !== null && (
+            <span className="text-xs text-muted-foreground">via {tool.provider}</span>
+          )}
 
-        {/* CTA — right-aligned (thumb-reachable). Real url → active link; null → disabled placeholder. */}
-        {hasLink ? (
-          <span className="ml-auto">
-            <a
-              href={tool.url ?? '#'}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-sm font-semibold transition-colors hover:underline"
-              style={{ color: 'var(--bc-semantic-brand)' }}
-            >
-              See the tool
-              <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
-            </a>
-          </span>
-        ) : (
-          <span
-            className="ml-auto inline-flex cursor-not-allowed items-center text-sm font-medium text-muted-foreground"
-            aria-disabled="true"
-          >
-            Link coming soon
-          </span>
-        )}
-      </div>
+          {/* CTA — right-aligned (thumb-reachable). Only rendered for a real, proven-live url. */}
+          {hasLink && (
+            <span className="ml-auto">
+              <a
+                href={tool.url ?? '#'}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-sm font-semibold transition-colors hover:underline"
+                style={{ color: 'var(--bc-semantic-brand)' }}
+              >
+                See the tool
+                <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+              </a>
+            </span>
+          )}
+        </div>
+      )}
     </li>
   )
 }
@@ -297,9 +294,9 @@ export function CityPanel({ city, onClose, peers, onSelectPeer }: CityPanelProps
           {/* Story lead — the approved hybrid: story first, tools below. Muted concept-layer copy. */}
           <p className="mb-4 text-sm leading-relaxed text-muted-foreground">{city.story}</p>
           {/* Tool rows — the city's REAL curated platform(s), one row per tool in natural array order.
-              No capability grouping: a single-platform city (Accra, Sofia) shows its one row, and each
-              row's CTA carries the honesty (active "See the tool" vs disabled "Link coming soon").
-              Every city carries at least one tool, so this list is never empty. */}
+              No capability grouping: a single-platform city (Accra, Sofia) shows its one row. The row's
+              CTA carries the honesty: an active "See the tool" only where a proven-live url is held,
+              otherwise no CTA at all. Every city carries at least one tool, so this list is never empty. */}
           {city.tools.length > 0 && (
             <ul className="space-y-2.5">
               {city.tools.map((tool) => (
