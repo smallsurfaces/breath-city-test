@@ -99,7 +99,11 @@ export type ProofCity = {
   summary: string
   /** One-line real adoption story, shown as a lead paragraph at the top of the panel body. */
   story: string
-  /** Tools this city runs — all real and research-grounded. Every city has at least one. */
+  /**
+   * Tools this city runs — all real and research-grounded. May be EMPTY for a not-yet-onboarded city
+   * (Madrid, Addis Ababa): the panel then shows a "coming soon" line instead of capability rows, and
+   * the city contributes to no catalogue capability count.
+   */
   tools: ProofTool[]
 }
 
@@ -146,15 +150,15 @@ export const PROOF_CITIES: ProofCity[] = [
     population: 2_100_000,
     summary: "Paris's reference air-quality network.",
     story:
-      'Airparif gives Paris a dense real-time network with neighbourhood-level coverage and a public 72-hour forecast.',
+      'Airparif gives Paris a dense real-time network with neighbourhood coverage, WHO-referenced framing, and a public 72-hour forecast.',
     tools: [
       {
         id: 'paris-airparif',
         name: 'Airparif',
         blurb: 'Dense real-time network with neighbourhood-level coverage and a public 72-hour forecast.',
         category: 'Component',
-        capabilities: ['monitoring', 'forecasting', 'openData', 'health'],
-        url: null,
+        capabilities: ['monitoring', 'forecasting'],
+        url: 'https://www.airparif.fr',
         provider: 'Airparif',
       },
     ],
@@ -194,7 +198,7 @@ export const PROOF_CITIES: ProofCity[] = [
         blurb:
           "City Hall's map of London's monitoring stations and the Mayor's clean-air measures, including the Ultra Low Emission Zone.",
         category: 'Guidance',
-        capabilities: ['action'],
+        capabilities: ['action', 'sourceId'],
         url: 'https://www.london.gov.uk/programmes-and-strategies/environment-and-climate-change/pollution-and-air-quality/london-air-quality-map',
         provider: 'Greater London Authority',
       },
@@ -207,20 +211,9 @@ export const PROOF_CITIES: ProofCity[] = [
     region: 'EU',
     coordinates: [-3.7038, 40.4168],
     population: 3_400_000,
-    summary: "Madrid's city air-quality portal.",
-    story:
-      'Madrid owns a 24-station network, an AI forecast, and an interactive street-level concentration map across the city.',
-    tools: [
-      {
-        id: 'madrid-portal',
-        name: 'Air-quality portal',
-        blurb: 'City-owned hub: 24 reference stations updated every 20 minutes, with index and history.',
-        category: 'Component',
-        capabilities: ['monitoring', 'benchmarking', 'forecasting', 'openData'],
-        url: null,
-        provider: null,
-      },
-    ],
+    summary: 'Air-quality platform coming soon.',
+    story: 'Air-quality platform coming soon.',
+    tools: [],
   },
   {
     slug: 'milan',
@@ -263,16 +256,16 @@ export const PROOF_CITIES: ProofCity[] = [
     population: 1_800_000,
     summary: "The city's air-quality index.",
     story:
-      'Warsaw runs a city-owned sensor network across every district on top of the national monitoring system, and has steadily reduced its PM2.5 over the past decade.',
+      "Warsaw's IoT platform brings the city's sensor data — including air quality — onto one interactive map, fed by the city's open-data API.",
     tools: [
       {
         id: 'warsaw-waqi',
-        name: 'Warsaw air-quality index',
-        blurb: 'City-owned sensor network across every district, in the Warszawa 19115 app.',
+        name: 'Warsaw IoT platform',
+        blurb: "The city's smart-city IoT platform — air-quality sensor readings on an interactive map, drawn from Warsaw's open-data API.",
         category: 'Component',
-        capabilities: ['monitoring', 'benchmarking'],
-        url: null,
-        provider: 'City of Warsaw / Airly',
+        capabilities: ['monitoring', 'openData'],
+        url: 'https://warszawa19115.pl/-/warszawska-platforma-iot',
+        provider: 'City of Warsaw',
       },
     ],
   },
@@ -285,16 +278,16 @@ export const PROOF_CITIES: ProofCity[] = [
     population: 1_300_000,
     summary: "The city's official air-quality platform.",
     story:
-      "Sofia's clean-air programme has replaced thousands of solid-fuel home heating systems; its official city air-quality platform is the endorsed data source.",
+      "Sofia's municipal air-quality system carries station and sensor data, an NIMH forecast and the European index, alongside the city's clean-air programme — low-emission zones and heating-device replacement.",
     tools: [
       {
         id: 'sofia-city',
-        name: 'Sofia air quality',
-        blurb: "The city's official air-quality platform.",
+        name: 'Sofia air-quality system',
+        blurb: "The Sofia Municipality air-quality platform — station and sensor data, an NIMH forecast, the European index, and the city's clean-air measures.",
         category: 'Component',
-        capabilities: ['monitoring'],
-        url: null,
-        provider: null,
+        capabilities: ['monitoring', 'benchmarking', 'forecasting', 'action'],
+        url: 'https://air2.sofia.bg/',
+        provider: 'Sofia Municipality',
       },
     ],
   },
@@ -384,20 +377,9 @@ export const PROOF_CITIES: ProofCity[] = [
     region: 'Africa',
     coordinates: [38.7578, 9.025],
     population: 5_000_000,
-    summary: 'Regional low-cost monitoring covers Addis.',
-    story:
-      "Addis Ababa's monitoring is fragmented; regional low-cost sensor networks provide the most accessible public data while the city builds out coverage.",
-    tools: [
-      {
-        id: 'addis-airqo',
-        name: 'AirQo',
-        blurb: 'Regional low-cost sensor network with limited Addis Ababa coverage.',
-        category: 'Component',
-        capabilities: ['monitoring'],
-        url: null,
-        provider: 'AirQo',
-      },
-    ],
+    summary: 'Air-quality platform coming soon.',
+    story: 'Air-quality platform coming soon.',
+    tools: [],
   },
   {
     slug: 'johannesburg',
@@ -439,9 +421,36 @@ export const PROOF_CITIES: ProofCity[] = [
         name: 'RMCAB monitoring network',
         blurb: 'City-owned reference network running since 1997, reporting hourly across about 20 stations.',
         category: 'Component',
-        capabilities: ['monitoring', 'benchmarking'],
+        capabilities: ['monitoring'],
         url: null,
         provider: null,
+      },
+      {
+        id: 'bogota-iboca',
+        name: 'IBOCA health-risk index',
+        blurb: 'City health-risk index with a 90-hour forecast and colour-banded health advice.',
+        category: 'Guidance',
+        capabilities: ['health', 'forecasting'],
+        url: null,
+        provider: null,
+      },
+      {
+        id: 'bogota-waqi',
+        name: 'Real-time AQI map',
+        blurb: "Live consumer AQI sourced from the city's official observatory feed.",
+        category: 'Component',
+        capabilities: ['monitoring', 'benchmarking'],
+        url: 'https://aqicn.org/city/bogota/',
+        provider: 'WAQI',
+      },
+      {
+        id: 'bogota-iqair',
+        name: 'Annual trend record',
+        blurb: "WHO-referenced consumer AQI with the city's multi-year PM2.5 trend.",
+        category: 'Guidance',
+        capabilities: ['benchmarking'],
+        url: 'https://www.iqair.com/us/colombia/bogota-dc/bogota',
+        provider: 'IQAir',
       },
     ],
   },
@@ -486,7 +495,7 @@ export const PROOF_CITIES: ProofCity[] = [
         blurb:
           "The city environment agency's real-time dashboard — live PM2.5 across around 70 stations, a three-day forecast, and health guidance for at-risk groups.",
         category: 'Component',
-        capabilities: ['monitoring', 'forecasting', 'health', 'benchmarking', 'advocacy', 'openData'],
+        capabilities: ['monitoring', 'benchmarking', 'forecasting', 'health', 'openData', 'advocacy', 'action'],
         url: 'https://udara.jakarta.go.id',
         provider: 'DLH DKI Jakarta',
       },
