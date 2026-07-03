@@ -30,8 +30,8 @@
  * Key exports: GlobalNetworkRtMonitoringPage (default)
  * External dependencies: next/link, @/components/concept (ConceptHero, ConceptCard,
  *   ConceptSectionHeader), ./_components/MapDemo, ./_components/AdoptionGuide,
- *   ../_data/proof-cities (PROOF_CITIES, getToolDeploymentsByCapability),
- *   ../_components/catalogue-proof.config (CATALOGUE_PROOF_KEYWORDS).
+ *   ../_data/proof-cities (PROOF_CITIES, getToolDeploymentsByCapability — matched on the explicit
+ *   per-tool `capabilities` field, not keyword-guessed).
  */
 
 import Link from 'next/link'
@@ -43,14 +43,14 @@ import {
 import MapDemo from './_components/MapDemo'
 import { AdoptionGuide } from './_components/AdoptionGuide'
 import { PROOF_CITIES, getToolDeploymentsByCapability } from '../_data/proof-cities'
-import { CATALOGUE_PROOF_KEYWORDS } from '../_components/catalogue-proof.config'
 
 export default function GlobalNetworkRtMonitoringPage() {
   // The cities that run their OWN version of real-time monitoring — honest deployment breadth,
   // NOT cities that adopted the BC component. Same proof-cities data the globe + cards draw on.
-  // `url` is manifest-gated: a proven-live URL → link to that city's real tool; null → plain text.
-  const deployments =
-    getToolDeploymentsByCapability(PROOF_CITIES, CATALOGUE_PROOF_KEYWORDS)['monitoring'] ?? []
+  // Matching is now EXPLICIT (tool.capabilities includes 'monitoring'), not keyword-guessed, so the
+  // list reflects the real audited monitoring platforms. `url` is manifest-gated: a proven-live URL →
+  // link to that city's real tool; null → plain text.
+  const deployments = getToolDeploymentsByCapability(PROOF_CITIES, ['monitoring'])['monitoring'] ?? []
 
   return (
     <main className="min-h-screen bg-background px-4 py-10">

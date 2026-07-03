@@ -61,7 +61,6 @@ import { ProofGlobe } from './_components/ProofGlobe'
 import { PROOF_CITIES, getTotalCityPopulation, getToolUsageCounts } from './_data/proof-cities'
 import { COMPONENT_ENTRIES, GUIDANCE_ENTRIES } from '../toolkit/_components/toolkit-catalogue.config'
 import { ProofCatalogueCard } from './_components/ProofCatalogueCard'
-import { CATALOGUE_PROOF_KEYWORDS } from './_components/catalogue-proof.config'
 import { EXAMPLE_TOOLS } from './_components/example-tools.config'
 import { ComingSoonToolCard } from './_components/ComingSoonToolCard'
 
@@ -144,12 +143,13 @@ export default function GlobalToolkitNetworkPage() {
   const totalCityPopulation = getTotalCityPopulation(PROOF_CITIES)
   const proofPopulationDisplay = `~${Math.floor(totalCityPopulation / 1_000_000)} million`
 
-  // Per-capability prevalence counts: for each catalogue capability, HOW MANY cities offer their own
-  // version of it (SIMAT, Airparif, AirQo, …) — an honest adoption-breadth approximation, NOT cities
-  // that adopted the BC component. Computed once on the server from the same PROOF_CITIES the globe
-  // uses. The detailed WHICH-cities list is reserved for the component detail page, so the card needs
-  // only the count here (getToolDeploymentsByCapability remains available for that page).
-  const counts = getToolUsageCounts(PROOF_CITIES, CATALOGUE_PROOF_KEYWORDS)
+  // Per-capability prevalence counts: for each catalogue capability, HOW MANY cities run their own
+  // tool delivering it — an honest adoption-breadth figure, NOT cities that adopted the BC component.
+  // Matching is now EXPLICIT (tool.capabilities), not keyword-guessed. Driven off the catalogue entry
+  // ids (both grids), which are the shared toolkit ToolId set. Computed once on the server from the
+  // same PROOF_CITIES the globe uses.
+  const capabilityIds = [...COMPONENT_ENTRIES, ...GUIDANCE_ENTRIES].map((entry) => entry.id)
+  const counts = getToolUsageCounts(PROOF_CITIES, capabilityIds)
 
   return (
     <main className="min-h-screen bg-background">

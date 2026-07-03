@@ -37,10 +37,11 @@
  *   a link proven live today is not guaranteed live at promotion.
  *
  * Key exports: ProofCity, ProofTool, ToolCategory, CapabilityDeployment (types); PROOF_CITIES (const);
- *   toolMatchesCapability, getTotalCityPopulation, getToolUsageCounts, getToolDeploymentsByCapability
- *   (pure helpers).
- * External dependencies: none (plain data + pure functions).
+ *   getTotalCityPopulation, getToolUsageCounts, getToolDeploymentsByCapability (pure helpers).
+ * External dependencies: @/data/toolkit-data (ToolId — the catalogue capability id union).
  */
+
+import type { ToolId } from '@/data/toolkit-data'
 
 /** A tool's catalogue category — mirrors the toolkit's Component / Guidance split. */
 export type ToolCategory = 'Component' | 'Guidance'
@@ -61,6 +62,13 @@ export type ProofTool = {
   blurb: string
   /** Catalogue category tag. */
   category: ToolCategory
+  /**
+   * The toolkit catalogue capabilities this tool actually delivers — EXPLICIT, sourced from the
+   * city-platform capability audit (2026-07-03), not keyword-guessed from name/blurb. Drives the
+   * catalogue "N BC cities" counts and the per-capability deployment lists (getToolUsageCounts /
+   * getToolDeploymentsByCapability). Ids are the shared toolkit `ToolId` union.
+   */
+  capabilities: ToolId[]
   /** Real proven-live URL → active CTA. `null` → disabled "Link coming soon" (no proven link held). */
   url: string | null
   /** Third-party product label, e.g. "AirQo", "WAQI", "OpenAQ". `null` for none/city-owned. */
@@ -120,6 +128,7 @@ export const PROOF_CITIES: ProofCity[] = [
         blurb:
           "The city's official air-quality platform — real-time air-and-health index, forecast, pollution sources and the Hoy No Circula programme.",
         category: 'Component',
+        capabilities: ['monitoring', 'benchmarking', 'forecasting', 'health', 'openData', 'sourceId', 'action'],
         url: 'https://www.aire.cdmx.gob.mx/default.php',
         provider: null,
       },
@@ -143,6 +152,7 @@ export const PROOF_CITIES: ProofCity[] = [
         name: 'Airparif',
         blurb: 'Dense real-time network with neighbourhood-level coverage and a public 72-hour forecast.',
         category: 'Component',
+        capabilities: ['monitoring', 'forecasting', 'openData', 'health'],
         url: null,
         provider: 'Airparif',
       },
@@ -164,6 +174,7 @@ export const PROOF_CITIES: ProofCity[] = [
         name: 'LondonAir (LAQN)',
         blurb: 'Imperial College reference network across all London boroughs, with a real-time map and forecast.',
         category: 'Component',
+        capabilities: ['monitoring', 'forecasting', 'health', 'openData', 'benchmarking'],
         url: 'https://www.londonair.org.uk/LondonAir/Default.aspx',
         provider: 'Imperial College ERG',
       },
@@ -172,6 +183,7 @@ export const PROOF_CITIES: ProofCity[] = [
         name: 'Breathe London',
         blurb: 'A community sensor network sited near roads, schools and hospitals, built with the Mayor of London.',
         category: 'Component',
+        capabilities: ['monitoring', 'openData'],
         url: 'https://www.breathelondon.org/',
         provider: 'Mayor of London / Imperial College ERG',
       },
@@ -181,6 +193,7 @@ export const PROOF_CITIES: ProofCity[] = [
         blurb:
           "City Hall's map of London's monitoring stations and the Mayor's clean-air measures, including the Ultra Low Emission Zone.",
         category: 'Guidance',
+        capabilities: ['action'],
         url: 'https://www.london.gov.uk/programmes-and-strategies/environment-and-climate-change/pollution-and-air-quality/london-air-quality-map',
         provider: 'Greater London Authority',
       },
@@ -202,6 +215,7 @@ export const PROOF_CITIES: ProofCity[] = [
         name: 'Air-quality portal',
         blurb: 'City-owned hub: 24 reference stations updated every 20 minutes, with index and history.',
         category: 'Component',
+        capabilities: ['monitoring', 'benchmarking', 'forecasting', 'openData'],
         url: null,
         provider: null,
       },
@@ -224,6 +238,7 @@ export const PROOF_CITIES: ProofCity[] = [
         blurb:
           "The city's own daily air-quality report, derived from regional data. Published October to March only.",
         category: 'Component',
+        capabilities: ['monitoring', 'benchmarking'],
         url: null,
         provider: 'AMAT / Comune di Milano',
       },
@@ -232,6 +247,7 @@ export const PROOF_CITIES: ProofCity[] = [
         name: 'Milan open data (air quality)',
         blurb: "The city open-data portal's air-quality dataset, publishing daily station readings as downloadable CSV and JSON.",
         category: 'Component',
+        capabilities: ['openData'],
         url: 'https://dati.comune.milano.it/dataset/ds406-rilevazione-qualita-aria-2025',
         provider: 'Comune di Milano',
       },
@@ -253,6 +269,7 @@ export const PROOF_CITIES: ProofCity[] = [
         name: 'Warsaw air-quality index',
         blurb: 'City-owned sensor network across every district, in the Warszawa 19115 app.',
         category: 'Component',
+        capabilities: ['monitoring', 'benchmarking'],
         url: null,
         provider: 'City of Warsaw / Airly',
       },
@@ -274,6 +291,7 @@ export const PROOF_CITIES: ProofCity[] = [
         name: 'Sofia air quality',
         blurb: "The city's official air-quality platform.",
         category: 'Component',
+        capabilities: ['monitoring'],
         url: null,
         provider: null,
       },
@@ -295,6 +313,7 @@ export const PROOF_CITIES: ProofCity[] = [
         name: 'Bruxelles Environnement',
         blurb: 'Region-owned real-time platform with a WHO-aligned index, forecast and peak-pollution alerts.',
         category: 'Component',
+        capabilities: ['monitoring', 'forecasting', 'benchmarking', 'health'],
         url: 'https://qualitedelair.brussels',
         provider: 'Bruxelles Environnement',
       },
@@ -303,6 +322,7 @@ export const PROOF_CITIES: ProofCity[] = [
         name: 'BrusAir',
         blurb: 'A high-resolution, street-level air-quality map for the Brussels region.',
         category: 'Component',
+        capabilities: ['monitoring'],
         url: 'https://www.brusair.be',
         provider: 'Bruxelles Environnement',
       },
@@ -327,6 +347,7 @@ export const PROOF_CITIES: ProofCity[] = [
         blurb:
           'A Breathe Cities platform mapping hyperlocal air quality across Greater Accra, with a school and community sensor-donation programme.',
         category: 'Component',
+        capabilities: ['monitoring', 'health', 'advocacy', 'openData'],
         url: 'https://breatheaccra.org',
         provider: 'Breathe Cities',
       },
@@ -349,6 +370,7 @@ export const PROOF_CITIES: ProofCity[] = [
         blurb:
           "The county government's live air-quality map, drawing on around 50 sensors sited at primary schools across Nairobi, with health advice and alerts.",
         category: 'Component',
+        capabilities: ['monitoring', 'benchmarking', 'health', 'openData', 'advocacy'],
         url: 'https://airquality.nairobi.go.ke',
         provider: null,
       },
@@ -370,6 +392,7 @@ export const PROOF_CITIES: ProofCity[] = [
         name: 'AirQo',
         blurb: 'Regional low-cost sensor network with limited Addis Ababa coverage.',
         category: 'Component',
+        capabilities: ['monitoring'],
         url: null,
         provider: 'AirQo',
       },
@@ -391,6 +414,7 @@ export const PROOF_CITIES: ProofCity[] = [
         name: 'SAAQIS national portal',
         blurb: 'The national platform carrying live City of Johannesburg stations, with an index gauge and station data tables.',
         category: 'Component',
+        capabilities: ['monitoring', 'benchmarking', 'openData'],
         url: 'https://saaqis.environment.gov.za/',
         provider: 'DFFE / SAWS',
       },
@@ -414,6 +438,7 @@ export const PROOF_CITIES: ProofCity[] = [
         name: 'RMCAB monitoring network',
         blurb: 'City-owned reference network running since 1997, reporting hourly across about 20 stations.',
         category: 'Component',
+        capabilities: ['monitoring', 'benchmarking'],
         url: null,
         provider: null,
       },
@@ -435,6 +460,7 @@ export const PROOF_CITIES: ProofCity[] = [
         name: 'Data.Rio (air quality)',
         blurb: "The city open-data hub's air-quality datasets, including hourly station readings from 2011 onward.",
         category: 'Component',
+        capabilities: ['openData'],
         url: 'https://datariov2-pcrj.hub.arcgis.com/search?groupIds=0128241e3e024872a7eb46848eb7a7be',
         provider: null,
       },
@@ -459,6 +485,7 @@ export const PROOF_CITIES: ProofCity[] = [
         blurb:
           "The city environment agency's real-time dashboard — live PM2.5 across around 70 stations, a three-day forecast, and health guidance for at-risk groups.",
         category: 'Component',
+        capabilities: ['monitoring', 'forecasting', 'health', 'benchmarking', 'advocacy', 'openData'],
         url: 'https://udara.jakarta.go.id',
         provider: 'DLH DKI Jakarta',
       },
@@ -480,6 +507,7 @@ export const PROOF_CITIES: ProofCity[] = [
         name: 'AirBKK (BMA)',
         blurb: 'The city-owned dashboard: real-time PM2.5 across district stations, updated several times a day.',
         category: 'Component',
+        capabilities: ['monitoring', 'benchmarking'],
         url: 'https://official.airbkk.com/airbkk/en',
         provider: 'BMA',
       },
@@ -497,42 +525,26 @@ export function getTotalCityPopulation(cities: ProofCity[]): number {
 }
 
 /**
- * The SINGLE match predicate for "does this tool express this capability". A tool matches a capability
- * when any of that capability's keywords is a case-insensitive substring of the tool's name + blurb
- * (the only two fields the match has ever read). Factored out so every consumer — the catalogue
- * prevalence counts (getToolUsageCounts), the per-capability deployment list
- * (getToolDeploymentsByCapability), AND the city panel's category-led rows (getCityCapabilityRows) —
- * shares ONE definition and can never disagree. Changing matching behaviour now means changing this
- * one function.
- */
-export function toolMatchesCapability(tool: ProofTool, keywords: readonly string[]): boolean {
-  const haystack = `${tool.name} ${tool.blurb}`.toLowerCase()
-  return keywords.some((kw) => haystack.includes(kw.toLowerCase()))
-}
-
-/**
- * Count, per catalogue capability, how many cities run a tool matching that capability. WIRED into
+ * Count, per catalogue capability, how many cities run a tool that delivers that capability. WIRED into
  * the UI: this count drives the catalogue cards' prevalence-counter line ("{N} BC cities offer
  * something like this for their citizens"). The detailed WHICH-cities list is reserved for the
  * component detail page (see getToolDeploymentsByCapability).
  *
- * Why a keyword map rather than a hard join: the proof-cities tool names are product/city-voice
- * ("LondonAir (LAQN)", "ARPA Lombardia") while the catalogue entries are capability-voice ("Real-time
- * Monitoring"). This maps each catalogue capability id to the keywords that signal its presence in a
- * city's tool list, then counts distinct cities — an honest "adoption breadth" approximation for the
- * concept, not a production data contract (the cards carry breadth, not human scale — number-homes rule).
- * Uses the shared toolMatchesCapability predicate so the count and the panel rows never diverge.
+ * Matching is now EXPLICIT — a tool delivers a capability iff `tool.capabilities.includes(id)` (sourced
+ * from the city-platform capability audit), replacing the old name/blurb keyword substring guess which
+ * mis-counted after the single-platform strip. Iterates the caller-supplied capability ids (the shared
+ * toolkit `ToolId` set, from CATALOGUE_CAPABILITIES) and counts distinct cities per id — an honest
+ * "adoption breadth" figure (the cards carry breadth, not human scale — number-homes rule).
  */
 export function getToolUsageCounts(
   cities: ProofCity[],
-  keywordsByCapability: Record<string, readonly string[]>,
+  capabilityIds: readonly ToolId[],
 ): Record<string, number> {
   const counts: Record<string, number> = {}
-  for (const capabilityId of Object.keys(keywordsByCapability)) {
-    const keywords = keywordsByCapability[capabilityId]
+  for (const capabilityId of capabilityIds) {
     let cityCount = 0
     for (const city of cities) {
-      if (city.tools.some((tool) => toolMatchesCapability(tool, keywords))) {
+      if (city.tools.some((tool) => tool.capabilities.includes(capabilityId))) {
         cityCount += 1
       }
     }
@@ -562,30 +574,27 @@ export type CapabilityDeployment = {
 
 /**
  * Build, per catalogue capability id, the list of cities that run their OWN version of that
- * capability. For each capability, scans cities in natural order (no sorting); for each city takes
- * the FIRST tool whose name+blurb matches any keyword (same case-insensitive substring logic as
- * getToolUsageCounts) and records that city's own tool name + manifest-gated url.
+ * capability. For each capability id, scans cities in natural order (no sorting); for each city takes
+ * the FIRST tool that DELIVERS the capability (`tool.capabilities.includes(id)` — the same explicit
+ * audit-sourced match as getToolUsageCounts) and records that city's own tool name + manifest-gated url.
  *
  * Honesty (the point of this helper): a listed city runs ITS OWN version of the capability — it has
  * NOT adopted the BC toolkit's component. The `url` is the link to that city's real tool exactly as
  * held in the data (`null` = no proven-live link, render the city unlinked). No url is inferred,
  * fixed, or pointed at a BC product.
  *
- * RESERVED FOR THE COMPONENT DETAIL PAGE: this helper (and the CapabilityDeployment type) is retained
- * but NOT currently wired into the landing cards — the cards now show only a prevalence counter via
- * getToolUsageCounts. The detailed WHICH-cities + per-city tool-link list this builds is intended for
- * the per-component detail page (separate task).
+ * WIRED INTO the concept-local component detail page (real-time-monitoring/page.tsx) for its
+ * "cities already monitoring" list; the CapabilityDeployment type + this helper serve that surface.
  */
 export function getToolDeploymentsByCapability(
   cities: ProofCity[],
-  keywordsByCapability: Record<string, readonly string[]>,
+  capabilityIds: readonly ToolId[],
 ): Record<string, CapabilityDeployment[]> {
   const deployments: Record<string, CapabilityDeployment[]> = {}
-  for (const capabilityId of Object.keys(keywordsByCapability)) {
-    const keywords = keywordsByCapability[capabilityId]
+  for (const capabilityId of capabilityIds) {
     const cityDeployments: CapabilityDeployment[] = []
     for (const city of cities) {
-      const matchedTool = city.tools.find((tool) => toolMatchesCapability(tool, keywords))
+      const matchedTool = city.tools.find((tool) => tool.capabilities.includes(capabilityId))
       if (matchedTool !== undefined) {
         cityDeployments.push({
           slug: city.slug,
