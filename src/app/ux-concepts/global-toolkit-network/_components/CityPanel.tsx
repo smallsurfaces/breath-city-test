@@ -18,12 +18,12 @@
  *     The panel now leads with OUR catalogue categories, not the city's tools. Rows are AUTO-DERIVED:
  *     for the open city we iterate the catalogue capabilities in CATALOGUE ORDER (COMPONENT_ENTRIES
  *     then GUIDANCE_ENTRIES, imported read-only from the locked toolkit config) and, for each, collect
- *     the city's tools that match it. The match uses the SHARED toolMatchesCapability predicate (same
- *     one the catalogue prevalence counts use, factored into proof-cities.ts) keyed off
- *     CATALOGUE_PROOF_KEYWORDS, so the panel and the counts can never disagree. A capability with >=1
- *     matching tool becomes a row; a capability with none is omitted. One tool may match several
- *     capabilities and therefore appear under several rows (intended — it shows one product covering
- *     several capabilities). Tools matching NO capability are hidden entirely.
+ *     the city's tools that deliver it. The match is EXPLICIT — `tool.capabilities.includes(id)` (the
+ *     same audit-sourced field the catalogue prevalence counts use), so the panel and the counts can
+ *     never disagree. A capability with >=1 matching tool becomes a row; a capability with none is
+ *     omitted. One tool may declare several capabilities and therefore appear under several rows
+ *     (intended — it shows one product covering several capabilities). Tools declaring NO capability
+ *     are hidden entirely. A city with no tools at all shows a "coming soon" line instead of rows.
  *     - Collapsed row LEADS WITH OUR CATEGORY: capability.title + a small tier tag (Component /
  *       Guidance, from capability.tier) + a trailing chevron affordance.
  *     - Tap a row → it expands as an accordion (ONE open at a time), listing the city's matching
@@ -58,9 +58,9 @@
  *   for the functional category tint. Light mode only.
  *
  * Key exports: CityPanel (named)
- * External dependencies: react, lucide-react, ../_data/proof-cities (types + shared match predicate),
- *   ../_components/catalogue-proof.config (keyword map, read-only),
- *   ../../toolkit/_components/toolkit-catalogue.config (catalogue capabilities, read-only).
+ * External dependencies: react, lucide-react, ../_data/proof-cities (ProofCity / ProofTool types),
+ *   ../../toolkit/_components/toolkit-catalogue.config (catalogue capabilities, read-only — the
+ *   capability ids matched against each tool's explicit `capabilities` field).
  *
  * Side effects (all cleaned up):
  *   - Attaches a keydown listener for Escape-to-close while a city is open; removed on close/unmount.
@@ -73,8 +73,6 @@ import { useEffect, useState } from 'react'
 import type { ReactElement } from 'react'
 import { X, ArrowRight, ChevronDown } from 'lucide-react'
 import type { ProofCity, ProofTool } from '../_data/proof-cities'
-import { toolMatchesCapability } from '../_data/proof-cities'
-import { CATALOGUE_PROOF_KEYWORDS } from './catalogue-proof.config'
 import {
   COMPONENT_ENTRIES,
   GUIDANCE_ENTRIES,
@@ -104,15 +102,16 @@ type CapabilityRow = {
 
 /**
  * Build the open city's category-led rows: iterate catalogue capabilities in canonical order, collect
- * each city's tools that match (shared toolMatchesCapability predicate keyed off CATALOGUE_PROOF_KEYWORDS),
- * and keep only capabilities with >=1 match. A tool may appear under several capabilities (intended);
- * tools matching no capability are dropped. Pure — no side effects.
+ * each city's tools that deliver that capability, and keep only capabilities with >=1 match. Matching
+ * is EXPLICIT — a tool delivers a capability iff `tool.capabilities.includes(capability.id)` (the same
+ * audit-sourced field getToolUsageCounts / getToolDeploymentsByCapability use), not the old name/blurb
+ * keyword guess (that keyword map was retired). A tool may appear under several capabilities (intended);
+ * tools declaring no capability are dropped. Pure — no side effects.
  */
 function buildCapabilityRows(city: ProofCity): CapabilityRow[] {
   const rows: CapabilityRow[] = []
   for (const capability of CATALOGUE_CAPABILITIES) {
-    const keywords = CATALOGUE_PROOF_KEYWORDS[capability.id] ?? []
-    const matchedTools = city.tools.filter((tool) => toolMatchesCapability(tool, keywords))
+    const matchedTools = city.tools.filter((tool) => tool.capabilities.includes(capability.id))
     if (matchedTools.length > 0) {
       rows.push({ capability, tools: matchedTools })
     }
@@ -394,9 +393,10 @@ export function CityPanel({ city, onClose, peers, onSelectPeer }: CityPanelProps
         <div className="flex-1 overflow-y-auto px-5 py-4 sm:px-6">
           {/* Story lead — the approved hybrid: story first, capabilities below. Muted concept-layer copy. */}
           <p className="mb-4 text-sm leading-relaxed text-muted-foreground">{city.story}</p>
-          {/* Category-led rows (Fix 2): OUR catalogue capabilities the city has matching tools for.
-              Renders nothing if the city matched no capability (story still shows above). */}
-          {capabilityRows.length > 0 && (
+          {/* Category-led rows: OUR catalogue capabilities the city has matching tools for. A city with
+              no tools yet (Madrid, Addis Ababa) yields no rows — show a "coming soon" line instead of a
+              blank body, so the panel reads as a not-yet-onboarded city rather than an empty one. */}
+          {capabilityRows.length > 0 ? (
             <ul className="space-y-2.5">
               {capabilityRows.map((row) => (
                 <CapabilityRowItem
@@ -409,6 +409,10 @@ export function CityPanel({ city, onClose, peers, onSelectPeer }: CityPanelProps
                 />
               ))}
             </ul>
+          ) : (
+            <div className="rounded-xl border border-dashed border-border bg-muted/30 px-4 py-3">
+              <p className="text-sm font-medium text-muted-foreground">Air-quality tools coming soon</p>
+            </div>
           )}
 
           {/*
