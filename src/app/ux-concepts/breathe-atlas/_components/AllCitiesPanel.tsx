@@ -1,13 +1,16 @@
 /**
- * AllCitiesPanel.tsx — the nav's "All cities" button and the panel it opens (brief 5.9).
+ * AllCitiesPanel.tsx — the "All cities" button and the panel it opens (brief 5.9).
  *
  * Purpose
  *   "All cities" opens the cover browser (CityBrowser, the same carousel as on the cover) in a panel
- *   over the page. Used in the nav on the cover and the chapter pages, and in a chapter's ending
- *   (brief 5.8). `triggerVariant` picks the button style: a quiet nav item, or an outlined 56px
- *   button for the ending. Each use renders its own dialog, so focus returns to the button used. On a chapter page the current city is
- *   highlighted and scrolled into view. Closing the panel returns the visitor to the same place on
- *   the page. Visitors who want the globe go back to the cover via the logo.
+ *   over the page. Its one mount is a chapter's ending (brief 5.8), as an outlined 56px button.
+ *   The chapter's current city is highlighted and scrolled into view. Closing the panel returns the
+ *   visitor to the same place on the page. Visitors who want the globe go back to the cover via the
+ *   logo.
+ *
+ *   The nav mount was removed on 2026-09-17 (Jack, brief 4.1), and with it the `triggerVariant`
+ *   prop that chose between a quiet nav item and this button: one call site needs one style. Each
+ *   mount still renders its own dialog, so focus returns to the button that was pressed.
  *
  * How it is built
  *   A native <dialog> opened with showModal(): the browser puts it in the top layer and makes the
@@ -26,7 +29,7 @@
  *     scroll position is restored to where it was when the panel opened.
  *   - The dialog is labelled "All cities" by the sheet's visible title.
  *
- * Key exports: AllCitiesPanel (named), AllCitiesTriggerVariant (type)
+ * Key exports: AllCitiesPanel (named)
  * External dependencies: react, lucide-react (X), ./CityBrowser.
  *
  * Side effects (all cleaned up):
@@ -45,16 +48,11 @@ import { CityBrowser } from './CityBrowser'
 
 /** Props for AllCitiesPanel. */
 type AllCitiesPanelProps = {
-  /** Visible label of the nav button (from the chrome config). */
+  /** Visible label of the button. */
   label: string
-  /** The chapter city to highlight in the panel, or null on the cover. */
+  /** The chapter city to highlight in the panel, or null when no city is current. */
   currentCityId: string | null
-  /** Button style: `nav` (the nav item) or `ending` (outlined button in a chapter's ending). */
-  triggerVariant: AllCitiesTriggerVariant
 }
-
-/** Where the "All cities" button sits, which sets its style. */
-export type AllCitiesTriggerVariant = 'nav' | 'ending'
 
 /** Elements that can take keyboard focus inside the panel (for the Tab wrap). */
 const FOCUSABLE_SELECTOR = 'a[href], button:not([disabled]), input, select, textarea, [tabindex]:not([tabindex="-1"])'
@@ -62,15 +60,12 @@ const FOCUSABLE_SELECTOR = 'a[href], button:not([disabled]), input, select, text
 /** Shared focus ring. */
 const FOCUS_RING = 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground'
 
-/** Trigger button classes for each variant. Both are at least 56px tall. */
-const TRIGGER_CLASSES: Record<AllCitiesTriggerVariant, string> = {
-  nav: 'inline-flex min-h-14 items-center rounded-2xl px-2 text-sm font-medium text-foreground transition-colors hover:text-muted-foreground',
-  ending:
-    'inline-flex min-h-14 w-full items-center justify-center rounded-full border border-foreground/60 px-6 text-base font-semibold text-foreground transition-colors hover:bg-foreground hover:text-background',
-}
+/** The trigger button's classes. At least 56px tall (frontend-standards R8). */
+const TRIGGER_CLASS =
+  'inline-flex min-h-14 w-full items-center justify-center rounded-full border border-foreground/60 px-6 text-base font-semibold text-foreground transition-colors hover:bg-foreground hover:text-background'
 
-/** The "All cities" nav button and its panel. */
-export function AllCitiesPanel({ label, currentCityId, triggerVariant }: AllCitiesPanelProps) {
+/** The "All cities" button and its panel. */
+export function AllCitiesPanel({ label, currentCityId }: AllCitiesPanelProps) {
   const dialogRef = useRef<HTMLDialogElement>(null)
   const triggerRef = useRef<HTMLButtonElement>(null)
   const scrollYRef = useRef(0)
@@ -155,7 +150,7 @@ export function AllCitiesPanel({ label, currentCityId, triggerVariant }: AllCiti
         onClick={openPanel}
         aria-haspopup="dialog"
         aria-expanded={open}
-        className={`${TRIGGER_CLASSES[triggerVariant]} ${FOCUS_RING}`}
+        className={`${TRIGGER_CLASS} ${FOCUS_RING}`}
       >
         {label}
       </button>

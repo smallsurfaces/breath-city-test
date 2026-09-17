@@ -3,16 +3,16 @@
  *
  * Purpose
  *   Composes the cover: the oversized wordmark behind the globe (with the resting city's name in the
- *   gap), the globe with its 16 pulsating city markers, the city card, the mission lines below the
- *   globe and the pause/play control. Owns the idle cycle and all interaction state; AtlasGlobe owns
- *   three.js.
+ *   gap, bleeding off both edges), the globe with its 16 pulsating city markers, the city card, the
+ *   pause/play control at the globe's top right and the mission lines below the globe. Owns the idle
+ *   cycle and all interaction state; AtlasGlobe owns three.js.
  *
  * Idle cycle (brief 4.2)
  *   Starts resting on Bogotá, then visits every city eastward (CYCLE_ORDER). For each city the globe
  *   turns to it over TURN_MS (6s), rests REST_MS (5s), then moves on: about 11s per city, about
  *   3 minutes for the loop. While the globe rests on a city (the focus city):
  *     - its marker becomes an enlarged pulsating dot,
- *     - its card opens automatically beside the marker, inviting a tap on Open,
+ *     - its card opens automatically above the marker, inviting a tap on Open,
  *     - its name fades in between "BREATHE" and "CITIES", behind the globe,
  *     - its mission line fades in below the globe.
  *   As the globe moves on, the card closes and the name and city mission line fade out. BC's mission
@@ -25,7 +25,7 @@
  *     visitor closes it. This also stops the card vanishing from under a keyboard or screen reader
  *     user while they are in it.
  *   - Tapping a marker (or Enter/Space on a focused marker) pauses the cycle, turns the globe to the
- *     city (SELECT_TURN_MS) and opens a held card beside the marker, as before.
+ *     city (SELECT_TURN_MS) and opens a held card above the marker, as before.
  *   - A held card closes on its close button, Escape, or a tap anywhere outside the card and markers
  *     (a drag does not count as a tap). Closing any card keeps it closed until the globe rests on a
  *     city again.
@@ -64,7 +64,7 @@ import type { FocusEvent as ReactFocusEvent, KeyboardEvent as ReactKeyboardEvent
 import dynamic from 'next/dynamic'
 import { Pause, Play } from 'lucide-react'
 import type { AtlasGlobeApi } from './AtlasGlobe'
-import { CityCard } from './CityCard'
+import { CITY_CARD_WIDTH_PX, CityCard } from './CityCard'
 import { Wordmark } from './Wordmark'
 import { ATLAS_CITIES, BC_MISSION_LINE, CYCLE_ORDER } from '../_data/cities'
 import type { AtlasCity } from '../_data/cities'
@@ -87,9 +87,10 @@ const PHONE_MAX_STAGE_WIDTH = 640
 /** Stage width (px) from which the desktop layout applies (Tailwind's `lg` breakpoint). */
 const DESKTOP_MIN_STAGE_WIDTH = 1024
 /**
- * Globe canvas size on a phone, as a share of the stage's narrower side. Below 1, so the city name
- * behind the globe (which must fit inside the viewport) is wider than the globe and its ends show
- * either side of it. At full size the globe hid the whole name on a 390px screen.
+ * Globe canvas size on a phone, as a share of the stage's narrower side. Below 1, so the ends of the
+ * city name behind the globe show either side of it: at full size the globe hid the whole name on a
+ * 390px screen. This is the size Jack tested on his phone, so it is kept as it is even though the
+ * name now bleeds past the viewport and is always wider than the globe.
  */
 const PHONE_GLOBE_SCALE = 0.8
 /**
@@ -99,6 +100,39 @@ const PHONE_GLOBE_SCALE = 0.8
  */
 const GLOBE_MAX_PX_TABLET = 540
 const GLOBE_MAX_PX_DESKTOP = 620
+/** Diameter of the pause/play button, in px (its `h-14 w-14` classes). */
+const PAUSE_BUTTON_PX = 56
+/** Clear space kept between the pause/play button and the open city card, in px. */
+const PAUSE_CARD_CLEARANCE_PX = 8
+
+/**
+ * Where the pause/play button sits inside the stage: at the TOP RIGHT OF THE GLOBE (Jack, brief
+ * 4.2), as insets from the stage's top and right edges.
+ *
+ * Both values are computed rather than written as classes because the globe is a square centred in
+ * a stage whose width and height change independently, so "the globe's top-right corner" is a
+ * different point at every width, and at the narrowest widths it is a point the open city card also
+ * wants.
+ *
+ * - `top` is the globe canvas's top edge.
+ * - `right` is the canvas's right edge, EXCEPT where that would put the button under the card. The
+ *   card is centred on the stage and CITY_CARD_WIDTH_PX wide, so the button's left edge clears it
+ *   only while the right inset is at most (stage - card) / 2 - button - clearance. On a 375px
+ *   screen the globe is 300px wide and the card 240px, which leaves 30px either side of the card
+ *   inside the globe: far too little for a 56px button, so the inset drops and the button moves out
+ *   to the stage's own edge, where it still reads as the globe's top right because the globe nearly
+ *   fills the width. From `sm` the globe is much wider than the card and the cap never binds.
+ *
+ * Both are clamped at 0, so the button can never be pushed off the stage.
+ */
+function pauseButtonPosition(stageWidth: number, stageHeight: number, canvasSide: number): { top: number; right: number } {
+  const canvasInsetX = (stageWidth - canvasSide) / 2
+  const maxInsetClearingCard = (stageWidth - CITY_CARD_WIDTH_PX) / 2 - PAUSE_BUTTON_PX - PAUSE_CARD_CLEARANCE_PX
+  return {
+    top: Math.max((stageHeight - canvasSide) / 2, 0),
+    right: Math.max(Math.min(canvasInsetX, maxInsetClearingCard), 0),
+  }
+}
 
 /** What the cover is showing: resting on a cycle city, or not resting on any. */
 type CoverView = { kind: 'resting'; index: number } | { kind: 'free' }
@@ -383,6 +417,7 @@ export function GlobeCover() {
   const globeScale = size.width < PHONE_MAX_STAGE_WIDTH ? PHONE_GLOBE_SCALE : 1
   const globeMaxPx = size.width >= DESKTOP_MIN_STAGE_WIDTH ? GLOBE_MAX_PX_DESKTOP : GLOBE_MAX_PX_TABLET
   const canvasSide = Math.round(Math.min(size.width, size.height, globeMaxPx) * globeScale)
+  const pausePosition = pauseButtonPosition(size.width, size.height, canvasSide)
   const fade = 'transition-opacity duration-700 ease-out motion-reduce:transition-none'
 
   return (
@@ -429,34 +464,43 @@ export function GlobeCover() {
             onMarkerSelect={handleMarkerSelect}
           />
         </div>
-      </div>
 
-      {/* Below the globe: the city's mission line (changes and fades), BC's mission line (permanent)
-          and the pause/play control. */}
-      <div className="mx-auto flex max-w-2xl flex-col items-center gap-4 px-4 pb-10 pt-2 text-center">
-        <div>
-          {/* City mission line. Space reserved for 3 lines on a phone and 2 from `sm`, so the layout
-              never jumps as lines change. Hidden from assistive tech while faded out, so a stale
-              line is never read. */}
-          <div
-            className={`flex min-h-[4.125rem] flex-col justify-end sm:min-h-[3.125rem] ${fade}`}
-            style={{ opacity: resting ? 1 : 0 }}
-            aria-hidden={!resting}
-          >
-            <p className="text-base font-medium leading-snug text-foreground sm:text-lg">{shownCity.missionLine}</p>
-          </div>
-          {/* BC's mission line: always visible, never fades or changes. */}
-          <p className="mt-2 text-sm text-foreground/70">{BC_MISSION_LINE}</p>
-        </div>
+        {/* Pause/play (WCAG 2.2.2). At the TOP RIGHT OF THE GLOBE, within thumb reach (Jack, brief
+            4.2); it used to sit below the globe with the mission lines. Positioned by
+            pauseButtonPosition (see there for why it is computed and how it keeps clear of the open
+            card). It is a child of the STAGE, not of the globe canvas, so it can move outside the
+            canvas square when the card needs that room. It renders after the canvas and carries
+            z-20 so neither the WebGL surface nor the card can cover it.
 
+            It sits inside the stage's pointer handlers, which is harmless: a press on it starts an
+            interaction hold, and `togglePlaying` runs last (pointerup, then click) and clears that
+            hold, so an explicit pause stays paused and an explicit play starts the cycle. */}
         <button
           type="button"
           onClick={togglePlaying}
           aria-label={playing ? 'Pause the city tour' : 'Play the city tour'}
-          className="flex h-14 w-14 items-center justify-center rounded-full border border-foreground/20 bg-background text-foreground transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground"
+          style={{ top: pausePosition.top, right: pausePosition.right }}
+          className="absolute z-20 flex h-14 w-14 items-center justify-center rounded-full border border-foreground/20 bg-background text-foreground transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground"
         >
           {playing ? <Pause className="h-5 w-5" aria-hidden="true" /> : <Play className="h-5 w-5" aria-hidden="true" />}
         </button>
+      </div>
+
+      {/* Below the globe: the city's mission line (changes and fades) and BC's mission line
+          (permanent). The pause/play control moved up to the globe's top right (Jack, brief 4.2). */}
+      <div className="mx-auto max-w-2xl px-4 pb-10 pt-2 text-center">
+        {/* City mission line. Space reserved for 3 lines on a phone and 2 from `sm`, so the layout
+            never jumps as lines change. Hidden from assistive tech while faded out, so a stale
+            line is never read. */}
+        <div
+          className={`flex min-h-[4.125rem] flex-col justify-end sm:min-h-[3.125rem] ${fade}`}
+          style={{ opacity: resting ? 1 : 0 }}
+          aria-hidden={!resting}
+        >
+          <p className="text-base font-medium leading-snug text-foreground sm:text-lg">{shownCity.missionLine}</p>
+        </div>
+        {/* BC's mission line: always visible, never fades or changes. */}
+        <p className="mt-2 text-sm text-foreground/70">{BC_MISSION_LINE}</p>
       </div>
     </section>
   )

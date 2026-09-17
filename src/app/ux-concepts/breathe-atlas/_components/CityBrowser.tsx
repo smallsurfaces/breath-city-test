@@ -22,6 +22,20 @@
  *   other nine it is greyed out and not focusable (the same pattern as the globe card's disabled
  *   Open: a role="link" span with aria-disabled).
  *
+ * Card size (Jack, brief 4.3, 2026-09-17)
+ *   "About half the size of the first build, so more cities read at once and the carousel sits
+ *   quieter beneath the globe." Read as half the AREA, not half the width: the widths went
+ *   218/250/280 -> 152/172/192, which is about 70% of the linear size and so about half the area,
+ *   and roughly doubles how many cards are in view. Half the WIDTH (109px) would have left no room
+ *   for a name like "Rio de Janeiro". BC's 6:7.5 card shape, the layout, the scroll snap and the
+ *   greyscale wash are unchanged; the padding and the name's type scale come down with the card.
+ *
+ * NAMED EXCEPTION to the 56px touch-target standard (frontend-standards R8)
+ *   Each CARD's arrow button is 44px (h-11), not 56px, because a 56px circle inside a 152px card
+ *   dominates it and undoes the point of the smaller card. 44px is the floor Jack set for this
+ *   change ("keep the arrow button tappable at 44px or more") and matches the globe markers' own
+ *   documented 44px hit area. The carousel's OWN prev/next arrows are untouched and stay 56px.
+ *
  * IMAGE RIGHTS
  *   The card images belong to Breathe Cities. They are HOTLINKED from breathecities.org for this
  *   internal prototype (URLs in ../_data/cities.ts), never downloaded into the repo. Plain lazy-loaded
@@ -36,9 +50,10 @@
  *   the dark city name keeps its contrast. No gradients, no decorative colour.
  *
  * Accessibility
- *   Section heading (h2) labels the list; each card name is an h3. Arrow buttons are 56px, carry
- *   aria-controls for the row, and use aria-disabled (not `disabled`) at either end so keyboard focus
- *   is never dropped. The progress bar is decorative (aria-hidden): the row itself is the content.
+ *   Section heading (h2) labels the list; each card name is an h3. The prev/next arrow buttons are
+ *   56px, carry aria-controls for the row, and use aria-disabled (not `disabled`) at either end so
+ *   keyboard focus is never dropped. The per-card arrows are 44px (see the named exception above).
+ *   The progress bar is decorative (aria-hidden): the row itself is the content.
  *   Scrolling by button is instant under prefers-reduced-motion.
  *
  * Key exports: CityBrowser (named)
@@ -103,7 +118,7 @@ function CityBrowserCard({ city, current }: { city: AtlasCity; current: boolean 
   return (
     <li
       data-city-id={city.id}
-      className={`relative aspect-[6/7.5] w-[218px] shrink-0 snap-start overflow-hidden rounded-2xl bg-muted sm:w-[250px] lg:w-[280px] ${
+      className={`relative aspect-[6/7.5] w-[152px] shrink-0 snap-start overflow-hidden rounded-2xl bg-muted sm:w-[172px] lg:w-[192px] ${
         current ? 'ring-4 ring-foreground ring-offset-2 ring-offset-background' : ''
       }`}
     >
@@ -117,17 +132,17 @@ function CityBrowserCard({ city, current }: { city: AtlasCity; current: boolean 
         className="absolute inset-0 h-full w-full object-cover object-bottom opacity-60 grayscale"
       />
 
-      <div className="relative flex flex-col items-start gap-3 p-4 sm:p-5">
-        <h3 className="text-xl font-medium leading-tight text-foreground sm:text-2xl">{city.name}</h3>
+      <div className="relative flex flex-col items-start gap-2.5 p-3 sm:p-3.5">
+        <h3 className="text-base font-medium leading-tight text-foreground sm:text-lg">{city.name}</h3>
 
         {city.hasChapter ? (
           <Link
             href={atlasChapterHref(city.slug)}
             aria-label={`Open ${city.name}`}
             aria-current={current ? 'page' : undefined}
-            className={`flex h-14 w-14 items-center justify-center rounded-full border border-foreground bg-background text-foreground transition-colors hover:bg-foreground hover:text-background ${FOCUS_RING}`}
+            className={`flex h-11 w-11 items-center justify-center rounded-full border border-foreground bg-background text-foreground transition-colors hover:bg-foreground hover:text-background ${FOCUS_RING}`}
           >
-            <ArrowRight className="h-5 w-5" aria-hidden="true" />
+            <ArrowRight className="h-4 w-4" aria-hidden="true" />
           </Link>
         ) : (
           // Greyed out and not focusable: this city has no chapter in the concept.
@@ -135,9 +150,9 @@ function CityBrowserCard({ city, current }: { city: AtlasCity; current: boolean 
             role="link"
             aria-disabled="true"
             aria-label={`Open ${city.name}`}
-            className="flex h-14 w-14 cursor-default items-center justify-center rounded-full border border-foreground/15 bg-muted text-foreground/35"
+            className="flex h-11 w-11 cursor-default items-center justify-center rounded-full border border-foreground/15 bg-muted text-foreground/35"
           >
-            <ArrowRight className="h-5 w-5" aria-hidden="true" />
+            <ArrowRight className="h-4 w-4" aria-hidden="true" />
           </span>
         )}
       </div>

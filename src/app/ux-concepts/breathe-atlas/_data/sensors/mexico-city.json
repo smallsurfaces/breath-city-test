@@ -1,0 +1,793 @@
+{
+ "_note": "Mock sensors for the Breathe Atlas data map (brief section 7). LOCATIONS: see locationSource. READINGS: invented, see readingsNote. Generated once on 2026-09-17; regenerate rather than hand-edit.",
+ "city": "mexico-city",
+ "tier": 3,
+ "locationSource": "OpenAQ provider 'Sinaica Mexico' is SINAICA, the Mexican government's national air quality information system, which carries Mexico City's own SIMAT stations. Excluded: 'AirNow' (a United States feed), 'SPARTAN Network' (a university research network) and AirGradient (private and community sensors). No public city low-cost network was used; these are PLACED (placed: true).",
+ "locationSnapshot": "OpenAQ v3 GET /locations?bbox=... , taken 2026-09-17, then filtered as described above and to points inside the city's OSM boundary.",
+ "readingsNote": "Readings are INVENTED for the prototype and are not a measurement of anything. Mexico City reads low throughout (brief section 7). PM10 is always at or above PM2.5. Nothing is stale or offline.",
+ "indexName": null,
+ "sensors": [
+  {
+   "lngLat": [
+    -99.15222,
+    19.41167
+   ],
+   "type": "reference-grade",
+   "placed": false,
+   "openaqLocationId": 1134,
+   "openaqName": "Hospital General de México",
+   "openaqProvider": "Sinaica Mexico",
+   "id": "mexico-city-01",
+   "band": null,
+   "updatedMinutesAgo": 7,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 4.3,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "PM10",
+     "value": 8.0,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "NO₂",
+     "value": 18.7,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "O₃",
+     "value": 32.2,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "SO₂",
+     "value": 6.4,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "CO",
+     "value": 0.7,
+     "unit": "mg/m³"
+    }
+   ]
+  },
+  {
+   "lngLat": [
+    -99.10389,
+    19.30444
+   ],
+   "type": "reference-grade",
+   "placed": false,
+   "openaqLocationId": 9759,
+   "openaqName": "UAM Xochimilco",
+   "openaqProvider": "Sinaica Mexico",
+   "id": "mexico-city-02",
+   "band": null,
+   "updatedMinutesAgo": 8,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 7.3,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "PM10",
+     "value": 15.3,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "NO₂",
+     "value": 6.4,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "O₃",
+     "value": 46.2,
+     "unit": "µg/m³"
+    }
+   ]
+  },
+  {
+   "lngLat": [
+    -99.17611,
+    19.32639
+   ],
+   "type": "reference-grade",
+   "placed": false,
+   "openaqLocationId": 10534,
+   "openaqName": "Centro de Ciencias de la Atmósfera",
+   "openaqProvider": "Sinaica Mexico",
+   "id": "mexico-city-03",
+   "band": null,
+   "updatedMinutesAgo": 10,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 8.5,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "PM10",
+     "value": 13.7,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "NO₂",
+     "value": 18.2,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "O₃",
+     "value": 51.1,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "SO₂",
+     "value": 4.0,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "CO",
+     "value": 0.5,
+     "unit": "mg/m³"
+    }
+   ]
+  },
+  {
+   "lngLat": [
+    -99.09472,
+    19.48278
+   ],
+   "type": "reference-grade",
+   "placed": false,
+   "openaqLocationId": 10632,
+   "openaqName": "Gustavo A. Madero",
+   "openaqProvider": "Sinaica Mexico",
+   "id": "mexico-city-04",
+   "band": null,
+   "updatedMinutesAgo": 4,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 8.6,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "PM10",
+     "value": 16.3,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "NO₂",
+     "value": 16.4,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "O₃",
+     "value": 34.1,
+     "unit": "µg/m³"
+    }
+   ]
+  },
+  {
+   "lngLat": [
+    -99.20417,
+    19.32528
+   ],
+   "type": "reference-grade",
+   "placed": false,
+   "openaqLocationId": 10658,
+   "openaqName": "Pedregal",
+   "openaqProvider": "Sinaica Mexico",
+   "id": "mexico-city-05",
+   "band": null,
+   "updatedMinutesAgo": 4,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 7.8,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "PM10",
+     "value": 13.1,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "NO₂",
+     "value": 13.8,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "O₃",
+     "value": 19.4,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "SO₂",
+     "value": 2.9,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "CO",
+     "value": 0.7,
+     "unit": "mg/m³"
+    }
+   ]
+  },
+  {
+   "lngLat": [
+    -99.17,
+    19.46861
+   ],
+   "type": "reference-grade",
+   "placed": false,
+   "openaqLocationId": 10722,
+   "openaqName": "Camarones",
+   "openaqProvider": "Sinaica Mexico",
+   "id": "mexico-city-06",
+   "band": null,
+   "updatedMinutesAgo": 7,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 8.9,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "PM10",
+     "value": 16.4,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "NO₂",
+     "value": 21.8,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "O₃",
+     "value": 21.4,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "SO₂",
+     "value": 2.3,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "CO",
+     "value": 0.4,
+     "unit": "mg/m³"
+    }
+   ]
+  },
+  {
+   "lngLat": [
+    -99.20272,
+    19.404
+   ],
+   "type": "reference-grade",
+   "placed": false,
+   "openaqLocationId": 10735,
+   "openaqName": "Miguel Hidalgo",
+   "openaqProvider": "Sinaica Mexico",
+   "id": "mexico-city-07",
+   "band": null,
+   "updatedMinutesAgo": 2,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 7.2,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "PM10",
+     "value": 11.9,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "NO₂",
+     "value": 8.5,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "O₃",
+     "value": 21.6,
+     "unit": "µg/m³"
+    }
+   ]
+  },
+  {
+   "lngLat": [
+    -99.11972,
+    19.42472
+   ],
+   "type": "reference-grade",
+   "placed": false,
+   "openaqLocationId": 10748,
+   "openaqName": "Merced",
+   "openaqProvider": "Sinaica Mexico",
+   "id": "mexico-city-08",
+   "band": null,
+   "updatedMinutesAgo": 5,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 4.2,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "PM10",
+     "value": 8.0,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "NO₂",
+     "value": 24.3,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "O₃",
+     "value": 35.7,
+     "unit": "µg/m³"
+    }
+   ]
+  },
+  {
+   "lngLat": [
+    -99.01083,
+    19.24667
+   ],
+   "type": "reference-grade",
+   "placed": false,
+   "openaqLocationId": 10759,
+   "openaqName": "Tlahuac",
+   "openaqProvider": "Sinaica Mexico",
+   "id": "mexico-city-09",
+   "band": null,
+   "updatedMinutesAgo": 5,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 6.4,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "PM10",
+     "value": 10.5,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "NO₂",
+     "value": 10.1,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "O₃",
+     "value": 48.5,
+     "unit": "µg/m³"
+    }
+   ]
+  },
+  {
+   "lngLat": [
+    -99.26306,
+    19.3575
+   ],
+   "type": "reference-grade",
+   "placed": false,
+   "openaqLocationId": 10794,
+   "openaqName": "Santa Fe",
+   "openaqProvider": "Sinaica Mexico",
+   "id": "mexico-city-10",
+   "band": null,
+   "updatedMinutesAgo": 5,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 4.5,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "PM10",
+     "value": 7.3,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "NO₂",
+     "value": 22.9,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "O₃",
+     "value": 34.4,
+     "unit": "µg/m³"
+    }
+   ]
+  },
+  {
+   "lngLat": [
+    -99.00938,
+    19.34561
+   ],
+   "type": "reference-grade",
+   "placed": false,
+   "openaqLocationId": 10802,
+   "openaqName": "Santiago Acahualtepec",
+   "openaqProvider": "Sinaica Mexico",
+   "id": "mexico-city-11",
+   "band": null,
+   "updatedMinutesAgo": 3,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 7.9,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "PM10",
+     "value": 16.0,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "NO₂",
+     "value": 16.8,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "O₃",
+     "value": 48.6,
+     "unit": "µg/m³"
+    }
+   ]
+  },
+  {
+   "lngLat": [
+    -99.07389,
+    19.36083
+   ],
+   "type": "reference-grade",
+   "placed": false,
+   "openaqLocationId": 10804,
+   "openaqName": "UAM Iztapalapa",
+   "openaqProvider": "Sinaica Mexico",
+   "id": "mexico-city-12",
+   "band": null,
+   "updatedMinutesAgo": 4,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 5.3,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "PM10",
+     "value": 9.3,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "NO₂",
+     "value": 19.2,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "O₃",
+     "value": 25.1,
+     "unit": "µg/m³"
+    }
+   ]
+  },
+  {
+   "lngLat": [
+    -99.15917,
+    19.37167
+   ],
+   "type": "reference-grade",
+   "placed": false,
+   "openaqLocationId": 10860,
+   "openaqName": "Benito Juárez",
+   "openaqProvider": "Sinaica Mexico",
+   "id": "mexico-city-13",
+   "band": null,
+   "updatedMinutesAgo": 5,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 6.8,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "PM10",
+     "value": 14.8,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "NO₂",
+     "value": 14.5,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "O₃",
+     "value": 19.8,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "SO₂",
+     "value": 4.7,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "CO",
+     "value": 0.9,
+     "unit": "mg/m³"
+    }
+   ]
+  },
+  {
+   "lngLat": [
+    -99.29194,
+    19.36556
+   ],
+   "type": "reference-grade",
+   "placed": false,
+   "openaqLocationId": 223434,
+   "openaqName": "Cuajimalpa",
+   "openaqProvider": "Sinaica Mexico",
+   "id": "mexico-city-14",
+   "band": null,
+   "updatedMinutesAgo": 7,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 6.9,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "PM10",
+     "value": 13.3,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "NO₂",
+     "value": 26.2,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "O₃",
+     "value": 49.2,
+     "unit": "µg/m³"
+    }
+   ]
+  },
+  {
+   "lngLat": [
+    -99.11778,
+    19.38444
+   ],
+   "type": "reference-grade",
+   "placed": false,
+   "openaqLocationId": 235230,
+   "openaqName": "Iztacalco",
+   "openaqProvider": "Sinaica Mexico",
+   "id": "mexico-city-15",
+   "band": null,
+   "updatedMinutesAgo": 6,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 5.1,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "PM10",
+     "value": 8.3,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "NO₂",
+     "value": 13.9,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "O₃",
+     "value": 27.8,
+     "unit": "µg/m³"
+    }
+   ]
+  },
+  {
+   "lngLat": [
+    -99.20778,
+    19.27222
+   ],
+   "type": "reference-grade",
+   "placed": false,
+   "openaqLocationId": 480393,
+   "openaqName": "Ajusco Medio",
+   "openaqProvider": "Sinaica Mexico",
+   "id": "mexico-city-16",
+   "band": null,
+   "updatedMinutesAgo": 9,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 6.2,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "PM10",
+     "value": 10.5,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "NO₂",
+     "value": 16.0,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "O₃",
+     "value": 21.9,
+     "unit": "µg/m³"
+    }
+   ]
+  },
+  {
+   "lngLat": [
+    -99.1746,
+    19.4903
+   ],
+   "type": "low-cost",
+   "placed": true,
+   "openaqLocationId": null,
+   "openaqName": null,
+   "openaqProvider": null,
+   "id": "mexico-city-17",
+   "band": null,
+   "updatedMinutesAgo": 5,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 6.3,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "PM10",
+     "value": 13.6,
+     "unit": "µg/m³"
+    }
+   ]
+  },
+  {
+   "lngLat": [
+    -99.2589,
+    19.2665
+   ],
+   "type": "low-cost",
+   "placed": true,
+   "openaqLocationId": null,
+   "openaqName": null,
+   "openaqProvider": null,
+   "id": "mexico-city-18",
+   "band": null,
+   "updatedMinutesAgo": 4,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 4.7,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "PM10",
+     "value": 8.3,
+     "unit": "µg/m³"
+    }
+   ]
+  },
+  {
+   "lngLat": [
+    -99.1318,
+    19.3269
+   ],
+   "type": "low-cost",
+   "placed": true,
+   "openaqLocationId": null,
+   "openaqName": null,
+   "openaqProvider": null,
+   "id": "mexico-city-19",
+   "band": null,
+   "updatedMinutesAgo": 10,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 7.6,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "PM10",
+     "value": 13.1,
+     "unit": "µg/m³"
+    }
+   ]
+  },
+  {
+   "lngLat": [
+    -99.1508,
+    19.3884
+   ],
+   "type": "low-cost",
+   "placed": true,
+   "openaqLocationId": null,
+   "openaqName": null,
+   "openaqProvider": null,
+   "id": "mexico-city-20",
+   "band": null,
+   "updatedMinutesAgo": 2,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 4.3,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "PM10",
+     "value": 8.7,
+     "unit": "µg/m³"
+    }
+   ]
+  },
+  {
+   "lngLat": [
+    -99.0249,
+    19.1833
+   ],
+   "type": "low-cost",
+   "placed": true,
+   "openaqLocationId": null,
+   "openaqName": null,
+   "openaqProvider": null,
+   "id": "mexico-city-21",
+   "band": null,
+   "updatedMinutesAgo": 2,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 7.4,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "PM10",
+     "value": 14.6,
+     "unit": "µg/m³"
+    }
+   ]
+  },
+  {
+   "lngLat": [
+    -99.2133,
+    19.2971
+   ],
+   "type": "low-cost",
+   "placed": true,
+   "openaqLocationId": null,
+   "openaqName": null,
+   "openaqProvider": null,
+   "id": "mexico-city-22",
+   "band": null,
+   "updatedMinutesAgo": 8,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 4.5,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "PM10",
+     "value": 7.9,
+     "unit": "µg/m³"
+    }
+   ]
+  }
+ ]
+}

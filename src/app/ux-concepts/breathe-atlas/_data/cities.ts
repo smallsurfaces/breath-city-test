@@ -13,11 +13,16 @@
  *
  * Honesty
  *   - Coordinates are the city centre points supplied in the build brief.
- *   - `missionLine` values are PLACEHOLDERS and read as placeholders on purpose. No real-sounding
- *     claim about any city is made here.
+ *   - `missionLine` values come from the content pack (ux-writer, 2026-09-17), drafted in our words
+ *     from each city's own pages and Breathe Cities pages, with the sources recorded in the pack:
+ *     design/globalsite/concepts/breathe-atlas/content/breathe-atlas-content-pack.json
+ *     They are real content, not placeholders. No claim is made that a city uses a BC product, and
+ *     no leader is named. Change the pack first, then this file.
  *   - `tier` assignments are illustrative (brief section 3), not agreements with any city. Tiers
  *     are never labelled in the interface.
- *   - BC_MISSION_LINE is verbatim from breathecities.org, as supplied in the build brief.
+ *   - BC_MISSION_LINE is verbatim from breathecities.org, as supplied in the build brief. The pack
+ *     also records BC's longer homepage hero line; the cover keeps this shorter line, which is the
+ *     one Jack signed off on the cover.
  *
  * Card images (IMAGE RIGHTS)
  *   `cardImage` URLs point at Breathe Cities' own city card images on breathecities.org. The
@@ -49,7 +54,7 @@ export type AtlasCity = {
   lng: number
   /** True for the seven cities that get a chapter in this concept. */
   hasChapter: boolean
-  /** One-sentence mission line shown below the globe. PLACEHOLDER copy in this build. */
+  /** One-sentence mission line shown below the globe and in the chapter opener (from the pack). */
   missionLine: string
   /** Breathe Cities' own city card image, hotlinked from breathecities.org (see IMAGE RIGHTS). */
   cardImage: string
@@ -68,32 +73,24 @@ function bcImage(uploadPath: string): string {
   return `${BC_UPLOADS_URL}${uploadPath}`
 }
 
-/**
- * Builds the obviously-placeholder mission line for a city. One realistic-length sentence so the
- * layout is tested at a true length, worded so nobody can mistake it for a real claim.
- */
-function placeholderMission(cityName: string): string {
-  return `Placeholder: one sentence on ${cityName}'s clean air mission, roughly this long.`
-}
-
 /** All 16 Breathe Cities (kept alphabetical for readability; CITIES_ALPHABETICAL enforces the order). */
 export const ATLAS_CITIES: AtlasCity[] = [
-  { id: 'accra', slug: 'accra', name: 'Accra', country: 'Ghana', lat: 5.6037, lng: -0.187, hasChapter: false, missionLine: placeholderMission('Accra'), cardImage: bcImage('2025/01/Card-Cities-3.png'), tier: null },
-  { id: 'addis-ababa', slug: 'addis-ababa', name: 'Addis Ababa', country: 'Ethiopia', lat: 9.0054, lng: 38.7636, hasChapter: false, missionLine: placeholderMission('Addis Ababa'), cardImage: bcImage('2026/06/Addis.png'), tier: null },
-  { id: 'bangkok', slug: 'bangkok', name: 'Bangkok', country: 'Thailand', lat: 13.7563, lng: 100.5018, hasChapter: false, missionLine: placeholderMission('Bangkok'), cardImage: bcImage('2025/07/Country-cards-65.png'), tier: null },
-  { id: 'bogota', slug: 'bogota', name: 'Bogotá', country: 'Colombia', lat: 4.711, lng: -74.0721, hasChapter: true, missionLine: placeholderMission('Bogotá'), cardImage: bcImage('2024/09/Bogota-e1728988673808.png'), tier: 4 },
-  { id: 'brussels', slug: 'brussels', name: 'Brussels', country: 'Belgium', lat: 50.8503, lng: 4.3517, hasChapter: false, missionLine: placeholderMission('Brussels'), cardImage: bcImage('2023/11/Property-1Brussels.png'), tier: null },
-  { id: 'jakarta', slug: 'jakarta', name: 'Jakarta', country: 'Indonesia', lat: -6.2088, lng: 106.8456, hasChapter: true, missionLine: placeholderMission('Jakarta'), cardImage: bcImage('2023/11/Property-1Jakarta.png'), tier: 2 },
-  { id: 'johannesburg', slug: 'johannesburg', name: 'Johannesburg', country: 'South Africa', lat: -26.2041, lng: 28.0473, hasChapter: true, missionLine: placeholderMission('Johannesburg'), cardImage: bcImage('2025/07/card-cities-johannesburg.png'), tier: 4 },
-  { id: 'london', slug: 'london', name: 'London', country: 'United Kingdom', lat: 51.5074, lng: -0.1278, hasChapter: false, missionLine: placeholderMission('London'), cardImage: bcImage('2025/07/card-cities-london.png'), tier: null },
-  { id: 'madrid', slug: 'madrid', name: 'Madrid', country: 'Spain', lat: 40.4168, lng: -3.7038, hasChapter: false, missionLine: placeholderMission('Madrid'), cardImage: bcImage('2026/06/Madrid_1.jpg'), tier: null },
-  { id: 'mexico-city', slug: 'mexico-city', name: 'Mexico City', country: 'Mexico', lat: 19.4326, lng: -99.1332, hasChapter: true, missionLine: placeholderMission('Mexico City'), cardImage: bcImage('2025/07/Country-cards-66.png'), tier: 3 },
-  { id: 'milan', slug: 'milan', name: 'Milan', country: 'Italy', lat: 45.4642, lng: 9.19, hasChapter: true, missionLine: placeholderMission('Milan'), cardImage: bcImage('2025/07/card-cities-milan.png'), tier: 1 },
-  { id: 'nairobi', slug: 'nairobi', name: 'Nairobi', country: 'Kenya', lat: -1.2921, lng: 36.8219, hasChapter: false, missionLine: placeholderMission('Nairobi'), cardImage: bcImage('2025/07/card-cities-nairobi.png'), tier: null },
-  { id: 'paris', slug: 'paris', name: 'Paris', country: 'France', lat: 48.8566, lng: 2.3522, hasChapter: false, missionLine: placeholderMission('Paris'), cardImage: bcImage('2025/07/card-cities-paris.png'), tier: null },
-  { id: 'rio-de-janeiro', slug: 'rio-de-janeiro', name: 'Rio de Janeiro', country: 'Brazil', lat: -22.9068, lng: -43.1729, hasChapter: false, missionLine: placeholderMission('Rio de Janeiro'), cardImage: bcImage('2025/07/card-cities-rio.png'), tier: null },
-  { id: 'sofia', slug: 'sofia', name: 'Sofia', country: 'Bulgaria', lat: 42.6977, lng: 23.3219, hasChapter: true, missionLine: placeholderMission('Sofia'), cardImage: bcImage('2023/11/Property-1Sofia.png'), tier: 4 },
-  { id: 'warsaw', slug: 'warsaw', name: 'Warsaw', country: 'Poland', lat: 52.2297, lng: 21.0122, hasChapter: true, missionLine: placeholderMission('Warsaw'), cardImage: bcImage('2023/11/Property-1Warsaw.png'), tier: 4 },
+  { id: 'accra', slug: 'accra', name: 'Accra', country: 'Ghana', lat: 5.6037, lng: -0.187, hasChapter: false, missionLine: 'Accra is putting free, real-time air quality data in residents\' hands and working with communities to reduce waste burning.', cardImage: bcImage('2025/01/Card-Cities-3.png'), tier: null },
+  { id: 'addis-ababa', slug: 'addis-ababa', name: 'Addis Ababa', country: 'Ethiopia', lat: 9.0054, lng: 38.7636, hasChapter: false, missionLine: 'Addis Ababa is expanding cycling lanes and air quality sensors to guide action for cleaner air.', cardImage: bcImage('2026/06/Addis.png'), tier: null },
+  { id: 'bangkok', slug: 'bangkok', name: 'Bangkok', country: 'Thailand', lat: 13.7563, lng: 100.5018, hasChapter: false, missionLine: 'Bangkok is shaping a stronger Low Emission Zone and expanding community-led air quality monitoring across the city.', cardImage: bcImage('2025/07/Country-cards-65.png'), tier: null },
+  { id: 'bogota', slug: 'bogota', name: 'Bogotá', country: 'Colombia', lat: 4.711, lng: -74.0721, hasChapter: true, missionLine: 'Bogotá is bringing clean air zones to its southwestern neighbourhoods, with road repairs, greening, transport and monitoring.', cardImage: bcImage('2024/09/Bogota-e1728988673808.png'), tier: 4 },
+  { id: 'brussels', slug: 'brussels', name: 'Brussels', country: 'Belgium', lat: 50.8503, lng: 4.3517, hasChapter: false, missionLine: 'Brussels is making air quality a public health priority, with cleaner transport, greener spaces and its Low Emission Zone.', cardImage: bcImage('2023/11/Property-1Brussels.png'), tier: null },
+  { id: 'jakarta', slug: 'jakarta', name: 'Jakarta', country: 'Indonesia', lat: -6.2088, lng: 106.8456, hasChapter: true, missionLine: 'Jakarta is giving residents clear, real-time air quality information and designing its next Low Emission Zone with communities.', cardImage: bcImage('2023/11/Property-1Jakarta.png'), tier: 2 },
+  { id: 'johannesburg', slug: 'johannesburg', name: 'Johannesburg', country: 'South Africa', lat: -26.2041, lng: 28.0473, hasChapter: true, missionLine: 'Johannesburg is working with young people and community groups to build the evidence and support for cleaner air.', cardImage: bcImage('2025/07/card-cities-johannesburg.png'), tier: 4 },
+  { id: 'london', slug: 'london', name: 'London', country: 'United Kingdom', lat: 51.5074, lng: -0.1278, hasChapter: false, missionLine: 'London is putting real-time air quality data into the hands of its communities to guide action on cleaner air.', cardImage: bcImage('2025/07/card-cities-london.png'), tier: null },
+  { id: 'madrid', slug: 'madrid', name: 'Madrid', country: 'Spain', lat: 40.4168, lng: -3.7038, hasChapter: false, missionLine: 'Madrid is electrifying its buses and expanding cycling routes as it raises its clean air ambitions.', cardImage: bcImage('2026/06/Madrid_1.jpg'), tier: null },
+  { id: 'mexico-city', slug: 'mexico-city', name: 'Mexico City', country: 'Mexico', lat: 19.4326, lng: -99.1332, hasChapter: true, missionLine: 'Mexico City is bringing neighbourhood-level air quality data to community hubs where residents gather every day.', cardImage: bcImage('2025/07/Country-cards-66.png'), tier: 3 },
+  { id: 'milan', slug: 'milan', name: 'Milan', country: 'Italy', lat: 45.4642, lng: 9.19, hasChapter: true, missionLine: 'Milan is redesigning its streets around people, with safer school streets, more space to walk and a low emission zone.', cardImage: bcImage('2025/07/card-cities-milan.png'), tier: 1 },
+  { id: 'nairobi', slug: 'nairobi', name: 'Nairobi', country: 'Kenya', lat: -1.2921, lng: 36.8219, hasChapter: false, missionLine: 'Nairobi runs its own network of air quality sensors, using the data to guide targeted clean air action.', cardImage: bcImage('2025/07/card-cities-nairobi.png'), tier: null },
+  { id: 'paris', slug: 'paris', name: 'Paris', country: 'France', lat: 48.8566, lng: 2.3522, hasChapter: false, missionLine: 'Paris is reshaping its streets for people, with more school streets and greener, walkable avenues.', cardImage: bcImage('2025/07/card-cities-paris.png'), tier: null },
+  { id: 'rio-de-janeiro', slug: 'rio-de-janeiro', name: 'Rio de Janeiro', country: 'Brazil', lat: -22.9068, lng: -43.1729, hasChapter: false, missionLine: 'Rio de Janeiro is widening public access to air quality data and has created a central Low Emission District.', cardImage: bcImage('2025/07/card-cities-rio.png'), tier: null },
+  { id: 'sofia', slug: 'sofia', name: 'Sofia', country: 'Bulgaria', lat: 42.6977, lng: 23.3219, hasChapter: true, missionLine: 'Sofia is replacing wood and coal stoves in thousands of homes and restricting older, polluting cars in its centre.', cardImage: bcImage('2023/11/Property-1Sofia.png'), tier: 4 },
+  { id: 'warsaw', slug: 'warsaw', name: 'Warsaw', country: 'Poland', lat: 52.2297, lng: 21.0122, hasChapter: true, missionLine: 'Warsaw is helping households switch from coal heating and working to cut traffic pollution with its Clean Transport Zone.', cardImage: bcImage('2023/11/Property-1Warsaw.png'), tier: 4 },
 ]
 
 /**

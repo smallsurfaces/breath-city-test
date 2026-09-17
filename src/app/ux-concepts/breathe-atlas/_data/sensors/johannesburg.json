@@ -1,0 +1,367 @@
+{
+ "_note": "Mock sensors for the Breathe Atlas data map (brief section 7). LOCATIONS: see locationSource. READINGS: invented, see readingsNote. Generated once on 2026-09-17; regenerate rather than hand-edit.",
+ "city": "johannesburg",
+ "tier": 4,
+ "locationSource": "OpenAQ provider 'South Africa' is the national SAAQIS network (the -NAQI stations), which is the official source for Johannesburg: the city publishes no network of its own. Excluded: AirGradient (private and community sensors). No public city low-cost network was used; these are PLACED (placed: true).",
+ "locationSnapshot": "OpenAQ v3 GET /locations?bbox=... , taken 2026-09-17, then filtered as described above and to points inside the city's OSM boundary.",
+ "readingsNote": "Readings are INVENTED for the prototype and are not a measurement of anything. The air reads relatively clean: every sensor sits at the best level of the city's own index except one moderate sensor and one sensitive-groups sensor (brief section 7). PM10 is always at or above PM2.5. Nothing is stale or offline: every sensor updated 2 to 10 minutes ago.",
+ "indexName": "Air Quality Index (AQI)",
+ "sensors": [
+  {
+   "lngLat": [
+    28.09889,
+    -26.045
+   ],
+   "type": "reference-grade",
+   "placed": false,
+   "openaqLocationId": 225419,
+   "openaqName": "Buccleugh-NAQI",
+   "openaqProvider": "South Africa",
+   "id": "johannesburg-01",
+   "band": 1,
+   "updatedMinutesAgo": 7,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 4.4,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "PM10",
+     "value": 9.3,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "NO₂",
+     "value": 22.1,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "O₃",
+     "value": 35.7,
+     "unit": "µg/m³"
+    }
+   ]
+  },
+  {
+   "lngLat": [
+    27.95642,
+    -26.25073
+   ],
+   "type": "reference-grade",
+   "placed": false,
+   "openaqLocationId": 225445,
+   "openaqName": "Diepkloof-NAQI",
+   "openaqProvider": "South Africa",
+   "id": "johannesburg-02",
+   "band": 1,
+   "updatedMinutesAgo": 3,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 7.6,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "PM10",
+     "value": 15.7,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "NO₂",
+     "value": 22.3,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "O₃",
+     "value": 35.2,
+     "unit": "µg/m³"
+    }
+   ]
+  },
+  {
+   "lngLat": [
+    27.87214,
+    -26.25261
+   ],
+   "type": "reference-grade",
+   "placed": false,
+   "openaqLocationId": 225448,
+   "openaqName": "Jabavu-NAQI",
+   "openaqProvider": "South Africa",
+   "id": "johannesburg-03",
+   "band": 1,
+   "updatedMinutesAgo": 8,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 4.2,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "PM10",
+     "value": 8.4,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "NO₂",
+     "value": 21.5,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "O₃",
+     "value": 25.5,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "SO₂",
+     "value": 2.4,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "CO",
+     "value": 0.6,
+     "unit": "mg/m³"
+    }
+   ]
+  },
+  {
+   "lngLat": [
+    28.11026,
+    -26.10703
+   ],
+   "type": "reference-grade",
+   "placed": false,
+   "openaqLocationId": 225456,
+   "openaqName": "Alexandra-NAQI",
+   "openaqProvider": "South Africa",
+   "id": "johannesburg-04",
+   "band": 2,
+   "updatedMinutesAgo": 10,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 18.6,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "PM10",
+     "value": 35.0,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "NO₂",
+     "value": 26.7,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "O₃",
+     "value": 38.3,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "SO₂",
+     "value": 4.8,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "CO",
+     "value": 0.4,
+     "unit": "mg/m³"
+    }
+   ]
+  },
+  {
+   "lngLat": [
+    27.92864,
+    -26.18903
+   ],
+   "type": "reference-grade",
+   "placed": false,
+   "openaqLocationId": 1321146,
+   "openaqName": "Glen Austin",
+   "openaqProvider": "South Africa",
+   "id": "johannesburg-05",
+   "band": 1,
+   "updatedMinutesAgo": 8,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 5.2,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "PM10",
+     "value": 8.4,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "NO₂",
+     "value": 26.2,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "O₃",
+     "value": 27.7,
+     "unit": "µg/m³"
+    }
+   ]
+  },
+  {
+   "lngLat": [
+    27.817,
+    -26.1617
+   ],
+   "type": "low-cost",
+   "placed": true,
+   "openaqLocationId": null,
+   "openaqName": null,
+   "openaqProvider": null,
+   "id": "johannesburg-06",
+   "band": 1,
+   "updatedMinutesAgo": 9,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 4.8,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "PM10",
+     "value": 9.0,
+     "unit": "µg/m³"
+    }
+   ]
+  },
+  {
+   "lngLat": [
+    28.0976,
+    -26.0252
+   ],
+   "type": "low-cost",
+   "placed": true,
+   "openaqLocationId": null,
+   "openaqName": null,
+   "openaqProvider": null,
+   "id": "johannesburg-07",
+   "band": 1,
+   "updatedMinutesAgo": 2,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 6.0,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "PM10",
+     "value": 11.4,
+     "unit": "µg/m³"
+    }
+   ]
+  },
+  {
+   "lngLat": [
+    28.0236,
+    -25.9168
+   ],
+   "type": "low-cost",
+   "placed": true,
+   "openaqLocationId": null,
+   "openaqName": null,
+   "openaqProvider": null,
+   "id": "johannesburg-08",
+   "band": 3,
+   "updatedMinutesAgo": 5,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 27.3,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "PM10",
+     "value": 48.5,
+     "unit": "µg/m³"
+    }
+   ]
+  },
+  {
+   "lngLat": [
+    28.0618,
+    -26.0637
+   ],
+   "type": "low-cost",
+   "placed": true,
+   "openaqLocationId": null,
+   "openaqName": null,
+   "openaqProvider": null,
+   "id": "johannesburg-09",
+   "band": 1,
+   "updatedMinutesAgo": 10,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 6.6,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "PM10",
+     "value": 13.4,
+     "unit": "µg/m³"
+    }
+   ]
+  },
+  {
+   "lngLat": [
+    27.8625,
+    -26.4946
+   ],
+   "type": "low-cost",
+   "placed": true,
+   "openaqLocationId": null,
+   "openaqName": null,
+   "openaqProvider": null,
+   "id": "johannesburg-10",
+   "band": 1,
+   "updatedMinutesAgo": 4,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 5.0,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "PM10",
+     "value": 8.3,
+     "unit": "µg/m³"
+    }
+   ]
+  },
+  {
+   "lngLat": [
+    27.9182,
+    -25.9598
+   ],
+   "type": "low-cost",
+   "placed": true,
+   "openaqLocationId": null,
+   "openaqName": null,
+   "openaqProvider": null,
+   "id": "johannesburg-11",
+   "band": 1,
+   "updatedMinutesAgo": 7,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 7.4,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "PM10",
+     "value": 14.7,
+     "unit": "µg/m³"
+    }
+   ]
+  }
+ ]
+}

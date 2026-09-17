@@ -12,7 +12,8 @@
  *     7. Go further (fixed)     GoFurther
  *     8. Ending (fixed)         ChapterEnding
  *   Content and layout choices come from ../_data/chapters.ts; the city's name, country, card image and
- *   mission line from ../_data/cities.ts. The nav (AtlasNav) highlights this city in the All cities panel.
+ *   mission line from ../_data/cities.ts. The chapter's ending carries the "All cities" button that
+ *   opens the panel with this city highlighted (the nav no longer does, brief 4.1).
  *
  * Routing
  *   Only the seven chapter cities get a page: `generateStaticParams` pre-renders them and
@@ -41,7 +42,7 @@ import { GoFurther } from '../_components/chapter/GoFurther'
 import { PhotoSection } from '../_components/chapter/PhotoSection'
 import { ProgrammeList } from '../_components/chapter/ProgrammeList'
 import { CHAPTER_CITIES } from '../_data/cities'
-import { getChapter, nextChapterCity } from '../_data/chapters'
+import { chapterBySlug, getChapter, nextChapterCity } from '../_data/chapters'
 
 /** Any slug not returned by generateStaticParams is a 404. */
 export const dynamicParams = false
@@ -76,12 +77,17 @@ export default async function ChapterPage({ params }: ChapterPageProps) {
   if (next === null) {
     throw new Error(`Breathe Atlas: no next chapter after "${city.slug}"`)
   }
+  // The next-city card shows that city's landmark image, which lives in its own chapter entry.
+  const nextChapter = chapterBySlug(next.slug)
+  if (nextChapter === null) {
+    throw new Error(`Breathe Atlas: next city "${next.slug}" has no chapter entry`)
+  }
 
   return (
     <main className="min-h-screen bg-background">
-      <AtlasNav currentCityId={city.id} />
+      <AtlasNav />
       <article aria-labelledby={TITLE_ID}>
-        <ChapterOpener city={city} headingId={TITLE_ID} />
+        <ChapterOpener city={city} landmark={chapter.landmark} headingId={TITLE_ID} />
         <ChapterHeroMap city={city} chapter={chapter} />
         <div className="space-y-20 pb-20 pt-12 sm:space-y-28 sm:pb-28 sm:pt-16">
           <ChapterKeyFacts city={city} chapter={chapter} />
@@ -89,7 +95,7 @@ export default async function ChapterPage({ params }: ChapterPageProps) {
           <ProgrammeList programmes={chapter.programmes} layout={chapter.layouts.programmes} />
           <PhotoSection photos={chapter.photos} layout={chapter.layouts.photos} cityName={city.name} />
           <GoFurther links={chapter.goFurther} />
-          <ChapterEnding city={city} next={next} />
+          <ChapterEnding city={city} next={next} nextLandmark={nextChapter.landmark} />
         </div>
       </article>
     </main>
