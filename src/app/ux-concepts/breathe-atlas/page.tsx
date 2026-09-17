@@ -8,6 +8,8 @@
  *   Reads the prototype switch for the wordmark behaviour from the query string:
  *     /ux-concepts/breathe-atlas                 -> mode A (city name fades in over the wordmark)
  *     /ux-concepts/breathe-atlas?wordmark=swap   -> mode B (the big word swaps to the city name)
+ *   This sets the starting mode only; the Still | Swap toggle under the pause button switches it
+ *   on the page (see GlobeCover).
  *
  * Key exports: BreatheAtlasPage (default)
  * External dependencies: ./_components/AtlasNav, ./_components/GlobeCover, ./_components/Wordmark (type).

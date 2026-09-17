@@ -3,8 +3,14 @@
  *
  * Purpose
  *   Composes the cover: the oversized wordmark behind the globe, the globe with its 16 city
- *   markers, the city card, the mission lines below the globe and the pause/play control. Owns the
- *   idle cycle and all interaction state; AtlasGlobe owns three.js.
+ *   markers, the city card, the mission lines below the globe, the pause/play control and, under it,
+ *   the prototype Still | Swap wordmark toggle. Owns the idle cycle and all interaction state;
+ *   AtlasGlobe owns three.js.
+ *
+ * Wordmark mode
+ *   Starts from the `wordmarkMode` prop (the page reads `?wordmark=swap`), then lives in state so the
+ *   toggle applies at once, with no reload. The toggle also rewrites the query string in place so a
+ *   copied link keeps the mode. It does not pause or hold the cycle.
  *
  * Idle cycle (brief 4.2)
  *   Starts resting on Bogotá, then visits every city eastward (CYCLE_ORDER). For each city the globe
@@ -35,13 +41,14 @@
  *
  * Key exports: GlobeCover (named)
  * External dependencies: react, next/dynamic, lucide-react (Pause, Play), ./AtlasGlobe (client-only,
- *   loaded with ssr: false), ./CityCard, ./Wordmark, ../_data/cities.
+ *   loaded with ssr: false), ./CityCard, ./Wordmark, ./WordmarkModeToggle, ../_data/cities.
  *
  * Side effects (all cleaned up on unmount):
  *   - ResizeObserver on the stage (globe sizing).
  *   - matchMedia listener for prefers-reduced-motion.
  *   - Timers for the cycle and the interaction resume countdown.
  *   - Document pointerdown/pointerup/keydown listeners while a card is open (tap-outside, Escape).
+ *   - history.replaceState when the wordmark toggle changes mode (not cleaned up: it is the URL).
  */
 
 'use client'
@@ -54,6 +61,7 @@ import type { AtlasGlobeApi } from './AtlasGlobe'
 import { CityCard } from './CityCard'
 import { WordmarkBackdrop, WordmarkCityName } from './Wordmark'
 import type { WordmarkMode } from './Wordmark'
+import { WordmarkModeToggle } from './WordmarkModeToggle'
 import { ATLAS_CITIES, BC_MISSION_LINE, CYCLE_ORDER } from '../_data/cities'
 import type { AtlasCity } from '../_data/cities'
 
@@ -76,7 +84,7 @@ type CoverView = { kind: 'resting'; index: number } | { kind: 'free' }
 
 /** Props for GlobeCover. */
 type GlobeCoverProps = {
-  /** Wordmark mode: A ("overlay", default) or B ("swap", from `?wordmark=swap`). */
+  /** Initial wordmark mode: A ("overlay", default) or B ("swap", from `?wordmark=swap`). */
   wordmarkMode: WordmarkMode
 }
 
@@ -92,10 +100,11 @@ function isInsideMarker(target: EventTarget | null): boolean {
 }
 
 /** The globe cover. */
-export function GlobeCover({ wordmarkMode }: GlobeCoverProps) {
+export function GlobeCover({ wordmarkMode: initialWordmarkMode }: GlobeCoverProps) {
   const stageRef = useRef<HTMLDivElement>(null)
   const apiRef = useRef<AtlasGlobeApi | null>(null)
 
+  const [wordmarkMode, setWordmarkMode] = useState<WordmarkMode>(initialWordmarkMode)
   const [size, setSize] = useState({ width: 0, height: 0 })
   const [globeReady, setGlobeReady] = useState(false)
   const [reducedMotion, setReducedMotion] = useState(false)
@@ -306,6 +315,23 @@ export function GlobeCover({ wordmarkMode }: GlobeCoverProps) {
     setPlaying((value) => !value)
   }
 
+  /**
+   * The Still | Swap toggle. Applies the mode at once; if the globe is resting on a city, the
+   * wordmark layers re-render in the new mode straight away.
+   */
+  const changeWordmarkMode = (mode: WordmarkMode) => {
+    setWordmarkMode(mode)
+    const params = new URLSearchParams(window.location.search)
+    if (mode === 'swap') params.set('wordmark', 'swap')
+    else params.delete('wordmark')
+    const query = params.toString()
+    // Side effect: rewrite the URL in place so a copied link keeps the mode. Native replaceState is
+    // synced into the Next.js router (no reload, no server round trip, no scroll jump, no new
+    // history entry). The data argument must be null: Next skips its router sync for data that
+    // already carries its internal history state.
+    window.history.replaceState(null, '', `${window.location.pathname}${query.length > 0 ? `?${query}` : ''}${window.location.hash}`)
+  }
+
   const canvasSide = Math.min(size.width, size.height)
   const resting = view.kind === 'resting'
   const shownCity = CYCLE_ORDER[resting ? view.index : lastShownIndex]
@@ -354,7 +380,8 @@ export function GlobeCover({ wordmarkMode }: GlobeCoverProps) {
         <WordmarkCityName mode={wordmarkMode} cityName={shownCity.name} visible={resting} />
       </div>
 
-      {/* Below the globe: mission lines while resting on a city, and the pause/play control. */}
+      {/* Below the globe: mission lines while resting on a city, the pause/play control and the
+          prototype wordmark toggle. */}
       <div className="mx-auto flex max-w-2xl flex-col items-center gap-4 px-4 pb-12 pt-2 text-center">
         {/* Hidden from assistive tech while faded out, so a stale mission line is never read. */}
         <div
@@ -374,6 +401,8 @@ export function GlobeCover({ wordmarkMode }: GlobeCoverProps) {
         >
           {playing ? <Pause className="h-5 w-5" aria-hidden="true" /> : <Play className="h-5 w-5" aria-hidden="true" />}
         </button>
+
+        <WordmarkModeToggle mode={wordmarkMode} onChange={changeWordmarkMode} />
       </div>
     </section>
   )
