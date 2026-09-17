@@ -3,7 +3,11 @@
  *
  * Purpose
  *   The city's key facts as tiles, in the brief's order:
- *   - Population, with its label ("Urban area population · UN estimate") and source.
+ *   - Population: each city's OWN published figure for the area it administers, labelled
+ *     "City population · city's own figure" and credited to the city's source (Jack, 2026-09-17).
+ *     The area and date sit under it, and a rounded or estimated figure says so. The UN urban-area
+ *     estimate is carried in the data but NOT rendered; it appears only as a labelled fallback for
+ *     a city that publishes nothing we can confirm.
  *   - Sensors by type (tiers 2 to 4): a circle for low-cost, a square for reference-grade, with counts.
  *   - Lead agency.
  *   - Joined Breathe Cities.
@@ -42,6 +46,7 @@ import { OutboundLink } from './ChapterLink'
 import { StylisedCountryMap } from './StylisedCountryMap'
 import type { AtlasCity } from '../../_data/cities'
 import type {
+  ChapterCredit,
   ChapterSensorCounts,
   CityChapter,
   ContentStatus,
@@ -83,6 +88,23 @@ function factColumnsClass(count: number, hasMapTile: boolean): string {
 function SampleNote({ status }: { status: ContentStatus }) {
   if (status !== 'placeholder') return null
   return <p className="mt-1 text-xs text-foreground/60">Sample figure</p>
+}
+
+/**
+ * The population figure's credit. Where the pack carries the publication's page, it is a link;
+ * where the pack names the publication but no page (every city figure at the moment, because the
+ * revision lives in the pack's notes file rather than its JSON), it is plain text. A credit is
+ * never dropped for want of a URL, and a URL is never invented to make one linkable.
+ */
+function PopulationCredit({ source }: { source: ChapterCredit }) {
+  if (source.url === null) {
+    return <p className="mt-2 text-xs font-medium leading-snug text-foreground/70">Source: {source.label}</p>
+  }
+  return (
+    <OutboundLink href={source.url} className="-mb-3 text-xs font-medium text-foreground/70">
+      Source: {source.label}
+    </OutboundLink>
+  )
 }
 
 /** One fact tile: a ConceptCard holding a <dt> label and a <dd> value. */
@@ -156,13 +178,19 @@ export function ChapterKeyFacts({ city, chapter }: ChapterKeyFactsProps) {
       key: 'population',
       node: (
         <FactTile label="Population" wide={false}>
-          {/* The figure as the source publishes it ("10.6 million"), not a re-derived number. */}
+          {/* The figure as the source publishes it ("10,881,514"), not a re-derived number. */}
           <p className="text-3xl font-bold tracking-tight text-foreground">{population.display}</p>
           <p className="mt-1 text-sm text-foreground/80">{population.label}</p>
+          {/* What the figure covers and when, so a city figure is never read as a metro one, and a
+              census year is never read as today (brief 5.3). */}
+          <p className="mt-1 text-xs leading-snug text-foreground/70">
+            {population.unit === null ? population.year : `${population.unit} · ${population.year}`}
+          </p>
+          {population.precisionNote !== null && (
+            <p className="mt-1 text-xs leading-snug text-foreground/70">{population.precisionNote}</p>
+          )}
           <SampleNote status={population.status} />
-          <OutboundLink href={population.source.url} className="-mb-3 text-xs font-medium text-foreground/70">
-            Source: {population.source.label}
-          </OutboundLink>
+          <PopulationCredit source={population.source} />
         </FactTile>
       ),
     })

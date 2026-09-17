@@ -47,6 +47,7 @@ import { CHAPTER_CITIES } from './cities'
 import type { AtlasCity, SharingTier } from './cities'
 import type {
   ChapterContent,
+  ChapterCredit,
   ChapterFeatureStory,
   ChapterGoFurther,
   ChapterJoinedBC,
@@ -60,6 +61,7 @@ import type {
 
 export type {
   ChapterContent,
+  ChapterCredit,
   ChapterFeatureStory,
   ChapterGoFurther,
   ChapterJoinedBC,
@@ -113,7 +115,7 @@ export type LiveConditions = {
 
 /** Key facts every tier can have. Any of them may be null, and a null fact is simply not shown. */
 type CommonKeyFacts = {
-  /** Urban area population. */
+  /** The city's own population figure for the area it administers. */
   population: ChapterPopulation | null
   /** The lead agency. */
   leadAgency: ChapterLeadAgency | null

@@ -36,7 +36,7 @@
  *   that hotlinking them outside breathecities.org may fall outside BC's licence — check before
  *   this prototype goes beyond the core team.
  *
- * Key exports: ContentStatus, ChapterLink, ChapterPhoto, ChapterPopulation, ChapterLeadAgency,
+ * Key exports: ContentStatus, ChapterCredit, ChapterLink, ChapterPhoto, ChapterPopulation, ChapterLeadAgency,
  *   ChapterJoinedBC, ChapterFeatureStory, ChapterProgramme, ChapterGoFurther, ChapterContent,
  *   CHAPTER_CONTENT
  * External dependencies: none.
@@ -44,6 +44,20 @@
 
 /** How far an item has been confirmed. Only 'placeholder' is marked in the interface. */
 export type ContentStatus = 'verified' | 'drafted' | 'placeholder'
+
+/**
+ * A credit for a figure: who published it, and its page where the pack has one. Distinct from
+ * ChapterLink because a credit may name a publication the pack carries no URL for, in which case
+ * it renders as plain text rather than a link. No URL is ever invented to fill the gap.
+ */
+export type ChapterCredit = {
+  /** Visible credit text: the publication, as the pack names it. */
+  label: string
+  /** Absolute URL, or null when the pack names the publication but no page. */
+  url: string | null
+  /** Confirmation status of the credit. */
+  status: ContentStatus
+}
 
 /** A labelled link to a public page. */
 export type ChapterLink = {
@@ -69,16 +83,37 @@ export type ChapterPhoto = {
   status: ContentStatus
 }
 
-/** Urban area population (brief 5.3). `display` is the figure as the pack records it. */
+/**
+ * The city's population (brief 5.3, Jack's ruling 2026-09-17): each city's OWN published figure
+ * for the area it administers. `display` is the figure as the source publishes it, never
+ * re-derived. The UN urban-area estimate is a labelled FALLBACK only, for a city that publishes
+ * nothing we can confirm.
+ */
 export type ChapterPopulation = {
-  /** The figure as published, e.g. "10.6 million". Placeholders are bracketed in the pack. */
+  /** The figure as published, e.g. "10,881,514". Placeholders are bracketed in the pack. */
   display: string
-  /** Caption under the figure, e.g. "Urban area population · UN estimate". */
+  /** Caption under the figure: "City population · city's own figure", or the UN label on fallback. */
   label: string
-  /** Where the figure comes from. */
-  source: ChapterLink
+  /** The administrative area the figure covers, e.g. "DKI Jakarta province". Null on UN fallback. */
+  unit: string | null
+  /** The figure's date, as the source states it, e.g. "2025, at 31 December". */
+  year: string
+  /**
+   * Honesty note for a figure that is not an exact count ("An estimate, not a count."), or null
+   * when it is exact. Never softens a figure the source publishes as exact.
+   */
+  precisionNote: string | null
+  /** Who publishes the figure. `url` is null where the pack names the publication but no page. */
+  source: ChapterCredit
   /** Confirmation status; 'placeholder' shows "Sample figure". */
   status: ContentStatus
+  /**
+   * The UN urban-area estimate for the same city, carried so the research is not lost and the
+   * difference between a city figure and a built-up-area figure stays visible in the data.
+   * NOT RENDERED: the page shows the city's own figure (Jack, 2026-09-17). Null when the UN figure
+   * IS the rendered figure (the fallback case above).
+   */
+  unEstimate: { display: string; label: string; status: ContentStatus } | null
 }
 
 /** The lead agency for air quality in the city (name only; its link lives in Go further). */
@@ -160,6 +195,12 @@ export type ChapterContent = {
 export const CHAPTER_CONTENT: Record<string, ChapterContent> = {
   // The "Bogotá Open Data" link stays a PLACEHOLDER: the portal refused every connection when
   // the pack was checked, so its contents are unconfirmed. It renders with a "Placeholder:" prefix.
+  // The population is the one figure of the seven that is still a PLACEHOLDER: Bogotá publishes
+  // its own, but every district and national statistics host refused us (see CITY_POPULATIONS in
+  // the generator). "About 7.9 million" is a candidate from aggregator sites, never a primary
+  // page, so it renders bracketed and marked "Sample figure".
+  // The lead photo is photos[3], not photos[0]: the first three Bogotá photos in the pack carry
+  // a visible stock-library watermark (see LEAD_PHOTO_INDEX in the generator).
   bogota: {
     landmark: {
       src: 'https://breathecities.org/wp-content/uploads/2025/07/Country-cards-96.png',
@@ -169,14 +210,22 @@ export const CHAPTER_CONTENT: Record<string, ChapterContent> = {
       status: 'verified',
     },
     population: {
-      display: '10.6 million',
-      label: 'Urban area population · UN estimate',
+      display: '[about 7.9 million]',
+      label: 'City population · city\'s own figure',
+      unit: 'Bogotá D.C., the Capital District',
+      year: '2025',
+      precisionNote: 'An estimate, not a count.',
       source: {
-        label: 'un.org',
-        url: 'https://www.un.org/development/desa/pd/sites/www.un.org.development.desa.pd/files/undesa_pd_2025_data-booklet_world_cities_in_2025.pdf',
+        label: 'Secretaría Distrital de Planeación, Visor de Población (DANE projection with SDP)',
+        url: null,
+        status: 'placeholder',
+      },
+      status: 'placeholder',
+      unEstimate: {
+        display: '10.6 million',
+        label: 'Urban area population · UN estimate',
         status: 'verified',
       },
-      status: 'verified',
     },
     leadAgency: {
       name: 'Secretaría Distrital de Ambiente (District Environment Secretariat)',
@@ -189,7 +238,7 @@ export const CHAPTER_CONTENT: Record<string, ChapterContent> = {
     featureStory: {
       title: 'Clean air zones where the need is greatest',
       paragraphs: [
-        'Ciudad Bolívar, in Bogotá\'s southwest, records the city\'s highest concentrations of fine particles (PM2.5). Across Bogotá, dust from unpaved roads and emissions from freight vehicles cause most PM2.5 emissions.',
+        'Bogotá is concentrating its clean air work in the southwest of the city, in Ciudad Bolívar. Across Bogotá, dust from unpaved roads and emissions from freight vehicles cause most PM2.5 emissions.',
         'The city\'s response is the Zona Urbana por un Mejor Aire (ZUMA), an urban zone for better air. A ZUMA concentrates action in one place: road repairs to reduce dust, new trees and gardens, sustainable transport, recovered public space and air quality monitoring. The first ZUMA operates in Bosa-Apogeo, and the approach is part of the work that won Bogotá the 2025 Earthshot Prize for clean air.',
         'In August 2026, the city launched a second ZUMA in Ciudad Bolívar, covering 15 neighbourhoods and about 97,600 residents. Breathe Cities supports Bogotá to measure what its clean air zones change, from air quality to mobility and public space, so the benefits reach the people who need them most.',
       ],
@@ -216,10 +265,10 @@ export const CHAPTER_CONTENT: Record<string, ChapterContent> = {
         },
       ],
       leadPhoto: {
-        src: 'https://breathecities.org/wp-content/uploads/2025/07/Riccardo-Parretti-Pexels-52.png',
-        alt: 'A steep stepped street lined with colourful colonial buildings, with street vendors and people walking.',
+        src: 'https://breathecities.org/wp-content/uploads/2025/01/iStock-Bogota-cycling-street-2048x1365.jpg',
+        alt: 'People cycling along a street lined with colourful colonial buildings.',
         credit: 'Breathe Cities',
-        sourceUrl: 'https://breathecities.org/cities/bogota/',
+        sourceUrl: 'https://breathecities.org/the-city-of-bogota-joins-breathe-cities-initiative-to-tackle-global-air-pollution/',
         status: 'verified',
       },
       status: 'drafted',
@@ -227,7 +276,7 @@ export const CHAPTER_CONTENT: Record<string, ChapterContent> = {
     programmes: [
       {
         name: 'Urban Zones for Better Air (ZUMA)',
-        description: 'Clean air zones that concentrate road repairs, greening, sustainable transport and monitoring in the most affected neighbourhoods.',
+        description: 'Clean air zones that concentrate road repairs, greening, sustainable transport and air quality monitoring in specific neighbourhoods.',
         url: 'https://www.ambientebogota.gov.co/sala-de-prensa/todas-las-noticias/bogota-pone-en-marcha-su-segunda-zona-urbana-por-un-mejor-aire-esta-vez-en-ciudad-bolivar-para-que-cerca-de-100-000-personas-respiren-mejor',
         status: 'verified',
       },
@@ -258,6 +307,13 @@ export const CHAPTER_CONTENT: Record<string, ChapterContent> = {
     ],
     photos: [
       {
+        src: 'https://breathecities.org/wp-content/uploads/2025/07/Riccardo-Parretti-Pexels-52.png',
+        alt: 'A steep stepped street lined with colourful colonial buildings, with street vendors and people walking.',
+        credit: 'Breathe Cities',
+        sourceUrl: 'https://breathecities.org/cities/bogota/',
+        status: 'verified',
+      },
+      {
         src: 'https://breathecities.org/wp-content/uploads/2025/07/Riccardo-Parretti-Pexels-54.png',
         alt: 'A smiling young man on a brick path lined with flowers, with houses and a white church on the hillside behind.',
         credit: 'Breathe Cities',
@@ -269,13 +325,6 @@ export const CHAPTER_CONTENT: Record<string, ChapterContent> = {
         alt: 'Cyclists and pedestrians on a car-free avenue, with high-rise buildings and green mountains behind.',
         credit: 'Breathe Cities',
         sourceUrl: 'https://breathecities.org/bogota-earthshot-prize-winner/',
-        status: 'verified',
-      },
-      {
-        src: 'https://breathecities.org/wp-content/uploads/2025/01/iStock-Bogota-cycling-street-2048x1365.jpg',
-        alt: 'People cycling along a street lined with colourful colonial buildings.',
-        credit: 'Breathe Cities',
-        sourceUrl: 'https://breathecities.org/the-city-of-bogota-joins-breathe-cities-initiative-to-tackle-global-air-pollution/',
         status: 'verified',
       },
     ],
@@ -316,12 +365,6 @@ export const CHAPTER_CONTENT: Record<string, ChapterContent> = {
       status: 'verified',
     },
   },
-  // Population is deliberately a PLACEHOLDER. The pack verifies 41.9 million from UN World
-  // Urbanization Prospects 2025, whose new method counts the whole continuous built-up area;
-  // the older national definition gives about 12 million, and Jakarta's own figure may differ
-  // again. Jack has not chosen between the UN figure and Jakarta's own, and the brief records
-  // that Jakarta is sensitive about how its data appears, so the chapter shows the figure
-  // bracketed and marked "Sample figure" until he decides.
   jakarta: {
     landmark: {
       src: 'https://breathecities.org/wp-content/uploads/2025/07/Country-cards-2025-10-06T142822.918.png',
@@ -331,14 +374,22 @@ export const CHAPTER_CONTENT: Record<string, ChapterContent> = {
       status: 'verified',
     },
     population: {
-      display: '41.9 million',
-      label: 'Urban area population · UN estimate',
+      display: '10,881,514',
+      label: 'City population · city\'s own figure',
+      unit: 'DKI Jakarta province',
+      year: '2025, at 31 December',
+      precisionNote: null,
       source: {
-        label: 'un.org',
-        url: 'https://www.un.org/development/desa/pd/sites/www.un.org.development.desa.pd/files/undesa_pd_2025_data-booklet_world_cities_in_2025.pdf',
-        status: 'placeholder',
+        label: 'Dinas Kependudukan dan Pencatatan Sipil Provinsi DKI Jakarta, clean population data, semester II 2025',
+        url: null,
+        status: 'verified',
       },
-      status: 'placeholder',
+      status: 'verified',
+      unEstimate: {
+        display: '41.9 million',
+        label: 'Urban area population · UN estimate',
+        status: 'verified',
+      },
     },
     leadAgency: {
       name: 'Jakarta Environment Agency',
@@ -353,7 +404,7 @@ export const CHAPTER_CONTENT: Record<string, ChapterContent> = {
       paragraphs: [
         'Jakarta has piloted low emission zones in Kota Tua and Tebet Eco Park, where access is limited to people walking and cycling, public transport and vehicles with a low emission sticker. The city is now preparing its next zone, which links cleaner air with transport, buildings, energy, waste and land-use planning.',
         'Before drawing any lines on a map, the city asked residents, drivers and vendors in Blok M and Dukuh Atas what a zone would mean for their daily lives. Their views were weighed alongside a feasibility study and a cost-benefit analysis, and Blok M emerged as the stronger setting for a potential first pilot.',
-        'The same evidence now shapes how Jakarta will judge success: cleaner air, protected livelihoods and costs that do not fall hardest on low-income commuters or small businesses. Breathe Cities supports the Jakarta Provincial Government to turn this research into a practical delivery roadmap.',
+        'The same evidence now shapes how Jakarta will judge success: cleaner air, protected livelihoods and costs shared fairly across the formal and informal economies. Breathe Cities supports the Jakarta Provincial Government to turn this research into a practical delivery roadmap.',
       ],
       sources: [
         {
@@ -472,14 +523,22 @@ export const CHAPTER_CONTENT: Record<string, ChapterContent> = {
       status: 'verified',
     },
     population: {
-      display: '7.1 million',
-      label: 'Urban area population · UN estimate',
+      display: '5.8 million',
+      label: 'City population · city\'s own figure',
+      unit: 'City of Johannesburg Metropolitan Municipality',
+      year: '2024, mid-year',
+      precisionNote: 'An estimate, not a count.',
       source: {
-        label: 'un.org',
-        url: 'https://www.un.org/development/desa/pd/sites/www.un.org.development.desa.pd/files/undesa_pd_2025_data-booklet_world_cities_in_2025.pdf',
+        label: 'City of Johannesburg, Integrated Development Plan 2025/26, citing Statistics South Africa',
+        url: null,
         status: 'verified',
       },
       status: 'verified',
+      unEstimate: {
+        display: '7.1 million',
+        label: 'Urban area population · UN estimate',
+        status: 'verified',
+      },
     },
     leadAgency: {
       name: 'City of Johannesburg Environment and Infrastructure Services Department (EISD)',
@@ -613,14 +672,22 @@ export const CHAPTER_CONTENT: Record<string, ChapterContent> = {
       status: 'verified',
     },
     population: {
-      display: '17.7 million',
-      label: 'Urban area population · UN estimate',
+      display: '9,209,944',
+      label: 'City population · city\'s own figure',
+      unit: 'Ciudad de México and its 16 alcaldías',
+      year: '2020 census',
+      precisionNote: null,
       source: {
-        label: 'un.org',
-        url: 'https://www.un.org/development/desa/pd/sites/www.un.org.development.desa.pd/files/undesa_pd_2025_data-booklet_world_cities_in_2025.pdf',
+        label: 'Gobierno de la Ciudad de México, Instituto de Planeación Democrática y Prospectiva, 2025, citing INEGI',
+        url: null,
         status: 'verified',
       },
       status: 'verified',
+      unEstimate: {
+        display: '17.7 million',
+        label: 'Urban area population · UN estimate',
+        status: 'verified',
+      },
     },
     leadAgency: {
       name: 'Mexico City Secretariat of the Environment (SEDEMA)',
@@ -634,8 +701,8 @@ export const CHAPTER_CONTENT: Record<string, ChapterContent> = {
       title: 'Air quality data where communities gather',
       paragraphs: [
         'Mexico City\'s official monitoring network provides air quality data for the whole city, but it cannot show how pollution varies from one neighbourhood to the next, where people live and spend their time.',
-        'In May 2026, the city\'s Secretariat of the Environment announced the first phase of its first low-cost air quality sensor network. Up to 15 sensors will be installed at community hubs that bring residents together for cultural, recreational and health activities. Many of these sites are in areas with the highest pollution burden.',
-        'The real-time data will help city authorities and community leaders find local hotspots, assess risks during outdoor events and act where and when residents are most exposed. Breathe Cities is funding the sensors and has advised the city on the design of the network.',
+        'In May 2026, the city\'s Secretariat of the Environment announced the first phase of its first low-cost air quality sensor network. Up to 15 sensors will be installed at community hubs that bring residents together for cultural, recreational and health activities. The sensors add neighbourhood-level detail to the city\'s existing monitoring.',
+        'The real-time data will help city authorities and community leaders see how air quality varies across neighbourhoods, and act in the right places at the right times. Breathe Cities is funding the sensors and has advised the city on the design of the network.',
       ],
       sources: [
         {
@@ -764,14 +831,22 @@ export const CHAPTER_CONTENT: Record<string, ChapterContent> = {
       status: 'verified',
     },
     population: {
-      display: '[about 2.6 million]',
-      label: 'Urban area population · UN estimate',
+      display: '1,399,079',
+      label: 'City population · city\'s own figure',
+      unit: 'Comune di Milano',
+      year: '2025, at 31 December',
+      precisionNote: null,
       source: {
-        label: 'population.un.org',
-        url: 'https://population.un.org/wup/downloads/?tab=Cities',
+        label: 'Comune di Milano, Portale del Dato, population register',
+        url: null,
+        status: 'verified',
+      },
+      status: 'verified',
+      unEstimate: {
+        display: '[about 2.6 million]',
+        label: 'Urban area population · UN estimate',
         status: 'placeholder',
       },
-      status: 'placeholder',
     },
     leadAgency: {
       name: 'City of Milan',
@@ -938,14 +1013,22 @@ export const CHAPTER_CONTENT: Record<string, ChapterContent> = {
       status: 'verified',
     },
     population: {
-      display: '[about 1.1 million]',
-      label: 'Urban area population · UN estimate',
+      display: '1,303,813',
+      label: 'City population · city\'s own figure',
+      unit: 'Stolichna obshtina (Sofia Municipality), 24 districts',
+      year: '2025, at 31 December',
+      precisionNote: null,
       source: {
-        label: 'population.un.org',
-        url: 'https://population.un.org/wup/downloads/?tab=Cities',
+        label: 'National Statistical Institute of Bulgaria, final data for 2025',
+        url: null,
+        status: 'verified',
+      },
+      status: 'verified',
+      unEstimate: {
+        display: '[about 1.1 million]',
+        label: 'Urban area population · UN estimate',
         status: 'placeholder',
       },
-      status: 'placeholder',
     },
     leadAgency: {
       name: 'Sofia Municipality, Climate, Energy and Air Directorate',
@@ -1095,14 +1178,22 @@ export const CHAPTER_CONTENT: Record<string, ChapterContent> = {
       status: 'verified',
     },
     population: {
-      display: '[about 1.9 million]',
-      label: 'Urban area population · UN estimate',
+      display: '1,862,000',
+      label: 'City population · city\'s own figure',
+      unit: 'Miasto Warszawa (m.st. Warszawa)',
+      year: '2024, at 30 June',
+      precisionNote: 'The city publishes this figure rounded.',
       source: {
-        label: 'population.un.org',
-        url: 'https://population.un.org/wup/downloads/?tab=Cities',
+        label: 'Miasto Warszawa, Statystyka Warszawy',
+        url: null,
+        status: 'verified',
+      },
+      status: 'verified',
+      unEstimate: {
+        display: '[about 1.9 million]',
+        label: 'Urban area population · UN estimate',
         status: 'placeholder',
       },
-      status: 'placeholder',
     },
     leadAgency: {
       name: 'City of Warsaw, Air Protection and Climate Policy Office',
@@ -1115,8 +1206,8 @@ export const CHAPTER_CONTENT: Record<string, ChapterContent> = {
     featureStory: {
       title: 'Warsaw\'s move away from coal heating',
       paragraphs: [
-        'For years, old coal and solid-fuel stoves, known in Polish as kopciuchy, were a major cause of Warsaw\'s polluted air. In 2017, around 15,000 were still in use across the city.',
-        'The city funded replacements for residents, removed old stoves from municipal housing and checked that the regional anti-smog rules were followed. By the end of 2024, about 1,510 remained. Since 2017, concentrations of PM10 and PM2.5 have fallen by more than 30%, and 2023 was the first year on record in which no Warsaw station exceeded the standards for these particles.',
+        'Warsaw set out to replace the old coal and solid-fuel stoves, known in Polish as kopciuchy, that were a major source of its air pollution. In 2017, around 15,000 were still in use across the city.',
+        'It funded replacements for residents, removed old stoves from municipal housing and checked that the regional anti-smog rules were followed. By the end of 2024, about 1,510 remained. Since 2017, concentrations of PM10 and PM2.5 have fallen by more than 30%, and 2023 was the first year on record in which no Warsaw station exceeded the standards for these particles.',
         'Traffic pollution remains a challenge, with nitrogen dioxide from cars still a concern. In July 2024, Warsaw opened Poland\'s first Clean Transport Zone, covering 37 square kilometres of the city centre, and a campaign supported by Breathe Cities helped raise awareness of it.',
       ],
       sources: [
