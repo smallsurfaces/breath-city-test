@@ -4,9 +4,9 @@
  * Purpose
  *   Wraps every Breathe Atlas page in the standard hub tooling bar (PrototypeHeader: back-to-hub,
  *   comments, wireframe disclaimer), titled from the single-source concept registry so the bar
- *   matches the hub card. The concept's own site nav (AtlasNav) is mounted per page, because the
- *   brief specifies a minimal nav that differs from the shared BcHeader, and there is no footer
- *   in this first build step (brief 4.3 and the chapters come later).
+ *   matches the hub card. The concept's own site nav (AtlasNav) is mounted per page (cover and
+ *   chapters), because the brief specifies a minimal nav that differs from the shared BcHeader, and
+ *   because each page tells the nav which city (if any) the All cities panel should highlight.
  *
  * Key exports: BreatheAtlasLayout (default)
  * External dependencies: PrototypeHeader (../../_components/PrototypeHeader),

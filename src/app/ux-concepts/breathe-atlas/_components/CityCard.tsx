@@ -1,11 +1,15 @@
 /**
- * CityCard.tsx — the small card shown beside a tapped city marker (brief 4.2).
+ * CityCard.tsx — the small card shown beside a city marker (brief 4.2).
  *
  * Purpose
- *   Shows the city name, country and an "Open" action. "Open" looks active for the seven chapter
- *   cities (inert `href="#"` in this build step, chapters are not built yet) and greyed out for the
- *   other nine. A close button dismisses the card; GlobeCover also closes it on Escape or a tap
- *   elsewhere.
+ *   Shows the city name, country and an "Open" action. The card opens automatically beside the focus
+ *   city while the idle cycle rests on it, and when a marker is tapped. "Open" links to the city's
+ *   chapter for the seven chapter cities and is greyed out for the other nine. A close button
+ *   dismisses the card; GlobeCover also closes it on Escape or a tap elsewhere once the visitor has
+ *   interacted with it.
+ *
+ *   The root carries `data-atlas-card` so GlobeCover can tell a press or focus inside the card
+ *   (which turns an auto-opened card into one the visitor holds open).
  *
  *   The card is portalled into the selected marker's DOM node by AtlasGlobe, so its position is
  *   relative to the marker: below it on small screens (a card beside a centred marker would run
@@ -20,17 +24,19 @@
  *   The shared ConceptCard surface; bridged semantics only (foreground/background/muted). No hex.
  *
  * Key exports: CityCard (named)
- * External dependencies: react, lucide-react (X), @/components/concept (ConceptCard),
- *   ../_data/cities (AtlasCity type).
+ * External dependencies: next/link, lucide-react (X), @/components/concept (ConceptCard),
+ *   ../breathe-atlas-chrome.config (atlasChapterHref), ../_data/cities (AtlasCity type).
  */
 
+import Link from 'next/link'
 import { X } from 'lucide-react'
 import { ConceptCard } from '@/components/concept'
+import { atlasChapterHref } from '../breathe-atlas-chrome.config'
 import type { AtlasCity } from '../_data/cities'
 
 /** Props for CityCard. */
 type CityCardProps = {
-  /** The tapped city. */
+  /** The city the card is for. */
   city: AtlasCity
   /** Close the card. */
   onClose: () => void
@@ -43,6 +49,7 @@ export function CityCard({ city, onClose }: CityCardProps) {
     <div
       role="dialog"
       aria-labelledby={headingId}
+      data-atlas-card="true"
       className="absolute left-1/2 top-full z-10 mt-1 w-60 -translate-x-1/2 sm:left-full sm:top-1/2 sm:ml-2 sm:mt-0 sm:translate-x-0 sm:-translate-y-1/2"
     >
       <ConceptCard noPadding className="p-4 text-left">
@@ -64,13 +71,14 @@ export function CityCard({ city, onClose }: CityCardProps) {
         </div>
 
         {city.hasChapter ? (
-          // Active look; inert until the chapters are built.
-          <a
-            href="#"
+          // Links to the city's chapter.
+          <Link
+            href={atlasChapterHref(city.slug)}
+            aria-label={`Open ${city.name}`}
             className="mt-3 flex h-14 w-full items-center justify-center rounded-full bg-foreground text-sm font-semibold text-background transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground"
           >
             Open
-          </a>
+          </Link>
         ) : (
           // Greyed out: this city has no chapter in the concept.
           <span
