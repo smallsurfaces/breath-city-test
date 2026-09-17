@@ -63,7 +63,7 @@ export function AtlasNav({ currentCityId }: AtlasNavProps) {
         <div className="flex items-center gap-2 sm:gap-5">
           {/* Nav items from the chrome config. The only item, "All cities", opens the panel. */}
           {BREATHE_ATLAS_CHROME.nav.map((item) => (
-            <AllCitiesPanel key={item.label} label={item.label} currentCityId={currentCityId} />
+            <AllCitiesPanel key={item.label} label={item.label} currentCityId={currentCityId} triggerVariant="nav" />
           ))}
 
           {/* Sample-data notice: quiet, always visible, not interactive. */}

@@ -1,30 +1,53 @@
 /**
- * [city]/page.tsx — Breathe Atlas chapter route (STUB for the seven chapter cities).
+ * [city]/page.tsx — a Breathe Atlas city chapter (brief section 5).
  *
  * Purpose
- *   Gives the globe card's Open and the cover browser's arrows a real destination, and gives the All
- *   cities panel a chapter page to highlight its city on (brief 5.9). This stub holds only the nav,
- *   the city name, a line saying the chapter comes next, and a link back to the cover. The next build
- *   segment replaces it with the chapter itself (brief section 5).
+ *   One chapter per chapter city, built from the same eight sections in the same order (brief 5.1):
+ *     1. Opener (fixed)         ChapterOpener
+ *     2. Hero map (fixed)       ChapterHeroMap: stylised country map for Milan, data map slot otherwise
+ *     3. Key facts (fixed)      ChapterKeyFacts
+ *     4. Feature story          FeatureStory (layout per city)
+ *     5. Programme list         ProgrammeList (layout per city)
+ *     6. Photos                 PhotoSection (layout per city)
+ *     7. Go further (fixed)     GoFurther
+ *     8. Ending (fixed)         ChapterEnding
+ *   Content and layout choices come from ../_data/chapters.ts; the city's name, country, card image and
+ *   mission line from ../_data/cities.ts. The nav (AtlasNav) highlights this city in the All cities panel.
  *
  * Routing
  *   Only the seven chapter cities get a page: `generateStaticParams` pre-renders them and
- *   `dynamicParams = false` makes any other slug a 404. `notFound()` guards the same rule inside the
- *   page, so it holds even if the route config changes.
+ *   `dynamicParams = false` makes any other slug a 404. `getChapter` returns null for a non-chapter
+ *   slug (404) and throws if the two data files disagree, which fails the build.
  *
- * Key exports: ChapterStubPage (default), generateStaticParams, dynamicParams
- * External dependencies: next/link, next/navigation (notFound), ../_components/AtlasNav,
- *   ../breathe-atlas-chrome.config, ../_data/cities.
+ * Headings
+ *   h1 is the city name (opener). Each later section has an h2 (the feature story's h2 is its
+ *   headline; the ending's is "Next: [City]") and any sub-groups are h3. The hero map is a labelled
+ *   region with no heading.
+ *
+ * Key exports: ChapterPage (default), generateStaticParams, generateMetadata, dynamicParams
+ * External dependencies: next (Metadata type), next/navigation (notFound), ../_components/AtlasNav,
+ *   ../_components/chapter/*, ../_data/cities, ../_data/chapters.
  */
 
-import Link from 'next/link'
+import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { AtlasNav } from '../_components/AtlasNav'
-import { BREATHE_ATLAS_ROUTE } from '../breathe-atlas-chrome.config'
-import { CHAPTER_CITIES, chapterCityBySlug } from '../_data/cities'
+import { ChapterEnding } from '../_components/chapter/ChapterEnding'
+import { ChapterHeroMap } from '../_components/chapter/ChapterHeroMap'
+import { ChapterKeyFacts } from '../_components/chapter/ChapterKeyFacts'
+import { ChapterOpener } from '../_components/chapter/ChapterOpener'
+import { FeatureStory } from '../_components/chapter/FeatureStory'
+import { GoFurther } from '../_components/chapter/GoFurther'
+import { PhotoSection } from '../_components/chapter/PhotoSection'
+import { ProgrammeList } from '../_components/chapter/ProgrammeList'
+import { CHAPTER_CITIES } from '../_data/cities'
+import { getChapter, nextChapterCity } from '../_data/chapters'
 
 /** Any slug not returned by generateStaticParams is a 404. */
 export const dynamicParams = false
+
+/** Id of the city name h1, which labels the chapter article. */
+const TITLE_ID = 'atlas-chapter-title'
 
 /** The seven chapter cities' slugs. */
 export function generateStaticParams(): Array<{ city: string }> {
@@ -32,28 +55,43 @@ export function generateStaticParams(): Array<{ city: string }> {
 }
 
 /** Next 15 page props: route params arrive as a promise. */
-type ChapterStubPageProps = {
+type ChapterPageProps = {
   params: Promise<{ city: string }>
 }
 
-export default async function ChapterStubPage({ params }: ChapterStubPageProps) {
+/** Browser tab title: the city name. */
+export async function generateMetadata({ params }: ChapterPageProps): Promise<Metadata> {
   const { city: slug } = await params
-  const city = chapterCityBySlug(slug)
-  if (city === null) notFound()
+  const entry = getChapter(slug)
+  return { title: entry === null ? 'Breathe Atlas' : `${entry.city.name} · Breathe Atlas` }
+}
+
+export default async function ChapterPage({ params }: ChapterPageProps) {
+  const { city: slug } = await params
+  const entry = getChapter(slug)
+  if (entry === null) notFound()
+  const { city, chapter } = entry
+
+  const next = nextChapterCity(city.slug)
+  if (next === null) {
+    throw new Error(`Breathe Atlas: no next chapter after "${city.slug}"`)
+  }
 
   return (
     <main className="min-h-screen bg-background">
       <AtlasNav currentCityId={city.id} />
-      <section className="mx-auto max-w-6xl px-4 py-16 sm:py-24">
-        <h1 className="text-3xl font-bold leading-tight text-foreground sm:text-4xl">{city.name}</h1>
-        <p className="mt-4 text-base text-foreground/80">This chapter is being built in the next step.</p>
-        <Link
-          href={BREATHE_ATLAS_ROUTE}
-          className="mt-6 inline-flex min-h-14 items-center rounded-2xl text-sm font-semibold text-foreground underline underline-offset-4 transition-colors hover:text-foreground/70 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground"
-        >
-          Back to the globe
-        </Link>
-      </section>
+      <article aria-labelledby={TITLE_ID}>
+        <ChapterOpener city={city} headingId={TITLE_ID} />
+        <ChapterHeroMap city={city} chapter={chapter} />
+        <div className="space-y-20 pb-20 pt-12 sm:space-y-28 sm:pb-28 sm:pt-16">
+          <ChapterKeyFacts city={city} chapter={chapter} />
+          <FeatureStory story={chapter.featureStory} layout={chapter.layouts.featureStory} />
+          <ProgrammeList programmes={chapter.programmes} layout={chapter.layouts.programmes} />
+          <PhotoSection photos={chapter.photos} layout={chapter.layouts.photos} cityName={city.name} />
+          <GoFurther links={chapter.goFurther} />
+          <ChapterEnding city={city} next={next} />
+        </div>
+      </article>
     </main>
   )
 }
