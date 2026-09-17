@@ -15,14 +15,21 @@
  *   are kept (no leader names, no outcome figures from quotes, no unconfirmed policy claims).
  *   Update the pack first, then this file.
  *
- * Status, not silence (brief section 2)
- *   Every item carries `status`:
+ * PLACEHOLDERS ARE ABSENT, NEVER DISPLAYED (brief section 2, added 2026-09-17)
+ *   Every pack item carries `status`:
  *     'verified'    — confirmed on a public source.
  *     'drafted'     — our wording, drawn from cited public sources.
- *     'placeholder' — dummy or unconfirmed; the page marks it "Sample figure" or "Placeholder:".
- *   Only 'placeholder' shows a marker in the interface. Verified and drafted content renders as
- *   real content, with no "Sample" label. The nav's "Prototype with sample data" notice covers
- *   the rest.
+ *     'placeholder' — dummy or unconfirmed.
+ *   A 'placeholder' item, or one whose `display` is null, is DROPPED BY THE GENERATOR and is not
+ *   in this file at all: no bracketed figure, no "Placeholder:" label, no empty tile and no gap —
+ *   exactly the treatment a fact a city does not publish gets. The pack's `candidateDisplay` is
+ *   never emitted. The only 'placeholder' left below is inside `unEstimate`, which nothing renders
+ *   (see ChapterPopulation).
+ *
+ *   Not to be confused with the "Sample figure" marker, which belongs to the sensor-derived facts
+ *   assembled in ./chapters.ts (sensor counts, current conditions). Those are the prototype's
+ *   declared mock data, which brief 5.3 and 7 require the chapter to show; they carry their own
+ *   `DerivedStatus` and are not pack content.
  *
  * People's names
  *   No mayor, governor or official is named anywhere in this content (pack rule). The only personal
@@ -50,14 +57,19 @@
  * External dependencies: none.
  */
 
-/** How far an item has been confirmed. Only 'placeholder' is marked in the interface. */
+/**
+ * How far a pack item has been confirmed. Every RENDERED item here is 'verified' or 'drafted': a
+ * 'placeholder' is dropped by the generator (see the header). The union keeps the member because
+ * it is the pack's own vocabulary, and because the unrendered `unEstimate` research still carries
+ * it.
+ */
 export type ContentStatus = 'verified' | 'drafted' | 'placeholder'
 
 /**
  * A credit for a figure: who published it, and its page. Distinct from ChapterLink because a
- * credit can be unlinked — where the figure is a placeholder, the pack's URL is the route IN to
- * the figure rather than a page that carries it, so the publication is named in plain text and no
- * link is offered. No URL is ever invented, and none is attached to an unconfirmed figure.
+ * credit can be unlinked — a pack may name the publication behind a figure without a public page
+ * that carries it, and no URL is ever invented to make a credit linkable. Then the publication is
+ * named in plain text.
  */
 export type ChapterCredit = {
   /** Visible credit text: the publication, as the pack names it (`sourceName`). */
@@ -101,7 +113,7 @@ export type ChapterPhoto = {
  * nothing we can confirm.
  */
 export type ChapterPopulation = {
-  /** The figure as the pack publishes it, e.g. "10.9 million". Placeholders are bracketed. */
+  /** The figure as the pack publishes it, e.g. "10.9 million". Never a re-derived number. */
   display: string
   /** Caption under the figure: "City population · city's own figure", or the UN label on fallback. */
   label: string
@@ -116,16 +128,16 @@ export type ChapterPopulation = {
    * how the page says "estimated" or "rounded" without the build classifying anything itself.
    */
   basis: string
-  /** Who publishes the figure. Unlinked where the figure is a placeholder (see ChapterCredit). */
+  /** Who publishes the figure. Unlinked where the pack has no public page for it (ChapterCredit). */
   source: ChapterCredit
-  /** Confirmation status; 'placeholder' shows "Sample figure". */
+  /** Confirmation status. Never 'placeholder': such a figure is omitted whole (see header). */
   status: ContentStatus
   /**
    * The UN urban-area estimate for the same city, carried so the research is not lost and the
    * difference between a city figure and a built-up-area figure stays visible in the data.
    * NOT RENDERED: the page shows the city's own figure (Jack, 2026-09-17).
    */
-  unEstimate: { display: string; label: string; status: ContentStatus }
+  unEstimate: { display: string | null; label: string; status: ContentStatus }
 }
 
 /** The lead agency for air quality in the city (name only; its link lives in Go further). */
@@ -184,12 +196,12 @@ export type ChapterGoFurther = {
 export type ChapterContent = {
   /** The landmark image beside the city name in the opener, and on the next-chapter card. */
   landmark: ChapterPhoto
-  /** The city's own population figure for the area it administers. */
-  population: ChapterPopulation
-  /** Lead agency. */
-  leadAgency: ChapterLeadAgency
-  /** Year joined. */
-  joinedBC: ChapterJoinedBC
+  /** The city's own population figure, or null where the pack could not confirm one (header). */
+  population: ChapterPopulation | null
+  /** Lead agency, or null where the pack could not confirm one. */
+  leadAgency: ChapterLeadAgency | null
+  /** Year joined, or null where the pack could not confirm one. */
+  joinedBC: ChapterJoinedBC | null
   /** Feature story. */
   featureStory: ChapterFeatureStory
   /** Named programmes. */
@@ -205,13 +217,14 @@ export type ChapterContent = {
 
 /** Every chapter city's content, keyed by route slug. Mapped from the content pack (see header). */
 export const CHAPTER_CONTENT: Record<string, ChapterContent> = {
-  // The "Bogotá Open Data" link stays a PLACEHOLDER: the portal refused every connection when
-  // the pack was checked, so its contents are unconfirmed. It renders with a "Placeholder:" prefix.
-  // The population is the one figure of the seven that is still a PLACEHOLDER: Bogotá publishes
-  // its own, but every district and national statistics host refused the pack's checks. "About
-  // 7.9 million" is a candidate from aggregator sites, never a primary page, so it renders
-  // bracketed and marked "Sample figure", and its credit is NOT a link: the pack's URL is the
-  // Alcaldía page describing the Visor de Población, which does not carry the figure itself.
+  // TWO ITEMS ARE ABSENT HERE, and their absence is the correct rendering (brief section 2).
+  // `population` is null: Bogotá publishes its own figure, but every district and national
+  // statistics host refused the pack's checks, so the pack holds only a candidate read off
+  // aggregator sites and keeps it in `candidateDisplay`. The Population tile is left out and
+  // the key-facts grid re-columns around it, exactly as for a fact a city does not publish.
+  // The "Bogotá Open Data" link is likewise gone from `goFurther.getTheData`: the portal
+  // refused every connection when the pack was checked, so its contents are unconfirmed.
+  // Neither is labelled, bracketed or greyed — a placeholder is absent, never displayed.
   bogota: {
     landmark: {
       src: 'https://breathecities.org/wp-content/uploads/2025/07/Country-cards-96.png',
@@ -220,25 +233,7 @@ export const CHAPTER_CONTENT: Record<string, ChapterContent> = {
       sourceUrl: 'https://breathecities.org/cities/bogota/',
       status: 'verified',
     },
-    population: {
-      display: '[about 7.9 million]',
-      label: 'City population · city\'s own figure',
-      covers: 'Bogotá D.C., the Capital District',
-      asAt: '2025',
-      basis: 'Population projection from the 2018 national census, produced by DANE with the Secretaría Distrital de Planeación.',
-      source: {
-        label: 'Secretaría Distrital de Planeación, Visor de Población',
-        url: null,
-        tier: 'city government',
-        status: 'placeholder',
-      },
-      status: 'placeholder',
-      unEstimate: {
-        display: '10.6 million',
-        label: 'Urban area population · UN estimate',
-        status: 'verified',
-      },
-    },
+    population: null,
     leadAgency: {
       name: 'Secretaría Distrital de Ambiente (District Environment Secretariat)',
       status: 'verified',
@@ -248,11 +243,11 @@ export const CHAPTER_CONTENT: Record<string, ChapterContent> = {
       status: 'verified',
     },
     featureStory: {
-      title: 'Clean air zones where the need is greatest',
+      title: 'Clean air zones, one neighbourhood at a time',
       paragraphs: [
         'Bogotá is concentrating its clean air work in the southwest of the city, in Ciudad Bolívar. Across Bogotá, dust from unpaved roads and emissions from freight vehicles cause most PM2.5 emissions.',
         'The city\'s response is the Zona Urbana por un Mejor Aire (ZUMA), an urban zone for better air. A ZUMA concentrates action in one place: road repairs to reduce dust, new trees and gardens, sustainable transport, recovered public space and air quality monitoring. The first ZUMA operates in Bosa-Apogeo, and the approach is part of the work that won Bogotá the 2025 Earthshot Prize for clean air.',
-        'In August 2026, the city launched a second ZUMA in Ciudad Bolívar, covering 15 neighbourhoods and about 97,600 residents. Breathe Cities supports Bogotá to measure what its clean air zones change, from air quality to mobility and public space, so the benefits reach the people who need them most.',
+        'In August 2026, the city launched a second ZUMA in Ciudad Bolívar, covering 15 neighbourhoods and about 97,600 residents. Breathe Cities supports Bogotá to measure what its clean air zones change, from air quality to mobility and public space, so the city can see what each zone delivers for residents.',
       ],
       sources: [
         {
@@ -359,11 +354,6 @@ export const CHAPTER_CONTENT: Record<string, ChapterContent> = {
           url: 'http://rmcab.ambientebogota.gov.co/',
           status: 'verified',
         },
-        {
-          label: 'Bogotá Open Data: air quality datasets',
-          url: 'https://datosabiertos.bogota.gov.co/dataset?organization=sda&tags=Calidad+del+aire',
-          status: 'placeholder',
-        },
       ],
       departmentResponsible: {
         label: 'Secretaría Distrital de Ambiente',
@@ -416,7 +406,7 @@ export const CHAPTER_CONTENT: Record<string, ChapterContent> = {
       title: 'A low emission zone shaped by daily life',
       paragraphs: [
         'Jakarta has piloted low emission zones in Kota Tua and Tebet Eco Park, where access is limited to people walking and cycling, public transport and vehicles with a low emission sticker. The city is now preparing its next zone, which links cleaner air with transport, buildings, energy, waste and land-use planning.',
-        'Before drawing any lines on a map, the city asked residents, drivers and vendors in Blok M and Dukuh Atas what a zone would mean for their daily lives. Their views were weighed alongside a feasibility study and a cost-benefit analysis, and Blok M emerged as the stronger setting for a potential first pilot.',
+        'Before drawing any lines on a map, the city asked residents, drivers and vendors in Blok M and Dukuh Atas what a zone would mean for their daily lives. Their views were weighed alongside a feasibility study and a cost-benefit analysis, and Blok M was chosen as the setting for a potential first pilot.',
         'The same evidence now shapes how Jakarta will judge success: cleaner air, protected livelihoods and costs shared fairly across the formal and informal economies. Breathe Cities supports the Jakarta Provincial Government to turn this research into a practical delivery roadmap.',
       ],
       sources: [
@@ -852,7 +842,7 @@ export const CHAPTER_CONTENT: Record<string, ChapterContent> = {
       },
       status: 'verified',
       unEstimate: {
-        display: '[about 2.6 million]',
+        display: null,
         label: 'Urban area population · UN estimate',
         status: 'placeholder',
       },
@@ -1035,7 +1025,7 @@ export const CHAPTER_CONTENT: Record<string, ChapterContent> = {
       },
       status: 'verified',
       unEstimate: {
-        display: '[about 1.1 million]',
+        display: null,
         label: 'Urban area population · UN estimate',
         status: 'placeholder',
       },
@@ -1176,9 +1166,13 @@ export const CHAPTER_CONTENT: Record<string, ChapterContent> = {
       status: 'verified',
     },
   },
-  // joinedBC is 2022 because BC describes Warsaw's pilot as launched in 2022, before Breathe
-  // Cities itself launched in 2023 (pack notes). Switch to 2023 if "joined" should mean the
-  // initiative rather than the pilot.
+  // TWO LINKS ARE ABSENT from `goFurther` and their absence is deliberate: the City's own
+  // IoT air map (iot.warszawa.pl) and its open data API (api.um.warszawa.pl). Both are linked
+  // from the City of Warsaw's own pages, so the research is right; both were UNREACHABLE from
+  // here on 2026-09-18 (and on 2026-09-17), timing out with no response at all. They may be
+  // geo-blocked and may work from Poland. DO NOT DELETE THE RESEARCH: the pack still carries
+  // both, with the pages they were found on. See UNREACHABLE_URLS in the generator to restore
+  // one after a check from a Polish connection.
   warsaw: {
     landmark: {
       src: 'https://images.unsplash.com/photo-1577133192629-5140c5371590?w=1600&q=80',
@@ -1201,7 +1195,7 @@ export const CHAPTER_CONTENT: Record<string, ChapterContent> = {
       },
       status: 'verified',
       unEstimate: {
-        display: '[about 1.9 million]',
+        display: null,
         label: 'Urban area population · UN estimate',
         status: 'placeholder',
       },
@@ -1316,22 +1310,12 @@ export const CHAPTER_CONTENT: Record<string, ChapterContent> = {
     goFurther: {
       checkTodaysAir: [
         {
-          label: 'Warsaw air quality map (IoT platform)',
-          url: 'https://iot.warszawa.pl/mapa?filter=air',
-          status: 'verified',
-        },
-        {
           label: 'Warsaw Air Index (Warszawa 19115)',
           url: 'https://warszawa19115.pl/en/-/warszawski-indeks-powietrza',
           status: 'verified',
         },
       ],
       getTheData: [
-        {
-          label: 'Warsaw open data',
-          url: 'https://api.um.warszawa.pl/',
-          status: 'verified',
-        },
         {
           label: 'Air Quality Portal (GIOŚ, national)',
           url: 'https://powietrze.gios.gov.pl/pjp/home',

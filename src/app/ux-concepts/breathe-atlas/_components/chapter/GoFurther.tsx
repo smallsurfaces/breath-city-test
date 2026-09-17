@@ -10,9 +10,12 @@
  *   h2 "Go further" labels the section; each group name is an h3 over a list of links, each at least
  *   56px tall. If a city has no links at all the section renders nothing.
  *
- * Placeholder links
- *   A link the content pack could not confirm (status 'placeholder') keeps its real address but is
- *   labelled "Placeholder: ...", so nobody reads an unconfirmed destination as a checked one.
+ * Placeholders are absent, never displayed (brief section 2, added 2026-09-17)
+ *   A link the content pack could not confirm is dropped by the generator and is not in the data
+ *   this component receives, so there is nothing here to label or grey out. A group left with no
+ *   links is dropped below, exactly as for a group the city has no link for. This component
+ *   previously prefixed such a link "Placeholder: ...", which put the word on the pilot city's
+ *   page; the prefix is gone and must not come back — the rule is omission, not annotation.
  *
  * Key exports: GoFurther (named)
  * External dependencies: @/components/concept (ConceptSectionHeader), ./ChapterLink,
@@ -61,7 +64,7 @@ export function GoFurther({ links }: GoFurtherProps) {
               {group.items.map((item) => (
                 <li key={`${item.label}-${item.url}`} className="border-b border-border">
                   <OutboundLink href={item.url} className="w-full justify-between text-base text-foreground">
-                    {item.status === 'placeholder' ? `Placeholder: ${item.label}` : item.label}
+                    {item.label}
                   </OutboundLink>
                 </li>
               ))}

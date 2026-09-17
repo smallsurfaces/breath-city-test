@@ -7,9 +7,9 @@
  *     "City population · city's own figure" and credited to the city's source (Jack, 2026-09-17).
  *     The area and date sit under it, then the pack's `basis` line, which is how a rounded or
  *     estimated figure says so in the publisher's own terms. The credit LINKS to the page the
- *     figure is published on, except where the figure is a placeholder (see PopulationCredit). The
- *     UN urban-area estimate is carried in the data but NOT rendered; it appears as the figure only
- *     where the pack labels it as one, for a city that publishes nothing we can confirm.
+ *     figure is published on (see PopulationCredit). The UN urban-area estimate is carried in the
+ *     data but NOT rendered; it appears as the figure only where the pack labels it as one, for a
+ *     city that publishes nothing we can confirm.
  *   - Sensors by type (tiers 2 to 4): a circle for low-cost, a square for reference-grade, with counts.
  *   - Lead agency.
  *   - Joined Breathe Cities.
@@ -22,12 +22,16 @@
  *   A fact the city does not have is not rendered at all: no empty tile, no "not shared" message.
  *   The grid's column count is chosen from the number of facts present (factColumnsClass), so the
  *   tiles always fill their rows; current conditions spans the full row after the other facts.
- *   A sensor count of 0 is left out the same way.
+ *   A sensor count of 0 is left out the same way. A fact the CONTENT PACK could not confirm arrives
+ *   here as null and is left out identically (brief 2, added 2026-09-17: "placeholders are absent,
+ *   never displayed") — Bogotá's population is the live case. Nothing is bracketed, greyed or
+ *   labelled to stand in for it, and the grid re-columns so the absence leaves no hole.
  *
  * Honesty
- *   Every fact carries a `status`. Only 'placeholder' items show "Sample figure" under the value:
- *   the sensor counts and current conditions (both derived from the mock sensors), and any figure
- *   the content pack could not confirm. Verified and drafted content renders with no marker.
+ *   "Sample figure" marks the two facts this build DERIVES from the mock sensors — the sensor
+ *   counts and the current conditions — and only those. They carry `DerivedStatus`, a vocabulary
+ *   of one ('sample'), separate from the pack's `ContentStatus`, so the marker can never be
+ *   reached by pack content. Pack content renders as real content or not at all.
  *   No colour: current conditions is text only, since a city's index colours belong to the data
  *   map and the sensor card (brief 2).
  *
@@ -51,7 +55,7 @@ import type {
   ChapterCredit,
   ChapterSensorCounts,
   CityChapter,
-  ContentStatus,
+  DerivedStatus,
   IndexConditions,
   LiveConditions,
 } from '../../_data/chapters'
@@ -84,22 +88,22 @@ function factColumnsClass(count: number, hasMapTile: boolean): string {
 }
 
 /**
- * "Sample figure" note. Only a 'placeholder' item is marked: content the pack records as verified
- * or drafted is real content and carries no marker (brief section 2, content-pack status key).
+ * "Sample figure" note, for a fact derived from the mock sensors (brief section 7). It takes
+ * `DerivedStatus`, so only a derived fact can reach it: pack content is either real content or
+ * absent, and can no longer be labelled instead of omitted (brief section 2).
  */
-function SampleNote({ status }: { status: ContentStatus }) {
-  if (status !== 'placeholder') return null
+function SampleNote({ status }: { status: DerivedStatus }) {
+  if (status !== 'sample') return null
   return <p className="mt-1 text-xs text-foreground/60">Sample figure</p>
 }
 
 /**
  * The population figure's credit, linked to the page the figure is published on.
  *
- * Unlinked where `url` is null, which the content pack means for one case only: a figure it could
- * not confirm, whose URL is the route IN to the source rather than a page carrying the number
- * (Bogotá's points at the Alcaldía page describing the Visor de Población). Linking there would
- * dress an unconfirmed figure as a sourced one, so the publication is named in plain text instead.
- * A credit is never dropped, and a URL is never invented to make one linkable.
+ * Unlinked where `url` is null: the pack may name the publication behind a figure without a public
+ * page that carries it. A credit is never dropped, and a URL is never invented to make one
+ * linkable. (A figure the pack could not confirm at all never reaches this component — the whole
+ * tile is absent; see the header.)
  */
 function PopulationCredit({ source }: { source: ChapterCredit }) {
   if (source.url === null) {
@@ -196,7 +200,9 @@ export function ChapterKeyFacts({ city, chapter }: ChapterKeyFactsProps) {
           {/* The pack's own `basis` line: it is what makes a rounded or estimated figure say so,
               in the publisher's terms, rather than the build classifying the figure itself. */}
           <p className="mt-1 text-xs leading-snug text-foreground/70">{population.basis}</p>
-          <SampleNote status={population.status} />
+          {/* No "Sample figure" here: a population is pack content, so it is either the city's own
+              confirmed figure or absent altogether (brief 2). The `basis` line above carries any
+              hedge the publisher itself states. */}
           <PopulationCredit source={population.source} />
         </FactTile>
       ),
@@ -220,7 +226,6 @@ export function ChapterKeyFacts({ city, chapter }: ChapterKeyFactsProps) {
       node: (
         <FactTile label="Lead agency" wide={false}>
           <p className="text-lg font-semibold leading-snug text-foreground">{leadAgency.name}</p>
-          <SampleNote status={leadAgency.status} />
         </FactTile>
       ),
     })
@@ -232,7 +237,6 @@ export function ChapterKeyFacts({ city, chapter }: ChapterKeyFactsProps) {
       node: (
         <FactTile label="Joined Breathe Cities" wide={false}>
           <p className="text-3xl font-bold tracking-tight tabular-nums text-foreground">{joined.year}</p>
-          <SampleNote status={joined.status} />
         </FactTile>
       ),
     })
