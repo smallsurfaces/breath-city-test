@@ -1,34 +1,32 @@
 /**
- * chapters.ts — Breathe Atlas chapter content for the seven chapter cities (brief section 5).
+ * chapters.ts — Breathe Atlas chapter assembly for the seven chapter cities (brief section 5).
  *
  * Purpose
  *   One typed entry per chapter city, keyed by slug, shaped like a future content-system entry
- *   (brief section 7). The chapter route (../[city]/page.tsx) renders every section from this file
- *   plus the city entry in ./cities.ts (name, country, card image, mission line). A real content
- *   pack maps onto `CityChapter` field by field; nothing in the components needs to change.
+ *   (brief section 7). This file holds the STRUCTURE: the tier union, the hand-picked layout
+ *   choices, and the lookups the chapter route uses. The CONTENT lives in ./chapter-content.ts,
+ *   mapped from the content pack, so a content change never touches this file.
  *
  *   The type is a union on `tier`, so the compiler enforces the key facts each sharing tier has
  *   (brief 5.3): tier 1 has no sensors and no current conditions, tier 2 has sensors only, tier 3
  *   has sensors and a live line, tier 4 has sensors and its own index level.
  *
- * PLACEHOLDER CONTENT (read before editing)
- *   Every text value is an obvious placeholder ("Placeholder: ..."). Every figure is a patterned
- *   dummy (1,234,567 people, 123 and 12 sensors, joined 2099) with `sample: true`, which the page
- *   shows as "Sample figure". No fact, figure or quote about any city is invented. Links are `#`.
- *   Two things come from the brief itself, not from invention:
- *   - Bogotá's index name is IBOCA (brief sections 5.3 and 7). Its level stays a placeholder.
- *   - Johannesburg has no resident air platform of its own (brief section 10), so its "Check
- *     today's air" group is empty, which also demonstrates that an empty group is left out.
- *   Tier assignments are illustrative (brief section 3) and are never shown in the interface.
+ * Where each part comes from
+ *   - Content (key facts, story, programmes, photos, links) -> ./chapter-content.ts (content pack).
+ *   - A city's own index, for tier 4 -> ./indexes.ts (content pack).
+ *   - Sensor counts and current conditions -> derived from the mock sensors in ./sensors.ts, so the
+ *     counts in the key facts can never disagree with the markers on the map. Both rest on invented
+ *     readings and are marked "Sample figure" in the interface.
+ *   - Tier assignments are illustrative (brief section 3) and are never shown in the interface.
  *
  * Layout assignment (brief 5.2: hand-picked, fixed per city)
  *   Fixed sections (opener, hero map, key facts, go further, ending) have one layout. The three
  *   content sections vary. Chapters run alphabetically and loop, and every pair of consecutive
- *   chapters (including Warsaw back to Bogotá) differs in ALL three choices, not just the combination.
+ *   chapters (including Warsaw back to Bogota) differs in ALL three choices, not just the combination.
  *
  *   | City         | Tier | Feature story  | Programmes | Photos              |
  *   |--------------|------|----------------|------------|---------------------|
- *   | Bogotá       | 4    | lead-photo     | cards      | strip               |
+ *   | Bogota       | 4    | lead-photo     | cards      | strip               |
  *   | Jakarta      | 2    | title-left     | numbered   | one-large-two-small |
  *   | Johannesburg | 4    | large-opening  | rows       | grid                |
  *   | Mexico City  | 3    | lead-photo     | numbered   | strip               |
@@ -37,12 +35,41 @@
  *   | Warsaw       | 4    | title-left     | rows       | one-large-two-small |
  *
  * Key exports: CityChapter (type) and its part types, ChapterSlug (type), CHAPTERS, getChapter,
- *   nextChapterCity
- * External dependencies: ./cities (CHAPTER_CITIES, AtlasCity, SharingTier).
+ *   chapterBySlug, nextChapterCity; re-exports the content types for the components that render them.
+ * External dependencies: ./cities (CHAPTER_CITIES, AtlasCity, SharingTier), ./chapter-content
+ *   (CHAPTER_CONTENT and its types), ./indexes (CITY_INDEXES), ./sensors (sensor-derived facts).
  */
 
+import { CHAPTER_CONTENT } from './chapter-content'
+import { CITY_INDEXES } from './indexes'
+import { cityWideLevelName, latestUpdateMinutesAgo, sensorCountsFor, sensorTotalFor } from './sensors'
 import { CHAPTER_CITIES } from './cities'
 import type { AtlasCity, SharingTier } from './cities'
+import type {
+  ChapterContent,
+  ChapterFeatureStory,
+  ChapterGoFurther,
+  ChapterJoinedBC,
+  ChapterLeadAgency,
+  ChapterLink,
+  ChapterPhoto,
+  ChapterPopulation,
+  ChapterProgramme,
+  ContentStatus,
+} from './chapter-content'
+
+export type {
+  ChapterContent,
+  ChapterFeatureStory,
+  ChapterGoFurther,
+  ChapterJoinedBC,
+  ChapterLeadAgency,
+  ChapterLink,
+  ChapterPhoto,
+  ChapterPopulation,
+  ChapterProgramme,
+  ContentStatus,
+}
 
 // ---------------------------------------------------------------------------------------------
 // Types (the content structure)
@@ -51,33 +78,8 @@ import type { AtlasCity, SharingTier } from './cities'
 /** Route slugs of the seven chapter cities. */
 export type ChapterSlug = 'bogota' | 'jakarta' | 'johannesburg' | 'mexico-city' | 'milan' | 'sofia' | 'warsaw'
 
-/** A labelled link. `url` is `#` while the real address is not yet known. */
-export type ChapterLink = {
-  /** Visible link text. */
-  label: string
-  /** Absolute URL, or `#` for a placeholder. */
-  url: string
-}
-
-/** Urban area population (brief 5.3). */
-export type ChapterPopulation = {
-  /** Number of people. */
-  value: number
-  /** Caption under the figure, e.g. "Urban area population · UN estimate". */
-  label: string
-  /** Where the figure comes from (UN DESA, or the city when it supplies its own). */
-  source: ChapterLink
-  /** True while the figure is a dummy; the page then marks it "Sample figure". */
-  sample: boolean
-}
-
-/** The year the city joined Breathe Cities. */
-export type ChapterJoinedBC = {
-  /** Four-digit year. */
-  year: number
-  /** True while the year is a dummy. */
-  sample: boolean
-}
+/** Route slugs of the four cities that share their own index (illustrative tier 4). */
+export type IndexCitySlug = 'bogota' | 'johannesburg' | 'sofia' | 'warsaw'
 
 /** Sensor counts by type (tiers 2 to 4). A count of 0 is not shown. */
 export type ChapterSensorCounts = {
@@ -85,32 +87,36 @@ export type ChapterSensorCounts = {
   lowCost: number
   /** Reference-grade stations (shown with a square). */
   referenceGrade: number
-  /** True while the counts are dummies. */
-  sample: boolean
+  /** Derived from the mock sensors, so 'placeholder' ("Sample figure") in this build. */
+  status: ContentStatus
 }
 
 /** Tier 4 current conditions: the city-wide level as the city publishes it, in its own index. */
 export type IndexConditions = {
   /** The city's own index name, e.g. "IBOCA". */
   indexName: string
-  /** The current level name in that index. */
+  /** The current city-wide level name in that index, as published. */
   level: string
+  /** Derived from the invented readings, so 'placeholder' ("Sample figure") in this build. */
+  status: ContentStatus
 }
 
 /** Tier 3 current conditions: a live line with no number or level. */
 export type LiveConditions = {
   /** Number of sensors reporting. */
   liveSensors: number
-  /** Minutes since the last update. */
+  /** Minutes since the most recent update across the city's sensors. */
   updatedMinutesAgo: number
+  /** Derived from the mock sensors, so 'placeholder' ("Sample figure") in this build. */
+  status: ContentStatus
 }
 
 /** Key facts every tier can have. Any of them may be null, and a null fact is simply not shown. */
 type CommonKeyFacts = {
   /** Urban area population. */
   population: ChapterPopulation | null
-  /** Name of the lead agency. */
-  leadAgency: string | null
+  /** The lead agency. */
+  leadAgency: ChapterLeadAgency | null
   /** Year the city joined BC. */
   joinedBC: ChapterJoinedBC | null
 }
@@ -125,50 +131,6 @@ type TierKeyFacts = {
 
 /** Key facts for a chapter of a given tier. */
 export type ChapterKeyFacts<T extends SharingTier> = CommonKeyFacts & TierKeyFacts[T]
-
-/** One photo. `src: null` renders a neutral placeholder tile that still carries the alt text. */
-export type ChapterPhoto = {
-  /** Image URL, or null for a placeholder tile. */
-  src: string | null
-  /** Alt text. */
-  alt: string
-  /** Credit line, e.g. the photographer and "Unsplash" (brief 5.6). */
-  credit: string
-  /** Page the photo came from. */
-  sourceUrl: string
-}
-
-/** The feature story (brief 5.5). */
-export type ChapterFeatureStory = {
-  /** Story headline (rendered as the section's h2). */
-  title: string
-  /** Body paragraphs, in order. */
-  paragraphs: string[]
-  /** Sources the story draws on. */
-  sources: ChapterLink[]
-  /** Wide photo above the story. Used by the `lead-photo` layout only; the other layouts ignore it. */
-  leadPhoto: ChapterPhoto | null
-}
-
-/** A named programme with its own public page (brief 5.5). */
-export type ChapterProgramme = {
-  /** Programme name. */
-  name: string
-  /** One or two sentences on the programme. */
-  description: string
-  /** The programme's public page, or `#`. */
-  url: string
-}
-
-/** Go further links, grouped (brief 5.7). An empty group is left out. */
-export type ChapterGoFurther = {
-  /** The city's resident air quality platforms. */
-  checkTodaysAir: ChapterLink[]
-  /** The city's open data portal or API, or OpenAQ. */
-  getTheData: ChapterLink[]
-  /** The department responsible. */
-  departmentResponsible: ChapterLink | null
-}
 
 /** Feature story layouts: title beside text, wide photo above text, or a large opening paragraph. */
 export type FeatureStoryLayout = 'title-left' | 'lead-photo' | 'large-opening'
@@ -194,6 +156,8 @@ type ChapterOfTier<T extends SharingTier> = {
   tier: T
   /** Key facts (brief 5.3). */
   keyFacts: ChapterKeyFacts<T>
+  /** The landmark image beside the city name, and on the previous chapter's next-city card (5.1, 5.8). */
+  landmark: ChapterPhoto
   /** Feature story (brief 5.5). */
   featureStory: ChapterFeatureStory
   /** Programme list (brief 5.5). */
@@ -202,6 +166,8 @@ type ChapterOfTier<T extends SharingTier> = {
   photos: ChapterPhoto[]
   /** Go further links (brief 5.7). */
   goFurther: ChapterGoFurther
+  /** Where the city publishes its data; every sensor card ends with this link (brief 2, 6.2). */
+  dataSource: ChapterLink
   /** Layout choices for the content sections (brief 5.2). */
   layouts: ChapterLayouts
 }
@@ -210,81 +176,72 @@ type ChapterOfTier<T extends SharingTier> = {
 export type CityChapter = { [T in SharingTier]: ChapterOfTier<T> }[SharingTier]
 
 // ---------------------------------------------------------------------------------------------
-// Placeholder builders (dummy content only; see PLACEHOLDER CONTENT above)
+// Assembly helpers
 // ---------------------------------------------------------------------------------------------
 
-/** Caption for the population figure (brief 5.3). */
-const POPULATION_LABEL = 'Urban area population · UN estimate'
+/**
+ * One city's content from ./chapter-content.ts. Throws when a slug has no content entry, so a
+ * missing city fails the build (the chapters are pre-rendered) rather than rendering an empty page.
+ */
+function content(slug: ChapterSlug): ChapterContent {
+  const entry = CHAPTER_CONTENT[slug]
+  if (entry === undefined) {
+    throw new Error(`Breathe Atlas: chapter city "${slug}" has no entry in _data/chapter-content.ts`)
+  }
+  return entry
+}
 
-/** Placeholder population: a patterned dummy figure, marked as a sample. */
-function placeholderPopulation(value: number): ChapterPopulation {
+/** The common (tier-independent) key facts for a city, straight from the content pack. */
+function commonFacts(slug: ChapterSlug): CommonKeyFacts {
+  const entry = content(slug)
   return {
-    value,
-    label: POPULATION_LABEL,
-    source: { label: 'Placeholder: UN population source', url: '#' },
-    sample: true,
+    population: entry.population,
+    leadAgency: entry.leadAgency,
+    joinedBC: entry.joinedBC,
   }
 }
 
-/** Placeholder join year: an impossible year, marked as a sample. */
-const PLACEHOLDER_JOINED: ChapterJoinedBC = { year: 2099, sample: true }
-
-/** Placeholder sensor counts: patterned dummies, marked as a sample. */
-const PLACEHOLDER_SENSORS: ChapterSensorCounts = { lowCost: 123, referenceGrade: 12, sample: true }
-
-/** Placeholder lead agency name. */
-const PLACEHOLDER_AGENCY = 'Placeholder: lead agency name'
-
-/** Placeholder feature story for a city. `withLeadPhoto` fills `leadPhoto` for the lead-photo layout. */
-function placeholderStory(cityName: string, withLeadPhoto: boolean): ChapterFeatureStory {
+/** The content sections that do not depend on tier, straight from the content pack. */
+function sections(
+  slug: ChapterSlug,
+): Pick<
+  ChapterOfTier<SharingTier>,
+  'landmark' | 'featureStory' | 'programmes' | 'photos' | 'goFurther' | 'dataSource'
+> {
+  const entry = content(slug)
   return {
-    title: `Placeholder: feature story headline about ${cityName}`,
-    paragraphs: [
-      `Placeholder: the opening paragraph of the ${cityName} feature story. It will be drawn from Breathe Cities news and publications about the city, or from the city's own public programmes. This dummy text runs to a realistic length so the layout is tested with a real paragraph.`,
-      'Placeholder: a second paragraph that develops the story. It describes the work in more detail and names the people or organisations involved, in the voice of the Breathe Cities website. Two or three sentences is a typical length.',
-      'Placeholder: a closing paragraph that says what happens next and where readers can find out more. It stays short.',
-    ],
-    sources: [
-      { label: 'Placeholder: source article title', url: '#' },
-      { label: 'Placeholder: second source title', url: '#' },
-    ],
-    leadPhoto: withLeadPhoto
-      ? { src: null, alt: `Placeholder: lead photo for the ${cityName} story`, credit: 'Placeholder: photo credit', sourceUrl: '#' }
-      : null,
+    landmark: entry.landmark,
+    featureStory: entry.featureStory,
+    programmes: entry.programmes,
+    photos: entry.photos,
+    goFurther: entry.goFurther,
+    dataSource: entry.dataSource,
   }
 }
 
-/** Placeholder programmes for a city. `count` varies by city so every list layout is tested at different lengths. */
-function placeholderProgrammes(count: number): ChapterProgramme[] {
-  const ordinals = ['one', 'two', 'three', 'four', 'five', 'six']
-  return ordinals.slice(0, count).map((ordinal) => ({
-    name: `Placeholder: programme name ${ordinal}`,
-    description: 'Placeholder: one or two sentences on what this programme does and who it is for.',
-    url: '#',
-  }))
-}
-
-/** Placeholder photos for a city: neutral tiles (`src: null`) with alt text and credit. */
-function placeholderPhotos(cityName: string, count: number): ChapterPhoto[] {
-  return Array.from({ length: count }, (_, index) => ({
-    src: null,
-    alt: `Placeholder: photo ${index + 1} of ${count} from ${cityName}`,
-    credit: 'Placeholder: photo credit',
-    sourceUrl: '#',
-  }))
-}
-
-/** Placeholder go further links. Johannesburg passes `hasResidentPlatform: false` (see file header). */
-function placeholderGoFurther(hasResidentPlatform: boolean): ChapterGoFurther {
+/**
+ * Tier-4 current conditions: the city-wide level derived from the mock sensors (see
+ * cityWideLevelName in ./sensors.ts for the rule), named in the city's own index.
+ */
+function indexConditions(slug: IndexCitySlug): IndexConditions {
+  const index = CITY_INDEXES[slug]
+  if (index === undefined) {
+    throw new Error(`Breathe Atlas: tier 4 city "${slug}" has no index in _data/indexes.ts`)
+  }
   return {
-    checkTodaysAir: hasResidentPlatform
-      ? [{ label: "Placeholder: the city's resident air quality platform", url: '#' }]
-      : [],
-    getTheData: [
-      { label: "Placeholder: the city's open data portal", url: '#' },
-      { label: 'Placeholder: OpenAQ page for the city', url: '#' },
-    ],
-    departmentResponsible: { label: 'Placeholder: department responsible', url: '#' },
+    indexName: index.name,
+    level: cityWideLevelName(slug),
+    // Derived from invented readings (brief section 7), so it carries the sample marker.
+    status: 'placeholder',
+  }
+}
+
+/** Tier-3 current conditions: how many sensors report, and how recently, from the mock sensors. */
+function liveConditions(slug: ChapterSlug): LiveConditions {
+  return {
+    liveSensors: sensorTotalFor(slug),
+    updatedMinutesAgo: latestUpdateMinutesAgo(slug),
+    status: 'placeholder',
   }
 }
 
@@ -298,115 +255,81 @@ export const CHAPTERS: Record<ChapterSlug, CityChapter> = {
     slug: 'bogota',
     tier: 4,
     keyFacts: {
-      population: placeholderPopulation(12345678),
-      leadAgency: PLACEHOLDER_AGENCY,
-      joinedBC: PLACEHOLDER_JOINED,
-      sensors: PLACEHOLDER_SENSORS,
-      // IBOCA is named in the brief (5.3, 7). The level is a placeholder.
-      currentConditions: { indexName: 'IBOCA', level: 'Placeholder level' },
+      ...commonFacts('bogota'),
+      sensors: sensorCountsFor('bogota'),
+      currentConditions: indexConditions('bogota'),
     },
-    featureStory: placeholderStory('Bogotá', true),
-    programmes: placeholderProgrammes(4),
-    photos: placeholderPhotos('Bogotá', 6),
-    goFurther: placeholderGoFurther(true),
+    ...sections('bogota'),
     layouts: { featureStory: 'lead-photo', programmes: 'cards', photos: 'strip' },
   },
   jakarta: {
     slug: 'jakarta',
     tier: 2,
     keyFacts: {
-      population: placeholderPopulation(12345678),
-      leadAgency: PLACEHOLDER_AGENCY,
-      joinedBC: PLACEHOLDER_JOINED,
-      sensors: PLACEHOLDER_SENSORS,
+      ...commonFacts('jakarta'),
+      sensors: sensorCountsFor('jakarta'),
+      // Tier 2 shares locations only: no readings, so no current conditions (brief 5.3).
       currentConditions: null,
     },
-    featureStory: placeholderStory('Jakarta', false),
-    programmes: placeholderProgrammes(3),
-    photos: placeholderPhotos('Jakarta', 3),
-    goFurther: placeholderGoFurther(true),
+    ...sections('jakarta'),
     layouts: { featureStory: 'title-left', programmes: 'numbered', photos: 'one-large-two-small' },
   },
   johannesburg: {
     slug: 'johannesburg',
     tier: 4,
     keyFacts: {
-      population: placeholderPopulation(1234567),
-      leadAgency: PLACEHOLDER_AGENCY,
-      joinedBC: PLACEHOLDER_JOINED,
-      sensors: PLACEHOLDER_SENSORS,
-      currentConditions: { indexName: 'Placeholder index', level: 'Placeholder level' },
+      ...commonFacts('johannesburg'),
+      sensors: sensorCountsFor('johannesburg'),
+      currentConditions: indexConditions('johannesburg'),
     },
-    featureStory: placeholderStory('Johannesburg', false),
-    programmes: placeholderProgrammes(3),
-    photos: placeholderPhotos('Johannesburg', 6),
-    // No resident platform of its own (brief section 10): the "Check today's air" group is left out.
-    goFurther: placeholderGoFurther(false),
+    ...sections('johannesburg'),
     layouts: { featureStory: 'large-opening', programmes: 'rows', photos: 'grid' },
   },
   'mexico-city': {
     slug: 'mexico-city',
     tier: 3,
     keyFacts: {
-      population: placeholderPopulation(12345678),
-      leadAgency: PLACEHOLDER_AGENCY,
-      joinedBC: PLACEHOLDER_JOINED,
-      sensors: PLACEHOLDER_SENSORS,
-      // Live line only, no number or level (brief 5.3). 135 = the 123 + 12 placeholder sensors.
-      currentConditions: { liveSensors: 135, updatedMinutesAgo: 5 },
+      ...commonFacts('mexico-city'),
+      sensors: sensorCountsFor('mexico-city'),
+      // Tier 3: the live line only, with no reading and no level (brief 5.3).
+      currentConditions: liveConditions('mexico-city'),
     },
-    featureStory: placeholderStory('Mexico City', true),
-    programmes: placeholderProgrammes(3),
-    photos: placeholderPhotos('Mexico City', 6),
-    goFurther: placeholderGoFurther(true),
+    ...sections('mexico-city'),
     layouts: { featureStory: 'lead-photo', programmes: 'numbered', photos: 'strip' },
   },
   milan: {
     slug: 'milan',
     tier: 1,
     keyFacts: {
-      population: placeholderPopulation(1234567),
-      leadAgency: PLACEHOLDER_AGENCY,
-      joinedBC: PLACEHOLDER_JOINED,
+      ...commonFacts('milan'),
+      // Tier 1 shares nothing: no sensors, no current conditions, and the stylised country map is
+      // the hero instead of a data map (brief 3, 5.3).
       sensors: null,
       currentConditions: null,
     },
-    featureStory: placeholderStory('Milan', false),
-    programmes: placeholderProgrammes(3),
-    photos: placeholderPhotos('Milan', 3),
-    goFurther: placeholderGoFurther(true),
+    ...sections('milan'),
     layouts: { featureStory: 'title-left', programmes: 'cards', photos: 'one-large-two-small' },
   },
   sofia: {
     slug: 'sofia',
     tier: 4,
     keyFacts: {
-      population: placeholderPopulation(1234567),
-      leadAgency: PLACEHOLDER_AGENCY,
-      joinedBC: PLACEHOLDER_JOINED,
-      sensors: PLACEHOLDER_SENSORS,
-      currentConditions: { indexName: 'Placeholder index', level: 'Placeholder level' },
+      ...commonFacts('sofia'),
+      sensors: sensorCountsFor('sofia'),
+      currentConditions: indexConditions('sofia'),
     },
-    featureStory: placeholderStory('Sofia', false),
-    programmes: placeholderProgrammes(3),
-    photos: placeholderPhotos('Sofia', 6),
-    goFurther: placeholderGoFurther(true),
+    ...sections('sofia'),
     layouts: { featureStory: 'large-opening', programmes: 'numbered', photos: 'grid' },
   },
   warsaw: {
     slug: 'warsaw',
     tier: 4,
     keyFacts: {
-      population: placeholderPopulation(1234567),
-      leadAgency: PLACEHOLDER_AGENCY,
-      joinedBC: PLACEHOLDER_JOINED,
-      sensors: PLACEHOLDER_SENSORS,
-      currentConditions: { indexName: 'Placeholder index', level: 'Placeholder level' },
+      ...commonFacts('warsaw'),
+      sensors: sensorCountsFor('warsaw'),
+      currentConditions: indexConditions('warsaw'),
     },
-    featureStory: placeholderStory('Warsaw', false),
-    programmes: placeholderProgrammes(2),
-    photos: placeholderPhotos('Warsaw', 3),
-    goFurther: placeholderGoFurther(true),
+    ...sections('warsaw'),
     layouts: { featureStory: 'title-left', programmes: 'rows', photos: 'one-large-two-small' },
   },
 }
@@ -446,9 +369,14 @@ export function getChapter(slug: string): ChapterEntry | null {
   return { city, chapter }
 }
 
+/** The chapter for a slug when there is one, without the city entry. */
+export function chapterBySlug(slug: string): CityChapter | null {
+  return isChapterSlug(slug) ? CHAPTERS[slug] : null
+}
+
 /**
  * The next chapter city after `slug`: alphabetical, looping from the last back to the first (brief
- * 5.8: Bogotá, Jakarta, Johannesburg, Mexico City, Milan, Sofia, Warsaw, then Bogotá). Uses
+ * 5.8: Bogota, Jakarta, Johannesburg, Mexico City, Milan, Sofia, Warsaw, then Bogota). Uses
  * CHAPTER_CITIES, which is already sorted by name. Null only when `slug` is not a chapter city.
  */
 export function nextChapterCity(slug: string): AtlasCity | null {

@@ -1,0 +1,547 @@
+{
+ "_note": "Mock sensors for the Breathe Atlas data map (brief section 7). LOCATIONS: see locationSource. READINGS: invented, see readingsNote. Generated once on 2026-09-17; regenerate rather than hand-edit.",
+ "city": "warsaw",
+ "tier": 4,
+ "locationSource": "OpenAQ providers 'GIOS', 'Poland' and 'EEA' are all the same official source: the Chief Inspectorate of Environmental Protection's network, reaching OpenAQ by three routes. Duplicates of one physical station are removed by position. Excluded: AirGradient (private and community sensors). No public city low-cost network was used; these are PLACED (placed: true).",
+ "locationSnapshot": "OpenAQ v3 GET /locations?bbox=... , taken 2026-09-17, then filtered as described above and to points inside the city's OSM boundary.",
+ "readingsNote": "Readings are INVENTED for the prototype and are not a measurement of anything. The air reads relatively clean: every sensor sits at the best level of the city's own index except one moderate sensor and one sensitive-groups sensor (brief section 7). PM10 is always at or above PM2.5. Nothing is stale or offline: every sensor updated 2 to 10 minutes ago.",
+ "indexName": "Polish Air Quality Index",
+ "sensors": [
+  {
+   "lngLat": [
+    21.03917,
+    52.16077
+   ],
+   "type": "reference-grade",
+   "placed": false,
+   "openaqLocationId": 28,
+   "openaqName": "Ursynów",
+   "openaqProvider": "Poland",
+   "id": "warsaw-01",
+   "band": 1,
+   "updatedMinutesAgo": 9,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 9.4,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "PM10",
+     "value": 19.5,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "NO₂",
+     "value": 22.8,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "O₃",
+     "value": 49.3,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "SO₂",
+     "value": 3.4,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "CO",
+     "value": 0.8,
+     "unit": "mg/m³"
+    }
+   ]
+  },
+  {
+   "lngLat": [
+    20.95556,
+    52.28098
+   ],
+   "type": "reference-grade",
+   "placed": false,
+   "openaqLocationId": 1050,
+   "openaqName": "Podleśna",
+   "openaqProvider": "Poland",
+   "id": "warsaw-02",
+   "band": 1,
+   "updatedMinutesAgo": 7,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 10.1,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "PM10",
+     "value": 19.1,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "NO₂",
+     "value": 13.1,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "O₃",
+     "value": 54.7,
+     "unit": "µg/m³"
+    }
+   ]
+  },
+  {
+   "lngLat": [
+    21.00583,
+    52.21929
+   ],
+   "type": "reference-grade",
+   "placed": false,
+   "openaqLocationId": 2531,
+   "openaqName": "Komunikacyjna",
+   "openaqProvider": "Poland",
+   "id": "warsaw-03",
+   "band": 1,
+   "updatedMinutesAgo": 10,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 9.6,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "PM10",
+     "value": 18.2,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "NO₂",
+     "value": 10.8,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "O₃",
+     "value": 38.1,
+     "unit": "µg/m³"
+    }
+   ]
+  },
+  {
+   "lngLat": [
+    21.03917,
+    52.29086
+   ],
+   "type": "reference-grade",
+   "placed": false,
+   "openaqLocationId": 2567,
+   "openaqName": "Targówek",
+   "openaqProvider": "Poland",
+   "id": "warsaw-04",
+   "band": 1,
+   "updatedMinutesAgo": 5,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 4.1,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "PM10",
+     "value": 8.5,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "NO₂",
+     "value": 24.5,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "O₃",
+     "value": 50.5,
+     "unit": "µg/m³"
+    }
+   ]
+  },
+  {
+   "lngLat": [
+    20.93302,
+    52.28507
+   ],
+   "type": "reference-grade",
+   "placed": false,
+   "openaqLocationId": 6381,
+   "openaqName": "Warszawa, ul. Tołstoja",
+   "openaqProvider": "EEA",
+   "id": "warsaw-05",
+   "band": 1,
+   "updatedMinutesAgo": 6,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 6.3,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "PM10",
+     "value": 13.4,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "NO₂",
+     "value": 14.1,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "O₃",
+     "value": 48.0,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "SO₂",
+     "value": 3.0,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "CO",
+     "value": 0.9,
+     "unit": "mg/m³"
+    }
+   ]
+  },
+  {
+   "lngLat": [
+    21.03382,
+    52.16077
+   ],
+   "type": "reference-grade",
+   "placed": false,
+   "openaqLocationId": 6386,
+   "openaqName": "Warszawa, ul. Wokalna",
+   "openaqProvider": "EEA",
+   "id": "warsaw-06",
+   "band": 2,
+   "updatedMinutesAgo": 4,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 16.2,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "PM10",
+     "value": 34.1,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "NO₂",
+     "value": 14.7,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "O₃",
+     "value": 54.5,
+     "unit": "µg/m³"
+    }
+   ]
+  },
+  {
+   "lngLat": [
+    21.04246,
+    52.29086
+   ],
+   "type": "reference-grade",
+   "placed": false,
+   "openaqLocationId": 7245,
+   "openaqName": "Warszawa, ul. Kondratowicza",
+   "openaqProvider": "EEA",
+   "id": "warsaw-07",
+   "band": 1,
+   "updatedMinutesAgo": 7,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 7.8,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "PM10",
+     "value": 15.1,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "NO₂",
+     "value": 6.6,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "O₃",
+     "value": 32.0,
+     "unit": "µg/m³"
+    }
+   ]
+  },
+  {
+   "lngLat": [
+    20.96216,
+    52.28094
+   ],
+   "type": "reference-grade",
+   "placed": false,
+   "openaqLocationId": 8923,
+   "openaqName": "Warszawa-Podleśna",
+   "openaqProvider": "GIOS",
+   "id": "warsaw-08",
+   "band": 1,
+   "updatedMinutesAgo": 6,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 8.3,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "PM10",
+     "value": 17.9,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "NO₂",
+     "value": 25.7,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "O₃",
+     "value": 21.5,
+     "unit": "µg/m³"
+    }
+   ]
+  },
+  {
+   "lngLat": [
+    21.17623,
+    52.18847
+   ],
+   "type": "reference-grade",
+   "placed": false,
+   "openaqLocationId": 10750,
+   "openaqName": "Warszawa, ul. Bajkowa",
+   "openaqProvider": "EEA",
+   "id": "warsaw-09",
+   "band": 1,
+   "updatedMinutesAgo": 3,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 7.5,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "PM10",
+     "value": 12.1,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "NO₂",
+     "value": 23.7,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "O₃",
+     "value": 26.0,
+     "unit": "µg/m³"
+    }
+   ]
+  },
+  {
+   "lngLat": [
+    20.90607,
+    52.20774
+   ],
+   "type": "reference-grade",
+   "placed": false,
+   "openaqLocationId": 10775,
+   "openaqName": "Warszawa, ul. Chrościckiego",
+   "openaqProvider": "EEA",
+   "id": "warsaw-10",
+   "band": 1,
+   "updatedMinutesAgo": 4,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 8.9,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "PM10",
+     "value": 15.5,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "NO₂",
+     "value": 20.6,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "O₃",
+     "value": 53.5,
+     "unit": "µg/m³"
+    }
+   ]
+  },
+  {
+   "lngLat": [
+    21.1977,
+    52.1705
+   ],
+   "type": "low-cost",
+   "placed": true,
+   "openaqLocationId": null,
+   "openaqName": null,
+   "openaqProvider": null,
+   "id": "warsaw-11",
+   "band": 3,
+   "updatedMinutesAgo": 8,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 28.8,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "PM10",
+     "value": 54.0,
+     "unit": "µg/m³"
+    }
+   ]
+  },
+  {
+   "lngLat": [
+    21.0805,
+    52.1208
+   ],
+   "type": "low-cost",
+   "placed": true,
+   "openaqLocationId": null,
+   "openaqName": null,
+   "openaqProvider": null,
+   "id": "warsaw-12",
+   "band": 1,
+   "updatedMinutesAgo": 10,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 4.5,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "PM10",
+     "value": 9.9,
+     "unit": "µg/m³"
+    }
+   ]
+  },
+  {
+   "lngLat": [
+    20.872,
+    52.2541
+   ],
+   "type": "low-cost",
+   "placed": true,
+   "openaqLocationId": null,
+   "openaqName": null,
+   "openaqProvider": null,
+   "id": "warsaw-13",
+   "band": 1,
+   "updatedMinutesAgo": 3,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 7.1,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "PM10",
+     "value": 13.1,
+     "unit": "µg/m³"
+    }
+   ]
+  },
+  {
+   "lngLat": [
+    21.0342,
+    52.1729
+   ],
+   "type": "low-cost",
+   "placed": true,
+   "openaqLocationId": null,
+   "openaqName": null,
+   "openaqProvider": null,
+   "id": "warsaw-14",
+   "band": 1,
+   "updatedMinutesAgo": 9,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 9.5,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "PM10",
+     "value": 20.8,
+     "unit": "µg/m³"
+    }
+   ]
+  },
+  {
+   "lngLat": [
+    21.0728,
+    52.1989
+   ],
+   "type": "low-cost",
+   "placed": true,
+   "openaqLocationId": null,
+   "openaqName": null,
+   "openaqProvider": null,
+   "id": "warsaw-15",
+   "band": 1,
+   "updatedMinutesAgo": 3,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 5.7,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "PM10",
+     "value": 9.4,
+     "unit": "µg/m³"
+    }
+   ]
+  },
+  {
+   "lngLat": [
+    21.065,
+    52.145
+   ],
+   "type": "low-cost",
+   "placed": true,
+   "openaqLocationId": null,
+   "openaqName": null,
+   "openaqProvider": null,
+   "id": "warsaw-16",
+   "band": 1,
+   "updatedMinutesAgo": 9,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 6.0,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "PM10",
+     "value": 10.8,
+     "unit": "µg/m³"
+    }
+   ]
+  }
+ ]
+}
