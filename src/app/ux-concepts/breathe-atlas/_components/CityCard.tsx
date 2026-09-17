@@ -12,8 +12,19 @@
  *   (which turns an auto-opened card into one the visitor holds open).
  *
  *   The card is portalled into the selected marker's DOM node by AtlasGlobe, so its position is
- *   relative to the marker: below it on small screens (a card beside a centred marker would run
- *   off a 390px screen), to its right from the `sm` breakpoint up.
+ *   relative to the marker.
+ *
+ * Position (Jack, brief 4.2): ALWAYS centred horizontally on the marker and ALWAYS above it, at
+ *   every screen size. This replaced a two-case rule (below the marker on a phone, to the marker's
+ *   right from `sm`), which put the card on different sides of the city depending on the screen.
+ *
+ *   Why one rule is safe here: a card only ever opens on the FOCUS city, and the globe always turns
+ *   that city to the centre of the canvas first — the idle cycle rests there, and tapping a marker
+ *   calls turnTo as well. So the marker a card hangs off is at the canvas centre, which leaves room
+ *   for the card above it inside the stage at all three breakpoints (checked at 390, 768 and 1280).
+ *   `max-w` keeps it inside the viewport on the narrowest screens, where the card is wider than the
+ *   globe. If the visitor drags the globe while a card is open the card travels with its marker and
+ *   can leave the stage, which is the same behaviour as before this change.
  *
  * Accessibility
  *   A non-modal dialog (role="dialog", labelled by the city name). It follows the marker button in
@@ -23,7 +34,7 @@
  * Styling
  *   The shared ConceptCard surface; bridged semantics only (foreground/background/muted). No hex.
  *
- * Key exports: CityCard (named)
+ * Key exports: CityCard (named), CITY_CARD_WIDTH_PX
  * External dependencies: next/link, lucide-react (X), @/components/concept (ConceptCard),
  *   ../breathe-atlas-chrome.config (atlasChapterHref), ../_data/cities (AtlasCity type).
  */
@@ -33,6 +44,13 @@ import { X } from 'lucide-react'
 import { ConceptCard } from '@/components/concept'
 import { atlasChapterHref } from '../breathe-atlas-chrome.config'
 import type { AtlasCity } from '../_data/cities'
+
+/**
+ * The card's width in px. Tailwind `w-60` below, kept as a number as well because GlobeCover has to
+ * keep the pause/play button clear of the card on a narrow screen, and it can only do that if it
+ * knows how wide the card is. Change both together.
+ */
+export const CITY_CARD_WIDTH_PX = 240
 
 /** Props for CityCard. */
 type CityCardProps = {
@@ -50,7 +68,7 @@ export function CityCard({ city, onClose }: CityCardProps) {
       role="dialog"
       aria-labelledby={headingId}
       data-atlas-card="true"
-      className="absolute left-1/2 top-full z-10 mt-1 w-60 -translate-x-1/2 sm:left-full sm:top-1/2 sm:ml-2 sm:mt-0 sm:translate-x-0 sm:-translate-y-1/2"
+      className="absolute bottom-full left-1/2 z-10 mb-1 w-60 max-w-[calc(100vw-2rem)] -translate-x-1/2"
     >
       <ConceptCard noPadding className="p-4 text-left">
         <div className="flex items-start justify-between gap-2">

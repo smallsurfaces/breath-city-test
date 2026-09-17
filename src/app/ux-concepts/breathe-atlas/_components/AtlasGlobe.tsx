@@ -33,7 +33,7 @@
  *   created once per city and placed by globe.gl's CSS2D layer. Markers on the far side of the
  *   globe are hidden with `visibility: hidden`, which also removes them from the tab order. The
  *   open card (passed in as `card`, for `cardCityId`) is portalled into that marker's element, so
- *   it sits beside the marker and follows it if the globe is dragged.
+ *   it sits above the marker and follows it if the globe is dragged.
  *
  * Marker pulse (brief 4.2: "all pulsating like the markers in the Global Toolkit Network concept")
  *   The technique is COPIED, not imported, from the locked global-toolkit-network concept

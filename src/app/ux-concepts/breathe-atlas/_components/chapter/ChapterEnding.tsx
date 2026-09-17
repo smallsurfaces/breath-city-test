@@ -8,7 +8,18 @@
  *   - "All cities": opens the All cities panel (the existing AllCitiesPanel, with the current city
  *     highlighted), styled as an outlined button.
  *   - "Contact BC": a dead link for now (`href="#"`).
- *   The next card takes the wide column; the two buttons stack beside it from `md`, below it on a phone.
+ *
+ * Layout (Jack, brief 5.8, 2026-09-17)
+ *   On DESKTOP the "Next: [City]" card sits on the RIGHT and takes the wide column, with "All
+ *   cities" and "Contact BC" stacked on the LEFT. They were the other way round before.
+ *   On PHONE they stack with the NEXT CITY FIRST.
+ *
+ *   How both come from one DOM order: the next-city card is written FIRST in the markup, so it
+ *   leads on a phone with no ordering classes and reads first to a screen reader and to the
+ *   keyboard at every width. From `md` the grid places it in column 2 and the buttons in column 1,
+ *   which puts it on the right without moving it in the DOM. The visual order therefore differs
+ *   from the DOM order only on desktop, and only between a heading-card and two sibling controls,
+ *   which is not a meaning-carrying reversal.
  *
  * Accessibility
  *   "Next: [City]" is the section's h2 and the card's link. The link's hit area is stretched over the
@@ -52,9 +63,10 @@ const HEADING_ID = 'atlas-ending-next-heading'
 export function ChapterEnding({ city, next, nextLandmark }: ChapterEndingProps) {
   return (
     <section aria-labelledby={HEADING_ID} className="mx-auto max-w-6xl px-4">
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] md:items-stretch">
-        {/* Next chapter card: the whole card is the link (stretched pseudo-element). */}
-        <div className="group relative flex items-center gap-4 rounded-2xl border border-border bg-background p-4 shadow-sm transition-colors hover:border-foreground/40 sm:gap-6 sm:p-5">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] md:items-stretch">
+        {/* Next chapter card: the whole card is the link (stretched pseudo-element). First in the
+            DOM so it leads on a phone; placed in the right-hand column from `md` (see Layout). */}
+        <div className="group relative flex items-center gap-4 rounded-2xl border border-border bg-background p-4 shadow-sm transition-colors hover:border-foreground/40 sm:gap-6 sm:p-5 md:col-start-2 md:row-start-1">
           <img
             src={nextLandmark.src ?? undefined}
             alt=""
@@ -81,9 +93,9 @@ export function ChapterEnding({ city, next, nextLandmark }: ChapterEndingProps) 
           </span>
         </div>
 
-        {/* All cities and Contact BC. */}
-        <div className="flex flex-col justify-center gap-3">
-          <AllCitiesPanel label="All cities" currentCityId={city.id} triggerVariant="ending" />
+        {/* All cities and Contact BC: on the left from `md`, below the next-city card on a phone. */}
+        <div className="flex flex-col justify-center gap-3 md:col-start-1 md:row-start-1">
+          <AllCitiesPanel label="All cities" currentCityId={city.id} />
           <a
             href="#"
             className={`inline-flex min-h-14 w-full items-center justify-center rounded-full border border-foreground/20 px-6 text-base font-semibold text-foreground transition-colors hover:border-foreground/60 ${LINK_FOCUS_RING}`}

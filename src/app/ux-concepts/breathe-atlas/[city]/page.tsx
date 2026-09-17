@@ -12,7 +12,8 @@
  *     7. Go further (fixed)     GoFurther
  *     8. Ending (fixed)         ChapterEnding
  *   Content and layout choices come from ../_data/chapters.ts; the city's name, country, card image and
- *   mission line from ../_data/cities.ts. The nav (AtlasNav) highlights this city in the All cities panel.
+ *   mission line from ../_data/cities.ts. The chapter's ending carries the "All cities" button that
+ *   opens the panel with this city highlighted (the nav no longer does, brief 4.1).
  *
  * Routing
  *   Only the seven chapter cities get a page: `generateStaticParams` pre-renders them and
@@ -84,7 +85,7 @@ export default async function ChapterPage({ params }: ChapterPageProps) {
 
   return (
     <main className="min-h-screen bg-background">
-      <AtlasNav currentCityId={city.id} />
+      <AtlasNav />
       <article aria-labelledby={TITLE_ID}>
         <ChapterOpener city={city} landmark={chapter.landmark} headingId={TITLE_ID} />
         <ChapterHeroMap city={city} chapter={chapter} />
