@@ -2,7 +2,7 @@
  * AtlasGlobe.tsx — the react-globe.gl globe for the Breathe Atlas cover (brief 4.2).
  *
  * Purpose
- *   Renders the grey shaded-relief globe with 16 identical HTML city markers, and hands the parent
+ *   Renders the grey shaded-relief globe with 16 pulsating HTML city markers, and hands the parent
  *   (GlobeCover) a small imperative API to turn the globe. It owns everything that touches three.js
  *   and the DOM nodes globe.gl manages; GlobeCover owns the cycle, pause and card state.
  *
@@ -32,8 +32,29 @@
  *   Markers are real <button> elements (keyboard reachable, accessible name "City, Country"),
  *   created once per city and placed by globe.gl's CSS2D layer. Markers on the far side of the
  *   globe are hidden with `visibility: hidden`, which also removes them from the tab order. The
- *   selected city's card (passed in as `selectedCard`) is portalled into that marker's element, so
+ *   open card (passed in as `card`, for `cardCityId`) is portalled into that marker's element, so
  *   it sits beside the marker and follows it if the globe is dragged.
+ *
+ * Marker pulse (brief 4.2: "all pulsating like the markers in the Global Toolkit Network concept")
+ *   The technique is COPIED, not imported, from the locked global-toolkit-network concept
+ *   (_components/ProofGlobe.tsx, the `cities-pulse` layer): a soft, blurred halo sits beneath the
+ *   solid dot and breathes on a sine-like curve over PULSE_PERIOD_MS, growing and brightening
+ *   together. ProofGlobe animates Mapbox paint properties from a rAF loop; these markers are HTML,
+ *   so the same curve is a CSS keyframe animation (ease-in-out, alternating via 0/50/100%) on the
+ *   halo's `scale` and `opacity`, with no JavaScript per frame.
+ *   Values copied: period 1800ms; halo diameter 20px -> 48px (ProofGlobe radius 10 -> 24);
+ *   feathered edge (ProofGlobe circle-blur 0.6 -> solid to 40% of the radius, then fading out).
+ *   Value tuned for this context (see the build report): ProofGlobe's opacity 0.25 -> 0.6 is for a
+ *   bright blue glow on a light basemap; the same opacities in the dark neutral marker colour read
+ *   as a heavy smudge on the pale relief globe, so opacity runs PULSE_OPACITY_MIN -> MAX instead.
+ *   Colour: the dark neutral marker colour, because the grey wireframe reserves colour for air
+ *   quality data. MARKER_PULSE_COLOUR is the one-line switch back to the Global Toolkit Network's
+ *   blue glow.
+ *   Reduced motion: the animation is removed and the halo stays still at a middle size.
+ *
+ * Focus city (brief 4.2)
+ *   `focusCityId` marks one marker as the focus: its dot and halo scale up (an enlarged pulsating
+ *   dot). GlobeCover passes the city the globe rests on, or the city whose card the visitor opened.
  *
  * Key exports: AtlasGlobe (default), AtlasGlobeApi (type), GLOBE_ALTITUDE
  * External dependencies: react, react-dom (createPortal), react-globe.gl (three.js),
@@ -42,6 +63,7 @@
  * Side effects (all cleaned up on unmount):
  *   - Builds the globe texture (offscreen canvases) and creates an object URL; revoked on unmount.
  *   - Creates 16 detached marker DOM nodes and attaches click listeners to their buttons.
+ *   - Sets a `data-focus` attribute on the focus marker's button when `focusCityId` changes.
  *   - Mutates three.js objects owned by globe.gl once the globe is ready: controls flags, canvas
  *     touch-action style, light intensities and parenting, globe material settings.
  */
@@ -66,6 +88,35 @@ const TOPOLOGY_URL = '/ux-concepts/breathe-atlas/earth-topology.png'
 /** Fully transparent clear colour, so the light page shows through behind the globe. */
 const TRANSPARENT_BACKGROUND = 'rgba(0,0,0,0)'
 
+/**
+ * Marker pulse halo colour: the dark neutral marker colour (the same as the dot).
+ * One-line switch to the Global Toolkit Network's blue glow: 'var(--bc-color-blue)'.
+ */
+const MARKER_PULSE_COLOUR = 'var(--foreground)'
+
+/** Pulse period, copied from ProofGlobe (PULSE_PERIOD_MS). */
+const PULSE_PERIOD_MS = 1800
+/** Halo size at the peak of the pulse, in px (ProofGlobe PULSE_RADIUS_MAX 24 -> 48px across). */
+const PULSE_HALO_PX = 48
+/** Halo scale at the low point: 20px across (ProofGlobe PULSE_RADIUS_MIN 10). */
+const PULSE_SCALE_MIN = 20 / PULSE_HALO_PX
+/** Halo opacity range, tuned down from ProofGlobe's 0.25 -> 0.6 for a dark halo (see file header). */
+const PULSE_OPACITY_MIN = 0.12
+const PULSE_OPACITY_MAX = 0.34
+
+/**
+ * The pulse CSS, rendered once in a <style> element next to the globe (the markers live in
+ * globe.gl's DOM, so they pick the animation up by class name). Animates the `scale` and `opacity`
+ * properties only, so it composes with the focus wrapper's scale. Under reduced motion the
+ * animation is removed and the halo's static Tailwind scale/opacity classes apply.
+ */
+const PULSE_CSS = `@keyframes atlas-marker-pulse {
+  0%, 100% { scale: ${PULSE_SCALE_MIN.toFixed(3)}; opacity: ${PULSE_OPACITY_MIN}; }
+  50% { scale: 1; opacity: ${PULSE_OPACITY_MAX}; }
+}
+.atlas-marker-halo { animation: atlas-marker-pulse ${PULSE_PERIOD_MS}ms ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .atlas-marker-halo { animation: none; } }`
+
 /** The small imperative API the cover uses to drive the globe. */
 export type AtlasGlobeApi = {
   /** Turn the globe to a city. `durationMs` 0 jumps without animation. */
@@ -82,10 +133,12 @@ type AtlasGlobeProps = {
   height: number
   /** Cities to mark (all 16). Must be a stable array reference. */
   cities: AtlasCity[]
-  /** The city whose card is open, or null. */
-  selectedCityId: string | null
-  /** The card element to show beside the selected marker (rendered by the parent). */
-  selectedCard: ReactNode
+  /** The city whose card is open (auto-opened or tapped), or null. */
+  cardCityId: string | null
+  /** The card element to show beside that city's marker (rendered by the parent). */
+  card: ReactNode
+  /** The focus city: its marker shows as an enlarged pulsating dot. Null for none. */
+  focusCityId: string | null
   /** Where the globe starts, before the first turn. */
   initialCity: AtlasCity
   /** True when the visitor prefers reduced motion: no intro scale animation. */
@@ -131,6 +184,10 @@ type MarkerNodes = { element: HTMLDivElement; button: HTMLButtonElement; cardHos
  *
  * Hit area is 44px (see return report: below the 56px project touch-target standard, chosen so
  * markers cover less of the globe's drag surface; clustered European cities overlap at any size).
+ *
+ * Inside the button, back to front: the pulse halo (in a focus wrapper that scales it up for the
+ * focus city) and the solid dot (also scaled up for the focus city). The halo overflows the 44px
+ * button at its peak, which is fine: it ignores pointer events.
  */
 function createMarkerNodes(city: AtlasCity): MarkerNodes {
   const element = document.createElement('div')
@@ -141,12 +198,26 @@ function createMarkerNodes(city: AtlasCity): MarkerNodes {
   button.dataset.cityId = city.id
   button.setAttribute('aria-label', `${city.name}, ${city.country}`)
   button.className =
-    'pointer-events-auto flex h-11 w-11 cursor-pointer touch-manipulation items-center justify-center rounded-full focus-visible:outline-2 focus-visible:outline-offset-0 focus-visible:outline-foreground'
+    'group relative pointer-events-auto flex h-11 w-11 cursor-pointer touch-manipulation items-center justify-center rounded-full focus-visible:outline-2 focus-visible:outline-offset-0 focus-visible:outline-foreground'
+
+  // Focus wrapper: scales the halo up for the focus city.
+  const haloWrap = document.createElement('span')
+  haloWrap.setAttribute('aria-hidden', 'true')
+  haloWrap.className =
+    'pointer-events-none absolute inset-0 m-auto h-12 w-12 transition-[scale] duration-500 ease-out group-data-[focus=true]:scale-[1.25] motion-reduce:transition-none'
+
+  // Pulse halo: feathered disc in the marker colour, breathing via the .atlas-marker-halo animation
+  // (PULSE_CSS). Under reduced motion the animation is removed and the static scale/opacity apply.
+  const halo = document.createElement('span')
+  halo.className = 'atlas-marker-halo block h-full w-full rounded-full scale-[0.7] opacity-25'
+  halo.style.background = `radial-gradient(circle closest-side, ${MARKER_PULSE_COLOUR} 40%, transparent 100%)`
+  haloWrap.appendChild(halo)
 
   const dot = document.createElement('span')
   dot.setAttribute('aria-hidden', 'true')
-  dot.className = 'block h-2.5 w-2.5 rounded-full bg-foreground ring-2 ring-background'
-  button.appendChild(dot)
+  dot.className =
+    'relative block h-2.5 w-2.5 rounded-full bg-foreground ring-2 ring-background transition-[scale] duration-500 ease-out group-data-[focus=true]:scale-[1.8] motion-reduce:transition-none'
+  button.append(haloWrap, dot)
 
   const cardHost = document.createElement('div')
   cardHost.className = 'pointer-events-auto'
@@ -163,8 +234,9 @@ export default function AtlasGlobe({
   width,
   height,
   cities,
-  selectedCityId,
-  selectedCard,
+  cardCityId,
+  card,
+  focusCityId,
   initialCity,
   reducedMotion,
   onReady,
@@ -204,6 +276,14 @@ export default function AtlasGlobe({
     }
     return () => cleanups.forEach((cleanup) => cleanup())
   }, [cities, markers])
+
+  // Side effect: mark the focus city's marker button (data-focus drives the enlarged dot and halo).
+  useEffect(() => {
+    markers.forEach((nodes, cityId) => {
+      if (cityId === focusCityId) nodes.button.dataset.focus = 'true'
+      else delete nodes.button.dataset.focus
+    })
+  }, [markers, focusCityId])
 
   // Side effect: build the grey relief texture from BC token greys; revoke its object URL on unmount.
   useEffect(() => {
@@ -322,13 +402,14 @@ export default function AtlasGlobe({
     element.style.visibility = isVisible ? 'visible' : 'hidden'
   }, [])
 
-  const selectedHost = selectedCityId === null ? null : markers.get(selectedCityId)?.cardHost ?? null
+  const cardHost = cardCityId === null ? null : markers.get(cardCityId)?.cardHost ?? null
 
   // Wait for the texture attempt to finish so the globe does not flash untextured first.
   if (textureUrl === null || width === 0 || height === 0) return null
 
   return (
     <>
+      <style>{PULSE_CSS}</style>
       <Globe
         ref={globeRef}
         width={width}
@@ -350,7 +431,7 @@ export default function AtlasGlobe({
         htmlElementVisibilityModifier={setMarkerVisibility}
         htmlTransitionDuration={0}
       />
-      {selectedHost !== null && selectedCard !== null ? createPortal(selectedCard, selectedHost) : null}
+      {cardHost !== null && card !== null ? createPortal(card, cardHost) : null}
     </>
   )
 }
