@@ -2,9 +2,9 @@
  * AtlasNav.tsx — the Breathe Atlas site nav (brief 4.1).
  *
  * Purpose
- *   A minimal site nav for the landing page (and, later, the chapters): BC logo, "All cities",
- *   and a small "Prototype with sample data" notice. Nothing else. Rendered below the standard
- *   PrototypeHeader tooling bar, which owns back-to-hub and comments.
+ *   A minimal site nav for the landing page and the chapters: BC logo, "All cities", and a small
+ *   "Prototype with sample data" notice. Nothing else. Rendered below the standard PrototypeHeader
+ *   tooling bar, which owns back-to-hub and comments.
  *
  *   The logo is the same mark the shared BcChrome header draws (a round "BC" badge beside the
  *   "Breathe Cities" name, badge only on small screens). There is no image asset for it in the
@@ -12,22 +12,31 @@
  *   foreground tones instead of brand blue because this concept is a grey wireframe with no
  *   decorative colour (brief section 2).
  *
- *   "All cities" is inert in this build step (`href="#"`, from BREATHE_ATLAS_CHROME). The notice
- *   covers the illustrative data and tiers across the whole prototype (brief sections 3 and 7).
+ *   "All cities" (label from BREATHE_ATLAS_CHROME) is a button that opens the All cities panel
+ *   (AllCitiesPanel, brief 5.9). On a chapter page, `currentCityId` tells the panel which city to
+ *   highlight. The notice covers the illustrative data and tiers across the whole prototype (brief
+ *   sections 3 and 7).
  *
  * Styling
  *   Bridged shadcn semantics only (text-foreground, text-muted-foreground, border-border,
  *   bg-background, bg-foreground). No hex. Nav targets are at least 56px tall (frontend-standards R8).
  *
  * Key exports: AtlasNav (named)
- * External dependencies: next/link, ../breathe-atlas-chrome.config.
+ * External dependencies: next/link, ../breathe-atlas-chrome.config, ./AllCitiesPanel (client).
  */
 
 import Link from 'next/link'
 import { BREATHE_ATLAS_CHROME } from '../breathe-atlas-chrome.config'
+import { AllCitiesPanel } from './AllCitiesPanel'
 
-/** The site nav row. Server component: no state, no handlers. */
-export function AtlasNav() {
+/** Props for AtlasNav. */
+type AtlasNavProps = {
+  /** The chapter's city (highlighted in the All cities panel), or null on the cover. */
+  currentCityId: string | null
+}
+
+/** The site nav row. Server component: the All cities panel is its only client part. */
+export function AtlasNav({ currentCityId }: AtlasNavProps) {
   return (
     <nav
       aria-label="Breathe Atlas"
@@ -52,15 +61,9 @@ export function AtlasNav() {
         </Link>
 
         <div className="flex items-center gap-2 sm:gap-5">
-          {/* Nav items from the chrome config. "All cities" is inert (#) in this build step. */}
+          {/* Nav items from the chrome config. The only item, "All cities", opens the panel. */}
           {BREATHE_ATLAS_CHROME.nav.map((item) => (
-            <a
-              key={item.label}
-              href={item.href}
-              className="inline-flex min-h-14 items-center rounded-2xl px-2 text-sm font-medium text-foreground transition-colors hover:text-muted-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground"
-            >
-              {item.label}
-            </a>
+            <AllCitiesPanel key={item.label} label={item.label} currentCityId={currentCityId} />
           ))}
 
           {/* Sample-data notice: quiet, always visible, not interactive. */}
