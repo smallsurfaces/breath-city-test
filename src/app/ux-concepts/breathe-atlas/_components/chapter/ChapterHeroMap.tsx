@@ -5,7 +5,7 @@
  *   A full-width band of one fixed height, sized for the real Mapbox data map, directly below the
  *   opener. What fills it depends on the city's tier:
  *   - Tier 1 (Milan, shares nothing): the stylised country map at hero size (brief 3, 5.4).
- *   - Tiers 2 to 4: the reserved live data map slot (ChapterDataMapSlot), filled in the next step.
+ *   - Tiers 2 to 4: the data map (ChapterDataMapSlot), fitted to the city's sensors (brief 6.1).
  *
  * Accessibility
  *   A labelled region with no heading of its own, so the heading order stays h1 (opener), then the
@@ -30,8 +30,16 @@ type ChapterHeroMapProps = {
   chapter: CityChapter
 }
 
-/** The hero band's height at each breakpoint: the size reserved for the data map. */
+/** The hero band's height at each breakpoint, for tier 1's stylised country map. */
 const HERO_BAND_HEIGHT = 'h-[340px] sm:h-[460px] lg:h-[540px]'
+
+/**
+ * The data map's band is taller by the height of its legend, which sits under the map rather than
+ * over it (see AtlasMapLegend). Measured on a phone: the legend takes about 100px for a six-level
+ * index, which left the map itself at 215px inside the shared band. The map now gets the same room
+ * as the stylised map above, and the legend is added to it.
+ */
+const DATA_BAND_HEIGHT = 'h-[440px] sm:h-[560px] lg:h-[640px]'
 
 /** The hero map band. Server component. */
 export function ChapterHeroMap({ city, chapter }: ChapterHeroMapProps) {
@@ -52,8 +60,8 @@ export function ChapterHeroMap({ city, chapter }: ChapterHeroMapProps) {
   }
 
   return (
-    <section aria-label={`Live data map of ${city.name}`} className={`w-full ${HERO_BAND_HEIGHT}`}>
-      <ChapterDataMapSlot city={city} tier={chapter.tier} />
+    <section aria-label={`Live data map of ${city.name}`} className={`w-full ${DATA_BAND_HEIGHT}`}>
+      <ChapterDataMapSlot city={city} tier={chapter.tier} chapter={chapter} />
     </section>
   )
 }
