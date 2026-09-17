@@ -1,0 +1,251 @@
+{
+ "_note": "Mock sensors for the Breathe Atlas data map (brief section 7). LOCATIONS: see locationSource. READINGS: invented, see readingsNote. Generated once on 2026-09-17; regenerate rather than hand-edit.",
+ "city": "jakarta",
+ "tier": 2,
+ "locationSource": "NOTHING is taken from OpenAQ or any third party (brief section 7, Jack 2026-09-17): Jakarta is sensitive about its data being shown outside its own control. Jakarta publishes its SPKU station list on udara.jakarta.go.id, which was not scraped, so every Jakarta location here is PLACED inside the city boundary and marked placed: true. All Jakarta locations are placed (see above).",
+ "locationSnapshot": "No third-party source was used.",
+ "readingsNote": "No readings: this city shares sensor locations only (illustrative tier 2).",
+ "indexName": null,
+ "sensors": [
+  {
+   "lngLat": [
+    106.6437,
+    -5.9464
+   ],
+   "type": "reference-grade",
+   "placed": true,
+   "openaqLocationId": null,
+   "openaqName": null,
+   "openaqProvider": null,
+   "id": "jakarta-01",
+   "band": null,
+   "updatedMinutesAgo": 6,
+   "readings": []
+  },
+  {
+   "lngLat": [
+    106.7992,
+    -6.2751
+   ],
+   "type": "reference-grade",
+   "placed": true,
+   "openaqLocationId": null,
+   "openaqName": null,
+   "openaqProvider": null,
+   "id": "jakarta-02",
+   "band": null,
+   "updatedMinutesAgo": 4,
+   "readings": []
+  },
+  {
+   "lngLat": [
+    106.675,
+    -5.4795
+   ],
+   "type": "reference-grade",
+   "placed": true,
+   "openaqLocationId": null,
+   "openaqName": null,
+   "openaqProvider": null,
+   "id": "jakarta-03",
+   "band": null,
+   "updatedMinutesAgo": 5,
+   "readings": []
+  },
+  {
+   "lngLat": [
+    106.8071,
+    -6.0829
+   ],
+   "type": "reference-grade",
+   "placed": true,
+   "openaqLocationId": null,
+   "openaqName": null,
+   "openaqProvider": null,
+   "id": "jakarta-04",
+   "band": null,
+   "updatedMinutesAgo": 2,
+   "readings": []
+  },
+  {
+   "lngLat": [
+    106.6236,
+    -5.498
+   ],
+   "type": "reference-grade",
+   "placed": true,
+   "openaqLocationId": null,
+   "openaqName": null,
+   "openaqProvider": null,
+   "id": "jakarta-05",
+   "band": null,
+   "updatedMinutesAgo": 6,
+   "readings": []
+  },
+  {
+   "lngLat": [
+    106.8556,
+    -6.3084
+   ],
+   "type": "reference-grade",
+   "placed": true,
+   "openaqLocationId": null,
+   "openaqName": null,
+   "openaqProvider": null,
+   "id": "jakarta-06",
+   "band": null,
+   "updatedMinutesAgo": 9,
+   "readings": []
+  },
+  {
+   "lngLat": [
+    106.5615,
+    -5.889
+   ],
+   "type": "reference-grade",
+   "placed": true,
+   "openaqLocationId": null,
+   "openaqName": null,
+   "openaqProvider": null,
+   "id": "jakarta-07",
+   "band": null,
+   "updatedMinutesAgo": 2,
+   "readings": []
+  },
+  {
+   "lngLat": [
+    106.8592,
+    -5.2846
+   ],
+   "type": "reference-grade",
+   "placed": true,
+   "openaqLocationId": null,
+   "openaqName": null,
+   "openaqProvider": null,
+   "id": "jakarta-08",
+   "band": null,
+   "updatedMinutesAgo": 2,
+   "readings": []
+  },
+  {
+   "lngLat": [
+    106.8743,
+    -5.9073
+   ],
+   "type": "low-cost",
+   "placed": true,
+   "openaqLocationId": null,
+   "openaqName": null,
+   "openaqProvider": null,
+   "id": "jakarta-09",
+   "band": null,
+   "updatedMinutesAgo": 6,
+   "readings": []
+  },
+  {
+   "lngLat": [
+    106.9029,
+    -5.7837
+   ],
+   "type": "low-cost",
+   "placed": true,
+   "openaqLocationId": null,
+   "openaqName": null,
+   "openaqProvider": null,
+   "id": "jakarta-10",
+   "band": null,
+   "updatedMinutesAgo": 3,
+   "readings": []
+  },
+  {
+   "lngLat": [
+    106.796,
+    -5.5961
+   ],
+   "type": "low-cost",
+   "placed": true,
+   "openaqLocationId": null,
+   "openaqName": null,
+   "openaqProvider": null,
+   "id": "jakarta-11",
+   "band": null,
+   "updatedMinutesAgo": 6,
+   "readings": []
+  },
+  {
+   "lngLat": [
+    106.4377,
+    -5.3227
+   ],
+   "type": "low-cost",
+   "placed": true,
+   "openaqLocationId": null,
+   "openaqName": null,
+   "openaqProvider": null,
+   "id": "jakarta-12",
+   "band": null,
+   "updatedMinutesAgo": 8,
+   "readings": []
+  },
+  {
+   "lngLat": [
+    106.5974,
+    -5.4364
+   ],
+   "type": "low-cost",
+   "placed": true,
+   "openaqLocationId": null,
+   "openaqName": null,
+   "openaqProvider": null,
+   "id": "jakarta-13",
+   "band": null,
+   "updatedMinutesAgo": 10,
+   "readings": []
+  },
+  {
+   "lngLat": [
+    106.568,
+    -5.5037
+   ],
+   "type": "low-cost",
+   "placed": true,
+   "openaqLocationId": null,
+   "openaqName": null,
+   "openaqProvider": null,
+   "id": "jakarta-14",
+   "band": null,
+   "updatedMinutesAgo": 10,
+   "readings": []
+  },
+  {
+   "lngLat": [
+    106.8132,
+    -5.7332
+   ],
+   "type": "low-cost",
+   "placed": true,
+   "openaqLocationId": null,
+   "openaqName": null,
+   "openaqProvider": null,
+   "id": "jakarta-15",
+   "band": null,
+   "updatedMinutesAgo": 4,
+   "readings": []
+  },
+  {
+   "lngLat": [
+    106.6748,
+    -5.8855
+   ],
+   "type": "low-cost",
+   "placed": true,
+   "openaqLocationId": null,
+   "openaqName": null,
+   "openaqProvider": null,
+   "id": "jakarta-16",
+   "band": null,
+   "updatedMinutesAgo": 9,
+   "readings": []
+  }
+ ]
+}

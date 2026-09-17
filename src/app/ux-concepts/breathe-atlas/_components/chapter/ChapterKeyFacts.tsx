@@ -19,8 +19,11 @@
  *   A sensor count of 0 is left out the same way.
  *
  * Honesty
- *   Figures marked `sample` in the data show "Sample figure" under the value. No colour: current
- *   conditions is text only, since index colours belong to the data map and sensor card (brief 2).
+ *   Every fact carries a `status`. Only 'placeholder' items show "Sample figure" under the value:
+ *   the sensor counts and current conditions (both derived from the mock sensors), and any figure
+ *   the content pack could not confirm. Verified and drafted content renders with no marker.
+ *   No colour: current conditions is text only, since a city's index colours belong to the data
+ *   map and the sensor card (brief 2).
  *
  * Semantics
  *   A <dl>: each tile is a <div> holding its <dt> label and <dd> value. The map tile sits beside the
@@ -38,7 +41,13 @@ import { ConceptCard, ConceptSectionHeader } from '@/components/concept'
 import { OutboundLink } from './ChapterLink'
 import { StylisedCountryMap } from './StylisedCountryMap'
 import type { AtlasCity } from '../../_data/cities'
-import type { ChapterSensorCounts, CityChapter, IndexConditions, LiveConditions } from '../../_data/chapters'
+import type {
+  ChapterSensorCounts,
+  CityChapter,
+  ContentStatus,
+  IndexConditions,
+  LiveConditions,
+} from '../../_data/chapters'
 import { COUNTRY_MAPS } from '../../_data/country-maps'
 
 /** Props for ChapterKeyFacts. */
@@ -67,9 +76,12 @@ function factColumnsClass(count: number, hasMapTile: boolean): string {
   return ''
 }
 
-/** "Sample figure" note for dummy figures. */
-function SampleNote({ sample }: { sample: boolean }) {
-  if (!sample) return null
+/**
+ * "Sample figure" note. Only a 'placeholder' item is marked: content the pack records as verified
+ * or drafted is real content and carries no marker (brief section 2, content-pack status key).
+ */
+function SampleNote({ status }: { status: ContentStatus }) {
+  if (status !== 'placeholder') return null
   return <p className="mt-1 text-xs text-foreground/60">Sample figure</p>
 }
 
@@ -100,24 +112,34 @@ function SensorCounts({ sensors }: { sensors: ChapterSensorCounts }) {
           </li>
         ))}
       </ul>
-      <SampleNote sample={sensors.sample} />
+      <SampleNote status={sensors.status} />
     </>
   )
 }
 
-/** Current conditions text. Tier 4: index and level. Tier 3: the live line, with no reading. */
+/**
+ * Current conditions text. Tier 4: the city's own index and its city-wide level, as the city
+ * publishes the level name. Tier 3: the live line, with no reading and no level (brief 5.3).
+ * Both are derived from the mock sensors, so both carry the sample marker.
+ */
 function ConditionsLine({ conditions }: { conditions: IndexConditions | LiveConditions }) {
   if ('indexName' in conditions) {
     return (
-      <p className="text-2xl font-bold text-foreground">
-        {conditions.indexName}: {conditions.level}
-      </p>
+      <>
+        <p className="text-2xl font-bold text-foreground">
+          {conditions.indexName}: {conditions.level}
+        </p>
+        <SampleNote status={conditions.status} />
+      </>
     )
   }
   return (
-    <p className="text-lg font-semibold text-foreground">
-      Live from {FIGURE_FORMAT.format(conditions.liveSensors)} sensors · updated {conditions.updatedMinutesAgo} min ago
-    </p>
+    <>
+      <p className="text-lg font-semibold text-foreground">
+        Live from {FIGURE_FORMAT.format(conditions.liveSensors)} sensors · updated {conditions.updatedMinutesAgo} min ago
+      </p>
+      <SampleNote status={conditions.status} />
+    </>
   )
 }
 
@@ -134,11 +156,10 @@ export function ChapterKeyFacts({ city, chapter }: ChapterKeyFactsProps) {
       key: 'population',
       node: (
         <FactTile label="Population" wide={false}>
-          <p className="text-3xl font-bold tracking-tight tabular-nums text-foreground">
-            {FIGURE_FORMAT.format(population.value)}
-          </p>
+          {/* The figure as the source publishes it ("10.6 million"), not a re-derived number. */}
+          <p className="text-3xl font-bold tracking-tight text-foreground">{population.display}</p>
           <p className="mt-1 text-sm text-foreground/80">{population.label}</p>
-          <SampleNote sample={population.sample} />
+          <SampleNote status={population.status} />
           <OutboundLink href={population.source.url} className="-mb-3 text-xs font-medium text-foreground/70">
             Source: {population.source.label}
           </OutboundLink>
@@ -158,11 +179,13 @@ export function ChapterKeyFacts({ city, chapter }: ChapterKeyFactsProps) {
     })
   }
   if (facts.leadAgency !== null) {
+    const leadAgency = facts.leadAgency
     tiles.push({
       key: 'lead-agency',
       node: (
         <FactTile label="Lead agency" wide={false}>
-          <p className="text-lg font-semibold leading-snug text-foreground">{facts.leadAgency}</p>
+          <p className="text-lg font-semibold leading-snug text-foreground">{leadAgency.name}</p>
+          <SampleNote status={leadAgency.status} />
         </FactTile>
       ),
     })
@@ -174,7 +197,7 @@ export function ChapterKeyFacts({ city, chapter }: ChapterKeyFactsProps) {
       node: (
         <FactTile label="Joined Breathe Cities" wide={false}>
           <p className="text-3xl font-bold tracking-tight tabular-nums text-foreground">{joined.year}</p>
-          <SampleNote sample={joined.sample} />
+          <SampleNote status={joined.status} />
         </FactTile>
       ),
     })

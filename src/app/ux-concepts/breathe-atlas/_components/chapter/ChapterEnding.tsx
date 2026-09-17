@@ -16,13 +16,15 @@
  *   here (alt=""), because the link text already names the city.
  *
  * IMAGE RIGHTS
- *   `next.cardImage` is Breathe Cities' own card image, HOTLINKED from breathecities.org for this
- *   internal prototype (see ../../_data/cities.ts). Shown in greyscale.
+ *   `nextLandmark` is the next city's landmark image from the content pack, HOTLINKED for this
+ *   internal prototype and shown in greyscale. It carries no credit here: the link text names the
+ *   city and the image is decorative on this card (alt=""), and the same photo is credited in that
+ *   city's own chapter opener.
  *
  * Key exports: ChapterEnding (named)
  * External dependencies: next/link, lucide-react (ArrowRight), ../AllCitiesPanel (client),
  *   ./ChapterLink (LINK_FOCUS_RING), ../../breathe-atlas-chrome.config (atlasChapterHref),
- *   ../../_data/cities (type).
+ *   ../../_data/cities (type), ../../_data/chapters (ChapterPhoto type).
  */
 
 import Link from 'next/link'
@@ -31,6 +33,7 @@ import { AllCitiesPanel } from '../AllCitiesPanel'
 import { LINK_FOCUS_RING } from './ChapterLink'
 import { atlasChapterHref } from '../../breathe-atlas-chrome.config'
 import type { AtlasCity } from '../../_data/cities'
+import type { ChapterPhoto } from '../../_data/chapters'
 
 /** Props for ChapterEnding. */
 type ChapterEndingProps = {
@@ -38,24 +41,26 @@ type ChapterEndingProps = {
   city: AtlasCity
   /** The next chapter city. */
   next: AtlasCity
+  /** The next city's landmark image (decorative on this card). */
+  nextLandmark: ChapterPhoto
 }
 
 /** Id of the "Next" heading (one ending per page). */
 const HEADING_ID = 'atlas-ending-next-heading'
 
 /** The ending section. Server component; the All cities panel is its only client part. */
-export function ChapterEnding({ city, next }: ChapterEndingProps) {
+export function ChapterEnding({ city, next, nextLandmark }: ChapterEndingProps) {
   return (
     <section aria-labelledby={HEADING_ID} className="mx-auto max-w-6xl px-4">
       <div className="grid grid-cols-1 gap-4 md:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] md:items-stretch">
         {/* Next chapter card: the whole card is the link (stretched pseudo-element). */}
         <div className="group relative flex items-center gap-4 rounded-2xl border border-border bg-background p-4 shadow-sm transition-colors hover:border-foreground/40 sm:gap-6 sm:p-5">
           <img
-            src={next.cardImage}
+            src={nextLandmark.src ?? undefined}
             alt=""
             loading="lazy"
             decoding="async"
-            className="h-28 w-24 shrink-0 rounded-xl bg-muted object-cover object-bottom grayscale sm:h-36 sm:w-32"
+            className="h-28 w-24 shrink-0 rounded-xl bg-muted object-cover grayscale sm:h-36 sm:w-32"
           />
           <div className="min-w-0 flex-1">
             <h2 id={HEADING_ID} className="text-2xl font-bold leading-tight tracking-tight text-foreground">

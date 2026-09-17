@@ -1,0 +1,885 @@
+{
+ "_note": "Mock sensors for the Breathe Atlas data map (brief section 7). LOCATIONS: see locationSource. READINGS: invented, see readingsNote. Generated once on 2026-09-17; regenerate rather than hand-edit.",
+ "city": "bogota",
+ "tier": 4,
+ "locationSource": "OpenAQ provider 'Bogota' is the city's own network, RMCAB, run by the Secretaría Distrital de Ambiente. Excluded: 'StateAir Bogota' and the US Diplomatic Post (United States embassy monitors) and AirGradient (private and community sensors). Bogotá runs a Collaborative Microsensor Network (in the chapter's programme list), but no public location list was used, so the low-cost sensors are PLACED inside the city boundary and marked placed: true.",
+ "locationSnapshot": "OpenAQ v3 GET /locations?bbox=... , taken 2026-09-17, then filtered as described above and to points inside the city's OSM boundary.",
+ "readingsNote": "Readings are INVENTED for the prototype and are not a measurement of anything. The air reads relatively clean: every sensor sits at the best level of the city's own index except one moderate sensor and one sensitive-groups sensor (brief section 7). PM10 is always at or above PM2.5. Nothing is stale or offline: every sensor updated 2 to 10 minutes ago.",
+ "indexName": "IBOCA",
+ "sensors": [
+  {
+   "lngLat": [
+    -74.11171,
+    4.53121
+   ],
+   "type": "reference-grade",
+   "placed": false,
+   "openaqLocationId": 8025,
+   "openaqName": "Usme",
+   "openaqProvider": "Bogota",
+   "id": "bogota-01",
+   "band": 1,
+   "updatedMinutesAgo": 9,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 6.3,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "PM10",
+     "value": 12.5,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "NO₂",
+     "value": 10.8,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "O₃",
+     "value": 43.4,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "SO₂",
+     "value": 2.5,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "CO",
+     "value": 0.7,
+     "unit": "mg/m³"
+    }
+   ]
+  },
+  {
+   "lngLat": [
+    -74.16628,
+    4.57781
+   ],
+   "type": "reference-grade",
+   "placed": false,
+   "openaqLocationId": 10490,
+   "openaqName": "Ciudad Bolivar",
+   "openaqProvider": "Bogota",
+   "id": "bogota-02",
+   "band": 1,
+   "updatedMinutesAgo": 10,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 6.1,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "PM10",
+     "value": 11.9,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "NO₂",
+     "value": 22.7,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "O₃",
+     "value": 39.6,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "SO₂",
+     "value": 4.9,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "CO",
+     "value": 0.4,
+     "unit": "mg/m³"
+    }
+   ]
+  },
+  {
+   "lngLat": [
+    -74.14382,
+    4.67825
+   ],
+   "type": "reference-grade",
+   "placed": false,
+   "openaqLocationId": 10499,
+   "openaqName": "Fontibon",
+   "openaqProvider": "Bogota",
+   "id": "bogota-03",
+   "band": 1,
+   "updatedMinutesAgo": 3,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 4.6,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "PM10",
+     "value": 8.5,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "NO₂",
+     "value": 11.4,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "O₃",
+     "value": 27.6,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "SO₂",
+     "value": 5.1,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "CO",
+     "value": 0.6,
+     "unit": "mg/m³"
+    }
+   ]
+  },
+  {
+   "lngLat": [
+    -74.04417,
+    4.78374
+   ],
+   "type": "reference-grade",
+   "placed": false,
+   "openaqLocationId": 10501,
+   "openaqName": "Guaymaral",
+   "openaqProvider": "Bogota",
+   "id": "bogota-04",
+   "band": 1,
+   "updatedMinutesAgo": 2,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 6.7,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "PM10",
+     "value": 11.7,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "NO₂",
+     "value": 6.4,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "O₃",
+     "value": 23.7,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "SO₂",
+     "value": 2.2,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "CO",
+     "value": 0.6,
+     "unit": "mg/m³"
+    }
+   ]
+  },
+  {
+   "lngLat": [
+    -74.084,
+    4.65837
+   ],
+   "type": "reference-grade",
+   "placed": false,
+   "openaqLocationId": 10535,
+   "openaqName": "Centro de Alto Rendimiento",
+   "openaqProvider": "Bogota",
+   "id": "bogota-05",
+   "band": 1,
+   "updatedMinutesAgo": 6,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 7.8,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "PM10",
+     "value": 16.8,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "NO₂",
+     "value": 8.7,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "O₃",
+     "value": 30.3,
+     "unit": "µg/m³"
+    }
+   ]
+  },
+  {
+   "lngLat": [
+    -74.11757,
+    4.63187
+   ],
+   "type": "reference-grade",
+   "placed": false,
+   "openaqLocationId": 10603,
+   "openaqName": "Puente Aranda",
+   "openaqProvider": "Bogota",
+   "id": "bogota-06",
+   "band": 1,
+   "updatedMinutesAgo": 2,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 8.7,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "PM10",
+     "value": 14.6,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "NO₂",
+     "value": 6.8,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "O₃",
+     "value": 41.0,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "SO₂",
+     "value": 3.4,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "CO",
+     "value": 0.5,
+     "unit": "mg/m³"
+    }
+   ]
+  },
+  {
+   "lngLat": [
+    -74.11494,
+    4.6085
+   ],
+   "type": "reference-grade",
+   "placed": false,
+   "openaqLocationId": 10626,
+   "openaqName": "Jazmin",
+   "openaqProvider": "Bogota",
+   "id": "bogota-07",
+   "band": 1,
+   "updatedMinutesAgo": 9,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 6.8,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "PM10",
+     "value": 11.6,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "NO₂",
+     "value": 10.5,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "O₃",
+     "value": 18.6,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "SO₂",
+     "value": 6.3,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "CO",
+     "value": 0.8,
+     "unit": "mg/m³"
+    }
+   ]
+  },
+  {
+   "lngLat": [
+    -74.14855,
+    4.5958
+   ],
+   "type": "reference-grade",
+   "placed": false,
+   "openaqLocationId": 10677,
+   "openaqName": "Carvajal - Sevillana",
+   "openaqProvider": "Bogota",
+   "id": "bogota-08",
+   "band": 1,
+   "updatedMinutesAgo": 9,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 6.6,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "PM10",
+     "value": 11.5,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "NO₂",
+     "value": 17.7,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "O₃",
+     "value": 29.3,
+     "unit": "µg/m³"
+    }
+   ]
+  },
+  {
+   "lngLat": [
+    -74.0836,
+    4.5725
+   ],
+   "type": "reference-grade",
+   "placed": false,
+   "openaqLocationId": 10705,
+   "openaqName": "San Cristobal",
+   "openaqProvider": "Bogota",
+   "id": "bogota-09",
+   "band": 2,
+   "updatedMinutesAgo": 8,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 16.0,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "PM10",
+     "value": 28.4,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "NO₂",
+     "value": 22.0,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "O₃",
+     "value": 22.9,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "SO₂",
+     "value": 2.6,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "CO",
+     "value": 0.6,
+     "unit": "mg/m³"
+    }
+   ]
+  },
+  {
+   "lngLat": [
+    -74.06724,
+    4.62529
+   ],
+   "type": "reference-grade",
+   "placed": false,
+   "openaqLocationId": 10730,
+   "openaqName": "MinAmbiente",
+   "openaqProvider": "Bogota",
+   "id": "bogota-10",
+   "band": 1,
+   "updatedMinutesAgo": 4,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 6.1,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "PM10",
+     "value": 9.8,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "NO₂",
+     "value": 25.5,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "O₃",
+     "value": 46.4,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "SO₂",
+     "value": 2.5,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "CO",
+     "value": 0.6,
+     "unit": "mg/m³"
+    }
+   ]
+  },
+  {
+   "lngLat": [
+    -74.13093,
+    4.57619
+   ],
+   "type": "reference-grade",
+   "placed": false,
+   "openaqLocationId": 10795,
+   "openaqName": "Tunal",
+   "openaqProvider": "Bogota",
+   "id": "bogota-11",
+   "band": 1,
+   "updatedMinutesAgo": 8,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 4.8,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "PM10",
+     "value": 9.6,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "NO₂",
+     "value": 23.8,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "O₃",
+     "value": 24.0,
+     "unit": "µg/m³"
+    }
+   ]
+  },
+  {
+   "lngLat": [
+    -74.08256,
+    4.6906
+   ],
+   "type": "reference-grade",
+   "placed": false,
+   "openaqLocationId": 10812,
+   "openaqName": "Las Ferias",
+   "openaqProvider": "Bogota",
+   "id": "bogota-12",
+   "band": 1,
+   "updatedMinutesAgo": 6,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 6.9,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "PM10",
+     "value": 11.4,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "NO₂",
+     "value": 16.5,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "O₃",
+     "value": 28.7,
+     "unit": "µg/m³"
+    }
+   ]
+  },
+  {
+   "lngLat": [
+    -74.03199,
+    4.70939
+   ],
+   "type": "reference-grade",
+   "placed": false,
+   "openaqLocationId": 10834,
+   "openaqName": "Usaquen",
+   "openaqProvider": "Bogota",
+   "id": "bogota-13",
+   "band": 1,
+   "updatedMinutesAgo": 10,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 10.9,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "PM10",
+     "value": 21.6,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "NO₂",
+     "value": 26.2,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "O₃",
+     "value": 45.6,
+     "unit": "µg/m³"
+    }
+   ]
+  },
+  {
+   "lngLat": [
+    -74.20406,
+    4.60561
+   ],
+   "type": "reference-grade",
+   "placed": false,
+   "openaqLocationId": 10841,
+   "openaqName": "Bosa",
+   "openaqProvider": "Bogota",
+   "id": "bogota-14",
+   "band": 1,
+   "updatedMinutesAgo": 8,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 5.7,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "PM10",
+     "value": 11.4,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "NO₂",
+     "value": 10.6,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "O₃",
+     "value": 21.7,
+     "unit": "µg/m³"
+    }
+   ]
+  },
+  {
+   "lngLat": [
+    -74.12584,
+    4.73582
+   ],
+   "type": "reference-grade",
+   "placed": false,
+   "openaqLocationId": 10848,
+   "openaqName": "Bolivia",
+   "openaqProvider": "Bogota",
+   "id": "bogota-15",
+   "band": 1,
+   "updatedMinutesAgo": 3,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 4.7,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "PM10",
+     "value": 9.7,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "NO₂",
+     "value": 9.8,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "O₃",
+     "value": 25.8,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "SO₂",
+     "value": 2.8,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "CO",
+     "value": 0.8,
+     "unit": "mg/m³"
+    }
+   ]
+  },
+  {
+   "lngLat": [
+    -74.14861,
+    4.6675
+   ],
+   "type": "reference-grade",
+   "placed": false,
+   "openaqLocationId": 268067,
+   "openaqName": "Movil Fontibon",
+   "openaqProvider": "Bogota",
+   "id": "bogota-16",
+   "band": 1,
+   "updatedMinutesAgo": 5,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 10.0,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "PM10",
+     "value": 17.6,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "NO₂",
+     "value": 11.8,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "O₃",
+     "value": 36.5,
+     "unit": "µg/m³"
+    }
+   ]
+  },
+  {
+   "lngLat": [
+    -74.1828,
+    4.647
+   ],
+   "type": "low-cost",
+   "placed": true,
+   "openaqLocationId": null,
+   "openaqName": null,
+   "openaqProvider": null,
+   "id": "bogota-17",
+   "band": 3,
+   "updatedMinutesAgo": 10,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 33.4,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "PM10",
+     "value": 71.6,
+     "unit": "µg/m³"
+    }
+   ]
+  },
+  {
+   "lngLat": [
+    -74.0341,
+    4.7453
+   ],
+   "type": "low-cost",
+   "placed": true,
+   "openaqLocationId": null,
+   "openaqName": null,
+   "openaqProvider": null,
+   "id": "bogota-18",
+   "band": 1,
+   "updatedMinutesAgo": 8,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 7.9,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "PM10",
+     "value": 16.8,
+     "unit": "µg/m³"
+    }
+   ]
+  },
+  {
+   "lngLat": [
+    -74.1094,
+    4.7403
+   ],
+   "type": "low-cost",
+   "placed": true,
+   "openaqLocationId": null,
+   "openaqName": null,
+   "openaqProvider": null,
+   "id": "bogota-19",
+   "band": 1,
+   "updatedMinutesAgo": 3,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 5.1,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "PM10",
+     "value": 8.6,
+     "unit": "µg/m³"
+    }
+   ]
+  },
+  {
+   "lngLat": [
+    -74.1808,
+    4.5875
+   ],
+   "type": "low-cost",
+   "placed": true,
+   "openaqLocationId": null,
+   "openaqName": null,
+   "openaqProvider": null,
+   "id": "bogota-20",
+   "band": 1,
+   "updatedMinutesAgo": 6,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 4.8,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "PM10",
+     "value": 9.1,
+     "unit": "µg/m³"
+    }
+   ]
+  },
+  {
+   "lngLat": [
+    -74.1794,
+    4.6217
+   ],
+   "type": "low-cost",
+   "placed": true,
+   "openaqLocationId": null,
+   "openaqName": null,
+   "openaqProvider": null,
+   "id": "bogota-21",
+   "band": 1,
+   "updatedMinutesAgo": 9,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 9.2,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "PM10",
+     "value": 19.7,
+     "unit": "µg/m³"
+    }
+   ]
+  },
+  {
+   "lngLat": [
+    -74.0795,
+    4.7388
+   ],
+   "type": "low-cost",
+   "placed": true,
+   "openaqLocationId": null,
+   "openaqName": null,
+   "openaqProvider": null,
+   "id": "bogota-22",
+   "band": 1,
+   "updatedMinutesAgo": 7,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 4.6,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "PM10",
+     "value": 9.7,
+     "unit": "µg/m³"
+    }
+   ]
+  },
+  {
+   "lngLat": [
+    -74.0706,
+    4.5847
+   ],
+   "type": "low-cost",
+   "placed": true,
+   "openaqLocationId": null,
+   "openaqName": null,
+   "openaqProvider": null,
+   "id": "bogota-23",
+   "band": 1,
+   "updatedMinutesAgo": 5,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 10.9,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "PM10",
+     "value": 21.6,
+     "unit": "µg/m³"
+    }
+   ]
+  },
+  {
+   "lngLat": [
+    -74.0879,
+    4.7241
+   ],
+   "type": "low-cost",
+   "placed": true,
+   "openaqLocationId": null,
+   "openaqName": null,
+   "openaqProvider": null,
+   "id": "bogota-24",
+   "band": 1,
+   "updatedMinutesAgo": 7,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 4.4,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "PM10",
+     "value": 8.6,
+     "unit": "µg/m³"
+    }
+   ]
+  }
+ ]
+}

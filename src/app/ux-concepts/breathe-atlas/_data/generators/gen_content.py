@@ -1,0 +1,526 @@
+#!/usr/bin/env python3
+"""Map the Breathe Atlas content pack onto the concept's typed data modules.
+
+Run once (2026-09-17) to produce:
+  _data/chapter-content.ts   per-city chapter content (types + CHAPTER_CONTENT)
+  _data/indexes.ts           the four tier-4 cities' own air quality indexes
+  mission-lines.txt          the 16 mission lines, for cities.ts
+
+Honesty rules applied here (brief section 2, dispatch):
+  - Nothing is invented. Every string comes from the pack.
+  - People's names are never rendered, EXCEPT photographer credits, which the
+    Unsplash licence attribution asks for and which are not claims about a city.
+  - `status` travels with every item so placeholders stay visibly placeholder.
+  - Jakarta's population is forced to `placeholder` (Jack has not chosen between
+    the UN 2025 figure and Jakarta's own).
+
+Usage: python3 _data/generators/gen_content.py <content-pack.json>
+"""
+import json
+import os
+import re
+import sys
+from urllib.parse import urlparse
+
+# Paths are resolved from this file's location and from the command line, never hardcoded to one
+# machine (pool portability). Usage:
+#   python3 _data/generators/gen_content.py <content-pack.json> <snapshot-dir>
+# <snapshot-dir> holds the one-off upstream responses (see the FETCH note above); they are not
+# committed, because they are large and re-fetchable with the queries recorded here.
+HERE = os.path.dirname(os.path.abspath(__file__))
+DATA = os.path.dirname(HERE)
+
+PACK = sys.argv[1]
+OUT = DATA
+SCRATCH = sys.argv[2] if len(sys.argv) > 2 else os.path.join(HERE, 'snapshot')
+
+# Cities whose feature story uses the lead-photo layout: photos[0] becomes the lead photo
+# and the photo section shows the rest (no image appears twice in one chapter).
+LEAD_PHOTO_CITIES = {'bogota', 'mexico-city'}
+
+# Unsplash CDN images need sizing parameters to serve a sensible file (pack: hotlinkHint).
+UNSPLASH_PARAMS = '?w=1600&q=80'
+
+pack = json.load(open(PACK))
+cities = {c['id']: c for c in pack['cities']}
+order = pack['chapterOrder']
+
+
+def ts(value):
+    """Render a Python value as TypeScript source."""
+    if value is None:
+        return 'null'
+    if isinstance(value, bool):
+        return 'true' if value else 'false'
+    if isinstance(value, (int, float)):
+        return repr(value)
+    if isinstance(value, str):
+        return "'" + value.replace('\\', '\\\\').replace("'", "\\'") + "'"
+    if isinstance(value, list):
+        return '[' + ', '.join(ts(v) for v in value) + ']'
+    if isinstance(value, dict):
+        return '{ ' + ', '.join(f'{k}: {ts(v)}' for k, v in value.items()) + ' }'
+    raise TypeError(type(value))
+
+
+def block(value, indent):
+    """Render a dict/list across lines, for readability in the emitted file."""
+    pad = ' ' * indent
+    if isinstance(value, dict):
+        if not value:
+            return '{}'
+        lines = [f'{pad}  {k}: {block(v, indent + 2)},' for k, v in value.items()]
+        return '{\n' + '\n'.join(lines) + f'\n{pad}}}'
+    if isinstance(value, list):
+        if not value:
+            return '[]'
+        lines = [f'{pad}  {block(v, indent + 2)},' for v in value]
+        return '[\n' + '\n'.join(lines) + f'\n{pad}]'
+    return ts(value)
+
+
+def host(url):
+    """The source's domain, used as a link label (never a reconstructed page title)."""
+    return re.sub(r'^www\.', '', urlparse(url).netloc)
+
+
+def source_links(urls):
+    """Pack `sources` are bare URLs. Label each by its domain; where a domain repeats,
+    add the URL's own last path segment verbatim so the two entries are distinguishable."""
+    seen = {}
+    for url in urls:
+        seen[host(url)] = seen.get(host(url), 0) + 1
+    out = []
+    for url in urls:
+        h = host(url)
+        if seen[h] > 1:
+            segment = [s for s in urlparse(url).path.split('/') if s]
+            label = f'{h} · {segment[-1]}' if segment else h
+        else:
+            label = h
+        out.append({'label': label, 'url': url, 'status': 'verified'})
+    return out
+
+
+def link(item):
+    """A pack link block -> ChapterLink."""
+    return {'label': item['label'], 'url': item['url'], 'status': item['status']}
+
+
+def image_url(item):
+    """Hotlink URL. Unsplash CDN URLs get the pack's suggested sizing parameters."""
+    url = item['imageUrl']
+    if 'images.unsplash.com' in url and '?' not in url:
+        return url + UNSPLASH_PARAMS
+    return url
+
+
+def photo(item):
+    """A pack photo/landmark block -> ChapterPhoto."""
+    return {
+        'src': image_url(item),
+        'alt': item['alt'],
+        'credit': item['credit'],
+        'sourceUrl': item['sourcePage'],
+        'status': item['status'],
+    }
+
+
+def population(city):
+    facts = city['keyFacts']['population']
+    status = facts['status']
+    if city['id'] == 'jakarta':
+        # Forced placeholder: Jack has not chosen between the UN 2025 figure and Jakarta's own.
+        status = 'placeholder'
+    display = facts['display']
+    return {
+        'display': display,
+        'label': facts['label'],
+        'source': {'label': host(facts['sources'][0]), 'url': facts['sources'][0], 'status': status},
+        'status': status,
+    }
+
+
+def go_further(city):
+    groups = city['goFurther']
+    return {
+        'checkTodaysAir': [link(i) for i in groups.get('checkTodaysAir', [])],
+        'getTheData': [link(i) for i in groups.get('getTheData', [])],
+        'departmentResponsible': link(groups['departmentResponsible']) if 'departmentResponsible' in groups else None,
+    }
+
+
+def content(city):
+    photos = [photo(p) for p in city['photos']]
+    lead = photos[0] if city['id'] in LEAD_PHOTO_CITIES else None
+    rest = photos[1:] if lead is not None else photos
+    story = city['featureStory']
+    return {
+        'landmark': photo(city['landmarkImage']),
+        'population': population(city),
+        'leadAgency': {'name': city['keyFacts']['leadAgency']['name'], 'status': city['keyFacts']['leadAgency']['status']},
+        'joinedBC': {'year': city['keyFacts']['joinedBC']['year'], 'status': city['keyFacts']['joinedBC']['status']},
+        'featureStory': {
+            'title': story['title'],
+            'paragraphs': story['paragraphs'],
+            'sources': source_links(story['sources']),
+            'leadPhoto': lead,
+            'status': story['status'],
+        },
+        'programmes': [
+            {'name': p['name'], 'description': p['description'], 'url': p['url'], 'status': p['status']}
+            for p in city['programmes']
+        ],
+        'photos': rest,
+        'goFurther': go_further(city),
+        'dataSource': link(city['dataSourceLink']),
+    }
+
+
+HEADER = '''/**
+ * chapter-content.ts — the Breathe Atlas chapter content, mapped from the content pack.
+ *
+ * Purpose
+ *   The seven chapter cities' real content: key facts, feature story, programmes, photos, Go
+ *   further links and the sensor cards' data source link. ./chapters.ts assembles these into the
+ *   tier-checked `CityChapter` entries the chapter route renders.
+ *
+ * Provenance (READ BEFORE EDITING)
+ *   Mapped field by field from the content pack written by ux-writer on 2026-09-17:
+ *     design/globalsite/concepts/breathe-atlas/content/breathe-atlas-content-pack.json
+ *     design/globalsite/concepts/breathe-atlas/content/breathe-atlas-content-pack-notes.md
+ *   Every URL in the pack was checked on 2026-09-17. Nothing here was written by the developer:
+ *   no figure, quote or claim exists in this file that is not in the pack. The pack's exclusions
+ *   are kept (no leader names, no outcome figures from quotes, no unconfirmed policy claims).
+ *   Update the pack first, then this file.
+ *
+ * Status, not silence (brief section 2)
+ *   Every item carries `status`:
+ *     'verified'    — confirmed on a public source.
+ *     'drafted'     — our wording, drawn from cited public sources.
+ *     'placeholder' — dummy or unconfirmed; the page marks it "Sample figure" or "Placeholder:".
+ *   Only 'placeholder' shows a marker in the interface. Verified and drafted content renders as
+ *   real content, with no "Sample" label. The nav's "Prototype with sample data" notice covers
+ *   the rest.
+ *
+ * People's names
+ *   No mayor, governor or official is named anywhere in this content (pack rule). The only personal
+ *   names are photographer credits, which the Unsplash licence asks for and which make no claim
+ *   about a city.
+ *
+ * IMAGE RIGHTS
+ *   Every image is HOTLINKED, never downloaded: Breathe Cities' own images from breathecities.org
+ *   and free-licence photos from the Unsplash CDN (sized with the pack's suggested parameters).
+ *   All are rendered in greyscale. The pack notes that several BC images are stock (iStock) and
+ *   that hotlinking them outside breathecities.org may fall outside BC's licence — check before
+ *   this prototype goes beyond the core team.
+ *
+ * Key exports: ContentStatus, ChapterLink, ChapterPhoto, ChapterPopulation, ChapterLeadAgency,
+ *   ChapterJoinedBC, ChapterFeatureStory, ChapterProgramme, ChapterGoFurther, ChapterContent,
+ *   CHAPTER_CONTENT
+ * External dependencies: none.
+ */
+
+/** How far an item has been confirmed. Only 'placeholder' is marked in the interface. */
+export type ContentStatus = 'verified' | 'drafted' | 'placeholder'
+
+/** A labelled link to a public page. */
+export type ChapterLink = {
+  /** Visible link text. */
+  label: string
+  /** Absolute URL. */
+  url: string
+  /** Confirmation status of the link itself. */
+  status: ContentStatus
+}
+
+/** One photo, hotlinked and shown in greyscale (brief 5.6). */
+export type ChapterPhoto = {
+  /** Image URL (hotlinked; null renders a neutral placeholder tile that keeps the alt text). */
+  src: string | null
+  /** Alt text. */
+  alt: string
+  /** Credit line, e.g. "Photo by X on Unsplash" or "Breathe Cities". */
+  credit: string
+  /** The page the photo came from. */
+  sourceUrl: string
+  /** Confirmation status. */
+  status: ContentStatus
+}
+
+/** Urban area population (brief 5.3). `display` is the figure as the pack records it. */
+export type ChapterPopulation = {
+  /** The figure as published, e.g. "10.6 million". Placeholders are bracketed in the pack. */
+  display: string
+  /** Caption under the figure, e.g. "Urban area population · UN estimate". */
+  label: string
+  /** Where the figure comes from. */
+  source: ChapterLink
+  /** Confirmation status; 'placeholder' shows "Sample figure". */
+  status: ContentStatus
+}
+
+/** The lead agency for air quality in the city (name only; its link lives in Go further). */
+export type ChapterLeadAgency = {
+  /** Agency name, in English where the pack gives one, with the original in brackets. */
+  name: string
+  /** Confirmation status. */
+  status: ContentStatus
+}
+
+/** The year the city joined Breathe Cities. */
+export type ChapterJoinedBC = {
+  /** Four-digit year. */
+  year: number
+  /** Confirmation status. */
+  status: ContentStatus
+}
+
+/** The feature story (brief 5.5). */
+export type ChapterFeatureStory = {
+  /** Story headline (rendered as the section's h2). */
+  title: string
+  /** Body paragraphs, in order. */
+  paragraphs: string[]
+  /** The public pages the story draws on, labelled by domain. */
+  sources: ChapterLink[]
+  /** Wide photo above the story. Used by the `lead-photo` layout only. */
+  leadPhoto: ChapterPhoto | null
+  /** Confirmation status of the wording. */
+  status: ContentStatus
+}
+
+/** A named programme with its own public page (brief 5.5). */
+export type ChapterProgramme = {
+  /** Programme name, in English where the pack gives one. */
+  name: string
+  /** One or two sentences on the programme (our wording, from the linked page). */
+  description: string
+  /** The programme's public page. */
+  url: string
+  /** Confirmation status of the programme and its link. */
+  status: ContentStatus
+}
+
+/** Go further links, grouped (brief 5.7). An empty group is left out of the interface. */
+export type ChapterGoFurther = {
+  /** The city's resident air quality platforms. */
+  checkTodaysAir: ChapterLink[]
+  /** The city's open data portal, API or data request route. */
+  getTheData: ChapterLink[]
+  /** The department responsible. */
+  departmentResponsible: ChapterLink | null
+}
+
+/** All of one chapter city's content. Layout choices and tier live in ./chapters.ts. */
+export type ChapterContent = {
+  /** The landmark image beside the city name in the opener, and on the next-chapter card. */
+  landmark: ChapterPhoto
+  /** Urban area population. */
+  population: ChapterPopulation
+  /** Lead agency. */
+  leadAgency: ChapterLeadAgency
+  /** Year joined. */
+  joinedBC: ChapterJoinedBC
+  /** Feature story. */
+  featureStory: ChapterFeatureStory
+  /** Named programmes. */
+  programmes: ChapterProgramme[]
+  /** Photos for the photo section, in order. */
+  photos: ChapterPhoto[]
+  /** Go further links. */
+  goFurther: ChapterGoFurther
+  /** Where the city publishes its air quality data: every sensor card ends with this (brief 2). */
+  dataSource: ChapterLink
+}
+'''
+
+NOTES = {
+    'jakarta': [
+        "// Population is deliberately a PLACEHOLDER. The pack verifies 41.9 million from UN World",
+        "// Urbanization Prospects 2025, whose new method counts the whole continuous built-up area;",
+        "// the older national definition gives about 12 million, and Jakarta's own figure may differ",
+        "// again. Jack has not chosen between the UN figure and Jakarta's own, and the brief records",
+        "// that Jakarta is sensitive about how its data appears, so the chapter shows the figure",
+        "// bracketed and marked \"Sample figure\" until he decides.",
+    ],
+    'warsaw': [
+        "// joinedBC is 2022 because BC describes Warsaw's pilot as launched in 2022, before Breathe",
+        "// Cities itself launched in 2023 (pack notes). Switch to 2023 if \"joined\" should mean the",
+        "// initiative rather than the pilot.",
+    ],
+    'johannesburg': [
+        "// No \"Get the data\" group: the pack found no city open data portal or city OpenAQ listing",
+        "// (goFurtherGaps). The empty group is simply left out, with no gap and no message (brief 2).",
+        "// Its data source link points at SAAQIS, the NATIONAL system, because the city publishes no",
+        "// index or live data of its own. That answers brief section 10; flag it to Jack at review.",
+    ],
+    'bogota': [
+        "// The \"Bogotá Open Data\" link stays a PLACEHOLDER: the portal refused every connection when",
+        "// the pack was checked, so its contents are unconfirmed. It renders with a \"Placeholder:\" prefix.",
+    ],
+    'milan': [
+        "// Milan is tier 1 (shares nothing), so it has no sensor cards; `dataSource` is carried for",
+        "// completeness and is not rendered. BC has no photographs of Milan, so every photo is a",
+        "// free-licence Unsplash photo, credited (pack photosNote).",
+    ],
+}
+
+lines = [HEADER]
+lines.append('')
+lines.append('/** Every chapter city\'s content, keyed by route slug. Mapped from the content pack (see header). */')
+lines.append('export const CHAPTER_CONTENT: Record<string, ChapterContent> = {')
+for slug in order:
+    city = cities[slug]
+    if slug in NOTES:
+        for note in NOTES[slug]:
+            lines.append('  ' + note)
+    key = slug if re.fullmatch(r'[a-z][a-zA-Z0-9]*', slug) else f"'{slug}'"
+    lines.append(f'  {key}: {block(content(city), 2)},')
+lines.append('}')
+lines.append('')
+
+with open(f'{OUT}/chapter-content.ts', 'w') as fh:
+    fh.write('\n'.join(lines))
+
+# ---------------------------------------------------------------------------------------------
+# indexes.ts — the four tier-4 cities' own indexes
+# ---------------------------------------------------------------------------------------------
+
+INDEX_HEADER = '''/**
+ * indexes.ts — the tier-4 cities' own air quality indexes (brief section 2, 6.1, 6.2).
+ *
+ * Purpose
+ *   Bogotá, Johannesburg, Sofia and Warsaw share their own index (illustrative tier 4), so their
+ *   data map colours its markers, and its sensor cards head themselves, with THAT index's level
+ *   names and THAT index's colours. Nothing else in a chapter carries colour.
+ *
+ * We never interpret air quality (brief section 2)
+ *   Level names, level order and colours are the city's own, as published. Nothing here is a
+ *   Breathe Cities judgement, and no BC or AQI palette is used. The four indexes disagree with
+ *   each other by design (five levels in Bogotá, six in Warsaw), and that is left alone.
+ *
+ * Provenance
+ *   Mapped from the content pack's `airQualityIndex` blocks (ux-writer, 2026-09-17), which record
+ *   the publisher, the legal basis where there is one, and the pages each colour was read from:
+ *     design/globalsite/concepts/breathe-atlas/content/breathe-atlas-content-pack.json
+ *   Known conflicts the pack flags, kept as the pack resolved them:
+ *     - Bogotá: the live IBOCA map and Resolución Conjunta 2840 de 2023 disagree on purple; the
+ *       live map's value is used.
+ *     - Johannesburg: SAAQIS is NATIONAL. The city publishes no index of its own.
+ *     - Sofia: the older five-level European index, as air.sofia.bg shows it. The current European
+ *       index has a sixth level that Sofia's page does not show.
+ *     - Warsaw: GIOŚ map-legend colours. Warsaw's own IoT map was unreachable, so the city's own
+ *       colours are unconfirmed.
+ *
+ * TOKEN EXCEPTION (named)
+ *   Hex values are hardcoded here, which the concept standard otherwise forbids. They are DATA,
+ *   not design: each is a city's own published index colour and cannot be a BC token. This is the
+ *   same carve-out the standard makes for Mapbox marker constants, for the same reason (WebGL and
+ *   detached marker DOM cannot read CSS custom properties).
+ *
+ * Key exports: IndexLevel, CityAirQualityIndex, CITY_INDEXES, indexLevel, cityIndex,
+ *   levelDisplayName
+ * External dependencies: none.
+ */
+
+/** One level of a city's own index, in the city's own words and colour. */
+export type IndexLevel = {
+  /** 1 = the index's best level. The order the city publishes. */
+  order: number
+  /** The level name as published, in the index's own language. */
+  nameOriginal: string
+  /** English name (the publisher's own where it has one, otherwise the pack's translation). */
+  nameEnglish: string
+  /** The city's own colour for this level, as published. */
+  hex: string
+}
+
+/** A city's own air quality index. */
+export type CityAirQualityIndex = {
+  /** Index name as it should appear in the interface, e.g. "IBOCA". */
+  name: string
+  /** Who publishes it, for the legend's small print. */
+  publisher: string
+  /** The levels, best first. */
+  levels: IndexLevel[]
+  /**
+   * The level a "moderate" sensor reads in this index: one band above the best.
+   * Mock data uses this (brief section 7: one moderate sensor per tier-4 city).
+   */
+  moderateOrder: number
+  /**
+   * The level a "sensitive groups" sensor reads in this index: two bands above the best, which in
+   * all four indexes is where the publisher's own advice starts to single out sensitive groups.
+   * Mock data uses this (brief section 7: one sensitive-groups sensor per tier-4 city).
+   */
+  sensitiveOrder: number
+}
+'''
+
+index_lines = [INDEX_HEADER, '']
+index_lines.append("/** The four tier-4 cities' indexes, keyed by route slug. */")
+index_lines.append('export const CITY_INDEXES: Record<string, CityAirQualityIndex> = {')
+for slug in order:
+    city = cities[slug]
+    if 'airQualityIndex' not in city:
+        continue
+    aqi = city['airQualityIndex']
+    entry = {
+        'name': aqi['name'],
+        'publisher': aqi['publisher'],
+        'levels': [
+            {
+                'order': lvl['order'],
+                'nameOriginal': lvl['nameOriginal'],
+                'nameEnglish': lvl['nameEnglish'],
+                'hex': lvl['hex'],
+            }
+            for lvl in aqi['levels']
+        ],
+        'moderateOrder': 2,
+        'sensitiveOrder': 3,
+    }
+    key = slug if re.fullmatch(r'[a-z][a-zA-Z0-9]*', slug) else f"'{slug}'"
+    index_lines.append(f'  {key}: {block(entry, 2)},')
+index_lines.append('}')
+index_lines.append('')
+index_lines.append('''/** A city's index, or null when the city does not share one (tiers 1 to 3). */
+export function cityIndex(slug: string): CityAirQualityIndex | null {
+  return CITY_INDEXES[slug] ?? null
+}
+
+/**
+ * One level of a city's index by its published order. Throws rather than guessing: a missing level
+ * means the mock data and the index disagree, which must fail the build, not render a wrong colour.
+ */
+export function indexLevel(index: CityAirQualityIndex, order: number): IndexLevel {
+  const level = index.levels.find((entry) => entry.order === order)
+  if (level === undefined) {
+    throw new Error(`Breathe Atlas: ${index.name} has no level ${order}`)
+  }
+  return level
+}
+
+/**
+ * A level as the interface shows it: the name the city publishes, with the English name after it
+ * when the two differ (the prototype is English only, brief section 2). Never a BC-invented name.
+ */
+export function levelDisplayName(level: IndexLevel): string {
+  return level.nameOriginal === level.nameEnglish
+    ? level.nameEnglish
+    : `${level.nameOriginal} (${level.nameEnglish})`
+}''')
+
+with open(f'{OUT}/indexes.ts', 'w') as fh:
+    fh.write('\n'.join(index_lines) + '\n')
+
+# ---------------------------------------------------------------------------------------------
+# mission lines for cities.ts
+# ---------------------------------------------------------------------------------------------
+with open(f'{SCRATCH}/mission-lines.txt', 'w') as fh:
+    for city in pack['cities']:
+        fh.write(f"{city['id']}\t{city['missionLine']['status']}\t{city['missionLine']['text']}\n")
+    fh.write(f"BC\t{pack['breatheCities']['missionLine']['status']}\t{pack['breatheCities']['missionLine']['text']}\n")
+
+print('wrote chapter-content.ts, indexes.ts, mission-lines.txt')
