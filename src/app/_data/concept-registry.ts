@@ -28,7 +28,7 @@
  */
 
 /** Stable concept identifiers — one per UX concept (NOT per version). */
-export type ConceptId = 'roadmap' | 'residentConcerns' | 'toolkit' | 'aqNetwork' | 'globalToolkitNetwork'
+export type ConceptId = 'roadmap' | 'residentConcerns' | 'toolkit' | 'aqNetwork' | 'globalToolkitNetwork' | 'breatheAtlas'
 
 /** A single concept's catalogue entry: its canonical title + canonical route. */
 export type ConceptEntry = {
@@ -64,6 +64,10 @@ export const CONCEPTS: Record<ConceptId, ConceptEntry> = {
   globalToolkitNetwork: {
     title: 'Global Site Concept - BC Global Toolkit Network',
     route: '/ux-concepts/global-toolkit-network',
+  },
+  breatheAtlas: {
+    title: 'Global Site Concept - Breathe Atlas',
+    route: '/ux-concepts/breathe-atlas',
   },
 }
 
