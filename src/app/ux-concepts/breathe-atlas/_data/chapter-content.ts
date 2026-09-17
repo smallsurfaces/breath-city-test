@@ -36,6 +36,14 @@
  *   that hotlinking them outside breathecities.org may fall outside BC's licence — check before
  *   this prototype goes beyond the core team.
  *
+ * WATERMARKS (pack revision 2, 2026-09-17)
+ *   The pack's second revision opened all 38 chapter images as PIXELS, not file names, and found 12
+ *   carrying a burned-in photographer credit. Breathe Cities burns a credit caption into its
+ *   commissioned photography as house style, so a BC image cannot be assumed clean and a BC page is
+ *   not a credit. All 12 were replaced (11) or dropped (1), which is why several cities now mix BC
+ *   images with Unsplash ones and why the per-city counts differ. Every photo here carries
+ *   `watermark: false` in the pack, with `watermarkCheck` recording what the check saw.
+ *
  * Key exports: ContentStatus, ChapterCredit, ChapterLink, ChapterPhoto, ChapterPopulation, ChapterLeadAgency,
  *   ChapterJoinedBC, ChapterFeatureStory, ChapterProgramme, ChapterGoFurther, ChapterContent,
  *   CHAPTER_CONTENT
@@ -46,15 +54,18 @@
 export type ContentStatus = 'verified' | 'drafted' | 'placeholder'
 
 /**
- * A credit for a figure: who published it, and its page where the pack has one. Distinct from
- * ChapterLink because a credit may name a publication the pack carries no URL for, in which case
- * it renders as plain text rather than a link. No URL is ever invented to fill the gap.
+ * A credit for a figure: who published it, and its page. Distinct from ChapterLink because a
+ * credit can be unlinked — where the figure is a placeholder, the pack's URL is the route IN to
+ * the figure rather than a page that carries it, so the publication is named in plain text and no
+ * link is offered. No URL is ever invented, and none is attached to an unconfirmed figure.
  */
 export type ChapterCredit = {
-  /** Visible credit text: the publication, as the pack names it. */
+  /** Visible credit text: the publication, as the pack names it (`sourceName`). */
   label: string
-  /** Absolute URL, or null when the pack names the publication but no page. */
+  /** The publication's page, or null where the credit is deliberately unlinked (see above). */
   url: string | null
+  /** How close the source is to the city: "city government", "national statistics office". */
+  tier: string
   /** Confirmation status of the credit. */
   status: ContentStatus
 }
@@ -90,30 +101,31 @@ export type ChapterPhoto = {
  * nothing we can confirm.
  */
 export type ChapterPopulation = {
-  /** The figure as published, e.g. "10,881,514". Placeholders are bracketed in the pack. */
+  /** The figure as the pack publishes it, e.g. "10.9 million". Placeholders are bracketed. */
   display: string
   /** Caption under the figure: "City population · city's own figure", or the UN label on fallback. */
   label: string
-  /** The administrative area the figure covers, e.g. "DKI Jakarta province". Null on UN fallback. */
-  unit: string | null
-  /** The figure's date, as the source states it, e.g. "2025, at 31 December". */
-  year: string
+  /** The administrative area the figure covers, e.g. "DKI Jakarta province". */
+  covers: string
+  /** The figure's date as the source states it, e.g. "31 December 2025", "Census of 2020". */
+  asAt: string
   /**
-   * Honesty note for a figure that is not an exact count ("An estimate, not a count."), or null
-   * when it is exact. Never softens a figure the source publishes as exact.
+   * What the figure rests on, in the pack's words: "Census count, as published by the city
+   * government.", "The city's own estimate, citing Statistics South Africa's mid-year population
+   * estimates for 2024. Rounded to the nearest hundred thousand." This is the honesty line — it is
+   * how the page says "estimated" or "rounded" without the build classifying anything itself.
    */
-  precisionNote: string | null
-  /** Who publishes the figure. `url` is null where the pack names the publication but no page. */
+  basis: string
+  /** Who publishes the figure. Unlinked where the figure is a placeholder (see ChapterCredit). */
   source: ChapterCredit
   /** Confirmation status; 'placeholder' shows "Sample figure". */
   status: ContentStatus
   /**
    * The UN urban-area estimate for the same city, carried so the research is not lost and the
    * difference between a city figure and a built-up-area figure stays visible in the data.
-   * NOT RENDERED: the page shows the city's own figure (Jack, 2026-09-17). Null when the UN figure
-   * IS the rendered figure (the fallback case above).
+   * NOT RENDERED: the page shows the city's own figure (Jack, 2026-09-17).
    */
-  unEstimate: { display: string; label: string; status: ContentStatus } | null
+  unEstimate: { display: string; label: string; status: ContentStatus }
 }
 
 /** The lead agency for air quality in the city (name only; its link lives in Go further). */
@@ -172,7 +184,7 @@ export type ChapterGoFurther = {
 export type ChapterContent = {
   /** The landmark image beside the city name in the opener, and on the next-chapter card. */
   landmark: ChapterPhoto
-  /** Urban area population. */
+  /** The city's own population figure for the area it administers. */
   population: ChapterPopulation
   /** Lead agency. */
   leadAgency: ChapterLeadAgency
@@ -196,11 +208,10 @@ export const CHAPTER_CONTENT: Record<string, ChapterContent> = {
   // The "Bogotá Open Data" link stays a PLACEHOLDER: the portal refused every connection when
   // the pack was checked, so its contents are unconfirmed. It renders with a "Placeholder:" prefix.
   // The population is the one figure of the seven that is still a PLACEHOLDER: Bogotá publishes
-  // its own, but every district and national statistics host refused us (see CITY_POPULATIONS in
-  // the generator). "About 7.9 million" is a candidate from aggregator sites, never a primary
-  // page, so it renders bracketed and marked "Sample figure".
-  // The lead photo is photos[3], not photos[0]: the first three Bogotá photos in the pack carry
-  // a visible stock-library watermark (see LEAD_PHOTO_INDEX in the generator).
+  // its own, but every district and national statistics host refused the pack's checks. "About
+  // 7.9 million" is a candidate from aggregator sites, never a primary page, so it renders
+  // bracketed and marked "Sample figure", and its credit is NOT a link: the pack's URL is the
+  // Alcaldía page describing the Visor de Población, which does not carry the figure itself.
   bogota: {
     landmark: {
       src: 'https://breathecities.org/wp-content/uploads/2025/07/Country-cards-96.png',
@@ -212,12 +223,13 @@ export const CHAPTER_CONTENT: Record<string, ChapterContent> = {
     population: {
       display: '[about 7.9 million]',
       label: 'City population · city\'s own figure',
-      unit: 'Bogotá D.C., the Capital District',
-      year: '2025',
-      precisionNote: 'An estimate, not a count.',
+      covers: 'Bogotá D.C., the Capital District',
+      asAt: '2025',
+      basis: 'Population projection from the 2018 national census, produced by DANE with the Secretaría Distrital de Planeación.',
       source: {
-        label: 'Secretaría Distrital de Planeación, Visor de Población (DANE projection with SDP)',
+        label: 'Secretaría Distrital de Planeación, Visor de Población',
         url: null,
+        tier: 'city government',
         status: 'placeholder',
       },
       status: 'placeholder',
@@ -307,24 +319,24 @@ export const CHAPTER_CONTENT: Record<string, ChapterContent> = {
     ],
     photos: [
       {
-        src: 'https://breathecities.org/wp-content/uploads/2025/07/Riccardo-Parretti-Pexels-52.png',
-        alt: 'A steep stepped street lined with colourful colonial buildings, with street vendors and people walking.',
+        src: 'https://breathecities.org/wp-content/uploads/2025/07/Country-cards-97.png',
+        alt: 'Cars and yellow taxis on a tree-lined avenue, with green hills behind the city.',
         credit: 'Breathe Cities',
         sourceUrl: 'https://breathecities.org/cities/bogota/',
         status: 'verified',
       },
       {
-        src: 'https://breathecities.org/wp-content/uploads/2025/07/Riccardo-Parretti-Pexels-54.png',
-        alt: 'A smiling young man on a brick path lined with flowers, with houses and a white church on the hillside behind.',
-        credit: 'Breathe Cities',
-        sourceUrl: 'https://breathecities.org/cities/bogota/',
+        src: 'https://images.unsplash.com/photo-1583248875887-720fbc43e923?w=1600&q=80',
+        alt: 'A quiet residential street with apartment blocks and a line of tall trees.',
+        credit: 'Photo by Adrian Cogua on Unsplash',
+        sourceUrl: 'https://unsplash.com/photos/cars-parked-on-side-of-the-road-near-high-rise-buildings-during-daytime-CHR7lO6ypHM',
         status: 'verified',
       },
       {
-        src: 'https://breathecities.org/wp-content/uploads/2025/11/Bogota-1.png',
-        alt: 'Cyclists and pedestrians on a car-free avenue, with high-rise buildings and green mountains behind.',
-        credit: 'Breathe Cities',
-        sourceUrl: 'https://breathecities.org/bogota-earthshot-prize-winner/',
+        src: 'https://images.unsplash.com/photo-1734738224417-70db65dc9677?w=1600&q=80',
+        alt: 'A man in a hat walking along a narrow street in the old centre.',
+        credit: 'Photo by Axl Ríos on Unsplash',
+        sourceUrl: 'https://unsplash.com/photos/a-man-walking-down-a-street-next-to-tall-buildings-YjGIV4zWpiQ',
         status: 'verified',
       },
     ],
@@ -374,14 +386,15 @@ export const CHAPTER_CONTENT: Record<string, ChapterContent> = {
       status: 'verified',
     },
     population: {
-      display: '10,881,514',
+      display: '10.9 million',
       label: 'City population · city\'s own figure',
-      unit: 'DKI Jakarta province',
-      year: '2025, at 31 December',
-      precisionNote: null,
+      covers: 'DKI Jakarta province, the area the Jakarta provincial government administers',
+      asAt: '31 December 2025',
+      basis: 'Civil registration. Data Kependudukan Bersih (clean population data), semester II 2025.',
       source: {
-        label: 'Dinas Kependudukan dan Pencatatan Sipil Provinsi DKI Jakarta, clean population data, semester II 2025',
-        url: null,
+        label: 'Dinas Kependudukan dan Pencatatan Sipil Provinsi DKI Jakarta',
+        url: 'https://kependudukancapil.jakarta.go.id/2026/03/13/data-kependudukan-bersih-semester-ii-2025-dirilis-penduduk-dki-jakarta-tercatat-1088-juta-jiwa/',
+        tier: 'city government',
         status: 'verified',
       },
       status: 'verified',
@@ -462,24 +475,24 @@ export const CHAPTER_CONTENT: Record<string, ChapterContent> = {
         status: 'verified',
       },
       {
-        src: 'https://breathecities.org/wp-content/uploads/2025/07/Riccardo-Parretti-Pexels-56.png',
-        alt: 'A woman carries a young child on a pedestrian bridge, with high-rise towers behind.',
-        credit: 'Breathe Cities',
-        sourceUrl: 'https://breathecities.org/cities/jakarta/',
-        status: 'verified',
-      },
-      {
-        src: 'https://breathecities.org/wp-content/uploads/2025/07/Country-cards-2025-10-02T084631.759-2048x2048.png',
-        alt: 'Motorcyclists riding close together in city traffic.',
-        credit: 'Breathe Cities',
-        sourceUrl: 'https://breathecities.org/cities/jakarta/',
-        status: 'verified',
-      },
-      {
         src: 'https://breathecities.org/wp-content/uploads/2026/09/IMG_4346-2048x1536.jpg',
         alt: 'Residents and municipal workers study a map together at a community discussion about the Low Emission Zone in Blok M.',
         credit: 'Breathe Cities',
         sourceUrl: 'https://breathecities.org/jakarta-low-emission-zone-roadmap/',
+        status: 'verified',
+      },
+      {
+        src: 'https://images.unsplash.com/photo-1555043722-4523972f07ee?w=1600&q=80',
+        alt: 'A wide avenue through the business district, with a covered pedestrian bridge crossing it.',
+        credit: 'Photo by Afif Ramdhasuma on Unsplash',
+        sourceUrl: 'https://unsplash.com/photos/jakarta-city-road-with-pedestrian-bridge-XYQPyn4KkiY',
+        status: 'verified',
+      },
+      {
+        src: 'https://images.unsplash.com/photo-1617687611017-48db8d42fd8f?w=1600&q=80',
+        alt: 'A fountain plaza in the city centre, ringed by high-rise towers.',
+        credit: 'Photo by Muhammad Syafi Al - adam on Unsplash',
+        sourceUrl: 'https://unsplash.com/photos/people-walking-on-park-near-high-rise-buildings-during-daytime-xbaaMKy99xk',
         status: 'verified',
       },
     ],
@@ -525,12 +538,13 @@ export const CHAPTER_CONTENT: Record<string, ChapterContent> = {
     population: {
       display: '5.8 million',
       label: 'City population · city\'s own figure',
-      unit: 'City of Johannesburg Metropolitan Municipality',
-      year: '2024, mid-year',
-      precisionNote: 'An estimate, not a count.',
+      covers: 'City of Johannesburg Metropolitan Municipality',
+      asAt: 'Mid-year 2024',
+      basis: 'The city\'s own estimate, citing Statistics South Africa\'s mid-year population estimates for 2024. Rounded to the nearest hundred thousand.',
       source: {
-        label: 'City of Johannesburg, Integrated Development Plan 2025/26, citing Statistics South Africa',
-        url: null,
+        label: 'City of Johannesburg, Integrated Development Plan 2025/26 (The People\'s Plan 2025/26), section 2.4 Demographics',
+        url: 'https://joburg.org.za/documents_/Documents/2025-26_IDP_Council_Submission.Final.pdf',
+        tier: 'city government',
         status: 'verified',
       },
       status: 'verified',
@@ -614,31 +628,31 @@ export const CHAPTER_CONTENT: Record<string, ChapterContent> = {
     ],
     photos: [
       {
-        src: 'https://breathecities.org/wp-content/uploads/2025/07/Riccardo-Parretti-Pexels-48.png',
-        alt: 'A technician works on an air quality monitoring station mounted on a pole.',
-        credit: 'Breathe Cities',
-        sourceUrl: 'https://breathecities.org/cities/johannesburg/',
-        status: 'verified',
-      },
-      {
-        src: 'https://breathecities.org/wp-content/uploads/2025/07/Riccardo-Parretti-Pexels-49.png',
-        alt: 'A young woman in an orange bib sits on the grass holding a \'Clean air for all\' sign.',
-        credit: 'Breathe Cities',
-        sourceUrl: 'https://breathecities.org/cities/johannesburg/',
-        status: 'verified',
-      },
-      {
-        src: 'https://breathecities.org/wp-content/uploads/2025/11/Riccardo-Parretti-Pexels-62.png',
-        alt: 'A youth leader speaks to a seated audience at an outdoor event.',
-        credit: 'Breathe Cities',
-        sourceUrl: 'https://breathecities.org/youth-action-breathing-new-life-into-johannesburg/',
-        status: 'verified',
-      },
-      {
         src: 'https://breathecities.org/wp-content/uploads/2025/01/Untitled-design-2025-01-23T111447.790-2048x2048.png',
         alt: 'People walk past a colourful \'Portal to Africa\' mural.',
         credit: 'Breathe Cities',
         sourceUrl: 'https://breathecities.org/johannesburg-launches-breathe-cities-initiative/',
+        status: 'verified',
+      },
+      {
+        src: 'https://images.unsplash.com/photo-1636706519609-988babca3dd5?w=1600&q=80',
+        alt: 'The city centre skyline at golden hour, seen from above.',
+        credit: 'Photo by Simon Hurry on Unsplash',
+        sourceUrl: 'https://unsplash.com/photos/johannesburg-skyline-at-golden-hour-_h-L45TSmGM',
+        status: 'verified',
+      },
+      {
+        src: 'https://images.unsplash.com/photo-1678777724000-1438f926c09d?w=1600&q=80',
+        alt: 'A cable-stayed bridge over the railway yards, with commuter trains below.',
+        credit: 'Photo by Karabo Mdluli on Unsplash',
+        sourceUrl: 'https://unsplash.com/photos/a-view-of-a-city-from-a-bridge-rtTDr7-yM_I',
+        status: 'verified',
+      },
+      {
+        src: 'https://images.unsplash.com/photo-1577948000111-9c970dfe3743?w=1600&q=80',
+        alt: 'An aerial view of the inner city, with a telecommunications tower on the skyline.',
+        credit: 'Photo by Clodagh Da Paixao on Unsplash',
+        sourceUrl: 'https://unsplash.com/photos/aerial-photography-of-urban-city-skyline-during-daytime-xvJVDUoGpoU',
         status: 'verified',
       },
     ],
@@ -672,14 +686,15 @@ export const CHAPTER_CONTENT: Record<string, ChapterContent> = {
       status: 'verified',
     },
     population: {
-      display: '9,209,944',
+      display: '9.2 million',
       label: 'City population · city\'s own figure',
-      unit: 'Ciudad de México and its 16 alcaldías',
-      year: '2020 census',
-      precisionNote: null,
+      covers: 'Ciudad de México, the federal entity and its 16 alcaldías',
+      asAt: 'Census of 2020',
+      basis: 'Census count, as published by the city government.',
       source: {
-        label: 'Gobierno de la Ciudad de México, Instituto de Planeación Democrática y Prospectiva, 2025, citing INEGI',
-        url: null,
+        label: 'Gobierno de la Ciudad de México, Instituto de Planeación Democrática y Prospectiva, Panorama geográfico y estadístico de la Ciudad de México, first edition 2025',
+        url: 'https://ipdp.cdmx.gob.mx/storage/app/uploads/public/685/f33/3d9/685f333d951a8052216776.pdf',
+        tier: 'city government',
         status: 'verified',
       },
       status: 'verified',
@@ -712,10 +727,10 @@ export const CHAPTER_CONTENT: Record<string, ChapterContent> = {
         },
       ],
       leadPhoto: {
-        src: 'https://breathecities.org/wp-content/uploads/2025/07/Riccardo-Parretti-Pexels-69.png',
-        alt: 'A taxi driver stands beside his pink and white taxi.',
-        credit: 'Breathe Cities',
-        sourceUrl: 'https://breathecities.org/cities/mexico-city/',
+        src: 'https://images.unsplash.com/photo-1612006768306-b4a49c884413?w=1600&q=80',
+        alt: 'Street vendors and people walking along a palm-lined avenue.',
+        credit: 'Photo by Carl Campbell on Unsplash',
+        sourceUrl: 'https://unsplash.com/photos/people-walking-on-street-during-daytime-gscb7_qyE6o',
         status: 'verified',
       },
       status: 'drafted',
@@ -754,20 +769,6 @@ export const CHAPTER_CONTENT: Record<string, ChapterContent> = {
     ],
     photos: [
       {
-        src: 'https://breathecities.org/wp-content/uploads/2025/07/Mexico-City-Bus-1-2048x2048.png',
-        alt: 'A man fixes a \'Soy taxi eléctrico\' (I am an electric taxi) sticker to the door of a pink and white taxi.',
-        credit: 'Breathe Cities',
-        sourceUrl: 'https://breathecities.org/cities/mexico-city/',
-        status: 'verified',
-      },
-      {
-        src: 'https://breathecities.org/wp-content/uploads/2026/05/Riccardo-Parretti-Pexels-73.png',
-        alt: 'A green city bus on a street, with office towers behind.',
-        credit: 'Breathe Cities',
-        sourceUrl: 'https://breathecities.org/mexico-city-launches-citys-first-low-cost-air-sensor-network/',
-        status: 'verified',
-      },
-      {
         src: 'https://breathecities.org/wp-content/uploads/2024/10/iStock-Mexico-City-1-2048x1365.jpg',
         alt: 'A busy pedestrian street in the historic centre, with the Torre Latinoamericana in the distance.',
         credit: 'Breathe Cities',
@@ -779,6 +780,13 @@ export const CHAPTER_CONTENT: Record<string, ChapterContent> = {
         alt: 'An aerial view of people cycling along Paseo de la Reforma, lined with trees.',
         credit: 'Breathe Cities',
         sourceUrl: 'https://breathecities.org/',
+        status: 'verified',
+      },
+      {
+        src: 'https://images.unsplash.com/photo-1671569885645-d7f5728ebcda?w=1600&q=80',
+        alt: 'Two people walking past the carved stone doorway of a historic building.',
+        credit: 'Photo by Tomas Martinez on Unsplash',
+        sourceUrl: 'https://unsplash.com/photos/a-woman-walking-down-a-street-past-a-tall-building-gEtD-fXUeb4',
         status: 'verified',
       },
     ],
@@ -831,14 +839,15 @@ export const CHAPTER_CONTENT: Record<string, ChapterContent> = {
       status: 'verified',
     },
     population: {
-      display: '1,399,079',
+      display: '1.4 million',
       label: 'City population · city\'s own figure',
-      unit: 'Comune di Milano',
-      year: '2025, at 31 December',
-      precisionNote: null,
+      covers: 'Comune di Milano, the city the council administers',
+      asAt: '31 December 2025',
+      basis: 'Resident population register (Anagrafe).',
       source: {
-        label: 'Comune di Milano, Portale del Dato, population register',
-        url: null,
+        label: 'Comune di Milano, Portale del Dato, La popolazione a Milano nel 2025',
+        url: 'https://dati.comune.milano.it/web/portale-del-dato/w/la-popolazione-a-milano-nel-2025',
+        tier: 'city government',
         status: 'verified',
       },
       status: 'verified',
@@ -939,13 +948,6 @@ export const CHAPTER_CONTENT: Record<string, ChapterContent> = {
         status: 'verified',
       },
       {
-        src: 'https://images.unsplash.com/photo-1587685780550-2cc6257fb829?w=1600&q=80',
-        alt: 'A yellow tram on a street lined with stone buildings.',
-        credit: 'Photo by Pedro Sanz on Unsplash',
-        sourceUrl: 'https://unsplash.com/photos/yellow-and-white-tram-on-street-during-daytime-LyHUUTNBBAE',
-        status: 'verified',
-      },
-      {
         src: 'https://images.unsplash.com/photo-1668603751485-4270c3581f3a?w=1600&q=80',
         alt: 'A tree-lined avenue with tram tracks leading to a stone triumphal arch.',
         credit: 'Photo by Al Elmes on Unsplash',
@@ -964,6 +966,13 @@ export const CHAPTER_CONTENT: Record<string, ChapterContent> = {
         alt: 'A yellow tram on a city street under overhead tram wires.',
         credit: 'Photo by Faezeh Taheri on Unsplash',
         sourceUrl: 'https://unsplash.com/photos/a-street-with-a-yellow-tram-on-it-7MzedenNF3M',
+        status: 'verified',
+      },
+      {
+        src: 'https://images.unsplash.com/photo-1730438445087-46ad7fd736a3?w=1600&q=80',
+        alt: 'A yellow heritage tram on a narrow street in the city centre.',
+        credit: 'Photo by Joshi Milestoner on Unsplash',
+        sourceUrl: 'https://unsplash.com/photos/a-yellow-trolley-car-on-a-city-street-yARPIhFNn6s',
         status: 'verified',
       },
     ],
@@ -1013,14 +1022,15 @@ export const CHAPTER_CONTENT: Record<string, ChapterContent> = {
       status: 'verified',
     },
     population: {
-      display: '1,303,813',
+      display: '1.3 million',
       label: 'City population · city\'s own figure',
-      unit: 'Stolichna obshtina (Sofia Municipality), 24 districts',
-      year: '2025, at 31 December',
-      precisionNote: null,
+      covers: 'Stolichna obshtina (Sofia Municipality) and its 24 districts',
+      asAt: '31 December 2025',
+      basis: 'Official population estimate for the municipality.',
       source: {
-        label: 'National Statistical Institute of Bulgaria, final data for 2025',
-        url: null,
+        label: 'National Statistical Institute, Population and demographic processes in 2025, final data',
+        url: 'https://www.nsi.bg/press-release/naselenie-i-demografski-procesi-9002',
+        tier: 'national statistics office',
         status: 'verified',
       },
       status: 'verified',
@@ -1178,14 +1188,15 @@ export const CHAPTER_CONTENT: Record<string, ChapterContent> = {
       status: 'verified',
     },
     population: {
-      display: '1,862,000',
+      display: '1.9 million',
       label: 'City population · city\'s own figure',
-      unit: 'Miasto Warszawa (m.st. Warszawa)',
-      year: '2024, at 30 June',
-      precisionNote: 'The city publishes this figure rounded.',
+      covers: 'Miasto Warszawa (m.st. Warszawa), 517 square kilometres',
+      asAt: '30 June 2024',
+      basis: 'The city\'s own statistics page. Rounded by the city to the nearest thousand.',
       source: {
         label: 'Miasto Warszawa, Statystyka Warszawy',
-        url: null,
+        url: 'https://um.warszawa.pl/statystyka-warszawy-2025',
+        tier: 'city government',
         status: 'verified',
       },
       status: 'verified',
