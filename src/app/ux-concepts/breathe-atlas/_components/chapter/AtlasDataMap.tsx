@@ -32,8 +32,15 @@
  *   shows its own "use ctrl + scroll" hint when a plain wheel reaches the map, which is the honest
  *   affordance and one we do not have to build or translate.
  *
+ * First render, and the wireframe while it happens (bug report 2026-09-17, BUG 4)
+ *   The sensors are placed synchronously, off the style's critical path, and the boundary work has
+ *   four independent routes to the style with one-way latches behind them. Until the sensors are
+ *   down the band shows a quiet grey wireframe with a status line, so a slow basemap never reads as
+ *   a city with no sensor network. The reasoning is in the init effect, next to the code.
+ *
  * Accessibility
  *   Markers are buttons with names that carry what shape and colour say (createSensorMarkerElement).
+ *   The wireframe's status line is a live region, so the wait is announced rather than silent.
  *   Opening a card moves focus to its close button; closing it, with the button or with Escape,
  *   returns focus to the marker. The pulse stops under prefers-reduced-motion (in the marker SVG).
  *
@@ -50,7 +57,7 @@
 
 'use client'
 
-import { useCallback, useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import ReactDOM from 'react-dom/client'
 import mapboxgl from 'mapbox-gl'
 import { AtlasMapLegend } from './AtlasMapLegend'
@@ -245,8 +252,46 @@ export function AtlasDataMap({
   const popupRef = useRef<mapboxgl.Popup | null>(null)
   const popupRootRef = useRef<ReactDOM.Root | null>(null)
   const rootUnmountedRef = useRef<boolean>(true)
+  // One-way latches for the two pieces of first-render work that must happen exactly once, however
+  // many of the four style-ready routes fire (see "First render" in the init effect below).
+  const fittedRef = useRef<boolean>(false)
+  const boundaryDoneRef = useRef<boolean>(false)
+  /**
+   * False until the city's sensors are on the map, which is what the quiet wireframe below waits
+   * for. Deliberately NOT tied to the basemap or to Mapbox's `load`: a data city must never read
+   * as a city with no sensors (bug report 2026-09-17, BUG 4), and the sensors are the one thing
+   * this map exists to show. Stays false, and the wireframe stays up, when there is no Mapbox
+   * token and no map is built at all.
+   */
+  const [sensorsPlaced, setSensorsPlaced] = useState<boolean>(false)
   // The marker that opened the current card, so focus can go back to it on close.
   const openerRef = useRef<HTMLElement | null>(null)
+  /**
+   * True while an open card's pan is outstanding, so closing knows to put the view back.
+   *
+   * THE BUG (bug report 2026-09-17, BUG 12). Opening a card pans the map so the card fits, which
+   * is deliberate and right. But the pans ACCUMULATED: closing left the map where the pan had put
+   * it, and after two cards on Bogotá at 390px the top marker had been pushed out of the frame
+   * entirely, with no way back but a page reload.
+   *
+   * THE RESTORE IS AN ABSOLUTE TARGET — the same `fitBounds` the map opened on — and not the
+   * reverse of the pan, nor a remembered centre. Both of those are only correct if the pan they
+   * refer to actually finished, and an eased Mapbox move does not progress while the tab is not
+   * rendering: measured here in a background tab, the open pan had moved nothing after 2.5s, so
+   * reversing its delta moved the map the wrong way by the full amount, and a centre captured
+   * mid-flight remembered a place the map was never at. Re-fitting needs no memory of the pan at
+   * all, cannot drift, and is exactly the view the reader started from. (The same lesson as the
+   * carousel's rapid clicks: an absolute target survives an animation a relative one does not.)
+   */
+  const cardPannedRef = useRef<boolean>(false)
+  /**
+   * True once the READER has dragged, zoomed or wheeled the map themselves. From then on the view
+   * is theirs and the restore above never runs again: snapping someone back to the whole-city view
+   * after they went looking at one district would be its own bug.
+   */
+  const readerMovedRef = useRef<boolean>(false)
+  /** The city's sensor bounds, so the restore can re-fit without re-creating closeCard. */
+  const boundsRef = useRef<[[number, number], [number, number]]>(bounds)
 
   /**
    * Close the open card and unmount its React root. The unmount is deferred and guarded, because
@@ -257,6 +302,20 @@ export function AtlasDataMap({
     if (popupRef.current !== null) {
       popupRef.current.remove()
       popupRef.current = null
+    }
+    // Undo the pan that opening this card applied (see cardPanRef), unless the reader has moved the
+    // map since, in which case their view wins and the pan is simply forgotten.
+    const panned = cardPannedRef.current
+    cardPannedRef.current = false
+    const panMap = mapRef.current
+    if (panned && !readerMovedRef.current && panMap !== null) {
+      // duration 0, so this is a jump and not an ease. A Mapbox ease is driven by the rendering
+      // loop and simply does not progress while the tab is not rendering, which left the open
+      // card's own eased pan outstanding and the view drifting a little further with every card
+      // (measured in a background tab). A jump also stops whatever ease is in flight, so this is
+      // the last word on the camera rather than one more animation queued behind the others. It
+      // is the same call, with the same arguments, that the map opens on.
+      panMap.fitBounds(boundsRef.current, { padding: 56, maxZoom: 13, duration: 0 })
     }
     const root = popupRootRef.current
     if (root !== null && !rootUnmountedRef.current) {
@@ -349,6 +408,7 @@ export function AtlasDataMap({
         const x = overflowLeft > 0 ? -overflowLeft : overflowRight > 0 ? overflowRight : 0
         const y = overflowTop > 0 ? -overflowTop : overflowBottom > 0 ? overflowBottom : 0
         if (x !== 0 || y !== 0) {
+          cardPannedRef.current = true
           map.panBy([x, y], { duration: 200 })
         }
       })
@@ -390,92 +450,178 @@ export function AtlasDataMap({
     )
     map.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'bottom-right')
 
-    map.on('load', () => {
-      // Fit again now that the style is ready. The constructor fits against whatever size the
-      // container had at that moment, and this one is a flex child inside a fixed-height band, so
-      // it is still growing: without this the map opens far too wide (measured, not assumed).
+    // ── First render: markers off the style path, the boundary on it ───────────────────────────
+    //
+    // THE BUG THIS REPLACES (bug report 2026-09-17, BUG 4). Everything below used to hang off one
+    // `map.on('load')`. Measured on four loads, a data chapter could sit with an empty pale panel
+    // and ZERO markers for 30 to 90 seconds: no basemap detail, no boundary, no mask and no
+    // sensors, with no error and no loading state. A reviewer reads that as a city with no sensor
+    // network, which is the one thing this map must never say. `load` is a single, late,
+    // fire-once event — it waits on the style AND its sources — so a delayed or missed one took
+    // the whole hero with it, and there was no second route to any of the work.
+    //
+    // THE FIX, in three parts.
+    //   1. SPLIT BY WHAT EACH PART ACTUALLY NEEDS. A Mapbox Marker is a DOM element positioned by
+    //      projection: it needs the map, not the style. So the markers are placed IMMEDIATELY,
+    //      synchronously after the constructor, and no longer wait on anything. Only the mask and
+    //      outline need `addSource`/`addLayer`, so only they wait for the style.
+    //   2. FOUR ROUTES TO THE STYLE WORK, not one: an immediate attempt (for a style that is
+    //      already loaded by the time we subscribe), `load`, `styledata` and `idle`. `styledata`
+    //      and `idle` both fire repeatedly and neither depends on `load` having fired.
+    //   3. IDEMPOTENT, so those four routes are safe: `boundaryDoneRef` and `fittedRef` are
+    //      one-way latches, and the marker pass clears before it places. Running the work twice is
+    //      impossible, so a redundant route costs nothing.
+    //
+    // The loading state is driven off the markers, not off `load`: see `sensorsPlaced` below.
+
+    // Markers: cleared before they are placed, so a re-run can never leave two sets behind.
+    markersRef.current.forEach((marker) => marker.remove())
+    markersRef.current = []
+    // Placement ORDER is the stacking order: a marker placed later sits above its neighbours and
+    // wins a click where two hit areas overlap, which they do at this density. The sensors
+    // reading above the index's best level go last, so the one moderate and one sensitive-groups
+    // marker in a city are always the ones a tap on them actually opens. (Measured: before this,
+    // clicking the yellow marker in Bogotá opened the green sensor drawn over it.)
+    const placementOrder = [...sensors].sort((first, second) => (first.band ?? 1) - (second.band ?? 1))
+    placementOrder.forEach((sensor) => {
+      const element = createSensorMarkerElement(sensor, {
+        colour: markerColour(sensor, tier, index),
+        pulses: tier !== 2,
+        label: markerLabel(sensor, tier, index),
+      })
+      element.addEventListener('click', (event) => {
+        // Without this the map's own click handler would close the card as it opens.
+        event.stopPropagation()
+        openCard(sensor, element)
+      })
+      const marker = new mapboxgl.Marker({ element, anchor: 'center' }).setLngLat(sensor.lngLat).addTo(map)
+      markersRef.current.push(marker)
+    })
+    // The sensors are on the map, so the wireframe can go. Set from the effect body, which React
+    // runs after paint, so this is a normal state update and not a render-phase one.
+    setSensorsPlaced(true)
+
+    /**
+     * Fit to every one of the city's sensors (brief 6.1), once.
+     *
+     * The constructor already fits, but against whatever size the container had at that moment,
+     * and this one is a flex child inside a fixed-height band that is still growing: without a
+     * second fit the map opens far too wide (measured, not assumed). A zero-height container
+     * cannot be fitted against at all, so this waits for one with a real height, and the latch
+     * means a later `idle` can never re-fit a map the reader has since panned or zoomed.
+     */
+    const fitToSensors = (): void => {
+      if (fittedRef.current) return
+      const size = map.getContainer()
+      if (size.clientWidth === 0 || size.clientHeight === 0) return
+      fittedRef.current = true
       map.resize()
       map.fitBounds(bounds, { padding: 56, maxZoom: 13, duration: 0 })
+    }
 
-      // The boundary line, with everything outside it greyed back. Skipped entirely when no
-      // outline could be fetched for the city: no mask is better than a wrong one.
-      if (boundary !== null && map.getSource(MASK_SOURCE) === undefined) {
-        map.addSource(MASK_SOURCE, {
-          type: 'geojson',
-          data: { type: 'FeatureCollection', features: [maskFeature(boundary), outlineFeature(boundary)] },
-        })
-        // Three layers, added in stacking order: the scrim over everything outside, then the
-        // line's halo, then the line itself. The scrim goes on last of the basemap's layers, so it
-        // dims the outside's labels and roads too; the halo and the line sit above it, so the edge
-        // is never dimmed by the thing it is the edge of. All six paint values are named constants
-        // at the top of this file (see THE BOUNDARY MASK) — tune them there.
-        //
-        // FILTER — 'LineString', NOT 'MultiLineString'. Mapbox GL's `geometry-type` expression
-        // normalises the Multi* types to their singular form, so the MultiLineString feature
-        // outlineFeature() builds reports 'LineString'. The two line layers previously filtered on
-        // 'MultiLineString', which can never match, so the boundary line was never drawn in any
-        // build and what read as "a faint boundary" was only the edge of the fill. Measured in the
-        // browser, not reasoned: a pure-black 6px opaque line under the old filter rendered
-        // nothing, and the same line under this one rendered immediately. 'Polygon' below is
-        // already the singular form, which is why the mask fill always worked.
-        map.addLayer({
-          id: MASK_LAYER,
-          type: 'fill',
-          source: MASK_SOURCE,
-          filter: ['==', ['geometry-type'], 'Polygon'],
-          paint: { 'fill-color': MASK_COLOUR, 'fill-opacity': MASK_OPACITY },
-        })
-        map.addLayer({
-          id: OUTLINE_HALO_LAYER,
-          type: 'line',
-          source: MASK_SOURCE,
-          filter: ['==', ['geometry-type'], 'LineString'],
-          paint: {
-            'line-color': OUTLINE_HALO_COLOUR,
-            'line-width': OUTLINE_HALO_WIDTH,
-            'line-opacity': OUTLINE_HALO_OPACITY,
-          },
-        })
-        map.addLayer({
-          id: OUTLINE_LAYER,
-          type: 'line',
-          source: MASK_SOURCE,
-          filter: ['==', ['geometry-type'], 'LineString'],
-          paint: { 'line-color': OUTLINE_COLOUR, 'line-width': OUTLINE_WIDTH, 'line-opacity': OUTLINE_OPACITY },
-        })
-      }
-
-      // Markers: cleared before they are placed, so a re-run can never leave two sets behind.
-      markersRef.current.forEach((marker) => marker.remove())
-      markersRef.current = []
-      // Placement ORDER is the stacking order: a marker placed later sits above its neighbours and
-      // wins a click where two 44px hit areas overlap, which they do at this density. The sensors
-      // reading above the index's best level go last, so the one moderate and one sensitive-groups
-      // marker in a city are always the ones a tap on them actually opens. (Measured: before this,
-      // clicking the yellow marker in Bogotá opened the green sensor drawn over it.)
-      const placementOrder = [...sensors].sort((first, second) => (first.band ?? 1) - (second.band ?? 1))
-      placementOrder.forEach((sensor) => {
-        const element = createSensorMarkerElement(sensor, {
-          colour: markerColour(sensor, tier, index),
-          pulses: tier !== 2,
-          label: markerLabel(sensor, tier, index),
-        })
-        element.addEventListener('click', (event) => {
-          // Without this the map's own click handler would close the card as it opens.
-          event.stopPropagation()
-          openCard(sensor, element)
-        })
-        const marker = new mapboxgl.Marker({ element, anchor: 'center' }).setLngLat(sensor.lngLat).addTo(map)
-        markersRef.current.push(marker)
+    /**
+     * The boundary line, with everything outside it greyed back. Needs the style, so it runs from
+     * whichever of the four routes gets there first and latches. Skipped entirely when no outline
+     * could be fetched for the city: no mask is better than a wrong one.
+     */
+    const addBoundary = (): void => {
+      if (boundaryDoneRef.current || boundary === null) return
+      // The guard that makes the four routes safe: `styledata` fires before the style is usable as
+      // well as after, and `addLayer` on a half-loaded style throws.
+      if (!map.isStyleLoaded()) return
+      boundaryDoneRef.current = true
+      if (map.getSource(MASK_SOURCE) !== undefined) return
+      map.addSource(MASK_SOURCE, {
+        type: 'geojson',
+        data: { type: 'FeatureCollection', features: [maskFeature(boundary), outlineFeature(boundary)] },
       })
-    })
+      // Three layers, added in stacking order: the scrim over everything outside, then the
+      // line's halo, then the line itself. The scrim goes on last of the basemap's layers, so it
+      // dims the outside's labels and roads too; the halo and the line sit above it, so the edge
+      // is never dimmed by the thing it is the edge of. All six paint values are named constants
+      // at the top of this file (see THE BOUNDARY MASK) — tune them there.
+      //
+      // FILTER — 'LineString', NOT 'MultiLineString'. Mapbox GL's `geometry-type` expression
+      // normalises the Multi* types to their singular form, so the MultiLineString feature
+      // outlineFeature() builds reports 'LineString'. The two line layers previously filtered on
+      // 'MultiLineString', which can never match, so the boundary line was never drawn in any
+      // build and what read as "a faint boundary" was only the edge of the fill. Measured in the
+      // browser, not reasoned: a pure-black 6px opaque line under the old filter rendered
+      // nothing, and the same line under this one rendered immediately. 'Polygon' below is
+      // already the singular form, which is why the mask fill always worked.
+      map.addLayer({
+        id: MASK_LAYER,
+        type: 'fill',
+        source: MASK_SOURCE,
+        filter: ['==', ['geometry-type'], 'Polygon'],
+        paint: { 'fill-color': MASK_COLOUR, 'fill-opacity': MASK_OPACITY },
+      })
+      map.addLayer({
+        id: OUTLINE_HALO_LAYER,
+        type: 'line',
+        source: MASK_SOURCE,
+        filter: ['==', ['geometry-type'], 'LineString'],
+        paint: {
+          'line-color': OUTLINE_HALO_COLOUR,
+          'line-width': OUTLINE_HALO_WIDTH,
+          'line-opacity': OUTLINE_HALO_OPACITY,
+        },
+      })
+      map.addLayer({
+        id: OUTLINE_LAYER,
+        type: 'line',
+        source: MASK_SOURCE,
+        filter: ['==', ['geometry-type'], 'LineString'],
+        paint: { 'line-color': OUTLINE_COLOUR, 'line-width': OUTLINE_WIDTH, 'line-opacity': OUTLINE_OPACITY },
+      })
+    }
+
+    /** Everything that needs the style. Safe to call any number of times, from any route. */
+    const onStyleReady = (): void => {
+      fitToSensors()
+      addBoundary()
+    }
+
+    /**
+     * The reader has taken hold of the map. Subscribed to the INPUT events rather than to
+     * `movestart`, because the card's own panBy and the restore's fitBounds are moves too, and
+     * only the input events are unambiguously the reader's. From here the view is theirs: the
+     * pending restore is dropped and no later one runs.
+     */
+    const onUserMove = (): void => {
+      readerMovedRef.current = true
+      cardPannedRef.current = false
+    }
+
+    map.on('load', onStyleReady)
+    map.on('styledata', onStyleReady)
+    map.on('idle', onStyleReady)
+    map.on('dragstart', onUserMove)
+    map.on('touchstart', onUserMove)
+    map.on('wheel', onUserMove)
+    map.on('dblclick', onUserMove)
+    // Route four: the style may already be loaded by the time we subscribe, in which case `load`
+    // has fired and will never fire again. Cheap, and it is the only route that covers that case.
+    onStyleReady()
 
     return () => {
+      map.off('load', onStyleReady)
+      map.off('styledata', onStyleReady)
+      map.off('idle', onStyleReady)
+      map.off('dragstart', onUserMove)
+      map.off('touchstart', onUserMove)
+      map.off('wheel', onUserMove)
+      map.off('dblclick', onUserMove)
       markersRef.current.forEach((marker) => marker.remove())
       markersRef.current = []
       closeCard(false)
       map.remove()
       mapRef.current = null
+      // Reset the latches with the map they belong to, so a remount (React strict mode in
+      // development runs this effect twice) rebuilds rather than skipping the work as done.
+      fittedRef.current = false
+      boundaryDoneRef.current = false
+      setSensorsPlaced(false)
     }
     // The map is built once. Its inputs (one city's sensors, index and boundary) are fixed for the
     // life of the page: a chapter route is one city, pre-rendered.
@@ -514,12 +660,36 @@ export function AtlasDataMap({
         .atlas-sensor-popup .mapboxgl-popup-tip { display: none; }
         .atlas-data-map .mapboxgl-canvas { filter: grayscale(1); }
       `}</style>
-      <div
-        ref={containerRef}
-        className="atlas-data-map relative min-h-0 w-full flex-1"
-        role="region"
-        aria-label={`Map of air quality sensors in ${cityName}`}
-      />
+      <div className="relative min-h-0 w-full flex-1">
+        <div
+          ref={containerRef}
+          className="atlas-data-map absolute inset-0"
+          role="region"
+          aria-label={`Map of air quality sensors in ${cityName}`}
+        />
+        {/* The quiet loading state (bug report 2026-09-17, BUG 4). It covers the map band until the
+            sensors are placed, so the reader never sees an empty pale panel and reads it as a city
+            with no sensor network. Grey wireframe only — a rule grid and a line of text, no colour,
+            no spinner and no motion, in keeping with the concept's grey-wireframe fidelity and with
+            the functional-colour rule (colour encodes data here, and there is no data yet).
+            `pointer-events-none` so it never eats a gesture during its short life, and it unmounts
+            entirely once the markers are down. The message is a live region, so a screen reader
+            hears the wait rather than meeting a silent map. */}
+        {!sensorsPlaced && (
+          <div
+            className="pointer-events-none absolute inset-0 flex items-end justify-start bg-muted"
+            style={{
+              backgroundImage:
+                'linear-gradient(to right, var(--bc-semantic-border) 1px, transparent 1px), linear-gradient(to bottom, var(--bc-semantic-border) 1px, transparent 1px)',
+              backgroundSize: '48px 48px',
+            }}
+          >
+            <p role="status" className="m-4 rounded-lg bg-background/90 px-3 py-2 text-sm text-foreground/70">
+              Loading the sensor map for {cityName}
+            </p>
+          </div>
+        )}
+      </div>
       <AtlasMapLegend index={index} hasLowCost={hasLowCost} hasReferenceGrade={hasReferenceGrade} />
     </div>
   )
