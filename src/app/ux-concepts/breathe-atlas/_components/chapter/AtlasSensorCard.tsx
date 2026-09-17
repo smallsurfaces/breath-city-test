@@ -29,8 +29,11 @@
  *   Which side of the marker it opens on is the map's decision (see AtlasDataMap).
  *
  * Accessibility
- *   The card is a labelled dialog. The close button takes focus when the card opens and is a 44px
- *   target; Escape is handled by the map, which also returns focus to the marker. The header's text
+ *   The card is a labelled dialog. The close button takes focus when the card opens and is a 56px
+ *   target (frontend-standards R8; it was 44px, bug report 2026-09-17 BUG 6). It is a plain round
+ *   icon button inset from the corner: it used to be a square with one rounded corner sitting flush
+ *   in the corner, which punched what read as a white notch out of the coloured index header
+ *   (BUG 16). Escape is handled by the map, which also returns focus to the marker. The header's text
  *   colour is chosen against the city's own colour by luminance, so a pale index colour (Bogotá's
  *   yellow) and a dark one (Sofia's crimson) both keep their contrast.
  *
@@ -118,9 +121,11 @@ export function AtlasSensorCard({ sensor, tier, index, dataSource, maxHeight, on
       className="flex w-[252px] flex-col overflow-hidden rounded-2xl border border-border bg-background shadow-xl"
       style={{ maxHeight }}
     >
-      {/* Header: the city's own index colour and level for tier 4, neutral otherwise. */}
+      {/* Header: the city's own index colour and level for tier 4, neutral otherwise. min-h holds
+          room for the 56px close button inset 4px from the top, so the taller target cannot hang
+          below a short header (a tier-3 header is one line) and overlap the readings. */}
       <div
-        className={`relative shrink-0 px-4 pb-3 pt-3 ${level === null ? 'bg-muted' : ''}`}
+        className={`relative min-h-[3.75rem] shrink-0 px-4 pb-3 pt-3 ${level === null ? 'bg-muted' : ''}`}
         style={headerStyle}
       >
         <button
@@ -128,18 +133,18 @@ export function AtlasSensorCard({ sensor, tier, index, dataSource, maxHeight, on
           ref={closeRef}
           onClick={onClose}
           aria-label="Close sensor details"
-          className="absolute right-0 top-0 flex h-11 w-11 items-center justify-center rounded-bl-2xl focus-visible:outline-2 focus-visible:outline-offset-[-3px] focus-visible:outline-current"
+          className="absolute right-1 top-1 flex h-14 w-14 items-center justify-center rounded-full bg-transparent transition-opacity hover:opacity-70 focus-visible:outline-2 focus-visible:outline-offset-[-4px] focus-visible:outline-current"
         >
           <X className="h-4 w-4" aria-hidden="true" />
         </button>
         {level === null ? (
-          <p id={headingId} className="pr-10 text-sm font-semibold text-foreground">
+          <p id={headingId} className="pr-14 text-sm font-semibold text-foreground">
             Air quality sensor
           </p>
         ) : (
           <>
             <p className="text-[11px] font-medium uppercase tracking-wide opacity-80">{index?.name}</p>
-            <p id={headingId} className="pr-10 text-base font-bold leading-tight">
+            <p id={headingId} className="pr-14 text-base font-bold leading-tight">
               {levelDisplayName(level)}
             </p>
           </>
