@@ -17,6 +17,16 @@
  *   - Sensor counts and current conditions -> derived from the mock sensors in ./sensors.ts, so the
  *     counts in the key facts can never disagree with the markers on the map. Both rest on invented
  *     readings and are marked "Sample figure" in the interface.
+ *
+ * Two status vocabularies, deliberately separate (brief section 2, 2026-09-17)
+ *   PACK content carries `ContentStatus`, and a pack item the writer could not confirm never
+ *   arrives here at all: gen_content.py drops it, so a chapter simply has no such fact and no gap
+ *   (see ./chapter-content.ts header). DERIVED facts — the sensor counts and the current
+ *   conditions below — carry `DerivedStatus` instead, because they are the prototype's declared
+ *   mock data, which brief 5.3 requires the chapter to SHOW and brief 7 covers with the nav's
+ *   "Prototype with sample data" notice. They are marked "Sample figure" and are never omitted.
+ *   The two used to share one 'placeholder' member, which is how an unconfirmed population came to
+ *   render bracketed beside a sample-marked sensor count as if they were the same kind of thing.
  *   - Tier assignments are illustrative (brief section 3) and are never shown in the interface.
  *
  * Layout assignment (brief 5.2: hand-picked, fixed per city)
@@ -83,14 +93,22 @@ export type ChapterSlug = 'bogota' | 'jakarta' | 'johannesburg' | 'mexico-city' 
 /** Route slugs of the four cities that share their own index (illustrative tier 4). */
 export type IndexCitySlug = 'bogota' | 'johannesburg' | 'sofia' | 'warsaw'
 
+/**
+ * The status of a fact this file DERIVES from the mock sensors, as opposed to one the content pack
+ * supplies. 'sample' is the only member: every derived fact rests on invented readings (brief
+ * section 7) and is marked "Sample figure". Distinct from ContentStatus so that a pack placeholder
+ * (which is omitted) and declared mock data (which is shown and labelled) can never be confused.
+ */
+export type DerivedStatus = 'sample'
+
 /** Sensor counts by type (tiers 2 to 4). A count of 0 is not shown. */
 export type ChapterSensorCounts = {
   /** Low-cost sensors (shown with a circle). */
   lowCost: number
   /** Reference-grade stations (shown with a square). */
   referenceGrade: number
-  /** Derived from the mock sensors, so 'placeholder' ("Sample figure") in this build. */
-  status: ContentStatus
+  /** Derived from the mock sensors: always 'sample' ("Sample figure"). */
+  status: DerivedStatus
 }
 
 /** Tier 4 current conditions: the city-wide level as the city publishes it, in its own index. */
@@ -99,8 +117,8 @@ export type IndexConditions = {
   indexName: string
   /** The current city-wide level name in that index, as published. */
   level: string
-  /** Derived from the invented readings, so 'placeholder' ("Sample figure") in this build. */
-  status: ContentStatus
+  /** Derived from the invented readings: always 'sample' ("Sample figure"). */
+  status: DerivedStatus
 }
 
 /** Tier 3 current conditions: a live line with no number or level. */
@@ -109,8 +127,8 @@ export type LiveConditions = {
   liveSensors: number
   /** Minutes since the most recent update across the city's sensors. */
   updatedMinutesAgo: number
-  /** Derived from the mock sensors, so 'placeholder' ("Sample figure") in this build. */
-  status: ContentStatus
+  /** Derived from the mock sensors: always 'sample' ("Sample figure"). */
+  status: DerivedStatus
 }
 
 /** Key facts every tier can have. Any of them may be null, and a null fact is simply not shown. */
@@ -193,7 +211,11 @@ function content(slug: ChapterSlug): ChapterContent {
   return entry
 }
 
-/** The common (tier-independent) key facts for a city, straight from the content pack. */
+/**
+ * The common (tier-independent) key facts for a city, straight from the content pack. Any of them
+ * may be null — the pack drops what it could not confirm — and a null fact is simply not rendered
+ * (brief section 2; ChapterKeyFacts re-columns the grid around what is left).
+ */
 function commonFacts(slug: ChapterSlug): CommonKeyFacts {
   const entry = content(slug)
   return {
@@ -234,7 +256,7 @@ function indexConditions(slug: IndexCitySlug): IndexConditions {
     indexName: index.name,
     level: cityWideLevelName(slug),
     // Derived from invented readings (brief section 7), so it carries the sample marker.
-    status: 'placeholder',
+    status: 'sample',
   }
 }
 
@@ -243,7 +265,7 @@ function liveConditions(slug: ChapterSlug): LiveConditions {
   return {
     liveSensors: sensorTotalFor(slug),
     updatedMinutesAgo: latestUpdateMinutesAgo(slug),
-    status: 'placeholder',
+    status: 'sample',
   }
 }
 

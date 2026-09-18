@@ -59,6 +59,11 @@ export const SENSOR_TIER_BLACK = '#1f2328'
  * map 10 to 24 sensors sit within a few hundred pixels, and 56px areas would overlap enough that
  * tapping one sensor would reliably hit its neighbour, which is worse for everyone. The visible
  * shape stays small so the map is readable; the invisible button around it is what you press.
+ *
+ * A DOCUMENTED EXCEPTION to frontend-standards R8, upheld by design-director on 2026-09-18 after
+ * the bug report raised it (BUG 6), on the same reasoning as the globe's city markers. 44px clears
+ * WCAG 2.2 AA (2.5.8, 24px minimum) and is the floor, not a default: the sensor card's close
+ * button, which had the same 44px and no density constraint, was raised to 56px in that pass.
  */
 export const TOUCH_TARGET = 44
 

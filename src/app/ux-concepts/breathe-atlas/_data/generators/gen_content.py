@@ -7,12 +7,17 @@ Run once (2026-09-17) to produce:
   mission-lines.txt          the 16 mission lines, for cities.ts
 
 Honesty rules applied here (brief section 2, dispatch):
-  - Nothing is invented. Every string comes from the pack (JSON or its notes file).
+  - Nothing is invented. EVERY string comes from the pack JSON. Nothing is transcribed
+    from the notes file, computed, rounded or re-derived.
   - People's names are never rendered, EXCEPT photographer credits, which the
     Unsplash licence attribution asks for and which are not claims about a city.
-  - `status` travels with every item so placeholders stay visibly placeholder.
+  - PLACEHOLDERS ARE ABSENT, NEVER DISPLAYED (brief section 2, added 2026-09-17; the
+    pack's own meta.statusKey says the same). A pack item whose `status` is
+    'placeholder', or whose `display` is null, is dropped HERE, at the generator, so
+    it never reaches a typed data file and cannot reach a page. `candidateDisplay`
+    is research, not display copy, and is never emitted. See omit() below.
   - Populations are each city's OWN administrative figure (Jack, 2026-09-17; brief
-    5.3). See CITY_POPULATIONS below for the figures and their provenance.
+    5.3), read from `keyFacts.population` — see population() below.
 
 Usage: python3 _data/generators/gen_content.py <content-pack.json>
 """
@@ -34,26 +39,37 @@ PACK = sys.argv[1]
 OUT = DATA
 SCRATCH = sys.argv[2] if len(sys.argv) > 2 else os.path.join(HERE, 'snapshot')
 
-# Cities whose feature story uses the lead-photo layout, and WHICH of the pack's photos is the lead.
-# The lead photo is lifted out of the photo section, so no image appears twice in one chapter.
-#
-# Bogotá is index 3, not 0 (Jack, 2026-09-17): the pack's first Bogotá photo carries a visible
-# "Mafe Drums / Pexels" watermark while BC credits no photographer. Each of the four was opened and
-# looked at; three of them are watermarked in the pixels:
-#   [0] Riccardo-Parretti-Pexels-52  "Mafe Drums / Pexels"
-#   [1] Riccardo-Parretti-Pexels-54  "Mindful Media / iStock"
-#   [2] Bogota-1                     "Gabriel Leonardo Guerrero Bermudez / iStock", plus a large
-#                                    diagonal "NARCO FEST" watermark across the frame
-#   [3] iStock-Bogota-cycling-street CLEAN, no visible watermark
-# Index 3 is therefore the only unwatermarked Bogotá photo in the pack, so it becomes the lead. The
-# other three stay in the photo section, still watermarked: that is a CONTENT problem for the pack,
-# not something this generator can fix, and dropping them would leave Bogotá one photo. Flagged in
-# the build report. A filename is not evidence either way here — [3] is named "iStock-…" and is the
-# clean one, while [0] and [1] are named "…-Pexels-…" and carry two different libraries' marks.
-LEAD_PHOTO_INDEX = {'bogota': 3, 'mexico-city': 0}
+# Cities whose FEATURE STORY uses the lead-photo layout. This set is a LAYOUT choice, hand-picked
+# per city in _data/chapters.ts (brief 5.2), so it lives here and not in the pack. WHICH photo is
+# the lead is a CONTENT question and is read from the pack — see lead_photo_index().
+LEAD_PHOTO_CITIES = {'bogota', 'mexico-city'}
 
 # Unsplash CDN images need sizing parameters to serve a sensible file (pack: hotlinkHint).
 UNSPLASH_PARAMS = '?w=1600&q=80'
+
+# ---------------------------------------------------------------------------------------------
+# UNREACHABLE LINKS — omitted from the interface, kept in the pack (bug report 2026-09-17, BUG 7)
+# ---------------------------------------------------------------------------------------------
+# Two of Warsaw's own links answer nothing from here. The pack has them as `verified` on purpose:
+# both are linked from the City of Warsaw's own pages (eko.um.warszawa.pl), so the RESEARCH is
+# right and must not be deleted — the pack's `linkCheckNotes` and each link's `note` record the
+# failure and say "confirm from Poland".
+#
+# RE-CHECKED 2026-09-18 from this machine, a desktop user agent, following redirects, 25s budget:
+# both still time out with no response at all (curl exit 28, HTTP 000). Whether they are dead or
+# GEO-BLOCKED cannot be told apart from here; the City links them, which points to geo-blocking,
+# and they may well work from Poland. So the links are left OUT of the chapter rather than shown
+# as working, and nothing is removed from the pack.
+#
+# To restore one: check it from a Polish connection, and delete its line below. Do not "fix" it by
+# editing the pack — the pack is the research record, and this is a rendering decision about what
+# our own checks can stand behind.
+UNREACHABLE_URLS = {
+    # Warsaw, Check today's air. Linked from https://eko.um.warszawa.pl/powietrze
+    'https://iot.warszawa.pl/mapa?filter=air',
+    # Warsaw, Get the data. Linked from https://eko.um.warszawa.pl/statystyki-i-dane-pomiarowe
+    'https://api.um.warszawa.pl/',
+}
 
 pack = json.load(open(PACK))
 cities = {c['id']: c for c in pack['cities']}
@@ -116,9 +132,36 @@ def source_links(urls):
     return out
 
 
+def omit(item):
+    """True when a pack item must not reach the interface at all (brief section 2).
+
+    Three conditions, any one of which is enough:
+      - `status` is 'placeholder' — the pack could not confirm it,
+      - `url` is in UNREACHABLE_URLS — verified research, but nothing answers it from here,
+      - `display` is present and null — the pack withheld the value and parked its candidate
+        in `candidateDisplay`, which is research and is never display copy.
+
+    Dropped here rather than branched on at render time: a render-time branch is what produced
+    the "Placeholder: ..." link label and the bracketed "[about 7.9 million]" figure this rule
+    was written against. Nothing downstream can render what the data file does not carry.
+    """
+    if item.get('status') == 'placeholder':
+        return True
+    if item.get('url') in UNREACHABLE_URLS:
+        return True
+    return 'display' in item and item['display'] is None
+
+
 def link(item):
-    """A pack link block -> ChapterLink."""
+    """A pack link block -> ChapterLink, or None where the item is omitted (see omit())."""
+    if omit(item):
+        return None
     return {'label': item['label'], 'url': item['url'], 'status': item['status']}
+
+
+def links(items):
+    """A list of pack link blocks -> ChapterLink[], with omitted items left out (no gap)."""
+    return [mapped for mapped in (link(item) for item in items) if mapped is not None]
 
 
 def image_url(item):
@@ -130,7 +173,16 @@ def image_url(item):
 
 
 def photo(item):
-    """A pack photo/landmark block -> ChapterPhoto."""
+    """A pack photo/landmark block -> ChapterPhoto.
+
+    Pack field names (revised 2026-09-17): the image is `imageUrl`, its page is `sourcePage`, and
+    every photo now also carries `shape`, `watermark` and `watermarkCheck`. `credit` is the visible
+    line; `creditNote` beside it is the pack's internal provenance ("Stock image used by Breathe
+    Cities (iStock, per the file name). Photographer not named.") and is deliberately NOT emitted —
+    the caption shows the credit the licence asks for, and nothing that reads as a hedge over it.
+    `shape` and `watermark` are read by lead_photo_index() and are likewise not emitted, so every
+    field in the generated file is one the interface renders.
+    """
     return {
         'src': image_url(item),
         'alt': item['alt'],
@@ -140,13 +192,36 @@ def photo(item):
     }
 
 
+def lead_photo_index(city_id, shown):
+    """Which of the city's SHOWN photos is the feature story's lead, read from the PACK.
+
+    The lead sits full width above the story, so it has to be one of the pack's `shape: 'rectangle'`
+    photos: a portrait or a circle crop stretched across the story reads as a mistake. It also has
+    to be clean, so `watermark` must be false — a burned-in credit under a caption that names
+    someone else is exactly the contradiction the pack's watermark check was run to remove.
+
+    The first photo in the pack's own order that satisfies both is the lead. NO FIXED INDEX: the
+    photo sets were rebuilt on 2026-09-17 and the counts now differ per city (Bogotá 4, Jakarta 4,
+    Johannesburg 4, Mexico City 4, Milan 5, Sofia 5, Warsaw 4), so a hardcoded position silently
+    picks a different picture every time the pack changes. This reads the explicit `shape` and
+    `watermark` fields instead (concept-prototyping §10d: derive from explicit fields, never from
+    names or file paths).
+
+    Raises rather than falling back to photos[0]: a city with the lead-photo layout and no clean
+    rectangle is a content problem that must stop the build, not render a stretched portrait.
+    """
+    for index, item in enumerate(shown):
+        if item['shape'] == 'rectangle' and item['watermark'] is False:
+            return index
+    raise ValueError(f'{city_id}: lead-photo layout, but no clean rectangular photo in the pack')
+
+
 # ---------------------------------------------------------------------------------------------
 # City populations (Jack's ruling, 2026-09-17; brief 5.3)
 # ---------------------------------------------------------------------------------------------
-# Each city's OWN published figure for the area it administers, labelled "City population ·
-# city's own figure" and credited to the city's source. The UN estimate is a FALLBACK only, for a
-# city that publishes nothing we can confirm, and it is then labelled as a UN urban-area estimate.
-# The UN figure is always carried in `unEstimate` and is NOT rendered (dispatch).
+# Each city's OWN published figure for the area it administers, labelled "City population · city's
+# own figure" and credited to the city's source. The UN estimate is a FALLBACK only, for a city
+# that publishes nothing we can confirm, and it is then labelled as a UN urban-area estimate.
 #
 # Why the ruling: the 2025 UN revision counts the whole continuous built-up area, so Jakarta comes
 # out at 41.9 million (Jabodetabek) against the roughly 11 million of DKI Jakarta, which is the
@@ -154,182 +229,104 @@ def photo(item):
 # city's own work misstates that city, and mixing metro and city figures between chapters would
 # make the numbers falsely comparable, which cuts against the no-ranking rule.
 #
-# PROVENANCE, AND WHY THIS TABLE IS HERE RATHER THAN READ FROM THE JSON
-#   The content pack's NOTES file records this revision in full — its "City populations" section
-#   carries Jack's ruling and, for each of the seven chapter cities, the figure, the administrative
-#   unit, the year and the publishing source:
-#     design/globalsite/concepts/breathe-atlas/content/breathe-atlas-content-pack-notes.md
-#   The pack JSON has NOT yet been revised to match. As of 2026-09-17 its `keyFacts.population`
-#   still holds only the UN figure under the old "Urban area population · UN estimate" label, and
-#   carries no city figure at all. Every value below is transcribed verbatim from the notes table.
-#   Nothing here is computed, rounded, re-derived or inferred, and no figure appears that the notes
-#   do not state.
-#   WHEN THE JSON CARRIES THE REVISION: delete this table and read the city figure, unit, year,
-#   source and precision from the pack, exactly as every other field in this generator is read.
+# READ STRAIGHT FROM THE PACK. The pack JSON now carries the whole revision under
+# `keyFacts.population`: `display`, `label`, `covers`, `asAt`, `basis`, `sourceName`, `sourceTier`,
+# `url`, `status`, and the UN figure beside it in `unEstimate`. An earlier build transcribed these
+# seven figures from the pack's NOTES file into a table here, because the JSON had not been revised
+# yet; that table is gone, and nothing in this generator now restates a figure the JSON holds.
 #
-# `sourceUrl` is None for all seven: the notes name each publication in prose but carry no URL for
-# it, and the JSON's population `sources` are the UN booklets. A credit with no link renders as
-# plain text; a URL is never invented to fill the gap.
-#
-# `precision` drives the honesty note on the tile (brief 5.3 / dispatch: "Where a city's figure is
-# a rounded or estimated number, the pack says so, and the tile should reflect it"):
-#   'exact'     — the figure as counted or registered. No note.
-#   'rounded'   — the city itself publishes it rounded.
-#   'estimated' — an estimate, not a count. The notes require the word "estimated" wherever
-#                 Johannesburg's figure appears, and that it must not imply precision.
-CITY_POPULATIONS = {
-    'bogota': {
-        # The one placeholder. Bogotá does publish its own figure, but every host that carries it
-        # (sdp.gov.co, saludata, datosabiertos, observatorio) timed out and dane.gov.co returned
-        # 401 to curl, WebFetch and a browser. "About 7.9 million" for 2025 came back only through
-        # aggregator sites, never a primary page, so the notes hold it as a CANDIDATE and not as a
-        # fact. It renders bracketed and marked "Sample figure" until someone on a connection that
-        # can reach .gov.co reads the 2025 value off the SDP's Visor de Población.
-        'display': '[about 7.9 million]',
-        'unit': 'Bogotá D.C., the Capital District',
-        'year': '2025',
-        'precision': 'estimated',
-        'source': 'Secretaría Distrital de Planeación, Visor de Población (DANE projection with SDP)',
-        'sourceUrl': None,
-        'status': 'placeholder',
-    },
-    'jakarta': {
-        # Jakarta now has a verified own figure, so its "Sample figure" label and the
-        # pending-decision comment are gone (dispatch). Two city-published numbers exist; the notes
-        # use the civil registration figure and reject jakarta.go.id's 10,684,946, which states no
-        # year and is marked for update. Both describe DKI Jakarta province.
-        'display': '10,881,514',
-        'unit': 'DKI Jakarta province',
-        'year': '2025, at 31 December',
-        'precision': 'exact',
-        'source': 'Dinas Kependudukan dan Pencatatan Sipil Provinsi DKI Jakarta, clean population data, semester II 2025',
-        'sourceUrl': None,
-        'status': 'verified',
-    },
-    'johannesburg': {
-        # Rounded AND contested: the city's own plan says 5.8 million, footnoted to Statistics
-        # South Africa's 2024 mid-year estimates. Census 2022 put the municipality at 4,803,262,
-        # which the city does not use, and the city's own page still shows Census 2011. The notes
-        # require "estimated" wherever the number appears.
-        'display': '5.8 million',
-        'unit': 'City of Johannesburg Metropolitan Municipality',
-        'year': '2024, mid-year',
-        'precision': 'estimated',
-        'source': 'City of Johannesburg, Integrated Development Plan 2025/26, citing Statistics South Africa',
-        'sourceUrl': None,
-        'status': 'verified',
-    },
-    'mexico-city': {
-        # The year is older than the rest: 9,209,944 is the 2020 census, which is still the most
-        # recent count, and the city government publishes it as its own figure.
-        'display': '9,209,944',
-        'unit': 'Ciudad de México and its 16 alcaldías',
-        'year': '2020 census',
-        'precision': 'exact',
-        'source': 'Gobierno de la Ciudad de México, Instituto de Planeación Democrática y Prospectiva, 2025, citing INEGI',
-        'sourceUrl': None,
-        'status': 'verified',
-    },
-    'milan': {
-        'display': '1,399,079',
-        'unit': 'Comune di Milano',
-        'year': '2025, at 31 December',
-        'precision': 'exact',
-        'source': 'Comune di Milano, Portale del Dato, population register',
-        'sourceUrl': None,
-        'status': 'verified',
-    },
-    'sofia': {
-        # Falls back one step, to the national statistics office: Sofia Municipality's own pages are
-        # a decade old (sofia.bg quotes 1,316,557 for December 2014). Bulgaria's NSI gives 1,303,813
-        # for exactly the territory the municipality administers, so it is recorded as the national
-        # statistics office, NOT as a Sofia publication.
-        'display': '1,303,813',
-        'unit': 'Stolichna obshtina (Sofia Municipality), 24 districts',
-        'year': '2025, at 31 December',
-        'precision': 'exact',
-        'source': 'National Statistical Institute of Bulgaria, final data for 2025',
-        'sourceUrl': None,
-        'status': 'verified',
-    },
-    'warsaw': {
-        'display': '1,862,000',
-        'unit': 'Miasto Warszawa (m.st. Warszawa)',
-        'year': '2024, at 30 June',
-        'precision': 'rounded',
-        'source': 'Miasto Warszawa, Statystyka Warszawy',
-        'sourceUrl': None,
-        'status': 'verified',
-    },
-}
-
-# Honesty note shown under a figure that is not an exact count. 'exact' shows nothing.
-PRECISION_NOTES = {
-    'exact': None,
-    'rounded': 'The city publishes this figure rounded.',
-    'estimated': 'An estimate, not a count.',
-}
+# The fallback needs no branch of its own: `label` comes from the pack, so a city the pack switches
+# to the UN figure arrives already labelled as a UN urban-area estimate and renders as one.
 
 
 def population(city):
-    """The city's own administrative figure, or the UN estimate as a labelled fallback (brief 5.3)."""
-    un = city['keyFacts']['population']
-    own = CITY_POPULATIONS.get(city['id'])
+    """The city's own administrative figure, mapped field for field from the pack (brief 5.3).
 
-    if own is None:
-        # Fallback: the city publishes nothing we can confirm, so the UN urban-area estimate is the
-        # figure on the page, carrying its own label so it is never mistaken for the city's own.
-        return {
-            'display': un['display'],
-            'label': un['label'],
-            'unit': None,
-            'year': str(un['year']),
-            'precisionNote': PRECISION_NOTES['estimated'],
-            'source': {'label': host(un['sources'][0]), 'url': un['sources'][0], 'status': un['status']},
-            'status': un['status'],
-            'unEstimate': None,
-        }
+    Returns None where the pack could not confirm the figure — status 'placeholder', or a null
+    `display` with the candidate parked in `candidateDisplay`. The whole Population tile is then
+    absent from the chapter, exactly as for a fact a city does not publish, and the key-facts grid
+    re-columns around it so there is no gap (brief section 2, ChapterKeyFacts.factColumnsClass).
+    The earlier build rendered the candidate in square brackets instead; see omit().
+    """
+    entry = city['keyFacts']['population']
+    if omit(entry):
+        return None
 
     return {
-        'display': own['display'],
-        'label': "City population · city's own figure",
-        'unit': own['unit'],
-        'year': own['year'],
-        'precisionNote': PRECISION_NOTES[own['precision']],
-        'source': {'label': own['source'], 'url': own['sourceUrl'], 'status': own['status']},
-        'status': own['status'],
-        # Carried so the research is not lost and the difference stays visible. NOT rendered.
-        'unEstimate': {'display': un['display'], 'label': un['label'], 'status': un['status']},
+        'display': entry['display'],
+        'label': entry['label'],
+        'covers': entry['covers'],
+        # `asAt` is the figure's own date where the source states one ("31 December 2025", "Census
+        # of 2020"); a city that states only a year falls back to it. Never re-derived.
+        'asAt': entry['asAt'] if entry['asAt'] is not None else str(entry['year']),
+        'basis': entry['basis'],
+        # The credit links to the page the figure is published on. `url` stays nullable because a
+        # pack may name a publication it has no public page for; a URL is never invented to make a
+        # credit linkable. (The one case that used to arrive here unlinked — an unconfirmed figure
+        # whose URL was the route IN to the source rather than a page carrying the number — is now
+        # dropped whole by omit() above, so it never reaches this branch.)
+        'source': {
+            'label': entry['sourceName'],
+            'url': entry['url'],
+            'tier': entry['sourceTier'],
+            'status': entry['status'],
+        },
+        'status': entry['status'],
+        # Carried so the research is not lost and the difference between a city figure and a
+        # built-up-area figure stays visible in the data. NOT rendered (Jack, 2026-09-17).
+        'unEstimate': {
+            'display': entry['unEstimate']['display'],
+            'label': entry['unEstimate']['label'],
+            'status': entry['unEstimate']['status'],
+        },
     }
 
 
 def go_further(city):
+    """Go further links, grouped. An omitted link is simply not in its group, and a group left with
+    no links is dropped by the interface (brief 5.7), so an unconfirmed link leaves no gap and no
+    message — the same treatment as a link the city does not have."""
     groups = city['goFurther']
+    department = groups.get('departmentResponsible')
     return {
-        'checkTodaysAir': [link(i) for i in groups.get('checkTodaysAir', [])],
-        'getTheData': [link(i) for i in groups.get('getTheData', [])],
-        'departmentResponsible': link(groups['departmentResponsible']) if 'departmentResponsible' in groups else None,
+        'checkTodaysAir': links(groups.get('checkTodaysAir', [])),
+        'getTheData': links(groups.get('getTheData', [])),
+        'departmentResponsible': None if department is None else link(department),
     }
 
 
 def content(city):
-    photos = [photo(p) for p in city['photos']]
-    lead_index = LEAD_PHOTO_INDEX.get(city['id'])
-    if lead_index is None:
+    # Placeholder photos are dropped BEFORE the lead is chosen, so the lead index is an index into
+    # the set that is actually shown and can never point past it.
+    shown = [p for p in city['photos'] if not omit(p)]
+    photos = [photo(p) for p in shown]
+    if city['id'] not in LEAD_PHOTO_CITIES:
         lead, rest = None, photos
     else:
-        # Fail rather than silently fall back: a lead index past the end of the pack's photo list
-        # means the pack and this table disagree, which must stop the build, not drop the layout.
-        if lead_index >= len(photos):
-            raise IndexError(f"{city['id']}: lead photo index {lead_index} but only {len(photos)} photos")
+        # The lead is LIFTED OUT of the photo section, never copied, so no image appears twice in
+        # one chapter however the pack's photo set changes.
+        lead_index = lead_photo_index(city['id'], shown)
         lead = photos[lead_index]
         rest = [p for i, p in enumerate(photos) if i != lead_index]
     story = city['featureStory']
+    lead_agency = city['keyFacts']['leadAgency']
+    joined = city['keyFacts']['joinedBC']
+    # `landmark` and `dataSource` are STRUCTURAL: every chapter opens with a landmark image and
+    # every sensor card ends with the data source link, so an omitted one is a content fault that
+    # must stop the build rather than render a chapter with a hole in it. All 7 are 'verified' in
+    # the pack of 2026-09-17; this is the guard for a future revision, not a live branch.
+    landmark_item = city['landmarkImage']
+    data_source_item = city['dataSourceLink']
+    for name, item in (('landmarkImage', landmark_item), ('dataSourceLink', data_source_item)):
+        if omit(item):
+            raise ValueError(f"{city['id']}: {name} is a placeholder, and the chapter cannot be built without it")
     return {
-        'landmark': photo(city['landmarkImage']),
+        'landmark': photo(landmark_item),
         'population': population(city),
-        'leadAgency': {'name': city['keyFacts']['leadAgency']['name'], 'status': city['keyFacts']['leadAgency']['status']},
-        'joinedBC': {'year': city['keyFacts']['joinedBC']['year'], 'status': city['keyFacts']['joinedBC']['status']},
+        # A key fact the pack could not confirm is absent, exactly as for a fact a city does not
+        # publish; ChapterKeyFacts re-columns the grid around what is left (brief section 2).
+        'leadAgency': None if omit(lead_agency) else {'name': lead_agency['name'], 'status': lead_agency['status']},
+        'joinedBC': None if omit(joined) else {'year': joined['year'], 'status': joined['status']},
         'featureStory': {
             'title': story['title'],
             'paragraphs': story['paragraphs'],
@@ -340,10 +337,11 @@ def content(city):
         'programmes': [
             {'name': p['name'], 'description': p['description'], 'url': p['url'], 'status': p['status']}
             for p in city['programmes']
+            if not omit(p)
         ],
         'photos': rest,
         'goFurther': go_further(city),
-        'dataSource': link(city['dataSourceLink']),
+        'dataSource': link(data_source_item),
     }
 
 
@@ -364,14 +362,21 @@ HEADER = '''/**
  *   are kept (no leader names, no outcome figures from quotes, no unconfirmed policy claims).
  *   Update the pack first, then this file.
  *
- * Status, not silence (brief section 2)
- *   Every item carries `status`:
+ * PLACEHOLDERS ARE ABSENT, NEVER DISPLAYED (brief section 2, added 2026-09-17)
+ *   Every pack item carries `status`:
  *     'verified'    — confirmed on a public source.
  *     'drafted'     — our wording, drawn from cited public sources.
- *     'placeholder' — dummy or unconfirmed; the page marks it "Sample figure" or "Placeholder:".
- *   Only 'placeholder' shows a marker in the interface. Verified and drafted content renders as
- *   real content, with no "Sample" label. The nav's "Prototype with sample data" notice covers
- *   the rest.
+ *     'placeholder' — dummy or unconfirmed.
+ *   A 'placeholder' item, or one whose `display` is null, is DROPPED BY THE GENERATOR and is not
+ *   in this file at all: no bracketed figure, no "Placeholder:" label, no empty tile and no gap —
+ *   exactly the treatment a fact a city does not publish gets. The pack's `candidateDisplay` is
+ *   never emitted. The only 'placeholder' left below is inside `unEstimate`, which nothing renders
+ *   (see ChapterPopulation).
+ *
+ *   Not to be confused with the "Sample figure" marker, which belongs to the sensor-derived facts
+ *   assembled in ./chapters.ts (sensor counts, current conditions). Those are the prototype's
+ *   declared mock data, which brief 5.3 and 7 require the chapter to show; they carry their own
+ *   `DerivedStatus` and are not pack content.
  *
  * People's names
  *   No mayor, governor or official is named anywhere in this content (pack rule). The only personal
@@ -385,25 +390,41 @@ HEADER = '''/**
  *   that hotlinking them outside breathecities.org may fall outside BC's licence — check before
  *   this prototype goes beyond the core team.
  *
+ * WATERMARKS (pack revision 2, 2026-09-17)
+ *   The pack's second revision opened all 38 chapter images as PIXELS, not file names, and found 12
+ *   carrying a burned-in photographer credit. Breathe Cities burns a credit caption into its
+ *   commissioned photography as house style, so a BC image cannot be assumed clean and a BC page is
+ *   not a credit. All 12 were replaced (11) or dropped (1), which is why several cities now mix BC
+ *   images with Unsplash ones and why the per-city counts differ. Every photo here carries
+ *   `watermark: false` in the pack, with `watermarkCheck` recording what the check saw.
+ *
  * Key exports: ContentStatus, ChapterCredit, ChapterLink, ChapterPhoto, ChapterPopulation, ChapterLeadAgency,
  *   ChapterJoinedBC, ChapterFeatureStory, ChapterProgramme, ChapterGoFurther, ChapterContent,
  *   CHAPTER_CONTENT
  * External dependencies: none.
  */
 
-/** How far an item has been confirmed. Only 'placeholder' is marked in the interface. */
+/**
+ * How far a pack item has been confirmed. Every RENDERED item here is 'verified' or 'drafted': a
+ * 'placeholder' is dropped by the generator (see the header). The union keeps the member because
+ * it is the pack's own vocabulary, and because the unrendered `unEstimate` research still carries
+ * it.
+ */
 export type ContentStatus = 'verified' | 'drafted' | 'placeholder'
 
 /**
- * A credit for a figure: who published it, and its page where the pack has one. Distinct from
- * ChapterLink because a credit may name a publication the pack carries no URL for, in which case
- * it renders as plain text rather than a link. No URL is ever invented to fill the gap.
+ * A credit for a figure: who published it, and its page. Distinct from ChapterLink because a
+ * credit can be unlinked — a pack may name the publication behind a figure without a public page
+ * that carries it, and no URL is ever invented to make a credit linkable. Then the publication is
+ * named in plain text.
  */
 export type ChapterCredit = {
-  /** Visible credit text: the publication, as the pack names it. */
+  /** Visible credit text: the publication, as the pack names it (`sourceName`). */
   label: string
-  /** Absolute URL, or null when the pack names the publication but no page. */
+  /** The publication's page, or null where the credit is deliberately unlinked (see above). */
   url: string | null
+  /** How close the source is to the city: "city government", "national statistics office". */
+  tier: string
   /** Confirmation status of the credit. */
   status: ContentStatus
 }
@@ -439,30 +460,31 @@ export type ChapterPhoto = {
  * nothing we can confirm.
  */
 export type ChapterPopulation = {
-  /** The figure as published, e.g. "10,881,514". Placeholders are bracketed in the pack. */
+  /** The figure as the pack publishes it, e.g. "10.9 million". Never a re-derived number. */
   display: string
   /** Caption under the figure: "City population · city's own figure", or the UN label on fallback. */
   label: string
-  /** The administrative area the figure covers, e.g. "DKI Jakarta province". Null on UN fallback. */
-  unit: string | null
-  /** The figure's date, as the source states it, e.g. "2025, at 31 December". */
-  year: string
+  /** The administrative area the figure covers, e.g. "DKI Jakarta province". */
+  covers: string
+  /** The figure's date as the source states it, e.g. "31 December 2025", "Census of 2020". */
+  asAt: string
   /**
-   * Honesty note for a figure that is not an exact count ("An estimate, not a count."), or null
-   * when it is exact. Never softens a figure the source publishes as exact.
+   * What the figure rests on, in the pack's words: "Census count, as published by the city
+   * government.", "The city's own estimate, citing Statistics South Africa's mid-year population
+   * estimates for 2024. Rounded to the nearest hundred thousand." This is the honesty line — it is
+   * how the page says "estimated" or "rounded" without the build classifying anything itself.
    */
-  precisionNote: string | null
-  /** Who publishes the figure. `url` is null where the pack names the publication but no page. */
+  basis: string
+  /** Who publishes the figure. Unlinked where the pack has no public page for it (ChapterCredit). */
   source: ChapterCredit
-  /** Confirmation status; 'placeholder' shows "Sample figure". */
+  /** Confirmation status. Never 'placeholder': such a figure is omitted whole (see header). */
   status: ContentStatus
   /**
    * The UN urban-area estimate for the same city, carried so the research is not lost and the
    * difference between a city figure and a built-up-area figure stays visible in the data.
-   * NOT RENDERED: the page shows the city's own figure (Jack, 2026-09-17). Null when the UN figure
-   * IS the rendered figure (the fallback case above).
+   * NOT RENDERED: the page shows the city's own figure (Jack, 2026-09-17).
    */
-  unEstimate: { display: string; label: string; status: ContentStatus } | null
+  unEstimate: { display: string | null; label: string; status: ContentStatus }
 }
 
 /** The lead agency for air quality in the city (name only; its link lives in Go further). */
@@ -521,12 +543,12 @@ export type ChapterGoFurther = {
 export type ChapterContent = {
   /** The landmark image beside the city name in the opener, and on the next-chapter card. */
   landmark: ChapterPhoto
-  /** The city's own population figure for the area it administers. */
-  population: ChapterPopulation
-  /** Lead agency. */
-  leadAgency: ChapterLeadAgency
-  /** Year joined. */
-  joinedBC: ChapterJoinedBC
+  /** The city's own population figure, or null where the pack could not confirm one (header). */
+  population: ChapterPopulation | null
+  /** Lead agency, or null where the pack could not confirm one. */
+  leadAgency: ChapterLeadAgency | null
+  /** Year joined, or null where the pack could not confirm one. */
+  joinedBC: ChapterJoinedBC | null
   /** Feature story. */
   featureStory: ChapterFeatureStory
   /** Named programmes. */
@@ -553,14 +575,23 @@ NOTES = {
         "// index or live data of its own. That answers brief section 10; flag it to Jack at review.",
     ],
     'bogota': [
-        "// The \"Bogotá Open Data\" link stays a PLACEHOLDER: the portal refused every connection when",
-        "// the pack was checked, so its contents are unconfirmed. It renders with a \"Placeholder:\" prefix.",
-        "// The population is the one figure of the seven that is still a PLACEHOLDER: Bogotá publishes",
-        "// its own, but every district and national statistics host refused us (see CITY_POPULATIONS in",
-        "// the generator). \"About 7.9 million\" is a candidate from aggregator sites, never a primary",
-        "// page, so it renders bracketed and marked \"Sample figure\".",
-        "// The lead photo is photos[3], not photos[0]: the first three Bogotá photos in the pack carry",
-        "// a visible stock-library watermark (see LEAD_PHOTO_INDEX in the generator).",
+        "// TWO ITEMS ARE ABSENT HERE, and their absence is the correct rendering (brief section 2).",
+        "// `population` is null: Bogotá publishes its own figure, but every district and national",
+        "// statistics host refused the pack's checks, so the pack holds only a candidate read off",
+        "// aggregator sites and keeps it in `candidateDisplay`. The Population tile is left out and",
+        "// the key-facts grid re-columns around it, exactly as for a fact a city does not publish.",
+        "// The \"Bogotá Open Data\" link is likewise gone from `goFurther.getTheData`: the portal",
+        "// refused every connection when the pack was checked, so its contents are unconfirmed.",
+        "// Neither is labelled, bracketed or greyed — a placeholder is absent, never displayed.",
+    ],
+    'warsaw': [
+        "// TWO LINKS ARE ABSENT from `goFurther` and their absence is deliberate: the City's own",
+        "// IoT air map (iot.warszawa.pl) and its open data API (api.um.warszawa.pl). Both are linked",
+        "// from the City of Warsaw's own pages, so the research is right; both were UNREACHABLE from",
+        "// here on 2026-09-18 (and on 2026-09-17), timing out with no response at all. They may be",
+        "// geo-blocked and may work from Poland. DO NOT DELETE THE RESEARCH: the pack still carries",
+        "// both, with the pages they were found on. See UNREACHABLE_URLS in the generator to restore",
+        "// one after a check from a Polish connection.",
     ],
     'milan': [
         "// Milan is tier 1 (shares nothing), so it has no sensor cards; `dataSource` is carried for",

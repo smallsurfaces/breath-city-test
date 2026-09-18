@@ -30,11 +30,17 @@
  *   for a name like "Rio de Janeiro". BC's 6:7.5 card shape, the layout, the scroll snap and the
  *   greyscale wash are unchanged; the padding and the name's type scale come down with the card.
  *
- * NAMED EXCEPTION to the 56px touch-target standard (frontend-standards R8)
- *   Each CARD's arrow button is 44px (h-11), not 56px, because a 56px circle inside a 152px card
- *   dominates it and undoes the point of the smaller card. 44px is the floor Jack set for this
- *   change ("keep the arrow button tappable at 44px or more") and matches the globe markers' own
- *   documented 44px hit area. The carousel's OWN prev/next arrows are untouched and stay 56px.
+ * Touch targets — 56px hit area, 44px circle (design-director's ruling, 2026-09-18)
+ *   frontend-standards R8 sets 56px as the minimum for every interactive element, and the card
+ *   arrows were 44px (bug report 2026-09-17, BUG 6). They are now 56 x 56 to the finger and 44px
+ *   to the eye: the visible circle keeps its 44px, because a 56px circle inside a 152px card
+ *   dominates it and undoes the point of the smaller card (Jack's card-size ruling, brief 4.3),
+ *   and CARD_ARROW_HIT_AREA extends the hit area around it with a centred pseudo-element, which
+ *   adds no layout and moves nothing. The carousel's own prev/next arrows were already 56px.
+ *   To VERIFY this, measure the ::before box, not the element box: the anchor's own
+ *   getBoundingClientRect() is still 44px by design.
+ *   Globe and sensor markers stay 44px, a separate documented exception (see AtlasGlobe and
+ *   atlas-markers): bigger markers overlap at city density and cover the surface being dragged.
  *
  * IMAGE RIGHTS
  *   The card images belong to Breathe Cities. They are HOTLINKED from breathecities.org for this
@@ -49,10 +55,23 @@
  *   washed toward the light card background (opacity), giving every card a pale neutral grey on which
  *   the dark city name keeps its contrast. No gradients, no decorative colour.
  *
+ * Rapid clicks on the arrows (bug report 2026-09-17, BUG 5)
+ *   Nine fast clicks used to move the row two steps. Each click called `scrollBy`, which is
+ *   relative to wherever `scrollLeft` happens to be AT THAT MOMENT — and during a smooth scroll
+ *   that is a position still in flight, so the clicks collapsed into each other. The row now
+ *   scrolls to an absolute position derived from a TARGET INDEX the component keeps
+ *   (`targetIndexRef`): each click advances the index by one and scrolls to index x step, so nine
+ *   clicks are nine steps whatever the animation is doing. The target is released when the row
+ *   arrives, and on any touch, wheel or pointer input, so a swipe always resumes from where the
+ *   reader actually is rather than from a stale target.
+ *
  * Accessibility
  *   Section heading (h2) labels the list; each card name is an h3. The prev/next arrow buttons are
  *   56px, carry aria-controls for the row, and use aria-disabled (not `disabled`) at either end so
- *   keyboard focus is never dropped. The per-card arrows are 44px (see the named exception above).
+ *   keyboard focus is never dropped. The per-card arrows have a 56px hit area (see above).
+ *   The nine cities with no chapter render a focusable aria-disabled link, so a keyboard or screen
+ *   reader user meets them and hears that they are unavailable instead of never finding them
+ *   (bug report 2026-09-17, BUG 9).
  *   The progress bar is decorative (aria-hidden): the row itself is the content.
  *   Scrolling by button is instant under prefers-reduced-motion.
  *
@@ -62,7 +81,8 @@
  *
  * Side effects (all cleaned up on unmount):
  *   - Scroll listener on the row and a ResizeObserver on it (progress bar and arrow states), with one
- *     pending animation frame at most.
+ *     pending animation frame at most, plus pointerdown/touchstart/wheel listeners that release the
+ *     arrows' pending scroll target.
  *   - On mount with a `currentCityId`: sets the row's scroll position so that city is in view.
  */
 
@@ -99,6 +119,15 @@ type RowWindow = {
 /** Shared focus ring for the controls. */
 const FOCUS_RING = 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground'
 
+/**
+ * Extends a card arrow's hit area to 56 x 56 (frontend-standards R8) around its 44px circle,
+ * without changing the layout by a pixel: a centred, transparent, absolutely positioned
+ * pseudo-element inside the control, which passes its pointer events to the control itself.
+ * See "Touch targets" in the header for why the visible circle stays 44px.
+ */
+const CARD_ARROW_HIT_AREA =
+  "relative before:absolute before:left-1/2 before:top-1/2 before:h-14 before:w-14 before:-translate-x-1/2 before:-translate-y-1/2 before:content-['']"
+
 /** Reads the row's scroll position into a RowWindow. Pure: no side effects. */
 function readRowWindow(row: HTMLElement): RowWindow {
   const { scrollLeft, scrollWidth, clientWidth } = row
@@ -111,6 +140,18 @@ function readRowWindow(row: HTMLElement): RowWindow {
     atStart: scrollLeft <= 1,
     atEnd: scrollLeft >= maxScroll - 1,
   }
+}
+
+/**
+ * The row's scroll step: one card plus the gap after it. Read from the DOM rather than kept as a
+ * constant, because the card width changes at `sm` and `lg` (see "Card size" in the header).
+ * Falls back to a full row width when there are no cards to measure.
+ */
+function cardStep(row: HTMLElement): number {
+  const firstCard = row.querySelector<HTMLElement>('li')
+  if (firstCard === null) return row.clientWidth
+  const gap = Number.parseFloat(window.getComputedStyle(row).columnGap)
+  return firstCard.offsetWidth + (Number.isNaN(gap) ? 0 : gap)
 }
 
 /** One tall city card. */
@@ -140,17 +181,22 @@ function CityBrowserCard({ city, current }: { city: AtlasCity; current: boolean 
             href={atlasChapterHref(city.slug)}
             aria-label={`Open ${city.name}`}
             aria-current={current ? 'page' : undefined}
-            className={`flex h-11 w-11 items-center justify-center rounded-full border border-foreground bg-background text-foreground transition-colors hover:bg-foreground hover:text-background ${FOCUS_RING}`}
+            className={`flex h-11 w-11 items-center justify-center rounded-full border border-foreground bg-background text-foreground transition-colors hover:bg-foreground hover:text-background ${CARD_ARROW_HIT_AREA} ${FOCUS_RING}`}
           >
             <ArrowRight className="h-4 w-4" aria-hidden="true" />
           </Link>
         ) : (
-          // Greyed out and not focusable: this city has no chapter in the concept.
+          // Greyed out: this city has no chapter in the concept. FOCUSABLE though disabled
+          // (tabIndex 0 with aria-disabled, the disabled-but-discoverable pattern): without a tab
+          // stop, a keyboard or screen reader user passed straight over these nine cities and
+          // never learned they had no chapter, while a sighted user could see it at a glance
+          // (bug report 2026-09-17, BUG 9). There is no click handler, so it stays inert.
           <span
             role="link"
+            tabIndex={0}
             aria-disabled="true"
             aria-label={`Open ${city.name}`}
-            className="flex h-11 w-11 cursor-default items-center justify-center rounded-full border border-foreground/15 bg-muted text-foreground/35"
+            className={`flex h-11 w-11 cursor-default items-center justify-center rounded-full border border-foreground/15 bg-muted text-foreground/35 ${CARD_ARROW_HIT_AREA} ${FOCUS_RING}`}
           >
             <ArrowRight className="h-4 w-4" aria-hidden="true" />
           </span>
@@ -164,6 +210,12 @@ function CityBrowserCard({ city, current }: { city: AtlasCity; current: boolean 
 export function CityBrowser({ headingId, currentCityId }: CityBrowserProps) {
   const rowRef = useRef<HTMLUListElement>(null)
   const rowId = useId()
+  /**
+   * The card index the arrow buttons are scrolling towards, or null when nothing is pending and
+   * the row's own position is the truth. A ref, not state: a burst of clicks has to accumulate
+   * synchronously within one batch of events, which a state update cannot do (BUG 5).
+   */
+  const targetIndexRef = useRef<number | null>(null)
   const [rowWindow, setRowWindow] = useState<RowWindow>({ start: 0, size: 0, atStart: true, atEnd: false })
 
   /** Re-reads the row's scroll position into state. */
@@ -179,18 +231,43 @@ export function CityBrowser({ headingId, currentCityId }: CityBrowserProps) {
     if (row === null) return
     let frame: number | null = null
     const onScroll = () => {
+      // Release the arrow buttons' target once the row has arrived at it, so the next click is
+      // measured from the row again rather than from a target that is now history.
+      const target = targetIndexRef.current
+      if (target !== null) {
+        const step = cardStep(row)
+        const maxScroll = Math.max(row.scrollWidth - row.clientWidth, 0)
+        if (step > 0 && Math.abs(row.scrollLeft - Math.min(target * step, maxScroll)) <= 1) {
+          targetIndexRef.current = null
+        }
+      }
       if (frame !== null) return
       frame = window.requestAnimationFrame(() => {
         frame = null
         measure()
       })
     }
+    // Any hand on the row wins: a swipe, a wheel or a drag cancels the pending smooth scroll, so
+    // the target must go with it or the next arrow click would jump back to where the buttons had
+    // been heading.
+    const releaseTarget = () => {
+      targetIndexRef.current = null
+    }
     row.addEventListener('scroll', onScroll, { passive: true })
+    row.addEventListener('pointerdown', releaseTarget, { passive: true })
+    row.addEventListener('touchstart', releaseTarget, { passive: true })
+    row.addEventListener('wheel', releaseTarget, { passive: true })
+    // The row itself can be scrolled with the arrow keys, which fires no pointer event at all.
+    row.addEventListener('keydown', releaseTarget, { passive: true })
     const observer = new ResizeObserver(() => measure())
     observer.observe(row)
     measure()
     return () => {
       row.removeEventListener('scroll', onScroll)
+      row.removeEventListener('pointerdown', releaseTarget)
+      row.removeEventListener('touchstart', releaseTarget)
+      row.removeEventListener('wheel', releaseTarget)
+      row.removeEventListener('keydown', releaseTarget)
       observer.disconnect()
       if (frame !== null) window.cancelAnimationFrame(frame)
     }
@@ -205,20 +282,36 @@ export function CityBrowser({ headingId, currentCityId }: CityBrowserProps) {
     if (item === null) return
     const paddingLeft = Number.parseFloat(window.getComputedStyle(row).paddingLeft)
     row.scrollLeft = item.offsetLeft - (Number.isNaN(paddingLeft) ? 0 : paddingLeft)
+    // Nothing is pending after a jump straight to a city: the next arrow click measures from here.
+    targetIndexRef.current = null
     measure()
   }, [currentCityId, measure])
 
-  /** Scroll the row one card left (-1) or right (1). */
+  /**
+   * Scroll the row one card left (-1) or right (1).
+   *
+   * Absolute, from a target index this component owns — never `scrollBy`, which is relative to a
+   * `scrollLeft` that is still animating and so silently swallowed rapid clicks (BUG 5; see the
+   * header). `targetIndexRef` starts from where the reader actually is and then accumulates on its
+   * own, so the ninth click is the ninth step.
+   */
   const scrollByCard = (direction: -1 | 1) => {
     const row = rowRef.current
     if (row === null) return
     if ((direction === -1 && rowWindow.atStart) || (direction === 1 && rowWindow.atEnd)) return
-    const firstCard = row.querySelector<HTMLElement>('li')
-    const gap = Number.parseFloat(window.getComputedStyle(row).columnGap)
-    const step = firstCard === null ? row.clientWidth : firstCard.offsetWidth + (Number.isNaN(gap) ? 0 : gap)
+    const step = cardStep(row)
+    if (step <= 0) return
+    const maxScroll = Math.max(row.scrollWidth - row.clientWidth, 0)
+    // The last index that can actually be reached: past it the row has nothing left to show, and
+    // clamping here is what makes a rapid burst at either end do nothing rather than overshoot.
+    const maxIndex = Math.ceil(maxScroll / step)
+    const from = targetIndexRef.current ?? Math.round(row.scrollLeft / step)
+    const next = Math.min(Math.max(from + direction, 0), maxIndex)
+    if (next === from) return
+    targetIndexRef.current = next
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     // Side effect: scroll the row. Scroll snap settles it on a card edge.
-    row.scrollBy({ left: direction * step, behavior: reduceMotion ? 'auto' : 'smooth' })
+    row.scrollTo({ left: Math.min(next * step, maxScroll), behavior: reduceMotion ? 'auto' : 'smooth' })
   }
 
   const arrowClass = (disabled: boolean) =>

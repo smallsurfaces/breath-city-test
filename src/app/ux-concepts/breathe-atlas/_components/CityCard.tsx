@@ -98,11 +98,17 @@ export function CityCard({ city, onClose }: CityCardProps) {
             Open
           </Link>
         ) : (
-          // Greyed out: this city has no chapter in the concept.
+          // Greyed out: this city has no chapter in the concept. FOCUSABLE though disabled
+          // (tabIndex 0 with aria-disabled): without a tab stop a keyboard or screen reader user
+          // passed straight over it and never learned the city has no chapter, while a sighted
+          // user could see it at a glance (bug report 2026-09-17, BUG 9). No click handler, so it
+          // stays inert.
           <span
             role="link"
+            tabIndex={0}
             aria-disabled="true"
-            className="mt-3 flex h-14 w-full cursor-default items-center justify-center rounded-full bg-muted text-sm font-semibold text-foreground/35"
+            aria-label={`Open ${city.name}`}
+            className="mt-3 flex h-14 w-full cursor-default items-center justify-center rounded-full bg-muted text-sm font-semibold text-foreground/35 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground"
           >
             Open
           </span>

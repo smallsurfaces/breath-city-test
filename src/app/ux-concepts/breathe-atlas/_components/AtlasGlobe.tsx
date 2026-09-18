@@ -182,8 +182,13 @@ type MarkerNodes = { element: HTMLDivElement; button: HTMLButtonElement; cardHos
  * it is the size of the hit area and ignores pointer events itself, so only the button and the
  * card are interactive and the globe stays draggable around the marker.
  *
- * Hit area is 44px (see return report: below the 56px project touch-target standard, chosen so
- * markers cover less of the globe's drag surface; clustered European cities overlap at any size).
+ * Hit area is 44px. This is a DOCUMENTED EXCEPTION to frontend-standards R8's 56px minimum,
+ * upheld by design-director on 2026-09-18 after the bug report raised it (BUG 6): a bigger marker
+ * covers more of the very surface the reader drags to turn the globe, and the European cities are
+ * already stacked on top of each other at phone scale, where 56px areas would overlap far enough
+ * that tapping one city would reliably open another. 44px clears WCAG 2.2 AA (2.5.8, 24px) and is
+ * the floor. The carousel's card arrows, which had the same 44px and no such constraint, were
+ * raised to a 56px hit area in the same pass (see CityBrowser).
  *
  * Inside the button, back to front: the pulse halo (in a focus wrapper that scales it up for the
  * focus city) and the solid dot (also scaled up for the focus city). The halo overflows the 44px
