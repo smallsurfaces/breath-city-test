@@ -661,12 +661,15 @@ export function AtlasDataMap({
         .atlas-data-map .mapboxgl-canvas { filter: grayscale(1); }
       `}</style>
       <div className="relative min-h-0 w-full flex-1">
-        <div
-          ref={containerRef}
-          className="atlas-data-map absolute inset-0"
-          role="region"
-          aria-label={`Map of air quality sensors in ${cityName}`}
-        />
+        {/* Positioning lives on this plain wrapper, not the Mapbox container: mapbox-gl.css's unlayered `.mapboxgl-map { position: relative }` beats Tailwind v4's layered `absolute`, which collapsed the map to 0px tall. */}
+        <div className="absolute inset-0">
+          <div
+            ref={containerRef}
+            className="atlas-data-map h-full w-full"
+            role="region"
+            aria-label={`Map of air quality sensors in ${cityName}`}
+          />
+        </div>
         {/* The quiet loading state (bug report 2026-09-17, BUG 4). It covers the map band until the
             sensors are placed, so the reader never sees an empty pale panel and reads it as a city
             with no sensor network. Grey wireframe only — a rule grid and a line of text, no colour,
