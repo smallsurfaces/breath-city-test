@@ -1,11 +1,14 @@
 /**
  * region-raster.ts — paints the four Breathe Cities regions onto an equirectangular canvas, so
- * globe-texture.ts can bake a region tint into the globe (round 2, item 6).
+ * globe-texture.ts can bake each region's grey into the globe (round 2 item 6; grey since round 3
+ * R3.1).
  *
  * Purpose
  *   Returns an RGBA pixel layer the size of the globe texture, in which every pixel inside a region
- *   carries that region's tint colour (alpha = how much of the pixel the region covers) and every
- *   other pixel is transparent. globe-texture.ts applies it to LAND pixels only, so the coastlines
+ *   carries the value the caller passed for that region (alpha = how much of the pixel the region
+ *   covers) and every other pixel is transparent. The caller (AtlasGlobe) passes a grey level per
+ *   region, derived from BC tokens; this file draws whatever it is given and holds no colour of its
+ *   own. globe-texture.ts applies it to LAND pixels only, so the coastlines
  *   still come from the relief texture's own land/water mask and the outlines here only have to say
  *   which region a piece of land is in.
  *
@@ -41,7 +44,7 @@ import type { GeometryCollection, Topology } from 'topojson-specification'
 import { ATLAS_REGIONS, FRANCE_ISO_NUMERIC, franceOverseasRegion, m49RegionOf } from '../_data/m49-regions'
 import type { AtlasRegion } from '../_data/m49-regions'
 
-/** One tint colour per region, as 0-255 RGB. Derived from BC tokens by the caller. */
+/** One value per region, as 0-255 RGB (a grey, R = G = B, since round 3). Derived from BC tokens by the caller. */
 export type RegionTintColours = Record<AtlasRegion, [number, number, number]>
 
 /** Properties world-atlas stores on each country. */

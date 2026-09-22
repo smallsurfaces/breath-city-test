@@ -1,5 +1,5 @@
 /**
- * globe-texture.ts — builds the shaded-relief globe texture in the browser, with the region tints
+ * globe-texture.ts — builds the shaded-relief globe texture in the browser, with the region greys
  * baked in.
  *
  * Purpose
@@ -13,19 +13,20 @@
  *   map bakes soft, lit-from-the-upper-left relief into the land. The bump map then adds live
  *   relief under the scene lighting on top of that.
  *
- * Region tints (round 2, item 6)
- *   Optionally, a region tint layer (region-raster.ts) is baked into the LAND pixels: each tinted
- *   pixel takes its region's pale tint colour and then gets the same hillshade delta the grey land
- *   would have had, so the relief reads through the tint unchanged. Ocean pixels are never tinted.
- *   Region edges blend by coverage, so borders between regions are soft rather than stepped.
- *   Baked into the texture rather than drawn as a polygon layer: no extra geometry, and the relief
- *   and the bump map keep working exactly as before.
+ * Region greys (round 2 item 6; grey, not colour, since round 3 R3.1)
+ *   Optionally, a region layer (region-raster.ts) is baked into the LAND pixels: each pixel in a
+ *   region takes that region's grey level and then gets the same hillshade delta the untinted land
+ *   would have had, so the relief reads through unchanged. Ocean pixels are never tinted. Region
+ *   edges blend by coverage, so borders between regions are soft rather than stepped. Baked into
+ *   the texture rather than drawn as a polygon layer: no extra geometry, and the relief and the
+ *   bump map keep working exactly as before.
  *
  * Colour source
- *   No hardcoded colour values. The caller passes grey levels and tint colours that it derives from
- *   BC tokens at runtime (see `tokenLuminance` and `tokenRgb` below, and AtlasGlobe.tsx), because
- *   WebGL and canvas pixels cannot read CSS variables directly. Without a tint layer the output is
- *   pure greyscale, as before.
+ *   No hardcoded colour values. The caller passes grey levels (land, ocean and one per region) that
+ *   it derives from BC tokens at runtime (see `tokenLuminance` below, and AtlasGlobe.tsx), because
+ *   WebGL and canvas pixels cannot read CSS variables directly. The output is pure greyscale, with
+ *   or without the region layer. (The layer's type still carries RGB, so it would take a colour, but
+ *   the grey-wireframe rule keeps colour for city index data only.)
  *
  * Key exports: GreyReliefTones (type), buildReliefTexture, tokenLuminance, tokenRgb,
  *   TEXTURE_WIDTH, TEXTURE_HEIGHT
@@ -129,8 +130,8 @@ function pixelsOf(img: HTMLImageElement): Uint8ClampedArray | null {
  * down (shaded slopes) within `reliefRange`. Flat land stays exactly at `land`.
  *
  * `regionTints`, when given, is an RGBA layer of TEXTURE_WIDTH x TEXTURE_HEIGHT (region-raster.ts).
- * A land pixel under it becomes its tint colour plus the pixel's hillshade delta (grey - land),
- * blended with the plain grey by the layer's alpha. Pass null for the plain grey globe.
+ * A land pixel under it becomes its region's grey plus the pixel's hillshade delta (grey - land),
+ * blended with the untinted grey by the layer's alpha. Pass null for one grey on all land.
  *
  * Returns null if a canvas context or blob is unavailable. Rejects if an image fails to load.
  *
@@ -194,8 +195,8 @@ export async function buildReliefTexture(
         px[i + 1] = value
         px[i + 2] = value
       } else {
-        // Tinted land: the region's tint, shaded by the same relief delta as the grey land, blended
-        // with the grey by coverage (soft region edges).
+        // Land in a region: the region's grey, shaded by the same relief delta as the untinted land,
+        // blended with the untinted grey by coverage (soft region edges).
         const shadeDelta = grey - tones.land
         const mix = tintAlpha / 255
         for (let c = 0; c < 3; c++) {

@@ -2,8 +2,8 @@
  * AtlasGlobe.tsx — the react-globe.gl globe for the Breathe Atlas cover (brief 4.2).
  *
  * Purpose
- *   Renders the shaded-relief globe (grey, with pale region tints) with 16 pulsating HTML city
- *   markers, and hands the parent (GlobeCover) a small imperative API to turn the globe. It owns
+ *   Renders the shaded-relief globe (grey, with each region in its own light grey) with 16 pulsating
+ *   HTML city markers, and hands the parent (GlobeCover) a small imperative API to turn the globe. It owns
  *   everything that touches three.js and the DOM nodes globe.gl manages; GlobeCover owns the cycle,
  *   pause and card state.
  *
@@ -15,12 +15,14 @@
  *   - Colour texture: built at runtime by globe-texture.ts from two images shipped in the
  *     `three-globe` npm package (land/water mask + elevation map): near-white ocean, light grey
  *     land with baked hillshade. Grey levels are derived from BC tokens, never hardcoded.
- *   - Region tints (round 2, item 6): the land of each Breathe Cities region (Africa, Asia, Europe,
- *     LAC, with M49's country extent) carries a pale tint of one BC token, baked into the same
- *     texture (region-raster.ts paints the regions, globe-texture.ts shades them). Colour here
- *     encodes region, which the functional-colour rule allows. See REGION_TINTS. No legend or labels
- *     this round (Jack reviews live). If the tokens or the countries file are unavailable, the globe
- *     renders plain grey.
+ *   - Region greys (round 2 item 6, made grey in round 3 R3.1): the land of each Breathe Cities
+ *     region (Africa, Asia, Europe, LAC, with M49's country extent) is a slightly darker grey than
+ *     the untinted land (Northern America, Oceania, Antarctica), baked into the same texture
+ *     (region-raster.ts paints the regions, globe-texture.ts shades them). NO COLOUR: round 2's
+ *     coloured tints broke the brief's grey-wireframe rule (colour only ever comes from a city's own
+ *     index), so regions are told apart by grey level alone. Europe, Africa and Asia touch, so each
+ *     has its own step; LAC reuses Africa's. See REGION_GREY_SHARE. No legend or labels. If the
+ *     countries file is unavailable, the globe renders with all land in the one grey.
  *   - Bump map: the same elevation image, so relief also catches the live scene light.
  *   - Lighting: soft ambient plus a directional light parented to the camera, so the relief is lit
  *     from the upper left of the view whichever city the globe turns to.
@@ -107,7 +109,7 @@ import type { GlobeMethods } from 'react-globe.gl'
 import type { AtlasCity } from '../_data/cities'
 import { ATLAS_REGIONS } from '../_data/m49-regions'
 import type { AtlasRegion } from '../_data/m49-regions'
-import { buildReliefTexture, TEXTURE_HEIGHT, TEXTURE_WIDTH, tokenLuminance, tokenRgb } from './globe-texture'
+import { buildReliefTexture, TEXTURE_HEIGHT, TEXTURE_WIDTH, tokenLuminance } from './globe-texture'
 import { GLOBE_ALTITUDE } from './globe-framing'
 import { buildRegionTintLayer } from './region-raster'
 import type { RegionTintColours } from './region-raster'
@@ -149,39 +151,47 @@ const PULSE_CSS = `@keyframes atlas-marker-pulse {
 @media (prefers-reduced-motion: reduce) { .atlas-marker-halo { animation: none; } }`
 
 /**
- * Region tints (round 2, item 6): one existing BC token per Breathe Cities region, and how much of
- * that token is mixed into the land grey. Heavy on the grey, so the tint stays light, the relief
- * reads through it and the dark blue pins stay the strongest thing on the globe. Four distinct hues
- * (blue, tangerine, yellow, teal), none of them the pins' dark blue. The shares differ because the
- * tokens differ in strength: yellow and teal need more to show at all against the pale grey, blue
- * and tangerine less. Tuned by eye in the browser; Jack reviews live.
+ * Every grey on the land is a point on the same scale: `share` of the way from BC white to BC steel
+ * (both read from the tokens at runtime, as luminance). Untinted land (Northern America, Oceania,
+ * Antarctica) sits at LAND_GREY_SHARE, as it always has.
  */
-const REGION_TINTS: Record<AtlasRegion, { token: string; share: number }> = {
-  africa: { token: '--bc-color-tangerine', share: 0.2 },
-  asia: { token: '--bc-color-yellow', share: 0.24 },
-  europe: { token: '--bc-color-blue', share: 0.18 },
-  lac: { token: '--bc-color-teal', share: 0.24 },
-}
+const LAND_GREY_SHARE = 0.35
 
 /**
- * The tint colour for each region: its token mixed into the land grey by its share (see
- * REGION_TINTS). Returns null if any token is unavailable, and the globe then stays grey.
- *
- * Side effect: reads computed style (tokenRgb).
+ * Region greys (round 3, R3.1; replaces round 2's coloured tints). Each region's land is a step
+ * darker than the untinted land on the white-to-steel scale above, so every region reads as
+ * different from untinted land. Europe, Africa and Asia touch each other (Europe and Asia across
+ * Russia and the Caucasus, Africa and Asia at Sinai), so each has its own step; LAC touches only
+ * untinted land (Mexico and the United States) and reuses Africa's middle step. Europe, with the
+ * densest cluster of pins and labels, gets the lightest step so they keep the most contrast; Asia,
+ * the largest landmass with the fewest pins, the darkest. Shares above 1 are simply further along
+ * the same line, a little darker than steel.
+ * Tuned by eye in headless Chrome at 1280: steps of 0.2 (about 12 grey levels) vanished into the
+ * hillshade and the scene light, which brightens the lit side of the globe; steps of 0.3 (about 19
+ * levels) read as separate regions and still let the relief show. The darkest grey (Asia, about 173
+ * of 255) is still far lighter than the dark blue pins, which stay the strongest thing on the globe.
+ * Jack reviews live; these four numbers are the ones to tune.
  */
-function regionTintColours(landGrey: number): RegionTintColours | null {
-  const colours: Partial<RegionTintColours> = {}
+const REGION_GREY_SHARE: Record<AtlasRegion, number> = {
+  europe: 0.7,
+  africa: 1.0,
+  lac: 1.0,
+  asia: 1.3,
+}
+
+/** A grey level `share` of the way from `white` to `steel` (luminances, 0-255). Pure. */
+function greyOnScale(white: number, steel: number, share: number): number {
+  return white - (white - steel) * share
+}
+
+/** The grey for each region's land, as RGB (see REGION_GREY_SHARE). Pure. */
+function regionGreys(white: number, steel: number): RegionTintColours {
+  const colours = {} as RegionTintColours
   for (const region of ATLAS_REGIONS) {
-    const { token, share } = REGION_TINTS[region]
-    const rgb = tokenRgb(token)
-    if (rgb === null) return null
-    colours[region] = [
-      Math.round(landGrey + (rgb[0] - landGrey) * share),
-      Math.round(landGrey + (rgb[1] - landGrey) * share),
-      Math.round(landGrey + (rgb[2] - landGrey) * share),
-    ]
+    const grey = Math.round(greyOnScale(white, steel, REGION_GREY_SHARE[region]))
+    colours[region] = [grey, grey, grey]
   }
-  return colours as RegionTintColours
+  return colours
 }
 
 /** The small imperative API the cover uses to drive the globe. */
@@ -522,7 +532,7 @@ export default function AtlasGlobe({
     })
   }, [markers, focusCityId])
 
-  // Side effect: build the relief texture (BC token greys, region tints baked in); revoke its object
+  // Side effect: build the relief texture (BC token greys, region greys baked in); revoke its object
   // URL on unmount.
   useEffect(() => {
     let cancelled = false
@@ -537,24 +547,24 @@ export default function AtlasGlobe({
       return
     }
 
-    // Ocean: halfway between white and BC light grey. Land: 35% of the way from white to steel.
-    // Relief range: 40% of the white-to-steel distance, so shaded slopes stay soft and pale.
+    // Ocean: halfway between white and BC light grey. Land: LAND_GREY_SHARE of the way from white
+    // to steel. Relief range: 40% of the white-to-steel distance, so shaded slopes stay soft and pale.
     const tones = {
       ocean: (white + lightGrey) / 2,
-      land: white - (white - steel) * 0.35,
+      land: greyOnScale(white, steel, LAND_GREY_SHARE),
       reliefRange: (white - steel) * 0.4,
     }
     // Atmosphere: BC steel as a neutral grey (luma only, so no blue tint).
     const steelGrey = Math.round(steel)
     setAtmosphereColor(`rgb(${steelGrey}, ${steelGrey}, ${steelGrey})`)
 
-    const tintColours = regionTintColours(tones.land)
-    // Region tints are optional: if the tokens or the countries file are unavailable, the globe
-    // still renders, in plain grey.
-    const tintLayer: Promise<Uint8ClampedArray | null> =
-      tintColours === null
-        ? Promise.resolve(null)
-        : buildRegionTintLayer(TEXTURE_WIDTH, TEXTURE_HEIGHT, tintColours).catch(() => null)
+    // Region greys are optional: if the countries file is unavailable, the globe still renders,
+    // with all land in the one grey.
+    const tintLayer: Promise<Uint8ClampedArray | null> = buildRegionTintLayer(
+      TEXTURE_WIDTH,
+      TEXTURE_HEIGHT,
+      regionGreys(white, steel),
+    ).catch(() => null)
 
     tintLayer
       .then((tints) => buildReliefTexture(WATER_MASK_URL, TOPOLOGY_URL, tones, tints))
