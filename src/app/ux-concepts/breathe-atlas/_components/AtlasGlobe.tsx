@@ -73,6 +73,10 @@
  *   (labelPriorityOrder), re-checked every frame as the globe turns. While a city's card is open,
  *   that city's label is hidden (the card already names it). Decorative: aria-hidden, because the
  *   marker button is already named "City, Country".
+ *   While a card is open (round 3, R3.3): every other label fades right down (LABEL_OPACITY.faded,
+ *   still faintly readable), and any label that would touch the card is hidden. They come back to
+ *   full strength when the card closes. Labels also give way to the cover's controls (pause,
+ *   previous, next). Every show, hide and fade is a short opacity transition (200ms), not a jump.
  *   Screen edges (round 2 fix): on a phone the globe nearly fills the width, so a label on the right
  *   of a pin near the right edge ran off the screen ("Addis A", a cut "Nairobi" with Accra focused).
  *   A label that would cross either edge of the viewport (keeping a LABEL_EDGE_GUTTER_PX gutter)
@@ -93,8 +97,10 @@
  *     110m countries file) and creates an object URL; revoked on unmount.
  *   - Creates 16 detached marker DOM nodes and attaches click listeners to their buttons.
  *   - Sets a `data-focus` attribute on the focus marker's button when `focusCityId` changes.
- *   - An animation-frame loop that shows or hides the city name labels (inline visibility): the open
- *     card's city, far-side cities and collisions are hidden.
+ *   - An animation-frame loop that places, fades or hides the city name labels (inline opacity and
+ *     class): the open card's city, far-side cities, collisions and labels under the card or the
+ *     controls are hidden; the rest fade while a card is open. It reads the card's and the controls'
+ *     boxes each frame.
  *   - Mutates three.js objects owned by globe.gl once the globe is ready: controls flags, canvas
  *     touch-action style, light intensities and parenting, globe material settings.
  */
@@ -326,9 +332,34 @@ function labelBox(side: LabelSide, cx: number, cy: number, width: number, height
   return { left: cx - width / 2, right: cx + width / 2, top: cy + LABEL_GAP_PX, bottom: cy + LABEL_GAP_PX + height }
 }
 
-/** The full class list of a label on `side`. */
+/**
+ * The full class list of a label on `side`. Labels show and hide by opacity with a short fade
+ * (round 3, R3.3: "a short fade, not a jump"). The fade is kept under reduced motion: it is a change
+ * of opacity, not movement.
+ */
 function labelClass(side: LabelSide): string {
-  return `pointer-events-none absolute whitespace-nowrap text-[11px] font-medium leading-none ${LABEL_SIDE_CLASS[side]}`
+  return `pointer-events-none absolute whitespace-nowrap text-[11px] font-medium leading-none transition-opacity duration-200 ease-out ${LABEL_SIDE_CLASS[side]}`
+}
+
+/**
+ * How strongly a label shows (round 3, R3.3): full; faded right down while a city card is open
+ * (still faintly readable); or hidden (the card's own city, a label under the card, a far-side pin,
+ * an edge or collision drop).
+ */
+type LabelLevel = 'full' | 'faded' | 'hidden'
+
+/** Opacity per LabelLevel. 'faded' is "right down, still faintly readable" (R3.3), judged live. */
+const LABEL_OPACITY: Record<LabelLevel, string> = { full: '1', faded: '0.3', hidden: '0' }
+
+/**
+ * Clear space (px) kept around the open card and the cover's own controls: a label whose box comes
+ * within this of either is hidden rather than drawn touching it.
+ */
+const LABEL_OBSTACLE_CLEARANCE_PX = 4
+
+/** A DOMRect as a Box, grown by `pad` px on every side. Pure. */
+function paddedBox(rect: DOMRect, pad: number): Box {
+  return { left: rect.left - pad, top: rect.top - pad, right: rect.right + pad, bottom: rect.bottom + pad }
 }
 
 /**
@@ -468,33 +499,50 @@ export default function AtlasGlobe({
   }, [cardCityId])
 
   /**
-   * Side effect: decide, every animation frame, where each city name label goes and whether it
-   * shows (round 2, item 8, and the screen-edge fix).
+   * Side effect: decide, every animation frame, where each city name label goes and how strongly it
+   * shows (round 2, item 8, the screen-edge fix, and round 3, R3.3).
    * Hidden: the open card's city (the card names it), far-side cities (their marker is hidden by
-   * globe.gl), a label that fits inside the screen's gutters on neither side of its pin, and a
-   * label that would overlap one already placed. Labels are placed in labelPriorityOrder, so when
-   * two collide the lower-priority one is dropped (chapter cities win).
+   * globe.gl), a label that fits inside the screen's gutters on neither side of its pin, a label
+   * that would overlap one already placed, and a label that would touch the open card or one of the
+   * cover's controls (pause, previous, next: found by their `data-atlas-control` attribute). Labels
+   * are placed in labelPriorityOrder, so when two collide the lower-priority one is dropped
+   * (chapter cities win).
+   * Faded (R3.3): while a card is open, every label still shown drops to LABEL_OPACITY.faded, so the
+   * card's city stands out; they return to full strength when the card closes. The card box is
+   * measured as drawn, so while the card grows out of its dot (R3.6) the labels it reaches hide as
+   * it reaches them.
    * Side: the first of labelSideCandidates whose box (labelBox, from the pin's centre and the
    * label's own size) stays LABEL_EDGE_GUTTER_PX inside both edges of the viewport.
-   * Runs per frame because the markers move with every turn and drag. Per label it reads the
-   * marker's box and the label's size (visibility does not affect layout, so a hidden label can
-   * still be measured), and it writes a label's side or visibility only when it changes. An empty
-   * visibility lets the label follow its marker's. The loop is cancelled on unmount.
+   * Runs per frame because the markers move with every turn and drag. Per frame it reads the card's
+   * and the controls' boxes; per label, the marker's box and the label's size (opacity does not
+   * affect layout, so a hidden label can still be measured). It writes a label's side or opacity
+   * only when they change; the label's CSS transition turns an opacity change into a short fade.
+   * The loop is cancelled on unmount.
    */
   useEffect(() => {
     const ordered = labelPriorityOrder(cities)
-    // The side each label currently shows on, or null while hidden.
-    const applied = new Map<string, LabelSide | null>()
+    // What each label currently shows: its side (null while hidden) and its level.
+    const applied = new Map<string, { side: LabelSide | null; level: LabelLevel }>()
     let frame = 0
     const place = () => {
       const placed: Box[] = []
       const viewportWidth = document.documentElement.clientWidth
+      const cardCityId = cardCityIdRef.current
+      // The open card as drawn (portalled into its marker's card host), and the cover's controls.
+      const cardElement =
+        cardCityId === null ? null : markers.get(cardCityId)?.cardHost.querySelector<HTMLElement>('[data-atlas-card]') ?? null
+      const obstacles: Box[] = Array.from(document.querySelectorAll('[data-atlas-control]'), (control) =>
+        paddedBox(control.getBoundingClientRect(), LABEL_OBSTACLE_CLEARANCE_PX),
+      )
+      if (cardElement !== null) obstacles.push(paddedBox(cardElement.getBoundingClientRect(), LABEL_OBSTACLE_CLEARANCE_PX))
+      const shownLevel: LabelLevel = cardCityId === null ? 'full' : 'faded'
+
       for (const city of ordered) {
         const nodes = markers.get(city.id)
         if (nodes === undefined) continue
         let side: LabelSide | null = null
         const eligible =
-          city.id !== cardCityIdRef.current && nodes.element.isConnected && nodes.element.style.visibility !== 'hidden'
+          city.id !== cardCityId && nodes.element.isConnected && nodes.element.style.visibility !== 'hidden'
         if (eligible) {
           const pin = nodes.element.getBoundingClientRect()
           const cx = pin.left + pin.width / 2
@@ -504,19 +552,22 @@ export default function AtlasGlobe({
           for (const candidate of labelSideCandidates(LABEL_SIDE[city.id] ?? 'right')) {
             const box = labelBox(candidate, cx, cy, width, height)
             if (box.left < LABEL_EDGE_GUTTER_PX || box.right > viewportWidth - LABEL_EDGE_GUTTER_PX) continue
-            // First side that fits the screen. If it hits a label already placed, this one drops.
-            if (!placed.some((other) => boxesOverlap(other, box))) {
+            // First side that fits the screen. If it hits a label already placed, the card or a
+            // control, this one drops.
+            if (!placed.some((other) => boxesOverlap(other, box)) && !obstacles.some((other) => boxesOverlap(other, box))) {
               side = candidate
               placed.push(box)
             }
             break
           }
         }
-        // Write only on a change: a new side (class) and/or showing or hiding (visibility).
-        if (applied.get(city.id) === side) continue
-        if (side !== null) nodes.label.className = labelClass(side)
-        nodes.label.style.visibility = side === null ? 'hidden' : ''
-        applied.set(city.id, side)
+        const level: LabelLevel = side === null ? 'hidden' : shownLevel
+        // Write only on a change: a new side (class) and/or a new level (opacity, faded by CSS).
+        const previous = applied.get(city.id)
+        if (previous !== undefined && previous.side === side && previous.level === level) continue
+        if (side !== null && side !== previous?.side) nodes.label.className = labelClass(side)
+        nodes.label.style.opacity = LABEL_OPACITY[level]
+        applied.set(city.id, { side, level })
       }
       frame = window.requestAnimationFrame(place)
     }
