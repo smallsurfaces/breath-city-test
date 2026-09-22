@@ -15,7 +15,7 @@
  *   in either of the content pack's two formats, "Photo by X on Unsplash" or "Breathe Cities" (shown
  *   as "Photo: Breathe Cities"), and the credit LINKS to the photo's source page (new tab), so the
  *   source stays one tap away (data attribution and traceability decision). PhotoCreditInfo is the
- *   same "i" for the chapter opener's landmark image.
+ *   same "i" for the chapter opener's image (the city's card image since round 3, R3.4).
  *
  * Key exports: PhotoFigure (named), PhotoCreditInfo (named)
  * External dependencies: lucide-react (ImageIcon), ./ChapterLink, ./CreditInfo, ../../_data/chapters (type).
