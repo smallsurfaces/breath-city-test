@@ -43,12 +43,31 @@
  *     user while they are in it.
  *   - Tapping a marker (or Enter/Space on a focused marker) pauses the cycle, turns the globe to the
  *     city (SELECT_TURN_MS) and opens a held card above the marker, as before.
- *   - A held card closes on its close button, Escape, or a tap anywhere outside the card and markers
- *     (a drag does not count as a tap). Closing any card keeps it closed until the globe rests on a
- *     city again.
+ *   Closing any card keeps it closed until the globe rests on a city again.
+ *
+ * Closing the card (round 3, R3.2: the card has no close button)
+ *   Any card, held or auto-opened, closes:
+ *     - on a tap or click anywhere outside it (a drag does not count as a tap),
+ *     - when the globe is dragged,
+ *     - on Escape, which is the keyboard path. Focus then goes somewhere sensible: if it was inside
+ *       the card (or nowhere), it moves to the city's marker; if it was on the marker or on the
+ *       control that opened the card (an arrow), it stays there. A held card closes on Escape from
+ *       anywhere on the page; an auto-opened one while focus is in the cover.
+ *   Not "outside": another marker (tapping a pin switches straight to that city) and the globe's
+ *   controls (the arrows step on as before; pause/play leaves the open card as it is).
+ *   Closing a held card starts the resume countdown; closing an auto-opened card from outside the
+ *   cover leaves the tour running.
+ *
+ * The card grows out of its dot (round 3, R3.6)
+ *   The card the visitor SEES (shownCard) trails the card the state asks for (cardCity) by one close
+ *   animation: when cardCity changes, the shown card shrinks into its dot first (CityCard's
+ *   `closing`), and only when that ends does the next city's card mount and grow from its own dot.
+ *   So switching cities (arrows, another pin, the tour) never has two full cards on screen, and the
+ *   tour's timing is untouched (the animations run inside its turn and rest).
  *
  * Previous/next arrows (round 2, item 2)
- *   Two arrows either side of the globe, in the carousel's arrow style, step through CYCLE_ORDER
+ *   Two arrows either side of the globe, level with the pale "CITIES" line at every breakpoint
+ *   (round 3, R3.5; see .atlas-step in COVER_LAYOUT_CSS), in the carousel's arrow style, step through CYCLE_ORDER
  *   and open the city's card the way the tour does: the globe turns (SELECT_TURN_MS), then rests
  *   on the city, whose card opens automatically. A press is an explicit pause (the pause button
  *   shows Play). Presses accumulate from the city a step is already turning to, so fast presses
@@ -80,7 +99,7 @@
  *   - ResizeObserver on the canvas box (the WebGL canvas's pixel size).
  *   - matchMedia listener for prefers-reduced-motion.
  *   - Timers for the cycle, the interaction resume countdown and an arrow step's rest.
- *   - Document pointerdown/pointerup/keydown listeners while a held card is open (tap-outside, Escape).
+ *   - Document pointerdown/pointerup/keydown listeners while a card is open (tap-outside, Escape).
  */
 
 'use client'
@@ -93,7 +112,7 @@ import type { AtlasGlobeApi } from './AtlasGlobe'
 import { navArrowClass } from './atlas-arrow-styles'
 import { CITY_CARD_WIDTH_PX, CITY_CARD_WIDTH_PX_SM, CityCard } from './CityCard'
 import { SPHERE_SHARE_OF_CANVAS } from './globe-framing'
-import { Wordmark } from './Wordmark'
+import { Wordmark, WORDMARK_LINE_HEIGHT_EM, WORDMARK_SIZE_CQW } from './Wordmark'
 import { ATLAS_CITIES, BC_MISSION_LINE, CYCLE_ORDER } from '../_data/cities'
 import type { AtlasCity } from '../_data/cities'
 
@@ -181,11 +200,19 @@ const PAUSE_CARD_CLEARANCE_PX_SM = 16
  *   because the globe nearly fills the width. (It sits in the sphere box, so `right` is measured
  *   from the sphere's edge, hence the "- --atlas-inset".) Clamped at the stage edge, so it can never
  *   be pushed off the stage.
- * .atlas-step: the previous/next city arrows (round 2, item 2), either side of the globe. From `sm`
- *   they sit beside the sphere at its vertical centre, STEP_ARROW_GAP_PX clear of it (there is room:
- *   at 640px the sphere leaves 115px each side). On a phone the globe fills the width, so they sit in
- *   the sphere square's bottom corners instead, where the round globe curves away and leaves room
- *   (a 56px button there clears a 358px sphere by about 6px).
+ * .atlas-step: the previous/next city arrows (round 2, item 2), either side of the globe.
+ *   Vertically (round 3, R3.5), ONE rule at every breakpoint: each arrow is centred on the pale
+ *   "CITIES" line, not the globe's centre, where it sat on top of the big dark city name. The line's
+ *   centre is its outer edge (--atlas-wordmark-reach below the globe's centre) less half its line
+ *   height (WORDMARK_LINE_HEIGHT_EM x the wordmark size, WORDMARK_SIZE_CQW, both from Wordmark), so
+ *   it follows the wordmark at every width. That is about 170px below the globe's centre at 390, 768
+ *   and 1280 wide, so the arrows end about 12px (phone), 40px (768) and 75px (1280) above the stage's
+ *   bottom edge and never reach the mission line below it.
+ *   Horizontally: from `sm` they sit beside the sphere, STEP_ARROW_GAP_PX clear of it (there is
+ *   room: at 640px the sphere leaves 115px each side). On a phone the globe fills the width, so they
+ *   sit at the sphere square's left and right edges, where the round globe has curved well away at
+ *   that height (a 56px button there clears a 358px sphere by about 12px). On a phone this is about
+ *   17px lower than round 2's bottom-corner position.
  */
 const COVER_LAYOUT_CSS = `.atlas-cover { container: atlas-cover / inline-size; }
 .atlas-stage {
@@ -216,17 +243,22 @@ const COVER_LAYOUT_CSS = `.atlas-cover { container: atlas-cover / inline-size; }
   top: 0;
   right: calc(max(min(var(--atlas-inset), var(--atlas-pause-cap)), 0px) - var(--atlas-inset));
 }
-.atlas-step { bottom: 0; }
+.atlas-step {
+  top: calc(50% + var(--atlas-wordmark-reach) - ${WORDMARK_LINE_HEIGHT_EM / 2} * ${WORDMARK_SIZE_CQW.toFixed(3)}cqw);
+  translate: 0 -50%;
+}
 .atlas-step-prev { left: 0; }
 .atlas-step-next { right: 0; }
 @container atlas-cover (min-width: 640px) {
-  .atlas-step { top: 50%; bottom: auto; translate: 0 -50%; }
   .atlas-step-prev { left: auto; right: calc(100% + ${STEP_ARROW_GAP_PX}px); }
   .atlas-step-next { right: auto; left: calc(100% + ${STEP_ARROW_GAP_PX}px); }
 }`
 
 /** What the cover is showing: resting on a cycle city, or not resting on any. */
 type CoverView = { kind: 'resting'; index: number } | { kind: 'free' }
+
+/** The city card on screen (R3.6): its city, and whether it is shrinking back into its dot. */
+type ShownCard = { city: AtlasCity; closing: boolean }
 
 /** Index of a city in the cycle order (0 when not found, which cannot happen with local data). */
 function cycleIndexOf(cityId: string): number {
@@ -292,6 +324,30 @@ export function GlobeCover() {
   const cardCityId = cardCity === null ? null : cardCity.id
   // The focus city (enlarged pulsating marker): the held card's city, else the resting city.
   const focusCityId = selectedCityId ?? (resting ? shownCity.id : null)
+
+  /* ---- The card on screen (R3.6): trails cardCity by one close animation. ---- */
+  const [shownCard, setShownCard] = useState<ShownCard | null>(null)
+  // The latest cardCity, for handleCardClosed (which runs from an animation, outside a render).
+  const cardCityRef = useRef<AtlasCity | null>(cardCity)
+
+  // Side effect (state only): follow cardCity. Nothing shown: show it (it grows from its dot).
+  // Shown and still wanted: keep it. Shown but no longer wanted: start its close; the next card, if
+  // any, waits for handleCardClosed. Already closing: let it finish.
+  useEffect(() => {
+    cardCityRef.current = cardCity
+    setShownCard((shown) => {
+      if (shown === null) return cardCity === null ? null : { city: cardCity, closing: false }
+      if (shown.closing) return shown
+      if (cardCity !== null && cardCity.id === shown.city.id) return shown
+      return { city: shown.city, closing: true }
+    })
+  }, [cardCity])
+
+  /** The shown card has shrunk into its dot: show whichever card is wanted now, if any. */
+  const handleCardClosed = useCallback(() => {
+    const next = cardCityRef.current
+    setShownCard(next === null ? null : { city: next, closing: false })
+  }, [])
 
   // Side effect: size the WebGL canvas to its CSS-sized box (ResizeObserver attach/detach). The
   // layout itself is CSS (COVER_LAYOUT_CSS); the canvas is the one thing that needs a number.
@@ -421,26 +477,35 @@ export function GlobeCover() {
     [holdForInteraction, cancelStep, reducedMotion],
   )
 
-  /** Close the open card (held or auto-opened); the resume countdown starts now. */
+  /**
+   * Close the open card (held or auto-opened; see "Closing the card"). Closing a held card starts
+   * the resume countdown; an auto-opened card never held the tour, so closing it does not.
+   * `fromKeyboard` (Escape): if focus was inside the card, which is about to go inert, or nowhere,
+   * move it to the city's marker; if it was on the marker or a control, leave it there.
+   */
   const closeCard = useCallback(
-    (returnFocus: boolean) => {
-      if (returnFocus && cardCityId !== null) {
-        // Side effect: move keyboard focus back to the marker the card belonged to. Done FIRST: the
+    (fromKeyboard: boolean) => {
+      const active = document.activeElement
+      if (fromKeyboard && cardCityId !== null && (active === null || active === document.body || isInsideCard(active))) {
+        // Side effect: move keyboard focus to the marker the card belonged to. Done FIRST: the
         // focus event runs the stage's focus handler synchronously with this render's state (card
         // still open), which holds the cycle; the countdown below must be scheduled after it.
         stageRef.current?.querySelector<HTMLButtonElement>(`button[data-city-id="${cardCityId}"]`)?.focus()
       }
+      const wasHeld = selectedCityId !== null
       setSelectedCityId(null)
       // Keep it closed for the rest of this rest, so the auto-opened card does not pop straight back.
       setAutoCardDismissed(true)
-      scheduleResume()
+      if (wasHeld) scheduleResume()
     },
-    [scheduleResume, cardCityId],
+    [scheduleResume, cardCityId, selectedCityId],
   )
 
-  // Side effect: while a held card is open, close it on Escape or on a tap outside the card and markers.
+  // Side effect: while any card is open, close it on a tap outside it (R3.2). The card, the markers
+  // and the globe's controls do not count as outside. A held card also closes on Escape from
+  // anywhere; an auto-opened one on Escape inside the cover (handleStageKeyDown).
   useEffect(() => {
-    if (selectedCityId === null) return
+    if (cardCityId === null) return
     let down: { x: number; y: number } | null = null
     const onDown = (event: PointerEvent) => {
       down = { x: event.clientX, y: event.clientY }
@@ -449,11 +514,11 @@ export function GlobeCover() {
       if (down === null) return
       const travelled = Math.hypot(event.clientX - down.x, event.clientY - down.y)
       down = null
-      if (travelled > DRAG_THRESHOLD_PX || isInsideMarker(event.target)) return
+      if (travelled > DRAG_THRESHOLD_PX || isInsideMarker(event.target) || isInsideControl(event.target)) return
       closeCard(false)
     }
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') closeCard(true)
+      if (event.key === 'Escape' && selectedCityId !== null) closeCard(true)
     }
     document.addEventListener('pointerdown', onDown)
     document.addEventListener('pointerup', onUp)
@@ -463,7 +528,7 @@ export function GlobeCover() {
       document.removeEventListener('pointerup', onUp)
       document.removeEventListener('keydown', onKey)
     }
-  }, [selectedCityId, closeCard])
+  }, [cardCityId, selectedCityId, closeCard])
 
   /* ---- Stage interaction: any press, drag, key or focus in the cover holds the cycle. ---- */
 
@@ -493,23 +558,30 @@ export function GlobeCover() {
     const down = pointerDownRef.current
     if (down === null || down.moved || isInsideMarker(event.target) || isInsideControl(event.target)) return
     if (Math.hypot(event.clientX - down.x, event.clientY - down.y) <= DRAG_THRESHOLD_PX) return
-    // The visitor is dragging the globe away from wherever it rested (this closes an auto-opened card).
+    // The visitor is dragging the globe away from wherever it rested. Leaving the resting city closes
+    // an auto-opened card; R3.2: a drag closes a held card too.
     down.moved = true
     cancelStep()
     restingIndexRef.current = null
     setView({ kind: 'free' })
+    setSelectedCityId(null)
+    setAutoCardDismissed(true)
   }
 
   const handleStagePointerEnd = () => {
+    const down = pointerDownRef.current
     pointerDownRef.current = null
-    if (selectedCityId === null) scheduleResume()
+    // A drag has closed any held card, even if this render has not caught up with that yet.
+    if (selectedCityId === null || down?.moved === true) scheduleResume()
   }
 
   const handleStageKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
     // Escape closes an auto-opened card the visitor has not taken hold of (a held card's Escape is
-    // handled by the document listener above).
+    // handled by the document listener above). A key press in the cover is an interaction, so the
+    // tour holds for the usual countdown.
     if (event.key === 'Escape' && selectedCityId === null && autoCardCity !== null) {
-      closeCard(false)
+      closeCard(true)
+      scheduleResume()
       return
     }
     noteStageInteraction(event.target)
@@ -617,8 +689,17 @@ export function GlobeCover() {
             cities={ATLAS_CITIES}
             initialCity={CYCLE_ORDER[0]}
             reducedMotion={reducedMotion}
-            cardCityId={cardCityId}
-            card={cardCity === null ? null : <CityCard city={cardCity} onClose={() => closeCard(true)} />}
+            cardCityId={shownCard === null ? null : shownCard.city.id}
+            card={
+              shownCard === null ? null : (
+                <CityCard
+                  key={shownCard.city.id}
+                  city={shownCard.city}
+                  closing={shownCard.closing}
+                  onClosed={handleCardClosed}
+                />
+              )
+            }
             focusCityId={focusCityId}
             onReady={handleGlobeReady}
             onMarkerSelect={handleMarkerSelect}

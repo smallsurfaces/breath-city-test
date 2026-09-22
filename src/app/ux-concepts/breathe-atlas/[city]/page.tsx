@@ -42,7 +42,7 @@ import { GoFurther } from '../_components/chapter/GoFurther'
 import { PhotoSection } from '../_components/chapter/PhotoSection'
 import { ProgrammeList } from '../_components/chapter/ProgrammeList'
 import { CHAPTER_CITIES } from '../_data/cities'
-import { chapterBySlug, getChapter, nextChapterCity } from '../_data/chapters'
+import { getChapter, nextChapterCity } from '../_data/chapters'
 
 /** Any slug not returned by generateStaticParams is a 404. */
 export const dynamicParams = false
@@ -77,17 +77,12 @@ export default async function ChapterPage({ params }: ChapterPageProps) {
   if (next === null) {
     throw new Error(`Breathe Atlas: no next chapter after "${city.slug}"`)
   }
-  // The next-city card shows that city's landmark image, which lives in its own chapter entry.
-  const nextChapter = chapterBySlug(next.slug)
-  if (nextChapter === null) {
-    throw new Error(`Breathe Atlas: next city "${next.slug}" has no chapter entry`)
-  }
 
   return (
     <main className="min-h-screen bg-background">
       <AtlasNav />
       <article aria-labelledby={TITLE_ID}>
-        <ChapterOpener city={city} landmark={chapter.landmark} headingId={TITLE_ID} />
+        <ChapterOpener city={city} headingId={TITLE_ID} />
         <ChapterHeroMap city={city} chapter={chapter} />
         <div className="space-y-20 pb-20 pt-12 sm:space-y-28 sm:pb-28 sm:pt-16">
           <ChapterKeyFacts city={city} chapter={chapter} />
@@ -95,7 +90,7 @@ export default async function ChapterPage({ params }: ChapterPageProps) {
           <ProgrammeList programmes={chapter.programmes} layout={chapter.layouts.programmes} />
           <PhotoSection photos={chapter.photos} layout={chapter.layouts.photos} cityName={city.name} />
           <GoFurther links={chapter.goFurther} />
-          <ChapterEnding city={city} next={next} nextLandmark={nextChapter.landmark} />
+          <ChapterEnding city={city} next={next} />
         </div>
       </article>
     </main>

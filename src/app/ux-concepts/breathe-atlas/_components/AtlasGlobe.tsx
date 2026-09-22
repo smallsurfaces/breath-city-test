@@ -2,8 +2,8 @@
  * AtlasGlobe.tsx — the react-globe.gl globe for the Breathe Atlas cover (brief 4.2).
  *
  * Purpose
- *   Renders the shaded-relief globe (grey, with pale region tints) with 16 pulsating HTML city
- *   markers, and hands the parent (GlobeCover) a small imperative API to turn the globe. It owns
+ *   Renders the shaded-relief globe (grey, with each region in its own light grey) with 16 pulsating
+ *   HTML city markers, and hands the parent (GlobeCover) a small imperative API to turn the globe. It owns
  *   everything that touches three.js and the DOM nodes globe.gl manages; GlobeCover owns the cycle,
  *   pause and card state.
  *
@@ -15,12 +15,14 @@
  *   - Colour texture: built at runtime by globe-texture.ts from two images shipped in the
  *     `three-globe` npm package (land/water mask + elevation map): near-white ocean, light grey
  *     land with baked hillshade. Grey levels are derived from BC tokens, never hardcoded.
- *   - Region tints (round 2, item 6): the land of each Breathe Cities region (Africa, Asia, Europe,
- *     LAC, with M49's country extent) carries a pale tint of one BC token, baked into the same
- *     texture (region-raster.ts paints the regions, globe-texture.ts shades them). Colour here
- *     encodes region, which the functional-colour rule allows. See REGION_TINTS. No legend or labels
- *     this round (Jack reviews live). If the tokens or the countries file are unavailable, the globe
- *     renders plain grey.
+ *   - Region greys (round 2 item 6, made grey in round 3 R3.1): the land of each Breathe Cities
+ *     region (Africa, Asia, Europe, LAC, with M49's country extent) is a slightly darker grey than
+ *     the untinted land (Northern America, Oceania, Antarctica), baked into the same texture
+ *     (region-raster.ts paints the regions, globe-texture.ts shades them). NO COLOUR: round 2's
+ *     coloured tints broke the brief's grey-wireframe rule (colour only ever comes from a city's own
+ *     index), so regions are told apart by grey level alone. Europe, Africa and Asia touch, so each
+ *     has its own step; LAC reuses Africa's. See REGION_GREY_SHARE. No legend or labels. If the
+ *     countries file is unavailable, the globe renders with all land in the one grey.
  *   - Bump map: the same elevation image, so relief also catches the live scene light.
  *   - Lighting: soft ambient plus a directional light parented to the camera, so the relief is lit
  *     from the upper left of the view whichever city the globe turns to.
@@ -71,6 +73,11 @@
  *   (labelPriorityOrder), re-checked every frame as the globe turns. While a city's card is open,
  *   that city's label is hidden (the card already names it). Decorative: aria-hidden, because the
  *   marker button is already named "City, Country".
+ *   While a card is open (round 3, R3.3): every other label fades right down (LABEL_OPACITY.faded,
+ *   still faintly readable), and any label that would touch the card is hidden. They come back to
+ *   full strength when the card closes. Labels also give way to the cover's controls (pause,
+ *   previous, next). Showing and fading are a short opacity transition (200ms), not a jump; hiding
+ *   is instant (visibility), so the card's own city label is gone as soon as its card opens.
  *   Screen edges (round 2 fix): on a phone the globe nearly fills the width, so a label on the right
  *   of a pin near the right edge ran off the screen ("Addis A", a cut "Nairobi" with Accra focused).
  *   A label that would cross either edge of the viewport (keeping a LABEL_EDGE_GUTTER_PX gutter)
@@ -91,8 +98,10 @@
  *     110m countries file) and creates an object URL; revoked on unmount.
  *   - Creates 16 detached marker DOM nodes and attaches click listeners to their buttons.
  *   - Sets a `data-focus` attribute on the focus marker's button when `focusCityId` changes.
- *   - An animation-frame loop that shows or hides the city name labels (inline visibility): the open
- *     card's city, far-side cities and collisions are hidden.
+ *   - An animation-frame loop that places, fades or hides the city name labels (inline opacity,
+ *     visibility and class): the open card's city, far-side cities, collisions and labels under the card or the
+ *     controls are hidden; the rest fade while a card is open. It reads the card's and the controls'
+ *     boxes each frame.
  *   - Mutates three.js objects owned by globe.gl once the globe is ready: controls flags, canvas
  *     touch-action style, light intensities and parenting, globe material settings.
  */
@@ -107,7 +116,7 @@ import type { GlobeMethods } from 'react-globe.gl'
 import type { AtlasCity } from '../_data/cities'
 import { ATLAS_REGIONS } from '../_data/m49-regions'
 import type { AtlasRegion } from '../_data/m49-regions'
-import { buildReliefTexture, TEXTURE_HEIGHT, TEXTURE_WIDTH, tokenLuminance, tokenRgb } from './globe-texture'
+import { buildReliefTexture, TEXTURE_HEIGHT, TEXTURE_WIDTH, tokenLuminance } from './globe-texture'
 import { GLOBE_ALTITUDE } from './globe-framing'
 import { buildRegionTintLayer } from './region-raster'
 import type { RegionTintColours } from './region-raster'
@@ -149,39 +158,47 @@ const PULSE_CSS = `@keyframes atlas-marker-pulse {
 @media (prefers-reduced-motion: reduce) { .atlas-marker-halo { animation: none; } }`
 
 /**
- * Region tints (round 2, item 6): one existing BC token per Breathe Cities region, and how much of
- * that token is mixed into the land grey. Heavy on the grey, so the tint stays light, the relief
- * reads through it and the dark blue pins stay the strongest thing on the globe. Four distinct hues
- * (blue, tangerine, yellow, teal), none of them the pins' dark blue. The shares differ because the
- * tokens differ in strength: yellow and teal need more to show at all against the pale grey, blue
- * and tangerine less. Tuned by eye in the browser; Jack reviews live.
+ * Every grey on the land is a point on the same scale: `share` of the way from BC white to BC steel
+ * (both read from the tokens at runtime, as luminance). Untinted land (Northern America, Oceania,
+ * Antarctica) sits at LAND_GREY_SHARE, as it always has.
  */
-const REGION_TINTS: Record<AtlasRegion, { token: string; share: number }> = {
-  africa: { token: '--bc-color-tangerine', share: 0.2 },
-  asia: { token: '--bc-color-yellow', share: 0.24 },
-  europe: { token: '--bc-color-blue', share: 0.18 },
-  lac: { token: '--bc-color-teal', share: 0.24 },
-}
+const LAND_GREY_SHARE = 0.35
 
 /**
- * The tint colour for each region: its token mixed into the land grey by its share (see
- * REGION_TINTS). Returns null if any token is unavailable, and the globe then stays grey.
- *
- * Side effect: reads computed style (tokenRgb).
+ * Region greys (round 3, R3.1; replaces round 2's coloured tints). Each region's land is a step
+ * darker than the untinted land on the white-to-steel scale above, so every region reads as
+ * different from untinted land. Europe, Africa and Asia touch each other (Europe and Asia across
+ * Russia and the Caucasus, Africa and Asia at Sinai), so each has its own step; LAC touches only
+ * untinted land (Mexico and the United States) and reuses Africa's middle step. Europe, with the
+ * densest cluster of pins and labels, gets the lightest step so they keep the most contrast; Asia,
+ * the largest landmass with the fewest pins, the darkest. Shares above 1 are simply further along
+ * the same line, a little darker than steel.
+ * Tuned by eye in headless Chrome at 1280: steps of 0.2 (about 12 grey levels) vanished into the
+ * hillshade and the scene light, which brightens the lit side of the globe; steps of 0.3 (about 19
+ * levels) read as separate regions and still let the relief show. The darkest grey (Asia, about 173
+ * of 255) is still far lighter than the dark blue pins, which stay the strongest thing on the globe.
+ * Jack reviews live; these four numbers are the ones to tune.
  */
-function regionTintColours(landGrey: number): RegionTintColours | null {
-  const colours: Partial<RegionTintColours> = {}
+const REGION_GREY_SHARE: Record<AtlasRegion, number> = {
+  europe: 0.7,
+  africa: 1.0,
+  lac: 1.0,
+  asia: 1.3,
+}
+
+/** A grey level `share` of the way from `white` to `steel` (luminances, 0-255). Pure. */
+function greyOnScale(white: number, steel: number, share: number): number {
+  return white - (white - steel) * share
+}
+
+/** The grey for each region's land, as RGB (see REGION_GREY_SHARE). Pure. */
+function regionGreys(white: number, steel: number): RegionTintColours {
+  const colours = {} as RegionTintColours
   for (const region of ATLAS_REGIONS) {
-    const { token, share } = REGION_TINTS[region]
-    const rgb = tokenRgb(token)
-    if (rgb === null) return null
-    colours[region] = [
-      Math.round(landGrey + (rgb[0] - landGrey) * share),
-      Math.round(landGrey + (rgb[1] - landGrey) * share),
-      Math.round(landGrey + (rgb[2] - landGrey) * share),
-    ]
+    const grey = Math.round(greyOnScale(white, steel, REGION_GREY_SHARE[region]))
+    colours[region] = [grey, grey, grey]
   }
-  return colours as RegionTintColours
+  return colours
 }
 
 /** The small imperative API the cover uses to drive the globe. */
@@ -316,9 +333,34 @@ function labelBox(side: LabelSide, cx: number, cy: number, width: number, height
   return { left: cx - width / 2, right: cx + width / 2, top: cy + LABEL_GAP_PX, bottom: cy + LABEL_GAP_PX + height }
 }
 
-/** The full class list of a label on `side`. */
+/**
+ * The full class list of a label on `side`. Labels fade in, and fade between full and faded, with a
+ * short opacity transition (round 3, R3.3: "a short fade, not a jump"); hiding is instant (see the
+ * label loop). The fade is kept under reduced motion: it is a change of opacity, not movement.
+ */
 function labelClass(side: LabelSide): string {
-  return `pointer-events-none absolute whitespace-nowrap text-[11px] font-medium leading-none ${LABEL_SIDE_CLASS[side]}`
+  return `pointer-events-none absolute whitespace-nowrap text-[11px] font-medium leading-none transition-opacity duration-200 ease-out ${LABEL_SIDE_CLASS[side]}`
+}
+
+/**
+ * How strongly a label shows (round 3, R3.3): full; faded right down while a city card is open
+ * (still faintly readable); or hidden (the card's own city, a label under the card, a far-side pin,
+ * an edge or collision drop).
+ */
+type LabelLevel = 'full' | 'faded' | 'hidden'
+
+/** Opacity per LabelLevel. 'faded' is "right down, still faintly readable" (R3.3), judged live. */
+const LABEL_OPACITY: Record<LabelLevel, string> = { full: '1', faded: '0.3', hidden: '0' }
+
+/**
+ * Clear space (px) kept around the open card and the cover's own controls: a label whose box comes
+ * within this of either is hidden rather than drawn touching it.
+ */
+const LABEL_OBSTACLE_CLEARANCE_PX = 4
+
+/** A DOMRect as a Box, grown by `pad` px on every side. Pure. */
+function paddedBox(rect: DOMRect, pad: number): Box {
+  return { left: rect.left - pad, top: rect.top - pad, right: rect.right + pad, bottom: rect.bottom + pad }
 }
 
 /**
@@ -458,33 +500,51 @@ export default function AtlasGlobe({
   }, [cardCityId])
 
   /**
-   * Side effect: decide, every animation frame, where each city name label goes and whether it
-   * shows (round 2, item 8, and the screen-edge fix).
+   * Side effect: decide, every animation frame, where each city name label goes and how strongly it
+   * shows (round 2, item 8, the screen-edge fix, and round 3, R3.3).
    * Hidden: the open card's city (the card names it), far-side cities (their marker is hidden by
-   * globe.gl), a label that fits inside the screen's gutters on neither side of its pin, and a
-   * label that would overlap one already placed. Labels are placed in labelPriorityOrder, so when
-   * two collide the lower-priority one is dropped (chapter cities win).
+   * globe.gl), a label that fits inside the screen's gutters on neither side of its pin, a label
+   * that would overlap one already placed, and a label that would touch the open card or one of the
+   * cover's controls (pause, previous, next: found by their `data-atlas-control` attribute). Labels
+   * are placed in labelPriorityOrder, so when two collide the lower-priority one is dropped
+   * (chapter cities win).
+   * Faded (R3.3): while a card is open, every label still shown drops to LABEL_OPACITY.faded, so the
+   * card's city stands out; they return to full strength when the card closes. The card box is
+   * measured as drawn, so while the card grows out of its dot (R3.6) the labels it reaches hide as
+   * it reaches them.
    * Side: the first of labelSideCandidates whose box (labelBox, from the pin's centre and the
    * label's own size) stays LABEL_EDGE_GUTTER_PX inside both edges of the viewport.
-   * Runs per frame because the markers move with every turn and drag. Per label it reads the
-   * marker's box and the label's size (visibility does not affect layout, so a hidden label can
-   * still be measured), and it writes a label's side or visibility only when it changes. An empty
-   * visibility lets the label follow its marker's. The loop is cancelled on unmount.
+   * Runs per frame because the markers move with every turn and drag. Per frame it reads the card's
+   * and the controls' boxes; per label, the marker's box and the label's size (opacity and
+   * visibility do not affect layout, so a hidden label can still be measured). It writes a label's
+   * side, visibility or opacity only when they change: hiding is instant, and the label's CSS
+   * transition turns showing and fading into a short fade.
+   * The loop is cancelled on unmount.
    */
   useEffect(() => {
     const ordered = labelPriorityOrder(cities)
-    // The side each label currently shows on, or null while hidden.
-    const applied = new Map<string, LabelSide | null>()
+    // What each label currently shows: its side (null while hidden) and its level.
+    const applied = new Map<string, { side: LabelSide | null; level: LabelLevel }>()
     let frame = 0
     const place = () => {
       const placed: Box[] = []
       const viewportWidth = document.documentElement.clientWidth
+      const cardCityId = cardCityIdRef.current
+      // The open card as drawn (portalled into its marker's card host), and the cover's controls.
+      const cardElement =
+        cardCityId === null ? null : markers.get(cardCityId)?.cardHost.querySelector<HTMLElement>('[data-atlas-card]') ?? null
+      const obstacles: Box[] = Array.from(document.querySelectorAll('[data-atlas-control]'), (control) =>
+        paddedBox(control.getBoundingClientRect(), LABEL_OBSTACLE_CLEARANCE_PX),
+      )
+      if (cardElement !== null) obstacles.push(paddedBox(cardElement.getBoundingClientRect(), LABEL_OBSTACLE_CLEARANCE_PX))
+      const shownLevel: LabelLevel = cardCityId === null ? 'full' : 'faded'
+
       for (const city of ordered) {
         const nodes = markers.get(city.id)
         if (nodes === undefined) continue
         let side: LabelSide | null = null
         const eligible =
-          city.id !== cardCityIdRef.current && nodes.element.isConnected && nodes.element.style.visibility !== 'hidden'
+          city.id !== cardCityId && nodes.element.isConnected && nodes.element.style.visibility !== 'hidden'
         if (eligible) {
           const pin = nodes.element.getBoundingClientRect()
           const cx = pin.left + pin.width / 2
@@ -494,19 +554,28 @@ export default function AtlasGlobe({
           for (const candidate of labelSideCandidates(LABEL_SIDE[city.id] ?? 'right')) {
             const box = labelBox(candidate, cx, cy, width, height)
             if (box.left < LABEL_EDGE_GUTTER_PX || box.right > viewportWidth - LABEL_EDGE_GUTTER_PX) continue
-            // First side that fits the screen. If it hits a label already placed, this one drops.
-            if (!placed.some((other) => boxesOverlap(other, box))) {
+            // First side that fits the screen. If it hits a label already placed, the card or a
+            // control, this one drops.
+            if (!placed.some((other) => boxesOverlap(other, box)) && !obstacles.some((other) => boxesOverlap(other, box))) {
               side = candidate
               placed.push(box)
             }
             break
           }
         }
-        // Write only on a change: a new side (class) and/or showing or hiding (visibility).
-        if (applied.get(city.id) === side) continue
-        if (side !== null) nodes.label.className = labelClass(side)
-        nodes.label.style.visibility = side === null ? 'hidden' : ''
-        applied.set(city.id, side)
+        const level: LabelLevel = side === null ? 'hidden' : shownLevel
+        // Write only on a change: a new side (class) and/or a new level. Hiding is INSTANT
+        // (visibility hidden, as in round 2), so the card's own city label, and any label under the
+        // card, is gone the moment the card opens (PR #70 review, bug 2: fading it out through the
+        // opacity transition left the card city's label at 0.3 wherever the fade had not run).
+        // Showing and fading are opacity changes, which the CSS transition turns into a short fade;
+        // an empty visibility lets a shown label follow its marker's.
+        const previous = applied.get(city.id)
+        if (previous !== undefined && previous.side === side && previous.level === level) continue
+        if (side !== null && side !== previous?.side) nodes.label.className = labelClass(side)
+        nodes.label.style.visibility = level === 'hidden' ? 'hidden' : ''
+        nodes.label.style.opacity = LABEL_OPACITY[level]
+        applied.set(city.id, { side, level })
       }
       frame = window.requestAnimationFrame(place)
     }
@@ -522,7 +591,7 @@ export default function AtlasGlobe({
     })
   }, [markers, focusCityId])
 
-  // Side effect: build the relief texture (BC token greys, region tints baked in); revoke its object
+  // Side effect: build the relief texture (BC token greys, region greys baked in); revoke its object
   // URL on unmount.
   useEffect(() => {
     let cancelled = false
@@ -537,24 +606,24 @@ export default function AtlasGlobe({
       return
     }
 
-    // Ocean: halfway between white and BC light grey. Land: 35% of the way from white to steel.
-    // Relief range: 40% of the white-to-steel distance, so shaded slopes stay soft and pale.
+    // Ocean: halfway between white and BC light grey. Land: LAND_GREY_SHARE of the way from white
+    // to steel. Relief range: 40% of the white-to-steel distance, so shaded slopes stay soft and pale.
     const tones = {
       ocean: (white + lightGrey) / 2,
-      land: white - (white - steel) * 0.35,
+      land: greyOnScale(white, steel, LAND_GREY_SHARE),
       reliefRange: (white - steel) * 0.4,
     }
     // Atmosphere: BC steel as a neutral grey (luma only, so no blue tint).
     const steelGrey = Math.round(steel)
     setAtmosphereColor(`rgb(${steelGrey}, ${steelGrey}, ${steelGrey})`)
 
-    const tintColours = regionTintColours(tones.land)
-    // Region tints are optional: if the tokens or the countries file are unavailable, the globe
-    // still renders, in plain grey.
-    const tintLayer: Promise<Uint8ClampedArray | null> =
-      tintColours === null
-        ? Promise.resolve(null)
-        : buildRegionTintLayer(TEXTURE_WIDTH, TEXTURE_HEIGHT, tintColours).catch(() => null)
+    // Region greys are optional: if the countries file is unavailable, the globe still renders,
+    // with all land in the one grey.
+    const tintLayer: Promise<Uint8ClampedArray | null> = buildRegionTintLayer(
+      TEXTURE_WIDTH,
+      TEXTURE_HEIGHT,
+      regionGreys(white, steel),
+    ).catch(() => null)
 
     tintLayer
       .then((tints) => buildReliefTexture(WATER_MASK_URL, TOPOLOGY_URL, tones, tints))

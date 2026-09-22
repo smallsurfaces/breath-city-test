@@ -2,7 +2,7 @@
  * ChapterEnding.tsx — chapter section 8, the ending (fixed layout, brief 5.8).
  *
  * Purpose
- *   - "Next: [City]": a card with the next chapter city's greyscale landmark image and mission line,
+ *   - "Next: [City]": a card with the next chapter city's greyscale card image and mission line,
  *     linking to that chapter. Chapters run alphabetically and loop (the caller passes the next city,
  *     from nextChapterCity in ../../_data/chapters.ts).
  *   - "All cities": opens the All cities panel (the existing AllCitiesPanel, with the current city
@@ -26,16 +26,23 @@
  *   whole card with a pseudo-element, so the accessible name stays short. The image is decorative
  *   here (alt=""), because the link text already names the city.
  *
+ * The image (round 3, R3.4)
+ *   The next city's `cardImage` (../../_data/cities.ts), the same image the carousel, the globe card
+ *   and that city's opener show: one image per city everywhere. (It used to be the content pack's
+ *   separate landmark photo.) Rounded-rectangle crop like the globe card's photo (rounded-xl),
+ *   anchored to the bottom (object-bottom), because the card images are tall cutouts with the
+ *   landmark low in the frame.
+ *
  * IMAGE RIGHTS
- *   `nextLandmark` is the next city's landmark image from the content pack, HOTLINKED for this
- *   internal prototype and shown in greyscale. It carries no credit here: the link text names the
- *   city and the image is decorative on this card (alt=""), and the same photo is credited in that
- *   city's own chapter opener.
+ *   Breathe Cities' own card image, HOTLINKED from breathecities.org for this internal prototype and
+ *   shown in greyscale. It carries no credit here: the link text names the city and the image is
+ *   decorative on this card (alt=""), and the same image is credited in that city's own chapter
+ *   opener.
  *
  * Key exports: ChapterEnding (named)
  * External dependencies: next/link, lucide-react (ArrowRight), ../AllCitiesPanel (client),
  *   ./ChapterLink (LINK_FOCUS_RING), ../../breathe-atlas-chrome.config (atlasChapterHref),
- *   ../../_data/cities (type), ../../_data/chapters (ChapterPhoto type).
+ *   ../../_data/cities (type).
  */
 
 import Link from 'next/link'
@@ -44,23 +51,20 @@ import { AllCitiesPanel } from '../AllCitiesPanel'
 import { LINK_FOCUS_RING } from './ChapterLink'
 import { atlasChapterHref } from '../../breathe-atlas-chrome.config'
 import type { AtlasCity } from '../../_data/cities'
-import type { ChapterPhoto } from '../../_data/chapters'
 
 /** Props for ChapterEnding. */
 type ChapterEndingProps = {
   /** The chapter's city (highlighted in the All cities panel). */
   city: AtlasCity
-  /** The next chapter city. */
+  /** The next chapter city (its card image is decorative on this card). */
   next: AtlasCity
-  /** The next city's landmark image (decorative on this card). */
-  nextLandmark: ChapterPhoto
 }
 
 /** Id of the "Next" heading (one ending per page). */
 const HEADING_ID = 'atlas-ending-next-heading'
 
 /** The ending section. Server component; the All cities panel is its only client part. */
-export function ChapterEnding({ city, next, nextLandmark }: ChapterEndingProps) {
+export function ChapterEnding({ city, next }: ChapterEndingProps) {
   return (
     <section aria-labelledby={HEADING_ID} className="mx-auto max-w-6xl px-4">
       <div className="grid grid-cols-1 gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] md:items-stretch">
@@ -68,11 +72,11 @@ export function ChapterEnding({ city, next, nextLandmark }: ChapterEndingProps) 
             DOM so it leads on a phone; placed in the right-hand column from `md` (see Layout). */}
         <div className="group relative flex items-center gap-4 rounded-2xl border border-border bg-background p-4 shadow-sm transition-colors hover:border-foreground/40 sm:gap-6 sm:p-5 md:col-start-2 md:row-start-1">
           <img
-            src={nextLandmark.src ?? undefined}
+            src={next.cardImage}
             alt=""
             loading="lazy"
             decoding="async"
-            className="h-28 w-24 shrink-0 rounded-xl bg-muted object-cover grayscale sm:h-36 sm:w-32"
+            className="h-28 w-24 shrink-0 rounded-xl bg-muted object-cover object-bottom grayscale sm:h-36 sm:w-32"
           />
           <div className="min-w-0 flex-1">
             <h2 id={HEADING_ID} className="text-2xl font-bold leading-tight tracking-tight text-foreground">

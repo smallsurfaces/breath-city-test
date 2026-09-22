@@ -13,6 +13,11 @@
  *
  * Where each part comes from
  *   - Content (key facts, story, programmes, photos, links) -> ./chapter-content.ts (content pack).
+ *   - The opener's and the next-city card's image -> the city's `cardImage` in ./cities.ts (round 3,
+ *     R3.4: one image per city everywhere). The content pack's `landmark` image is therefore no
+ *     longer part of a chapter. It is still in ./chapter-content.ts, unused, because that file is
+ *     GENERATED (./generators/gen_content.py) and was not re-run for this; drop it at the generator
+ *     on the next regeneration.
  *   - A city's own index, for tier 4 -> ./indexes.ts (content pack).
  *   - Sensor counts and current conditions -> derived from the mock sensors in ./sensors.ts, so the
  *     counts in the key facts can never disagree with the markers on the map. Both rest on invented
@@ -176,8 +181,6 @@ type ChapterOfTier<T extends SharingTier> = {
   tier: T
   /** Key facts (brief 5.3). */
   keyFacts: ChapterKeyFacts<T>
-  /** The landmark image beside the city name, and on the previous chapter's next-city card (5.1, 5.8). */
-  landmark: ChapterPhoto
   /** Feature story (brief 5.5). */
   featureStory: ChapterFeatureStory
   /** Programme list (brief 5.5). */
@@ -230,11 +233,10 @@ function sections(
   slug: ChapterSlug,
 ): Pick<
   ChapterOfTier<SharingTier>,
-  'landmark' | 'featureStory' | 'programmes' | 'photos' | 'goFurther' | 'dataSource'
+  'featureStory' | 'programmes' | 'photos' | 'goFurther' | 'dataSource'
 > {
   const entry = content(slug)
   return {
-    landmark: entry.landmark,
     featureStory: entry.featureStory,
     programmes: entry.programmes,
     photos: entry.photos,

@@ -5,8 +5,9 @@
  * Purpose
  *   Names the city and offers its chapter. The card opens automatically beside the focus city while
  *   the idle cycle rests on it, when a marker is tapped, and when the globe's previous/next arrows
- *   step to a city. GlobeCover also closes it on Escape or a tap elsewhere once the visitor has
- *   interacted with it.
+ *   step to a city. It has NO close button (round 3, R3.2: the × covered the photo and the card does
+ *   not need it). GlobeCover closes it instead: on a tap or click anywhere outside it, when the globe
+ *   is dragged, and on Escape, which is the keyboard path (see GlobeCover, "Closing the card").
  *
  *   The root carries `data-atlas-card` so GlobeCover can tell a press or focus inside the card
  *   (which turns an auto-opened card into one the visitor holds open).
@@ -19,7 +20,7 @@
  *     (lucide ArrowUpRight). The diagonal keeps it distinct from the globe's left/right arrows.
  *     It is the concept's one card-arrow style (./atlas-arrow-styles, shared with the carousel).
  *   - Right column: a small, rounded, greyscale photo (the city's `cardImage`, anchored to the
- *     bottom where BC's images carry the landmark), with the close button at its top-right corner.
+ *     bottom where BC's images carry the landmark). Nothing sits on it since the × went (R3.2).
  *   - White card background (ConceptCard). The old full-width "Open" pill is gone.
  *   - Chapter cities (7): the arrow links to the chapter.
  *   - Cities without a chapter (9): the arrow shows the carousel's greyed-out treatment and is NOT
@@ -44,11 +45,29 @@
  *   before the first paint, so the card never shows unclamped. Horizontal only: vertically the card
  *   hangs above a marker the globe is bringing to the centre.
  *
+ * Grows out of the dot (round 3, R3.6)
+ *   On open the card scales up from its city's dot to full size (OPEN_MS, ease-out); once GlobeCover
+ *   sets `closing` it shrinks back into the dot (CLOSE_MS, ease-in) and then calls `onClosed`, so
+ *   GlobeCover can unmount it and grow the next city's card. Every close path goes through this:
+ *   tap outside, globe drag, Escape, and the tour, arrows or another pin moving on to a new city.
+ *   The transform-origin is the dot's REAL position in the card's box (dotOrigin), kept up to date
+ *   by the same per-frame loop as the clamp: on a phone the card is often pushed sideways, so the
+ *   dot is not under the card's centre. Transform and opacity only (Web Animations). Under
+ *   prefers-reduced-motion there is no scaling, only a short fade (FADE_MS). A closing card is
+ *   `inert` and ignores pointers, so it cannot be tapped, focused or read on its way out.
+ *   Every animation also has a timer that ends it shortly after its duration (playToEnd,
+ *   ANIMATION_GRACE_MS). PR #70 review, bug 1: a Web Animation only advances while the page draws
+ *   frames, and where it stopped drawing (the review pane) a card closed by a click outside sat at
+ *   its first shrink frame, full size, and was never unmounted. The close now completes either way.
+ *
  * Accessibility
  *   A non-modal dialog (role="dialog", labelled by the city name). It follows the marker button in
- *   DOM order, so Tab moves from the marker straight into the card. The arrow and the close button
- *   are 44px and 32px to the eye with 56px hit areas (frontend-standards R8, the carousel's
- *   CARD_ARROW_HIT_AREA pattern), so they fit a small card without shrinking the target.
+ *   DOM order, so Tab moves from the marker straight into the card. The arrow is 44px to the eye
+ *   with a 56px hit area (frontend-standards R8, the carousel's CARD_ARROW_HIT_AREA pattern), so it
+ *   fits a small card without shrinking the target. With the × gone, Escape closes the card from
+ *   anywhere and puts focus back on the city's marker (GlobeCover), so a keyboard user is never
+ *   left inside a card they cannot close. Focus never lands inside the card uninvited, and it holds
+ *   no focus trap, so Tab always moves on past it.
  *
  * IMAGE RIGHTS
  *   `cardImage` is Breathe Cities' own city card image, HOTLINKED from breathecities.org for this
@@ -58,32 +77,24 @@
  *   The shared ConceptCard surface; bridged semantics only (foreground/background/muted). No hex.
  *
  * Key exports: CityCard (named), CITY_CARD_WIDTH_PX, CITY_CARD_WIDTH_PX_SM
- * External dependencies: react, next/link, lucide-react (ArrowUpRight, X), @/components/concept
+ * External dependencies: react, next/link, lucide-react (ArrowUpRight), @/components/concept
  *   (ConceptCard), ../breathe-atlas-chrome.config (atlasChapterHref), ../_data/cities (AtlasCity
  *   type), ./atlas-arrow-styles.
  *
  * Side effects (cleaned up on unmount): an animation-frame loop that reads the marker's position and
- *   writes the card's `left` (the viewport clamp above).
+ *   writes the card's `left` (the viewport clamp above) and `transform-origin` (the dot); the open
+ *   and close Web Animations on the card element, each with a fallback timer (playToEnd).
  */
 
 'use client'
 
-import { useLayoutEffect, useRef } from 'react'
+import { useEffect, useLayoutEffect, useRef } from 'react'
 import Link from 'next/link'
-import { ArrowUpRight, X } from 'lucide-react'
+import { ArrowUpRight } from 'lucide-react'
 import { ConceptCard } from '@/components/concept'
 import { atlasChapterHref } from '../breathe-atlas-chrome.config'
 import type { AtlasCity } from '../_data/cities'
 import { CARD_ARROW_CLASS, CARD_ARROW_DISABLED_CLASS } from './atlas-arrow-styles'
-
-/**
- * The close button's 56 x 56 hit area around its 32px circle: the same centred pseudo-element as
- * the card arrow's CARD_ARROW_HIT_AREA, minus its `relative` (the button is already `absolute`,
- * which positions the pseudo-element just as well). It stays inside the card: the button sits 4px
- * in from the photo's corner and the card has 14px of padding.
- */
-const CLOSE_HIT_AREA =
-  "before:absolute before:left-1/2 before:top-1/2 before:h-14 before:w-14 before:-translate-x-1/2 before:-translate-y-1/2 before:content-['']"
 
 /**
  * The card's width in px below `sm` (Tailwind `w-[248px]` below), kept as a number as well because
@@ -113,23 +124,115 @@ function clampShift(markerCentreX: number, cardWidth: number, viewportWidth: num
   return Math.round(left - centredLeft)
 }
 
+/** Grow-from-the-dot duration on open, in ms (round 3, R3.6: "about 200 to 250ms", ease-out). */
+const OPEN_MS = 220
+/** Shrink-into-the-dot duration on close, in ms (ease-in). */
+const CLOSE_MS = 200
+/** Under prefers-reduced-motion: a plain short fade instead, in ms, both ways. */
+const FADE_MS = 150
+/** How small the card starts (and ends) at the dot: about the size of the pulsing halo. */
+const DOT_SCALE = 0.08
+/**
+ * Grace (ms) after an animation's own duration before a timer ends it anyway (PR #70 review, bug 1).
+ * A Web Animation only advances while the page draws frames. Where frames stop (a hidden or
+ * throttled browser view, as in the review pane), the close animation sat at its first frame
+ * forever, so `finished` never resolved, the card was never unmounted and it stayed on screen at
+ * full size after a click outside. The timer finishes the animation and reports the close, so the
+ * card's state never depends on frames arriving.
+ */
+const ANIMATION_GRACE_MS = 80
+
+/**
+ * Plays `keyframes` on `element` and calls `onDone` exactly once when it ends: when the animation
+ * finishes, or, at the latest, ANIMATION_GRACE_MS after its duration, when the timer jumps it to
+ * its end state (see ANIMATION_GRACE_MS). Returns a cleanup that cancels both (it does not call
+ * `onDone`).
+ *
+ * Side effects: starts a Web Animation on `element` and a timer.
+ */
+function playToEnd(
+  element: HTMLElement,
+  keyframes: Keyframe[],
+  options: KeyframeAnimationOptions & { duration: number },
+  onDone: () => void,
+): () => void {
+  const animation = element.animate(keyframes, options)
+  let settled = false
+  const settle = () => {
+    if (settled) return
+    settled = true
+    window.clearTimeout(timer)
+    onDone()
+  }
+  const timer = window.setTimeout(() => {
+    try {
+      animation.finish()
+    } catch {
+      // An animation that cannot be finished (no active timeline) is cancelled below by the caller's
+      // cleanup; the card's state still moves on.
+    }
+    settle()
+  }, options.duration + ANIMATION_GRACE_MS)
+  animation.finished.then(settle, () => {
+    // Cancelled (the card unmounted first): nothing to report.
+  })
+  return () => {
+    settled = true
+    window.clearTimeout(timer)
+    animation.cancel()
+  }
+}
+
+/**
+ * Where the city's dot sits in the card's own box, as a CSS transform-origin (round 3, R3.6), so
+ * the card grows out of and shrinks into the dot, not its own bottom centre. Pure.
+ *
+ * Horizontally, the geometry is CityCard's own classes: the card is centred on the marker (left-1/2
+ * and -translate-x-1/2) and moved `shift` px sideways by the clamp, so the dot is `shift` px left of
+ * the card's centre. Vertically, the card's offsetTop is its top edge relative to the marker element
+ * (its offsetParent: globe.gl positions the marker absolutely), whose centre is the dot.
+ * transform-origin is measured in the untransformed box, and offsetWidth/offsetTop ignore the scale,
+ * so they are the right numbers mid-animation too. Change this with the card's position classes.
+ */
+function dotOrigin(cardWidth: number, cardOffsetTop: number, markerHeight: number, shift: number): string {
+  return `${cardWidth / 2 - shift}px ${markerHeight / 2 - cardOffsetTop}px`
+}
+
+/** True when the visitor prefers reduced motion (read when an animation starts). */
+function prefersReducedMotion(): boolean {
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches
+}
+
 /** Props for CityCard. */
 type CityCardProps = {
   /** The city the card is for. */
   city: AtlasCity
-  /** Close the card. */
-  onClose: () => void
+  /**
+   * True once GlobeCover has closed the card: it shrinks into its dot (R3.6), ignores pointers and
+   * is inert, then calls `onClosed`. The card mounts open and only ever goes from open to closing.
+   */
+  closing: boolean
+  /** Called when the close animation has finished (or at once, where animation is unavailable). */
+  onClosed: () => void
 }
 
 /** The marker card. */
-export function CityCard({ city, onClose }: CityCardProps) {
+export function CityCard({ city, closing, onClosed }: CityCardProps) {
   const headingId = `atlas-card-${city.id}`
   const rootRef = useRef<HTMLDivElement>(null)
 
+  // Latest onClosed in a ref, so the close animation (started once) never calls a stale callback.
+  const onClosedRef = useRef(onClosed)
+  useEffect(() => {
+    onClosedRef.current = onClosed
+  }, [onClosed])
+
   // Side effect: keep the card inside the viewport while it is open (see "Never clipped at the
-  // screen edge" in the header). DOM reads (marker position) and writes (the card's `left`) every
-  // animation frame; the loop is cancelled on unmount. Layout effect, so the first clamp lands
-  // before the first paint.
+  // screen edge" in the header), and keep its transform-origin on the dot (R3.6). DOM reads (marker
+  // position, card and marker size) and writes (the card's `left` and `transform-origin`) every
+  // animation frame, written only on a change; the loop is cancelled on unmount. Layout effect,
+  // declared before the open animation below, so the first clamp and origin land before the first
+  // paint and before the card starts to grow.
   useLayoutEffect(() => {
     const card = rootRef.current
     if (card === null) return
@@ -137,6 +240,7 @@ export function CityCard({ city, onClose }: CityCardProps) {
     if (marker === null) return
     let frame = 0
     let appliedShift = 0
+    let appliedOrigin = ''
     const follow = () => {
       const markerRect = marker.getBoundingClientRect()
       const shift = clampShift(
@@ -148,11 +252,76 @@ export function CityCard({ city, onClose }: CityCardProps) {
         card.style.left = shift === 0 ? '' : `calc(50% + ${shift}px)`
         appliedShift = shift
       }
+      const origin = dotOrigin(card.offsetWidth, card.offsetTop, marker.offsetHeight, shift)
+      if (origin !== appliedOrigin) {
+        card.style.transformOrigin = origin
+        appliedOrigin = origin
+      }
       frame = window.requestAnimationFrame(follow)
     }
     follow()
     return () => window.cancelAnimationFrame(frame)
   }, [])
+
+  // The open animation's cleanup, so the close can stop it (and its timer) before shrinking.
+  const stopOpenRef = useRef<(() => void) | null>(null)
+
+  // Side effect: grow out of the dot on open (R3.6): a Web Animation on transform and opacity only,
+  // so it stays on the compositor on a phone. Under reduced motion, a plain fade. playToEnd's timer
+  // ends it even where no frames are drawn, so the card never sticks invisible at its first frame.
+  // Cancelled on unmount. Layout effect, so the card's first paint is already the animation's first
+  // frame.
+  useLayoutEffect(() => {
+    const card = rootRef.current
+    if (card === null || typeof card.animate !== 'function') return
+    const reduced = prefersReducedMotion()
+    const keyframes = reduced
+      ? [{ opacity: 0 }, { opacity: 1 }]
+      : [
+          { opacity: 0, transform: `scale(${DOT_SCALE})` },
+          { opacity: 1, transform: 'scale(1)' },
+        ]
+    const stop = playToEnd(card, keyframes, { duration: reduced ? FADE_MS : OPEN_MS, easing: 'ease-out' }, () => {
+      // Open: nothing to report.
+    })
+    stopOpenRef.current = stop
+    return () => {
+      stopOpenRef.current = null
+      stop()
+    }
+  }, [])
+
+  // Side effect: shrink into the dot once closed (R3.6), then tell GlobeCover. Starts from wherever
+  // the open animation has got to (its current values are committed first, then it is stopped), so
+  // a card closed while it is still growing shrinks back from there instead of jumping. `fill:
+  // forwards` holds the end state until GlobeCover unmounts the card. GlobeCover hears about the
+  // close when the animation ends, or from playToEnd's timer at the latest (PR #70 review, bug 1:
+  // it used to wait on the animation alone, which never ended where no frames were drawn).
+  // Cancelled on unmount.
+  useEffect(() => {
+    if (!closing) return
+    const card = rootRef.current
+    if (card === null || typeof card.animate !== 'function') {
+      onClosedRef.current()
+      return
+    }
+    for (const running of card.getAnimations()) {
+      try {
+        running.commitStyles()
+      } catch {
+        // Not rendered (nothing to start from): the close starts from the card's own styles.
+      }
+    }
+    stopOpenRef.current?.()
+    for (const running of card.getAnimations()) running.cancel()
+    const reduced = prefersReducedMotion()
+    return playToEnd(
+      card,
+      reduced ? [{ opacity: 0 }] : [{ opacity: 0, transform: `scale(${DOT_SCALE})` }],
+      { duration: reduced ? FADE_MS : CLOSE_MS, easing: 'ease-in', fill: 'forwards' },
+      () => onClosedRef.current(),
+    )
+  }, [closing])
 
   return (
     <div
@@ -160,7 +329,9 @@ export function CityCard({ city, onClose }: CityCardProps) {
       role="dialog"
       aria-labelledby={headingId}
       data-atlas-card="true"
-      className="absolute bottom-full left-1/2 z-10 mb-1 w-[248px] -translate-x-1/2 sm:w-72"
+      // A closing card is on its way out: not clickable, not focusable, not announced.
+      inert={closing}
+      className={`absolute bottom-full left-1/2 z-10 mb-1 w-[248px] -translate-x-1/2 sm:w-72 ${closing ? 'pointer-events-none' : ''}`}
     >
       <ConceptCard noPadding className="flex gap-3 p-3.5 text-left">
         {/* Left column: name, country, arrow. */}
@@ -186,23 +357,13 @@ export function CityCard({ city, onClose }: CityCardProps) {
           </div>
         </div>
 
-        {/* Right column: the city's photo, greyscale, with the close button on its top-right corner. */}
-        <div className="relative shrink-0">
-          <img
-            src={city.cardImage}
-            alt=""
-            decoding="async"
-            className="block h-[100px] w-20 rounded-xl bg-muted object-cover object-bottom grayscale"
-          />
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label={`Close ${city.name} card`}
-            className={`absolute right-1 top-1 flex h-8 w-8 items-center justify-center rounded-full bg-background text-foreground shadow-sm transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-foreground ${CLOSE_HIT_AREA}`}
-          >
-            <X className="h-4 w-4" aria-hidden="true" />
-          </button>
-        </div>
+        {/* Right column: the city's photo, greyscale. No close button on it (R3.2). */}
+        <img
+          src={city.cardImage}
+          alt=""
+          decoding="async"
+          className="block h-[100px] w-20 shrink-0 rounded-xl bg-muted object-cover object-bottom grayscale"
+        />
       </ConceptCard>
     </div>
   )
