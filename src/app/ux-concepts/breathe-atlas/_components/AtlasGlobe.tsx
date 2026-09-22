@@ -71,6 +71,11 @@
  *   (labelPriorityOrder), re-checked every frame as the globe turns. While a city's card is open,
  *   that city's label is hidden (the card already names it). Decorative: aria-hidden, because the
  *   marker button is already named "City, Country".
+ *   Screen edges (round 2 fix): on a phone the globe nearly fills the width, so a label on the right
+ *   of a pin near the right edge ran off the screen ("Addis A", a cut "Nairobi" with Accra focused).
+ *   A label that would cross either edge of the viewport (keeping a LABEL_EDGE_GUTTER_PX gutter)
+ *   flips to the other side of its pin; if it fits on neither side, it is hidden
+ *   (labelSideCandidates, labelBox).
  *
  * Focus city (brief 4.2)
  *   `focusCityId` marks one marker as the focus: its dot and halo scale up (an enlarged pulsating
@@ -275,14 +280,51 @@ function labelPriorityOrder(cities: AtlasCity[]): AtlasCity[] {
   })
 }
 
+/** A box on screen, in viewport px. */
+type Box = { left: number; top: number; right: number; bottom: number }
+
 /** True when two boxes overlap (touching edges do not count). Pure. */
-function rectsOverlap(a: DOMRect, b: DOMRect): boolean {
+function boxesOverlap(a: Box, b: Box): boolean {
   return a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom
+}
+
+/** Gap (px) from the dot's centre to the near edge of its label: see LABEL_SIDE_CLASS. */
+const LABEL_GAP_PX = 14
+/** Smallest gap (px) kept between a label and either side of the screen (round 2 fix). */
+const LABEL_EDGE_GUTTER_PX = 16
+
+/**
+ * The sides a label may take, in order of preference: its own side (LABEL_SIDE), then the other side
+ * of its pin. A label placed above or below its pin is centred on it, so its other side does not
+ * move it sideways; it falls back to the right, then the left, instead. Pure.
+ */
+function labelSideCandidates(preferred: LabelSide): LabelSide[] {
+  if (preferred === 'right') return ['right', 'left']
+  if (preferred === 'left') return ['left', 'right']
+  return [preferred, 'right', 'left']
+}
+
+/**
+ * Where a label of `width` x `height` px lands on screen on `side` of a pin centred at (cx, cy).
+ * The same geometry as LABEL_SIDE_CLASS, computed rather than measured, so every side can be tried
+ * without moving the label. Pure.
+ */
+function labelBox(side: LabelSide, cx: number, cy: number, width: number, height: number): Box {
+  if (side === 'right') return { left: cx + LABEL_GAP_PX, right: cx + LABEL_GAP_PX + width, top: cy - height / 2, bottom: cy + height / 2 }
+  if (side === 'left') return { left: cx - LABEL_GAP_PX - width, right: cx - LABEL_GAP_PX, top: cy - height / 2, bottom: cy + height / 2 }
+  if (side === 'above') return { left: cx - width / 2, right: cx + width / 2, top: cy - LABEL_GAP_PX - height, bottom: cy - LABEL_GAP_PX }
+  return { left: cx - width / 2, right: cx + width / 2, top: cy + LABEL_GAP_PX, bottom: cy + LABEL_GAP_PX + height }
+}
+
+/** The full class list of a label on `side`. */
+function labelClass(side: LabelSide): string {
+  return `pointer-events-none absolute whitespace-nowrap text-[11px] font-medium leading-none ${LABEL_SIDE_CLASS[side]}`
 }
 
 /**
  * Label position classes per side. The marker element is 44px square with the dot at its centre, so
- * 36px from an edge puts the label 14px from the dot's centre: clear of the focus city's enlarged dot.
+ * 36px from an edge puts the label 14px (LABEL_GAP_PX) from the dot's centre: clear of the focus
+ * city's enlarged dot. labelBox mirrors this geometry; change both together.
  */
 const LABEL_SIDE_CLASS: Record<LabelSide, string> = {
   right: 'left-[36px] top-1/2 -translate-y-1/2',
@@ -350,9 +392,7 @@ function createMarkerNodes(city: AtlasCity): MarkerNodes {
   const label = document.createElement('span')
   label.setAttribute('aria-hidden', 'true')
   label.textContent = city.name
-  label.className = `pointer-events-none absolute whitespace-nowrap text-[11px] font-medium leading-none ${
-    LABEL_SIDE_CLASS[LABEL_SIDE[city.id] ?? 'right']
-  }`
+  label.className = labelClass(LABEL_SIDE[city.id] ?? 'right')
   label.style.color = LABEL_COLOUR
   label.style.textShadow = LABEL_HALO
 
@@ -418,34 +458,55 @@ export default function AtlasGlobe({
   }, [cardCityId])
 
   /**
-   * Side effect: decide, every animation frame, which city name labels show (round 2, item 8).
+   * Side effect: decide, every animation frame, where each city name label goes and whether it
+   * shows (round 2, item 8, and the screen-edge fix).
    * Hidden: the open card's city (the card names it), far-side cities (their marker is hidden by
-   * globe.gl), and any label that would overlap one already placed. Labels are placed in
-   * LABEL_PRIORITY order, so when two collide the lower-priority one is dropped (chapter cities
-   * win). Runs per frame because the markers move with every turn and drag; it reads 16 label
-   * boxes (visibility does not affect layout, so a hidden label can still be measured) and writes a
-   * label's visibility only when it changes. An empty value lets the label follow its marker's
-   * visibility. The loop is cancelled on unmount.
+   * globe.gl), a label that fits inside the screen's gutters on neither side of its pin, and a
+   * label that would overlap one already placed. Labels are placed in labelPriorityOrder, so when
+   * two collide the lower-priority one is dropped (chapter cities win).
+   * Side: the first of labelSideCandidates whose box (labelBox, from the pin's centre and the
+   * label's own size) stays LABEL_EDGE_GUTTER_PX inside both edges of the viewport.
+   * Runs per frame because the markers move with every turn and drag. Per label it reads the
+   * marker's box and the label's size (visibility does not affect layout, so a hidden label can
+   * still be measured), and it writes a label's side or visibility only when it changes. An empty
+   * visibility lets the label follow its marker's. The loop is cancelled on unmount.
    */
   useEffect(() => {
     const ordered = labelPriorityOrder(cities)
-    const shown = new Map<string, boolean>()
+    // The side each label currently shows on, or null while hidden.
+    const applied = new Map<string, LabelSide | null>()
     let frame = 0
     const place = () => {
-      const placed: DOMRect[] = []
+      const placed: Box[] = []
+      const viewportWidth = document.documentElement.clientWidth
       for (const city of ordered) {
         const nodes = markers.get(city.id)
         if (nodes === undefined) continue
-        let show = city.id !== cardCityIdRef.current && nodes.element.style.visibility !== 'hidden'
-        if (show) {
-          const rect = nodes.label.getBoundingClientRect()
-          if (placed.some((other) => rectsOverlap(other, rect))) show = false
-          else placed.push(rect)
+        let side: LabelSide | null = null
+        const eligible =
+          city.id !== cardCityIdRef.current && nodes.element.isConnected && nodes.element.style.visibility !== 'hidden'
+        if (eligible) {
+          const pin = nodes.element.getBoundingClientRect()
+          const cx = pin.left + pin.width / 2
+          const cy = pin.top + pin.height / 2
+          const width = nodes.label.offsetWidth
+          const height = nodes.label.offsetHeight
+          for (const candidate of labelSideCandidates(LABEL_SIDE[city.id] ?? 'right')) {
+            const box = labelBox(candidate, cx, cy, width, height)
+            if (box.left < LABEL_EDGE_GUTTER_PX || box.right > viewportWidth - LABEL_EDGE_GUTTER_PX) continue
+            // First side that fits the screen. If it hits a label already placed, this one drops.
+            if (!placed.some((other) => boxesOverlap(other, box))) {
+              side = candidate
+              placed.push(box)
+            }
+            break
+          }
         }
-        if (shown.get(city.id) !== show) {
-          nodes.label.style.visibility = show ? '' : 'hidden'
-          shown.set(city.id, show)
-        }
+        // Write only on a change: a new side (class) and/or showing or hiding (visibility).
+        if (applied.get(city.id) === side) continue
+        if (side !== null) nodes.label.className = labelClass(side)
+        nodes.label.style.visibility = side === null ? 'hidden' : ''
+        applied.set(city.id, side)
       }
       frame = window.requestAnimationFrame(place)
     }
