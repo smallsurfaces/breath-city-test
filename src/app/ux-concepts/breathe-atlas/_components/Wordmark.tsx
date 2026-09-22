@@ -61,7 +61,8 @@
  *   Colour only via the bridged `--foreground` semantic (mixed toward transparent for the low-contrast
  *   wordmark, full strength for the city name). No hex, no decorative colour.
  *
- * Key exports: Wordmark (named)
+ * Key exports: Wordmark (named), WORDMARK_SIZE_CQW, WORDMARK_LINE_HEIGHT_EM (for placing the globe's
+ *   arrows level with "CITIES", round 3 R3.5)
  * External dependencies: react, ../_data/cities (ATLAS_CITIES, for the names to measure).
  *
  * Side effects: reads the width of the hidden measuring spans on mount and after document.fonts.ready.
@@ -118,8 +119,18 @@ function round3(value: number): number {
   return Math.round(value * 1000) / 1000
 }
 
-/** The wordmark size (cqw): "BREATHE", the longer word, fills the stage width up to the cap. */
-const WORDMARK_SIZE_CQW = fitSizeCqw('Breathe'.length, FILL_CQW, MAX_SIZE_CQW)
+/**
+ * The wordmark size (cqw): "BREATHE", the longer word, fills the stage width up to the cap.
+ * Exported so GlobeCover can put the globe's previous/next arrows level with "CITIES" (round 3,
+ * R3.5).
+ */
+export const WORDMARK_SIZE_CQW = fitSizeCqw('Breathe'.length, FILL_CQW, MAX_SIZE_CQW)
+
+/**
+ * The wordmark's line height, in em (TYPE_CLASS's `leading-[0.8]`; change both together). Exported
+ * with WORDMARK_SIZE_CQW: a line's centre sits half of this above its outer edge.
+ */
+export const WORDMARK_LINE_HEIGHT_EM = 0.8
 
 /**
  * CSS font size for a city name, so the name renders (100vw + 2 * BLEED_PX) wide and therefore
@@ -137,7 +148,7 @@ function cityNameFontSize(name: string, emWidth: number | null): string {
   return `calc((100vw + ${BLEED_PX * 2}px) / ${round3(perEm)})`
 }
 
-/** Shared type treatment for the wordmark lines and the city name. */
+/** Shared type treatment for the wordmark lines and the city name. `leading-[0.8]` is WORDMARK_LINE_HEIGHT_EM. */
 const TYPE_CLASS = 'block whitespace-nowrap font-bold uppercase leading-[0.8] tracking-[-0.04em]'
 
 /** Every city name, measured once each. */

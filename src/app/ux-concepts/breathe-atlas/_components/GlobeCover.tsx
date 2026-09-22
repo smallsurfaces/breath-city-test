@@ -66,7 +66,8 @@
  *   tour's timing is untouched (the animations run inside its turn and rest).
  *
  * Previous/next arrows (round 2, item 2)
- *   Two arrows either side of the globe, in the carousel's arrow style, step through CYCLE_ORDER
+ *   Two arrows either side of the globe, level with the pale "CITIES" line at every breakpoint
+ *   (round 3, R3.5; see .atlas-step in COVER_LAYOUT_CSS), in the carousel's arrow style, step through CYCLE_ORDER
  *   and open the city's card the way the tour does: the globe turns (SELECT_TURN_MS), then rests
  *   on the city, whose card opens automatically. A press is an explicit pause (the pause button
  *   shows Play). Presses accumulate from the city a step is already turning to, so fast presses
@@ -111,7 +112,7 @@ import type { AtlasGlobeApi } from './AtlasGlobe'
 import { navArrowClass } from './atlas-arrow-styles'
 import { CITY_CARD_WIDTH_PX, CITY_CARD_WIDTH_PX_SM, CityCard } from './CityCard'
 import { SPHERE_SHARE_OF_CANVAS } from './globe-framing'
-import { Wordmark } from './Wordmark'
+import { Wordmark, WORDMARK_LINE_HEIGHT_EM, WORDMARK_SIZE_CQW } from './Wordmark'
 import { ATLAS_CITIES, BC_MISSION_LINE, CYCLE_ORDER } from '../_data/cities'
 import type { AtlasCity } from '../_data/cities'
 
@@ -199,11 +200,19 @@ const PAUSE_CARD_CLEARANCE_PX_SM = 16
  *   because the globe nearly fills the width. (It sits in the sphere box, so `right` is measured
  *   from the sphere's edge, hence the "- --atlas-inset".) Clamped at the stage edge, so it can never
  *   be pushed off the stage.
- * .atlas-step: the previous/next city arrows (round 2, item 2), either side of the globe. From `sm`
- *   they sit beside the sphere at its vertical centre, STEP_ARROW_GAP_PX clear of it (there is room:
- *   at 640px the sphere leaves 115px each side). On a phone the globe fills the width, so they sit in
- *   the sphere square's bottom corners instead, where the round globe curves away and leaves room
- *   (a 56px button there clears a 358px sphere by about 6px).
+ * .atlas-step: the previous/next city arrows (round 2, item 2), either side of the globe.
+ *   Vertically (round 3, R3.5), ONE rule at every breakpoint: each arrow is centred on the pale
+ *   "CITIES" line, not the globe's centre, where it sat on top of the big dark city name. The line's
+ *   centre is its outer edge (--atlas-wordmark-reach below the globe's centre) less half its line
+ *   height (WORDMARK_LINE_HEIGHT_EM x the wordmark size, WORDMARK_SIZE_CQW, both from Wordmark), so
+ *   it follows the wordmark at every width. That is about 170px below the globe's centre at 390, 768
+ *   and 1280 wide, so the arrows end about 12px (phone), 40px (768) and 75px (1280) above the stage's
+ *   bottom edge and never reach the mission line below it.
+ *   Horizontally: from `sm` they sit beside the sphere, STEP_ARROW_GAP_PX clear of it (there is
+ *   room: at 640px the sphere leaves 115px each side). On a phone the globe fills the width, so they
+ *   sit at the sphere square's left and right edges, where the round globe has curved well away at
+ *   that height (a 56px button there clears a 358px sphere by about 12px). On a phone this is about
+ *   17px lower than round 2's bottom-corner position.
  */
 const COVER_LAYOUT_CSS = `.atlas-cover { container: atlas-cover / inline-size; }
 .atlas-stage {
@@ -234,11 +243,13 @@ const COVER_LAYOUT_CSS = `.atlas-cover { container: atlas-cover / inline-size; }
   top: 0;
   right: calc(max(min(var(--atlas-inset), var(--atlas-pause-cap)), 0px) - var(--atlas-inset));
 }
-.atlas-step { bottom: 0; }
+.atlas-step {
+  top: calc(50% + var(--atlas-wordmark-reach) - ${WORDMARK_LINE_HEIGHT_EM / 2} * ${WORDMARK_SIZE_CQW.toFixed(3)}cqw);
+  translate: 0 -50%;
+}
 .atlas-step-prev { left: 0; }
 .atlas-step-next { right: 0; }
 @container atlas-cover (min-width: 640px) {
-  .atlas-step { top: 50%; bottom: auto; translate: 0 -50%; }
   .atlas-step-prev { left: auto; right: calc(100% + ${STEP_ARROW_GAP_PX}px); }
   .atlas-step-next { right: auto; left: calc(100% + ${STEP_ARROW_GAP_PX}px); }
 }`
