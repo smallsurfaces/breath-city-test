@@ -55,6 +55,10 @@
  *   dot is not under the card's centre. Transform and opacity only (Web Animations). Under
  *   prefers-reduced-motion there is no scaling, only a short fade (FADE_MS). A closing card is
  *   `inert` and ignores pointers, so it cannot be tapped, focused or read on its way out.
+ *   Every animation also has a timer that ends it shortly after its duration (playToEnd,
+ *   ANIMATION_GRACE_MS). PR #70 review, bug 1: a Web Animation only advances while the page draws
+ *   frames, and where it stopped drawing (the review pane) a card closed by a click outside sat at
+ *   its first shrink frame, full size, and was never unmounted. The close now completes either way.
  *
  * Accessibility
  *   A non-modal dialog (role="dialog", labelled by the city name). It follows the marker button in
@@ -79,7 +83,7 @@
  *
  * Side effects (cleaned up on unmount): an animation-frame loop that reads the marker's position and
  *   writes the card's `left` (the viewport clamp above) and `transform-origin` (the dot); the open
- *   and close Web Animations on the card element.
+ *   and close Web Animations on the card element, each with a fallback timer (playToEnd).
  */
 
 'use client'
@@ -128,6 +132,56 @@ const CLOSE_MS = 200
 const FADE_MS = 150
 /** How small the card starts (and ends) at the dot: about the size of the pulsing halo. */
 const DOT_SCALE = 0.08
+/**
+ * Grace (ms) after an animation's own duration before a timer ends it anyway (PR #70 review, bug 1).
+ * A Web Animation only advances while the page draws frames. Where frames stop (a hidden or
+ * throttled browser view, as in the review pane), the close animation sat at its first frame
+ * forever, so `finished` never resolved, the card was never unmounted and it stayed on screen at
+ * full size after a click outside. The timer finishes the animation and reports the close, so the
+ * card's state never depends on frames arriving.
+ */
+const ANIMATION_GRACE_MS = 80
+
+/**
+ * Plays `keyframes` on `element` and calls `onDone` exactly once when it ends: when the animation
+ * finishes, or, at the latest, ANIMATION_GRACE_MS after its duration, when the timer jumps it to
+ * its end state (see ANIMATION_GRACE_MS). Returns a cleanup that cancels both (it does not call
+ * `onDone`).
+ *
+ * Side effects: starts a Web Animation on `element` and a timer.
+ */
+function playToEnd(
+  element: HTMLElement,
+  keyframes: Keyframe[],
+  options: KeyframeAnimationOptions & { duration: number },
+  onDone: () => void,
+): () => void {
+  const animation = element.animate(keyframes, options)
+  let settled = false
+  const settle = () => {
+    if (settled) return
+    settled = true
+    window.clearTimeout(timer)
+    onDone()
+  }
+  const timer = window.setTimeout(() => {
+    try {
+      animation.finish()
+    } catch {
+      // An animation that cannot be finished (no active timeline) is cancelled below by the caller's
+      // cleanup; the card's state still moves on.
+    }
+    settle()
+  }, options.duration + ANIMATION_GRACE_MS)
+  animation.finished.then(settle, () => {
+    // Cancelled (the card unmounted first): nothing to report.
+  })
+  return () => {
+    settled = true
+    window.clearTimeout(timer)
+    animation.cancel()
+  }
+}
 
 /**
  * Where the city's dot sits in the card's own box, as a CSS transform-origin (round 3, R3.6), so
@@ -209,26 +263,41 @@ export function CityCard({ city, closing, onClosed }: CityCardProps) {
     return () => window.cancelAnimationFrame(frame)
   }, [])
 
+  // The open animation's cleanup, so the close can stop it (and its timer) before shrinking.
+  const stopOpenRef = useRef<(() => void) | null>(null)
+
   // Side effect: grow out of the dot on open (R3.6): a Web Animation on transform and opacity only,
-  // so it stays on the compositor on a phone. Under reduced motion, a plain fade. Cancelled on
-  // unmount. Layout effect, so the card's first paint is already the animation's first frame.
+  // so it stays on the compositor on a phone. Under reduced motion, a plain fade. playToEnd's timer
+  // ends it even where no frames are drawn, so the card never sticks invisible at its first frame.
+  // Cancelled on unmount. Layout effect, so the card's first paint is already the animation's first
+  // frame.
   useLayoutEffect(() => {
     const card = rootRef.current
     if (card === null || typeof card.animate !== 'function') return
-    const keyframes = prefersReducedMotion()
+    const reduced = prefersReducedMotion()
+    const keyframes = reduced
       ? [{ opacity: 0 }, { opacity: 1 }]
       : [
           { opacity: 0, transform: `scale(${DOT_SCALE})` },
           { opacity: 1, transform: 'scale(1)' },
         ]
-    const animation = card.animate(keyframes, { duration: prefersReducedMotion() ? FADE_MS : OPEN_MS, easing: 'ease-out' })
-    return () => animation.cancel()
+    const stop = playToEnd(card, keyframes, { duration: reduced ? FADE_MS : OPEN_MS, easing: 'ease-out' }, () => {
+      // Open: nothing to report.
+    })
+    stopOpenRef.current = stop
+    return () => {
+      stopOpenRef.current = null
+      stop()
+    }
   }, [])
 
   // Side effect: shrink into the dot once closed (R3.6), then tell GlobeCover. Starts from wherever
-  // the open animation has got to (its current values are committed first), so a card closed while
-  // it is still growing shrinks back from there instead of jumping. `fill: forwards` holds the end
-  // state until GlobeCover unmounts the card. Cancelled on unmount.
+  // the open animation has got to (its current values are committed first, then it is stopped), so
+  // a card closed while it is still growing shrinks back from there instead of jumping. `fill:
+  // forwards` holds the end state until GlobeCover unmounts the card. GlobeCover hears about the
+  // close when the animation ends, or from playToEnd's timer at the latest (PR #70 review, bug 1:
+  // it used to wait on the animation alone, which never ended where no frames were drawn).
+  // Cancelled on unmount.
   useEffect(() => {
     if (!closing) return
     const card = rootRef.current
@@ -237,22 +306,21 @@ export function CityCard({ city, closing, onClosed }: CityCardProps) {
       return
     }
     for (const running of card.getAnimations()) {
-      running.commitStyles()
-      running.cancel()
+      try {
+        running.commitStyles()
+      } catch {
+        // Not rendered (nothing to start from): the close starts from the card's own styles.
+      }
     }
+    stopOpenRef.current?.()
+    for (const running of card.getAnimations()) running.cancel()
     const reduced = prefersReducedMotion()
-    const animation = card.animate(reduced ? [{ opacity: 0 }] : [{ opacity: 0, transform: `scale(${DOT_SCALE})` }], {
-      duration: reduced ? FADE_MS : CLOSE_MS,
-      easing: 'ease-in',
-      fill: 'forwards',
-    })
-    animation.finished.then(
+    return playToEnd(
+      card,
+      reduced ? [{ opacity: 0 }] : [{ opacity: 0, transform: `scale(${DOT_SCALE})` }],
+      { duration: reduced ? FADE_MS : CLOSE_MS, easing: 'ease-in', fill: 'forwards' },
       () => onClosedRef.current(),
-      () => {
-        // Cancelled (the card unmounted first): nothing to report.
-      },
     )
-    return () => animation.cancel()
   }, [closing])
 
   return (

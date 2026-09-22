@@ -76,7 +76,8 @@
  *   While a card is open (round 3, R3.3): every other label fades right down (LABEL_OPACITY.faded,
  *   still faintly readable), and any label that would touch the card is hidden. They come back to
  *   full strength when the card closes. Labels also give way to the cover's controls (pause,
- *   previous, next). Every show, hide and fade is a short opacity transition (200ms), not a jump.
+ *   previous, next). Showing and fading are a short opacity transition (200ms), not a jump; hiding
+ *   is instant (visibility), so the card's own city label is gone as soon as its card opens.
  *   Screen edges (round 2 fix): on a phone the globe nearly fills the width, so a label on the right
  *   of a pin near the right edge ran off the screen ("Addis A", a cut "Nairobi" with Accra focused).
  *   A label that would cross either edge of the viewport (keeping a LABEL_EDGE_GUTTER_PX gutter)
@@ -97,8 +98,8 @@
  *     110m countries file) and creates an object URL; revoked on unmount.
  *   - Creates 16 detached marker DOM nodes and attaches click listeners to their buttons.
  *   - Sets a `data-focus` attribute on the focus marker's button when `focusCityId` changes.
- *   - An animation-frame loop that places, fades or hides the city name labels (inline opacity and
- *     class): the open card's city, far-side cities, collisions and labels under the card or the
+ *   - An animation-frame loop that places, fades or hides the city name labels (inline opacity,
+ *     visibility and class): the open card's city, far-side cities, collisions and labels under the card or the
  *     controls are hidden; the rest fade while a card is open. It reads the card's and the controls'
  *     boxes each frame.
  *   - Mutates three.js objects owned by globe.gl once the globe is ready: controls flags, canvas
@@ -333,9 +334,9 @@ function labelBox(side: LabelSide, cx: number, cy: number, width: number, height
 }
 
 /**
- * The full class list of a label on `side`. Labels show and hide by opacity with a short fade
- * (round 3, R3.3: "a short fade, not a jump"). The fade is kept under reduced motion: it is a change
- * of opacity, not movement.
+ * The full class list of a label on `side`. Labels fade in, and fade between full and faded, with a
+ * short opacity transition (round 3, R3.3: "a short fade, not a jump"); hiding is instant (see the
+ * label loop). The fade is kept under reduced motion: it is a change of opacity, not movement.
  */
 function labelClass(side: LabelSide): string {
   return `pointer-events-none absolute whitespace-nowrap text-[11px] font-medium leading-none transition-opacity duration-200 ease-out ${LABEL_SIDE_CLASS[side]}`
@@ -514,9 +515,10 @@ export default function AtlasGlobe({
    * Side: the first of labelSideCandidates whose box (labelBox, from the pin's centre and the
    * label's own size) stays LABEL_EDGE_GUTTER_PX inside both edges of the viewport.
    * Runs per frame because the markers move with every turn and drag. Per frame it reads the card's
-   * and the controls' boxes; per label, the marker's box and the label's size (opacity does not
-   * affect layout, so a hidden label can still be measured). It writes a label's side or opacity
-   * only when they change; the label's CSS transition turns an opacity change into a short fade.
+   * and the controls' boxes; per label, the marker's box and the label's size (opacity and
+   * visibility do not affect layout, so a hidden label can still be measured). It writes a label's
+   * side, visibility or opacity only when they change: hiding is instant, and the label's CSS
+   * transition turns showing and fading into a short fade.
    * The loop is cancelled on unmount.
    */
   useEffect(() => {
@@ -562,10 +564,16 @@ export default function AtlasGlobe({
           }
         }
         const level: LabelLevel = side === null ? 'hidden' : shownLevel
-        // Write only on a change: a new side (class) and/or a new level (opacity, faded by CSS).
+        // Write only on a change: a new side (class) and/or a new level. Hiding is INSTANT
+        // (visibility hidden, as in round 2), so the card's own city label, and any label under the
+        // card, is gone the moment the card opens (PR #70 review, bug 2: fading it out through the
+        // opacity transition left the card city's label at 0.3 wherever the fade had not run).
+        // Showing and fading are opacity changes, which the CSS transition turns into a short fade;
+        // an empty visibility lets a shown label follow its marker's.
         const previous = applied.get(city.id)
         if (previous !== undefined && previous.side === side && previous.level === level) continue
         if (side !== null && side !== previous?.side) nodes.label.className = labelClass(side)
+        nodes.label.style.visibility = level === 'hidden' ? 'hidden' : ''
         nodes.label.style.opacity = LABEL_OPACITY[level]
         applied.set(city.id, { side, level })
       }
