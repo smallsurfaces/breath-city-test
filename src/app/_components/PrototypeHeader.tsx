@@ -22,8 +22,30 @@
  *           lands in this bar) OR, when no commentSlot is given, the element-anchored
  *           AnnotationLayer (anchorMode="element") wired to the durable /api/comments
  *           store — so EVERY non-map build gets real, machine-readable commenting.
- *           The bar is sticky (top-0, z-105) so it stays pinned while the page scrolls;
- *           the z-index coordinates with the portaled annotation overlay (see render).
+ *
+ * Scroll behaviour (round 2, 2026-09-22, Jack: "our standard prototype nav")
+ *   Row 1 (the bar above) SCROLLS AWAY with the page. Row 2 (the wireframe disclaimer) is the
+ *   only sticky part and stays pinned at the top. The two rows used to sit in ONE sticky
+ *   <header>, and a sticky element only sticks inside its own parent box, so the disclaimer
+ *   could never stick on its own inside that header. They are now two SIBLINGS returned as a
+ *   fragment: row 1 is a plain in-flow <header>, row 2 is `sticky top-0`. Both land directly in
+ *   whatever element mounts this component (the <body> for every concept layout), which is the
+ *   same containing block the old sticky header had. So the disclaimer pins wherever the whole
+ *   bar used to pin, at every width. There are no breakpoint variants on any of it.
+ *   Known trade-off: the Comments toggle lives in row 1, so it scrolls away with it.
+ *
+ * Other sticky headers (BcHeader)
+ *   The shared BcHeader (src/components/concept/BcChrome.tsx) is also `sticky top-0` and six
+ *   concept routes mount it right below this component. With only the disclaimer pinned, it
+ *   would stick at top 0 underneath the disclaimer and lose its top 30 to 43px (the old 81px
+ *   bar hid it completely). So this component publishes the disclaimer's live height as the
+ *   CSS variable `--prototype-disclaimer-h` on <html> and injects ONE rule that moves any
+ *   `header.sticky.top-0` FOLLOWING the disclaimer (a later sibling, or inside one) down by that
+ *   height: the site nav stacks under the disclaimer instead of behind it. BcChrome itself is
+ *   not edited (shared layer, owned by design-system-keeper). Sticky parts inside their own
+ *   scroll containers (panel headers, table heads) are <div>/<th>, not <header>, and are not
+ *   matched. Before hydration the variable is unset and the rule falls back to 0px, which only
+ *   matters once the page has scrolled.
  *
  * Tokens
  *   shadcn-style semantic aliases only (bg-background, text-foreground,
@@ -42,14 +64,17 @@
  *   GENERIC — it names no concept — so it reads correctly everywhere. See WIREFRAME_DISCLAIMER.
  *
  * Key exports: PrototypeHeader (named)
- * External dependencies: next/link, next/navigation (usePathname),
- *   lucide-react (ArrowLeft), ../_data/build-date,
+ * External dependencies: react (useEffect, useMemo, useRef), next/link, next/navigation
+ *   (usePathname), lucide-react (ArrowLeft), ../_data/build-date,
  *   ../direction-1-mapbox-v2/AnnotationLayer, ../../lib/comments/client
+ *
+ * Side effects (cleaned up on unmount): a ResizeObserver on the disclaimer that writes
+ *   `--prototype-disclaimer-h` onto document.documentElement.
  */
 
 "use client";
 
-import { useMemo, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
@@ -79,6 +104,20 @@ function pathToBuildId(pathname: string): string {
 const WIREFRAME_DISCLAIMER =
   "Concept wireframe — no visual design applied yet. Review the UX and the high-level concept, not the visual design.";
 
+/** CSS variable carrying the pinned disclaimer's live height, for sticky headers below it. */
+const DISCLAIMER_HEIGHT_VAR = "--prototype-disclaimer-h";
+
+/**
+ * Stylesheet that stacks a following page-level sticky header (BcHeader) under the pinned
+ * disclaimer instead of behind it. See "Other sticky headers" in the file header.
+ */
+const STICKY_OFFSET_CSS = `
+  [data-prototype-disclaimer] ~ header.sticky.top-0,
+  [data-prototype-disclaimer] ~ * header.sticky.top-0 {
+    top: var(${DISCLAIMER_HEIGHT_VAR}, 0px);
+  }
+`;
+
 /** Props for PrototypeHeader. */
 type PrototypeHeaderProps = {
   /** Required bar title — the build's name (e.g. "Direction 01 — PM2.5 Triangulation"). */
@@ -99,8 +138,8 @@ type PrototypeHeaderProps = {
 };
 
 /**
- * The standard prototype chrome bar. Renders ONLY the bar; the page renders its
- * content below it. See file header for the full layout/contract.
+ * The standard prototype chrome: row 1 (the bar, scrolls away) and row 2 (the disclaimer,
+ * pinned). Renders ONLY the chrome; the page renders its content below it. See file header.
  */
 export function PrototypeHeader({
   buildName,
@@ -121,111 +160,143 @@ export function PrototypeHeader({
     [pathname],
   );
 
+  const disclaimerRef = useRef<HTMLDivElement | null>(null);
+
+  // Side effect: publish the pinned disclaimer's height as a CSS variable on <html>, so a sticky
+  // site header below it (BcHeader) can stack under it. The disclaimer wraps to two lines on a
+  // phone, so the height is measured, not assumed. Removed again on unmount.
+  useEffect(() => {
+    const disclaimer = disclaimerRef.current;
+    if (disclaimer === null) return;
+    const root = document.documentElement;
+    const publish = () => {
+      root.style.setProperty(DISCLAIMER_HEIGHT_VAR, `${disclaimer.offsetHeight}px`);
+    };
+    const observer = new ResizeObserver(publish);
+    observer.observe(disclaimer);
+    publish();
+    return () => {
+      observer.disconnect();
+      root.style.removeProperty(DISCLAIMER_HEIGHT_VAR);
+    };
+  }, []);
+
   return (
-    /*
-      Sticky chrome bar (CHANGE 2): stays pinned at the top of the viewport as the page
-      scrolls. z-index is load-bearing — it coordinates with the portaled AnnotationLayer
-      overlay stack (all rendered to document.body):
-        freeze ring 90 < overlay 100 < pins 101 < hover-label 102 < HEADER 105 < cards 110.
-      - HEADER z-105 sits ABOVE the click-capture overlay (100) and pins/hover-label so the
-        in-bar Comments/Done-annotating toggle stays clickable while annotation mode is active.
-      - HEADER stays BELOW comment cards (110) so an open card is never hidden behind the bar.
-      - The freeze ring (90) sits below the header so the brand ring frames the content area.
-      shadow-sm gives subtle separation from scrolling content beneath; the existing
-      border-b is retained.
-    */
-    <header className="sticky top-0 z-[105] flex w-full flex-shrink-0 flex-col border-b border-border bg-background shadow-sm">
-      {/* Row 1 — the bar: back-to-hub + build name on the left, updated stamp + comments on the right. */}
-      <div className="flex w-full items-center justify-between gap-3 px-4 py-2.5">
-      {/* LEFT — back-to-hub + build name + reserved controls slot */}
-      <div className="flex min-w-0 items-center gap-3">
-        <Link
-          href="/"
-          aria-label="Back to hub"
-          className="inline-flex flex-shrink-0 items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-        >
-          <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
-          Back to hub
-        </Link>
+    <>
+      {/*
+        Row 1 — the bar. NOT sticky: it scrolls away with the page (round 2). Still positioned
+        with z-105, because z-index is load-bearing — it coordinates with the portaled
+        AnnotationLayer overlay stack (all rendered to document.body):
+          freeze ring 90 < overlay 100 < pins 101 < hover-label 102 < CHROME 105 < cards 110.
+        - Row 1 (z-105) sits ABOVE the click-capture overlay (100) and pins/hover-label, so the
+          in-bar Comments / Done-annotating toggle stays clickable while annotation mode is active
+          and row 1 is in view. Once row 1 has scrolled away the toggle scrolls with it (known
+          trade-off, spec round 2 item 1).
+        - Both rows stay BELOW comment cards (110), so an open card is never hidden behind them.
+        - The freeze ring (90) sits below both rows so the brand ring frames the content area.
+        flex-shrink-0 keeps the row at full height inside the map builds' 100dvh flex column.
+      */}
+      <header className="relative z-[105] flex w-full flex-shrink-0 items-center justify-between gap-3 bg-background px-4 py-2.5">
+        {/* LEFT — back-to-hub + build name + reserved controls slot */}
+        <div className="flex min-w-0 items-center gap-3">
+          <Link
+            href="/"
+            aria-label="Back to hub"
+            className="inline-flex flex-shrink-0 items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          >
+            <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
+            Back to hub
+          </Link>
 
-        <span
-          className="truncate text-sm font-semibold text-foreground"
-          title={buildName}
-        >
-          {buildName}
-        </span>
-
-        {/* Reserved future build-level controls — renders nothing when empty. */}
-        {controls}
-      </div>
-
-      {/* RIGHT — updated stamp + comment affordance (AnnotationLayer or disabled placeholder) */}
-      <div className="flex flex-shrink-0 items-center gap-3">
-        {iso !== null && iso !== undefined && (
-          <span className="hidden text-[11px] font-medium tabular-nums text-muted-foreground/80 sm:inline">
-            Updated {formatBuildDate(iso)}
+          <span
+            className="truncate text-sm font-semibold text-foreground"
+            title={buildName}
+          >
+            {buildName}
           </span>
-        )}
 
-        {/*
-          commentSlot present → map build's spatial <AnnotationLayer/> (its toggle now
-          renders inline, so it sits in this right slot automatically). Absent → the
-          element-anchored AnnotationLayer wired to the durable /api/comments store, so
-          every non-map build has real commenting. In both cases the AnnotationLayer's
-          toggle is a normal in-flow button that lands here, beside the "Updated" stamp.
-        */}
-        {commentSlot ?? (
-          <>
-            {/*
-              Inject the AnnotationLayer's --al-* token interface, mapped onto the BC
-              --bc-* semantic tokens (NO hardcoded hex). Map builds inject their own
-              --al-* block per-route; non-map builds get this BC-branded mapping here so
-              the widget is styled wherever PrototypeHeader mounts. The toggle renders
-              inline in this slot (no fixed position), so the right-slot flex below aligns it.
-            */}
-            <style>{`
-              :root {
-                --al-overlay-bg:     var(--bc-semantic-map-overlay);
-                --al-overlay-border: var(--bc-semantic-border);
-                --al-input-bg:       var(--bc-color-white);
-                --al-input-border:   var(--bc-semantic-border);
-                --al-text:           var(--bc-semantic-text);
-                --al-muted:          var(--bc-semantic-muted);
-                --al-brand:          var(--bc-semantic-brand);
-                --al-success:        var(--bc-semantic-success);
-                --al-error:          var(--bc-semantic-error);
-                --al-white:          var(--bc-color-white);
-                --al-font:           var(--bc-font-family-sans);
-                --al-radius-card:    var(--bc-border-radius-md);
-                --al-radius-input:   var(--bc-border-radius-sm);
-                --al-radius-pill:    var(--bc-border-radius-pill);
-              }
-            `}</style>
-            <AnnotationLayer
-              storageKey={`bc-comments-${buildId}`}
-              label="Comments"
-              anchorMode="element"
-              persistence={persistence}
-              buildId={buildId}
-              route={pathname}
-            />
-          </>
-        )}
-      </div>
-      </div>
+          {/* Reserved future build-level controls — renders nothing when empty. */}
+          {controls}
+        </div>
+
+        {/* RIGHT — updated stamp + comment affordance (AnnotationLayer or disabled placeholder) */}
+        <div className="flex flex-shrink-0 items-center gap-3">
+          {iso !== null && iso !== undefined && (
+            <span className="hidden text-[11px] font-medium tabular-nums text-muted-foreground/80 sm:inline">
+              Updated {formatBuildDate(iso)}
+            </span>
+          )}
+
+          {/*
+            commentSlot present → map build's spatial <AnnotationLayer/> (its toggle now
+            renders inline, so it sits in this right slot automatically). Absent → the
+            element-anchored AnnotationLayer wired to the durable /api/comments store, so
+            every non-map build has real commenting. In both cases the AnnotationLayer's
+            toggle is a normal in-flow button that lands here, beside the "Updated" stamp.
+          */}
+          {commentSlot ?? (
+            <>
+              {/*
+                Inject the AnnotationLayer's --al-* token interface, mapped onto the BC
+                --bc-* semantic tokens (NO hardcoded hex). Map builds inject their own
+                --al-* block per-route; non-map builds get this BC-branded mapping here so
+                the widget is styled wherever PrototypeHeader mounts. The toggle renders
+                inline in this slot (no fixed position), so the right-slot flex below aligns it.
+              */}
+              <style>{`
+                :root {
+                  --al-overlay-bg:     var(--bc-semantic-map-overlay);
+                  --al-overlay-border: var(--bc-semantic-border);
+                  --al-input-bg:       var(--bc-color-white);
+                  --al-input-border:   var(--bc-semantic-border);
+                  --al-text:           var(--bc-semantic-text);
+                  --al-muted:          var(--bc-semantic-muted);
+                  --al-brand:          var(--bc-semantic-brand);
+                  --al-success:        var(--bc-semantic-success);
+                  --al-error:          var(--bc-semantic-error);
+                  --al-white:          var(--bc-color-white);
+                  --al-font:           var(--bc-font-family-sans);
+                  --al-radius-card:    var(--bc-border-radius-md);
+                  --al-radius-input:   var(--bc-border-radius-sm);
+                  --al-radius-pill:    var(--bc-border-radius-pill);
+                }
+              `}</style>
+              <AnnotationLayer
+                storageKey={`bc-comments-${buildId}`}
+                label="Comments"
+                anchorMode="element"
+                persistence={persistence}
+                buildId={buildId}
+                route={pathname}
+              />
+            </>
+          )}
+        </div>
+      </header>
+
+      {/* Stacks a following sticky site header (BcHeader) under the pinned disclaimer. */}
+      <style>{STICKY_OFFSET_CSS}</style>
 
       {/*
-        Row 2 — the GENERIC wireframe disclaimer. Single-sourced here so it shows identically on
-        every build that mounts this header; it names no concept. Quiet muted styling on a subtle
-        muted fill so it reads as framing, not as a loud warning. role="note" so assistive tech
-        treats it as an aside, not an alert.
+        Row 2 — the GENERIC wireframe disclaimer, and the ONLY sticky part of the chrome: it stays
+        pinned at the top while row 1 scrolls away. z-105, the same slot in the annotation stack
+        as row 1 (see the stack note above), so pins scroll beneath it and comment cards open
+        above it. Single-sourced here so it shows identically on every build that mounts this
+        header; it names no concept. Quiet muted styling so it reads as framing, not as a loud
+        warning. The muted fill is translucent, so it sits on an opaque background layer: page
+        content must not show through a pinned bar. shadow-sm separates it from content scrolling
+        beneath. role="note" so assistive tech treats it as an aside, not an alert.
       */}
       <div
+        ref={disclaimerRef}
         role="note"
-        className="w-full border-t border-border bg-muted/40 px-4 py-1.5 text-center text-[11px] leading-snug text-muted-foreground"
+        data-prototype-disclaimer=""
+        className="sticky top-0 z-[105] w-full flex-shrink-0 border-y border-border bg-background shadow-sm"
       >
-        {WIREFRAME_DISCLAIMER}
+        <div className="bg-muted/40 px-4 py-1.5 text-center text-[11px] leading-snug text-muted-foreground">
+          {WIREFRAME_DISCLAIMER}
+        </div>
       </div>
-    </header>
+    </>
   );
 }

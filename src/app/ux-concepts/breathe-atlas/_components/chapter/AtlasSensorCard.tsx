@@ -11,7 +11,10 @@
  *     - There is no stale state: the map only carries live sensors, so the freshness line is always
  *       "Live", with the minutes since the sensor updated.
  *     - It ends with "Learn more at the data source", every time (brief section 2: every reading
- *       traces to its source).
+ *       traces to its source). Since round 2 (item 9, 2026-09-22) that link sits behind an "i"
+ *       beside a small "Data source" label (CreditInfo), like every other source in a chapter: the
+ *       link is kept, one tap away, not removed. Escape while its popover is open also closes the
+ *       card, because the map's Escape handler listens on the whole document.
  *     - No station name appears. A snapshot location's name belongs to the city that publishes it,
  *       and a placed location has no name to give, so the card names neither.
  *
@@ -38,7 +41,7 @@
  *   yellow) and a dark one (Sofia's crimson) both keep their contrast.
  *
  * Key exports: AtlasSensorCard (named), readableTextOn
- * External dependencies: react, ./ChapterLink (OutboundLink), ../../_data/sensors (AtlasSensor),
+ * External dependencies: react, ./ChapterLink (OutboundLink), ./CreditInfo, ../../_data/sensors (AtlasSensor),
  *   ../../_data/indexes (CityAirQualityIndex, indexLevel, levelDisplayName), ../../_data/chapters
  *   (ChapterLink type).
  */
@@ -48,6 +51,7 @@
 import { useEffect, useRef } from 'react'
 import { X } from 'lucide-react'
 import { OutboundLink } from './ChapterLink'
+import { CreditInfo } from './CreditInfo'
 import type { AtlasSensor } from '../../_data/sensors'
 import { indexLevel, levelDisplayName } from '../../_data/indexes'
 import type { CityAirQualityIndex } from '../../_data/indexes'
@@ -178,10 +182,16 @@ export function AtlasSensorCard({ sensor, tier, index, dataSource, maxHeight, on
 
         <p className="text-xs text-foreground/70">{sensorTypeLabel(sensor)}</p>
 
-        <div className="-mb-3 border-t border-border">
-          <OutboundLink href={dataSource.url} className="text-xs font-medium text-foreground">
-            Learn more at the data source
-          </OutboundLink>
+        {/* The source, behind the "i" (round 2, item 9): a quiet label with the "i", and the link
+            in its popover. The popover is portaled to <body>, outside the map, so a click inside
+            it is not a map click and does not close this card. */}
+        <div className="flex items-center gap-2 border-t border-border pt-3">
+          <span className="text-xs font-medium text-foreground/70">Data source</span>
+          <CreditInfo label="Data source" align="start" className="">
+            <OutboundLink href={dataSource.url} className="-my-3 text-sm font-medium text-foreground">
+              Learn more at the data source
+            </OutboundLink>
+          </CreditInfo>
         </div>
       </div>
     </div>

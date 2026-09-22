@@ -22,7 +22,10 @@
  *   the bar is pending Jack's word.
  *
  *   The publisher line is deliberate: for Johannesburg the index is the national one, because the
- *   city publishes none of its own, and the legend should not imply otherwise.
+ *   city publishes none of its own, and the legend should not imply otherwise. Since round 2 (item 9,
+ *   2026-09-22) it is no longer a visible text line beside the index name: it sits behind the "i"
+ *   next to the name (CreditInfo, labelled "Index source"), like every other source in a chapter,
+ *   and is kept word for word.
  *
  * How the two layouts work, and why the names are not duplicated
  *   The bar is one element. The level names are ONE list, laid out two ways:
@@ -40,9 +43,10 @@
  *   carries colour.
  *
  * Key exports: AtlasMapLegend (named)
- * External dependencies: ../../_data/indexes (CityAirQualityIndex, levelDisplayName).
+ * External dependencies: ./CreditInfo, ../../_data/indexes (CityAirQualityIndex, levelDisplayName).
  */
 
+import { CreditInfo } from './CreditInfo'
 import { levelDisplayName } from '../../_data/indexes'
 import type { CityAirQualityIndex } from '../../_data/indexes'
 
@@ -86,11 +90,14 @@ export function AtlasMapLegend({ index, hasLowCost, hasReferenceGrade }: AtlasMa
 
       {index !== null && (
         <div>
-          {/* The index name above the bar, so the scale reads as the city's own. */}
-          <p className="text-[11px] font-semibold leading-tight text-foreground">
-            {index.name}
-            <span className="font-normal text-foreground/65"> · {index.publisher}</span>
-          </p>
+          {/* The index name above the bar, so the scale reads as the city's own. Its publisher line
+              sits behind the "i" beside it (round 2, item 9). */}
+          <div className="flex items-center gap-2">
+            <p className="text-[11px] font-semibold leading-tight text-foreground">{index.name}</p>
+            <CreditInfo label="Index source" align="start" className="">
+              <p>{index.publisher}</p>
+            </CreditInfo>
+          </div>
 
           {/* The bar: one segment per level, best to worst, in the city's own colours. Decorative,
               because the list below names every level. No current-level marker: that is pending

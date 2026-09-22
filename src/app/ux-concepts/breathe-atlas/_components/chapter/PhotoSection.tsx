@@ -13,6 +13,11 @@
  *   h2 "Photos" labels the section. Every photo has alt text (placeholder tiles use it as their
  *   accessible name). A city with no photos renders nothing.
  *
+ * Credits (round 2, item 9)
+ *   Each photo's credit and source link sit behind the "i" on its corner (PhotoFigure). The grids
+ *   use an even 16px gap in both directions: the 8px row gap was sized for the text credit row that
+ *   used to sit under every photo.
+ *
  * Key exports: PhotoSection (named)
  * External dependencies: @/components/concept (ConceptSectionHeader), ./PhotoFigure, ./PhotoStrip
  *   (client), ../../_data/chapters (types).
@@ -47,7 +52,7 @@ export function PhotoSection({ photos, layout, cityName }: PhotoSectionProps) {
       <ConceptSectionHeader heading="Photos" className="mb-6" />
 
       {layout === 'grid' && (
-        <ul className="grid grid-cols-1 gap-x-4 gap-y-2 sm:grid-cols-2 lg:grid-cols-3">
+        <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {photos.map((photo, index) => (
             <li key={photoKey(photo, index)}>
               <PhotoFigure photo={photo} mediaClassName="aspect-[4/3]" className="" />
@@ -58,7 +63,7 @@ export function PhotoSection({ photos, layout, cityName }: PhotoSectionProps) {
 
       {layout === 'one-large-two-small' && (
         <>
-          <ul className="grid grid-cols-1 gap-x-4 gap-y-2 md:grid-cols-3 md:grid-rows-2">
+          <ul className="grid grid-cols-1 gap-4 md:grid-cols-3 md:grid-rows-2">
             {photos.slice(0, 3).map((photo, index) => (
               <li
                 key={photoKey(photo, index)}
@@ -73,7 +78,7 @@ export function PhotoSection({ photos, layout, cityName }: PhotoSectionProps) {
             ))}
           </ul>
           {photos.length > 3 && (
-            <ul className="mt-2 grid grid-cols-1 gap-x-4 gap-y-2 sm:grid-cols-2 md:grid-cols-3">
+            <ul className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
               {photos.slice(3).map((photo, index) => (
                 <li key={photoKey(photo, index + 3)}>
                   <PhotoFigure photo={photo} mediaClassName="aspect-[4/3]" className="" />
