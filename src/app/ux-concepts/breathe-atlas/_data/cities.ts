@@ -1,5 +1,6 @@
 /**
- * cities.ts — Breathe Atlas city entries (all 16 Breathe Cities).
+ * cities.ts — Breathe Atlas city entries (the 16 Breathe Cities; 14 of them in scope for the
+ * concept, see "Scope" below).
  *
  * Purpose
  *   The local content source for the Breathe Atlas globe cover, the cover browser (city carousel)
@@ -10,6 +11,15 @@
  *
  *   Also derives the idle-cycle order: start at Bogotá, then continue eastward by longitude,
  *   wrapping round the globe (brief 4.2).
+ *
+ * Scope (Jack, 2026-09-22)
+ *   ALL_BC_CITIES holds every Breathe Cities city with its researched content. ATLAS_CITIES is the
+ *   filtered list the concept actually renders: the entries with `inScope: true`. Addis Ababa and
+ *   Madrid are new additions to Breathe Cities and out of scope for this phase of the design, so
+ *   they carry `inScope: false` and appear nowhere in the concept, while their researched content
+ *   stays in this file. Every downstream export (CITIES_ALPHABETICAL, CHAPTER_CITIES, CYCLE_ORDER)
+ *   derives from ATLAS_CITIES and so inherits the filter. Bringing a city back is a one-word edit:
+ *   flip its `inScope` to true.
  *
  * Honesty
  *   - Coordinates are the city centre points supplied in the build brief.
@@ -36,9 +46,12 @@
  *   the country. It is NOT the `region` field in global-toolkit-network or the `continent` field in
  *   /jtbd-framework, which use other labels. Each city's value matches its country's M49 region in
  *   ./m49-regions.ts.
+ *   The globe's region tints are painted from the M49 country table across a whole region, not from
+ *   the cities in this file, so hiding a city never changes the shading of its region.
  *
- * Key exports: AtlasCity (type), SharingTier (type), ATLAS_CITIES, CITIES_ALPHABETICAL,
- *   CHAPTER_CITIES, chapterCityBySlug, BC_MISSION_LINE, CYCLE_START_CITY_ID, CYCLE_ORDER
+ * Key exports: AtlasCity (type), SharingTier (type), ALL_BC_CITIES, ATLAS_CITIES,
+ *   CITIES_ALPHABETICAL, CHAPTER_CITIES, chapterCityBySlug, BC_MISSION_LINE, CYCLE_START_CITY_ID,
+ *   CYCLE_ORDER
  * External dependencies: ./m49-regions (AtlasRegion type).
  */
 
@@ -62,6 +75,14 @@ export type AtlasCity = {
    * the country name. The globe tints this region's whole M49 extent (see ./m49-regions.ts).
    */
   region: AtlasRegion
+  /**
+   * True when the city is in scope for this phase of the design. False hides it from the WHOLE
+   * concept (globe pins, idle cycle, prev/next arrows, carousel, All cities panel) while keeping
+   * its researched content in this file. Set explicitly on every entry, never defaulted.
+   * Currently false for Addis Ababa and Madrid: they are new additions to Breathe Cities and out
+   * of scope for this phase of the design (Jack, 2026-09-22).
+   */
+  inScope: boolean
   /** Globe position: latitude in decimal degrees. */
   lat: number
   /** Globe position: longitude in decimal degrees. */
@@ -87,29 +108,42 @@ function bcImage(uploadPath: string): string {
   return `${BC_UPLOADS_URL}${uploadPath}`
 }
 
-/** All 16 Breathe Cities (kept alphabetical for readability; CITIES_ALPHABETICAL enforces the order). */
-export const ATLAS_CITIES: AtlasCity[] = [
-  { id: 'accra', slug: 'accra', name: 'Accra', country: 'Ghana', region: 'africa', lat: 5.6037, lng: -0.187, hasChapter: false, missionLine: 'Accra is putting free, real-time air quality data in residents\' hands and working with communities to reduce waste burning.', cardImage: bcImage('2025/01/Card-Cities-3.png'), tier: null },
-  { id: 'addis-ababa', slug: 'addis-ababa', name: 'Addis Ababa', country: 'Ethiopia', region: 'africa', lat: 9.0054, lng: 38.7636, hasChapter: false, missionLine: 'Addis Ababa is expanding cycling lanes and air quality sensors to guide action for cleaner air.', cardImage: bcImage('2026/06/Addis.png'), tier: null },
-  { id: 'bangkok', slug: 'bangkok', name: 'Bangkok', country: 'Thailand', region: 'asia', lat: 13.7563, lng: 100.5018, hasChapter: false, missionLine: 'Bangkok is shaping a stronger Low Emission Zone and expanding community-led air quality monitoring across the city.', cardImage: bcImage('2025/07/Country-cards-65.png'), tier: null },
-  { id: 'bogota', slug: 'bogota', name: 'Bogotá', country: 'Colombia', region: 'lac', lat: 4.711, lng: -74.0721, hasChapter: true, missionLine: 'Bogotá is bringing clean air zones to its southwestern neighbourhoods, with road repairs, greening, transport and monitoring.', cardImage: bcImage('2024/09/Bogota-e1728988673808.png'), tier: 4 },
-  { id: 'brussels', slug: 'brussels', name: 'Brussels', country: 'Belgium', region: 'europe', lat: 50.8503, lng: 4.3517, hasChapter: false, missionLine: 'Brussels is making air quality a public health priority, with cleaner transport, greener spaces and its Low Emission Zone.', cardImage: bcImage('2023/11/Property-1Brussels.png'), tier: null },
-  { id: 'jakarta', slug: 'jakarta', name: 'Jakarta', country: 'Indonesia', region: 'asia', lat: -6.2088, lng: 106.8456, hasChapter: true, missionLine: 'Jakarta is giving residents clear, real-time air quality information and designing its next Low Emission Zone with communities.', cardImage: bcImage('2023/11/Property-1Jakarta.png'), tier: 2 },
-  { id: 'johannesburg', slug: 'johannesburg', name: 'Johannesburg', country: 'South Africa', region: 'africa', lat: -26.2041, lng: 28.0473, hasChapter: true, missionLine: 'Johannesburg is working with young people and community groups to build the evidence and support for cleaner air.', cardImage: bcImage('2025/07/card-cities-johannesburg.png'), tier: 4 },
-  { id: 'london', slug: 'london', name: 'London', country: 'United Kingdom', region: 'europe', lat: 51.5074, lng: -0.1278, hasChapter: false, missionLine: 'London is putting real-time air quality data into the hands of its communities to guide action on cleaner air.', cardImage: bcImage('2025/07/card-cities-london.png'), tier: null },
-  { id: 'madrid', slug: 'madrid', name: 'Madrid', country: 'Spain', region: 'europe', lat: 40.4168, lng: -3.7038, hasChapter: false, missionLine: 'Madrid is electrifying its buses and expanding cycling routes as it raises its clean air ambitions.', cardImage: bcImage('2026/06/Madrid_1.jpg'), tier: null },
-  { id: 'mexico-city', slug: 'mexico-city', name: 'Mexico City', country: 'Mexico', region: 'lac', lat: 19.4326, lng: -99.1332, hasChapter: true, missionLine: 'Mexico City is bringing neighbourhood-level air quality data to community hubs where residents gather every day.', cardImage: bcImage('2025/07/Country-cards-66.png'), tier: 3 },
-  { id: 'milan', slug: 'milan', name: 'Milan', country: 'Italy', region: 'europe', lat: 45.4642, lng: 9.19, hasChapter: true, missionLine: 'Milan is redesigning its streets around people, with safer school streets, more space to walk and a low emission zone.', cardImage: bcImage('2025/07/card-cities-milan.png'), tier: 1 },
-  { id: 'nairobi', slug: 'nairobi', name: 'Nairobi', country: 'Kenya', region: 'africa', lat: -1.2921, lng: 36.8219, hasChapter: false, missionLine: 'Nairobi runs its own network of air quality sensors, using the data to guide targeted clean air action.', cardImage: bcImage('2025/07/card-cities-nairobi.png'), tier: null },
-  { id: 'paris', slug: 'paris', name: 'Paris', country: 'France', region: 'europe', lat: 48.8566, lng: 2.3522, hasChapter: false, missionLine: 'Paris is reshaping its streets for people, with more school streets and greener, walkable avenues.', cardImage: bcImage('2025/07/card-cities-paris.png'), tier: null },
-  { id: 'rio-de-janeiro', slug: 'rio-de-janeiro', name: 'Rio de Janeiro', country: 'Brazil', region: 'lac', lat: -22.9068, lng: -43.1729, hasChapter: false, missionLine: 'Rio de Janeiro is widening public access to air quality data and has created a central Low Emission District.', cardImage: bcImage('2025/07/card-cities-rio.png'), tier: null },
-  { id: 'sofia', slug: 'sofia', name: 'Sofia', country: 'Bulgaria', region: 'europe', lat: 42.6977, lng: 23.3219, hasChapter: true, missionLine: 'Sofia is replacing wood and coal stoves in thousands of homes and restricting older, polluting cars in its centre.', cardImage: bcImage('2023/11/Property-1Sofia.png'), tier: 4 },
-  { id: 'warsaw', slug: 'warsaw', name: 'Warsaw', country: 'Poland', region: 'europe', lat: 52.2297, lng: 21.0122, hasChapter: true, missionLine: 'Warsaw is helping households switch from coal heating and working to cut traffic pollution with its Clean Transport Zone.', cardImage: bcImage('2023/11/Property-1Warsaw.png'), tier: 4 },
+/**
+ * Every Breathe Cities city with its researched content, in scope or not (kept alphabetical for
+ * readability; CITIES_ALPHABETICAL enforces the order). `inScope` is set explicitly on every
+ * entry, so no city's status is ever left to a default. The concept renders ATLAS_CITIES below,
+ * not this list.
+ */
+export const ALL_BC_CITIES: AtlasCity[] = [
+  { id: 'accra', slug: 'accra', name: 'Accra', country: 'Ghana', region: 'africa', inScope: true, lat: 5.6037, lng: -0.187, hasChapter: false, missionLine: 'Accra is putting free, real-time air quality data in residents\' hands and working with communities to reduce waste burning.', cardImage: bcImage('2025/01/Card-Cities-3.png'), tier: null },
+  { id: 'addis-ababa', slug: 'addis-ababa', name: 'Addis Ababa', country: 'Ethiopia', region: 'africa', inScope: false, lat: 9.0054, lng: 38.7636, hasChapter: false, missionLine: 'Addis Ababa is expanding cycling lanes and air quality sensors to guide action for cleaner air.', cardImage: bcImage('2026/06/Addis.png'), tier: null },
+  { id: 'bangkok', slug: 'bangkok', name: 'Bangkok', country: 'Thailand', region: 'asia', inScope: true, lat: 13.7563, lng: 100.5018, hasChapter: false, missionLine: 'Bangkok is shaping a stronger Low Emission Zone and expanding community-led air quality monitoring across the city.', cardImage: bcImage('2025/07/Country-cards-65.png'), tier: null },
+  { id: 'bogota', slug: 'bogota', name: 'Bogotá', country: 'Colombia', region: 'lac', inScope: true, lat: 4.711, lng: -74.0721, hasChapter: true, missionLine: 'Bogotá is bringing clean air zones to its southwestern neighbourhoods, with road repairs, greening, transport and monitoring.', cardImage: bcImage('2024/09/Bogota-e1728988673808.png'), tier: 4 },
+  { id: 'brussels', slug: 'brussels', name: 'Brussels', country: 'Belgium', region: 'europe', inScope: true, lat: 50.8503, lng: 4.3517, hasChapter: false, missionLine: 'Brussels is making air quality a public health priority, with cleaner transport, greener spaces and its Low Emission Zone.', cardImage: bcImage('2023/11/Property-1Brussels.png'), tier: null },
+  { id: 'jakarta', slug: 'jakarta', name: 'Jakarta', country: 'Indonesia', region: 'asia', inScope: true, lat: -6.2088, lng: 106.8456, hasChapter: true, missionLine: 'Jakarta is giving residents clear, real-time air quality information and designing its next Low Emission Zone with communities.', cardImage: bcImage('2023/11/Property-1Jakarta.png'), tier: 2 },
+  { id: 'johannesburg', slug: 'johannesburg', name: 'Johannesburg', country: 'South Africa', region: 'africa', inScope: true, lat: -26.2041, lng: 28.0473, hasChapter: true, missionLine: 'Johannesburg is working with young people and community groups to build the evidence and support for cleaner air.', cardImage: bcImage('2025/07/card-cities-johannesburg.png'), tier: 4 },
+  { id: 'london', slug: 'london', name: 'London', country: 'United Kingdom', region: 'europe', inScope: true, lat: 51.5074, lng: -0.1278, hasChapter: false, missionLine: 'London is putting real-time air quality data into the hands of its communities to guide action on cleaner air.', cardImage: bcImage('2025/07/card-cities-london.png'), tier: null },
+  { id: 'madrid', slug: 'madrid', name: 'Madrid', country: 'Spain', region: 'europe', inScope: false, lat: 40.4168, lng: -3.7038, hasChapter: false, missionLine: 'Madrid is electrifying its buses and expanding cycling routes as it raises its clean air ambitions.', cardImage: bcImage('2026/06/Madrid_1.jpg'), tier: null },
+  { id: 'mexico-city', slug: 'mexico-city', name: 'Mexico City', country: 'Mexico', region: 'lac', inScope: true, lat: 19.4326, lng: -99.1332, hasChapter: true, missionLine: 'Mexico City is bringing neighbourhood-level air quality data to community hubs where residents gather every day.', cardImage: bcImage('2025/07/Country-cards-66.png'), tier: 3 },
+  { id: 'milan', slug: 'milan', name: 'Milan', country: 'Italy', region: 'europe', inScope: true, lat: 45.4642, lng: 9.19, hasChapter: true, missionLine: 'Milan is redesigning its streets around people, with safer school streets, more space to walk and a low emission zone.', cardImage: bcImage('2025/07/card-cities-milan.png'), tier: 1 },
+  { id: 'nairobi', slug: 'nairobi', name: 'Nairobi', country: 'Kenya', region: 'africa', inScope: true, lat: -1.2921, lng: 36.8219, hasChapter: false, missionLine: 'Nairobi runs its own network of air quality sensors, using the data to guide targeted clean air action.', cardImage: bcImage('2025/07/card-cities-nairobi.png'), tier: null },
+  { id: 'paris', slug: 'paris', name: 'Paris', country: 'France', region: 'europe', inScope: true, lat: 48.8566, lng: 2.3522, hasChapter: false, missionLine: 'Paris is reshaping its streets for people, with more school streets and greener, walkable avenues.', cardImage: bcImage('2025/07/card-cities-paris.png'), tier: null },
+  { id: 'rio-de-janeiro', slug: 'rio-de-janeiro', name: 'Rio de Janeiro', country: 'Brazil', region: 'lac', inScope: true, lat: -22.9068, lng: -43.1729, hasChapter: false, missionLine: 'Rio de Janeiro is widening public access to air quality data and has created a central Low Emission District.', cardImage: bcImage('2025/07/card-cities-rio.png'), tier: null },
+  { id: 'sofia', slug: 'sofia', name: 'Sofia', country: 'Bulgaria', region: 'europe', inScope: true, lat: 42.6977, lng: 23.3219, hasChapter: true, missionLine: 'Sofia is replacing wood and coal stoves in thousands of homes and restricting older, polluting cars in its centre.', cardImage: bcImage('2023/11/Property-1Sofia.png'), tier: 4 },
+  { id: 'warsaw', slug: 'warsaw', name: 'Warsaw', country: 'Poland', region: 'europe', inScope: true, lat: 52.2297, lng: 21.0122, hasChapter: true, missionLine: 'Warsaw is helping households switch from coal heating and working to cut traffic pollution with its Clean Transport Zone.', cardImage: bcImage('2023/11/Property-1Warsaw.png'), tier: 4 },
 ]
 
 /**
- * The 16 cities sorted by name for the cover browser (brief 4.3: "all 16 cities in alphabetical
- * order"). Sorted here rather than trusting the array order, so a new entry cannot break it.
+ * The cities the concept renders: the in-scope entries of ALL_BC_CITIES (see "Scope" at the top of
+ * this file). Every other export below derives from this one, so the globe, the idle cycle, the
+ * arrows, the carousel and the All cities panel can never disagree about which cities exist.
+ */
+export const ATLAS_CITIES: AtlasCity[] = ALL_BC_CITIES.filter((city) => city.inScope)
+
+/**
+ * The in-scope cities sorted by name for the cover browser (brief 4.3: "all 16 cities in
+ * alphabetical order"; now the in-scope ones). Sorted here rather than trusting the array order,
+ * so a new entry cannot break it.
  */
 export const CITIES_ALPHABETICAL: AtlasCity[] = [...ATLAS_CITIES].sort((a, b) => a.name.localeCompare(b.name, 'en'))
 
@@ -140,5 +174,5 @@ function buildCycleOrder(cities: AtlasCity[], startId: string): AtlasCity[] {
   return [...cities].sort((a, b) => eastOffset(a) - eastOffset(b))
 }
 
-/** The 16 cities in idle-cycle order (see buildCycleOrder). */
+/** The in-scope cities in idle-cycle order (see buildCycleOrder). */
 export const CYCLE_ORDER: AtlasCity[] = buildCycleOrder(ATLAS_CITIES, CYCLE_START_CITY_ID)

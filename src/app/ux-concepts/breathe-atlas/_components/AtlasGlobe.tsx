@@ -2,8 +2,9 @@
  * AtlasGlobe.tsx — the react-globe.gl globe for the Breathe Atlas cover (brief 4.2).
  *
  * Purpose
- *   Renders the shaded-relief globe (grey, with each region in its own light grey) with 16 pulsating
- *   HTML city markers, and hands the parent (GlobeCover) a small imperative API to turn the globe. It owns
+ *   Renders the shaded-relief globe (grey, with each region in its own light grey) with one pulsating
+ *   HTML city marker per in-scope city (see ../_data/cities, "Scope"), and hands the parent
+ *   (GlobeCover) a small imperative API to turn the globe. It owns
  *   everything that touches three.js and the DOM nodes globe.gl manages; GlobeCover owns the cycle,
  *   pause and card state.
  *
@@ -68,7 +69,7 @@
  *   steel, which is too pale to read on the pale globe.) The label lives inside the marker element,
  *   so it is hidden on the far side of the globe with its marker. By default it sits to the right of
  *   the dot; LABEL_SIDE moves it for the dense European cluster (London above, Paris to the left,
- *   Brussels to the right), for Madrid and for Mexico City. Any collision left over (Brussels and
+ *   Brussels to the right) and for Mexico City. Any collision left over (Brussels and
  *   Warsaw on a 375px phone) drops the lower-priority label, chapter cities first
  *   (labelPriorityOrder), re-checked every frame as the globe turns. While a city's card is open,
  *   that city's label is hidden (the card already names it). Decorative: aria-hidden, because the
@@ -79,7 +80,7 @@
  *   previous, next). Showing and fading are a short opacity transition (200ms), not a jump; hiding
  *   is instant (visibility), so the card's own city label is gone as soon as its card opens.
  *   Screen edges (round 2 fix): on a phone the globe nearly fills the width, so a label on the right
- *   of a pin near the right edge ran off the screen ("Addis A", a cut "Nairobi" with Accra focused).
+ *   of a pin near the right edge ran off the screen (a cut "Nairobi" with Accra focused).
  *   A label that would cross either edge of the viewport (keeping a LABEL_EDGE_GUTTER_PX gutter)
  *   flips to the other side of its pin; if it fits on neither side, it is hidden
  *   (labelSideCandidates, labelBox).
@@ -96,7 +97,8 @@
  * Side effects (all cleaned up on unmount):
  *   - Builds the globe texture (offscreen canvases, plus the region layer, which loads world-atlas's
  *     110m countries file) and creates an object URL; revoked on unmount.
- *   - Creates 16 detached marker DOM nodes and attaches click listeners to their buttons.
+ *   - Creates one detached marker DOM node per in-scope city and attaches click listeners to their
+ *     buttons.
  *   - Sets a `data-focus` attribute on the focus marker's button when `focusCityId` changes.
  *   - An animation-frame loop that places, fades or hides the city name labels (inline opacity,
  *     visibility and class): the open card's city, far-side cities, collisions and labels under the card or the
@@ -215,7 +217,7 @@ type AtlasGlobeProps = {
   width: number
   /** Canvas height in CSS pixels. */
   height: number
-  /** Cities to mark (all 16). Must be a stable array reference. */
+  /** Cities to mark (every in-scope city). Must be a stable array reference. */
   cities: AtlasCity[]
   /** The city whose card is open (auto-opened or tapped), or null. */
   cardCityId: string | null
@@ -273,13 +275,12 @@ type LabelSide = 'right' | 'left' | 'above' | 'below'
  * Label placement for the cities whose label must not sit on the default right (round 2, item 8).
  * London, Paris and Brussels are within a few degrees of each other, so at globe scale their dots
  * are 10 to 12px apart: London's label goes above, Paris's to the left (below would run into Milan),
- * Brussels's stays right. Madrid goes left, over the Atlantic. Every other city: right.
+ * Brussels's stays right. Every other city: right.
  */
 const LABEL_SIDE: Record<string, LabelSide> = {
   london: 'above',
   paris: 'left',
   brussels: 'right',
-  madrid: 'left',
   // Seen from South America, Mexico City sits just up and left of Bogotá: its label goes left.
   'mexico-city': 'left',
 }

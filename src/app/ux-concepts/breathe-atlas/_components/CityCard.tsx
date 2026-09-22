@@ -15,7 +15,7 @@
  *   The card is portalled into the selected marker's DOM node by AtlasGlobe, so its position is
  *   relative to the marker.
  *
- * Layout (round 2, item 7, all 16 cities)
+ * Layout (round 2, item 7, every in-scope city)
  *   - Left column: city name (bold), country, then a round arrow button with a top-right arrow
  *     (lucide ArrowUpRight). The diagonal keeps it distinct from the globe's left/right arrows.
  *     It is the concept's one card-arrow style (./atlas-arrow-styles, shared with the carousel).
@@ -23,7 +23,7 @@
  *     bottom where BC's images carry the landmark). Nothing sits on it since the × went (R3.2).
  *   - White card background (ConceptCard). The old full-width "Open" pill is gone.
  *   - Chapter cities (7): the arrow links to the chapter.
- *   - Cities without a chapter (9): the arrow shows the carousel's greyed-out treatment and is NOT
+ *   - Cities without a chapter: the arrow shows the carousel's greyed-out treatment and is NOT
  *     in the tab order (round 2 spec: "Not focusable as a link"). It stays exposed to assistive tech
  *     as a disabled link named "Open [City]", so a screen reader reading the card still meets it.
  *     No "coming soon" text. NOTE: this differs from the carousel's greyed-out arrow, which is
