@@ -47,6 +47,14 @@
  *     (a drag does not count as a tap). Closing any card keeps it closed until the globe rests on a
  *     city again.
  *
+ * Previous/next arrows (round 2, item 2)
+ *   Two arrows either side of the globe, in the carousel's arrow style, step through CYCLE_ORDER
+ *   and open the city's card the way the tour does: the globe turns (SELECT_TURN_MS), then rests
+ *   on the city, whose card opens automatically. A press is an explicit pause (the pause button
+ *   shows Play). Presses accumulate from the city a step is already turning to, so fast presses
+ *   move one city each. A marker tap or a drag cancels a step in flight; pressing play mid-step
+ *   lets the tour carry on to that city. Real buttons named "Previous city" and "Next city", 56px.
+ *
  * Pausing (brief 4.2 "Motion and accessibility")
  *   The cycle runs only when ALL of these hold:
  *     - the globe is ready,
@@ -64,13 +72,14 @@
  *   present; pressing play is an explicit opt-in to the cycle.
  *
  * Key exports: GlobeCover (named)
- * External dependencies: react, next/dynamic, lucide-react (Pause, Play), ./AtlasGlobe (client-only,
- *   loaded with ssr: false), ./CityCard, ./Wordmark, ./globe-framing, ../_data/cities.
+ * External dependencies: react, next/dynamic, lucide-react (ArrowLeft, ArrowRight, Pause, Play),
+ *   ./AtlasGlobe (client-only, loaded with ssr: false), ./CityCard, ./Wordmark, ./globe-framing,
+ *   ./atlas-arrow-styles, ../_data/cities.
  *
  * Side effects (all cleaned up on unmount):
  *   - ResizeObserver on the canvas box (the WebGL canvas's pixel size).
  *   - matchMedia listener for prefers-reduced-motion.
- *   - Timers for the cycle and the interaction resume countdown.
+ *   - Timers for the cycle, the interaction resume countdown and an arrow step's rest.
  *   - Document pointerdown/pointerup/keydown listeners while a held card is open (tap-outside, Escape).
  */
 
@@ -79,8 +88,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { FocusEvent as ReactFocusEvent, KeyboardEvent as ReactKeyboardEvent, PointerEvent as ReactPointerEvent } from 'react'
 import dynamic from 'next/dynamic'
-import { Pause, Play } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Pause, Play } from 'lucide-react'
 import type { AtlasGlobeApi } from './AtlasGlobe'
+import { navArrowClass } from './atlas-arrow-styles'
 import { CITY_CARD_WIDTH_PX, CITY_CARD_WIDTH_PX_SM, CityCard } from './CityCard'
 import { SPHERE_SHARE_OF_CANVAS } from './globe-framing'
 import { Wordmark } from './Wordmark'
@@ -137,6 +147,8 @@ const WORDMARK_REACH_SHARE = 0.56
 const WORDMARK_EDGE_PAD = '8px'
 /** Diameter of the pause/play button, in px (its `h-14 w-14` classes). */
 const PAUSE_BUTTON_PX = 56
+/** Gap between the globe and its previous/next arrows from `sm`, in px (round 2, item 2). */
+const STEP_ARROW_GAP_PX = 24
 /** Clear space kept between the pause/play button and the open city card on a phone, in px. */
 const PAUSE_CARD_CLEARANCE_PX = 8
 /** The same from `sm`, where there is room for more. */
@@ -169,6 +181,11 @@ const PAUSE_CARD_CLEARANCE_PX_SM = 16
  *   because the globe nearly fills the width. (It sits in the sphere box, so `right` is measured
  *   from the sphere's edge, hence the "- --atlas-inset".) Clamped at the stage edge, so it can never
  *   be pushed off the stage.
+ * .atlas-step: the previous/next city arrows (round 2, item 2), either side of the globe. From `sm`
+ *   they sit beside the sphere at its vertical centre, STEP_ARROW_GAP_PX clear of it (there is room:
+ *   at 640px the sphere leaves 115px each side). On a phone the globe fills the width, so they sit in
+ *   the sphere square's bottom corners instead, where the round globe curves away and leaves room
+ *   (a 56px button there clears a 358px sphere by about 6px).
  */
 const COVER_LAYOUT_CSS = `.atlas-cover { container: atlas-cover / inline-size; }
 .atlas-stage {
@@ -198,6 +215,14 @@ const COVER_LAYOUT_CSS = `.atlas-cover { container: atlas-cover / inline-size; }
   --atlas-pause-cap: calc((100cqw - var(--atlas-card-w)) / 2 - ${PAUSE_BUTTON_PX}px - var(--atlas-pause-clearance));
   top: 0;
   right: calc(max(min(var(--atlas-inset), var(--atlas-pause-cap)), 0px) - var(--atlas-inset));
+}
+.atlas-step { bottom: 0; }
+.atlas-step-prev { left: 0; }
+.atlas-step-next { right: 0; }
+@container atlas-cover (min-width: 640px) {
+  .atlas-step { top: 50%; bottom: auto; translate: 0 -50%; }
+  .atlas-step-prev { left: auto; right: calc(100% + ${STEP_ARROW_GAP_PX}px); }
+  .atlas-step-next { right: auto; left: calc(100% + ${STEP_ARROW_GAP_PX}px); }
 }`
 
 /** What the cover is showing: resting on a cycle city, or not resting on any. */
@@ -212,6 +237,11 @@ function cycleIndexOf(cityId: string): number {
 /** True when an event target sits inside a marker (its button or its card). */
 function isInsideMarker(target: EventTarget | null): boolean {
   return target instanceof Element && target.closest('.atlas-marker') !== null
+}
+
+/** True when an event target sits inside one of the cover's own controls (pause, arrows). */
+function isInsideControl(target: EventTarget | null): boolean {
+  return target instanceof Element && target.closest('[data-atlas-control]') !== null
 }
 
 /** True when an event target sits inside a city card. */
@@ -245,6 +275,10 @@ export function GlobeCover() {
   const restFirstRef = useRef(true) // first run rests on Bogotá before turning
   const resumeTimerRef = useRef<number | undefined>(undefined)
   const pointerDownRef = useRef<{ x: number; y: number; moved: boolean } | null>(null)
+  // The previous/next arrows (item 2): the city a step is turning to (null when none is in flight),
+  // and the timer that rests on it when the turn ends. A ref so a burst of presses accumulates.
+  const stepTargetRef = useRef<number | null>(null)
+  const stepTimerRef = useRef<number | undefined>(undefined)
 
   const running = globeReady && playing && !interactionHold && selectedCityId === null
 
@@ -287,6 +321,14 @@ export function GlobeCover() {
 
   // Clear the resume countdown on unmount.
   useEffect(() => () => window.clearTimeout(resumeTimerRef.current), [])
+  // Clear a pending arrow step on unmount.
+  useEffect(() => () => window.clearTimeout(stepTimerRef.current), [])
+
+  /** Cancel an arrow step that is still turning (another interaction has taken over). */
+  const cancelStep = useCallback(() => {
+    window.clearTimeout(stepTimerRef.current)
+    stepTargetRef.current = null
+  }, [])
 
   /** Start (or restart) an interaction hold with no countdown running. */
   const holdForInteraction = useCallback(() => {
@@ -364,6 +406,7 @@ export function GlobeCover() {
   const handleMarkerSelect = useCallback(
     (city: AtlasCity) => {
       holdForInteraction()
+      cancelStep()
       const index = cycleIndexOf(city.id)
       // Set the resting position BEFORE the cycle cleanup runs, so the cleanup does not cancel
       // the turn started below.
@@ -375,7 +418,7 @@ export function GlobeCover() {
       setLastShownIndex(index)
       apiRef.current?.turnTo(city.lat, city.lng, reducedMotion ? 0 : SELECT_TURN_MS)
     },
-    [holdForInteraction, reducedMotion],
+    [holdForInteraction, cancelStep, reducedMotion],
   )
 
   /** Close the open card (held or auto-opened); the resume countdown starts now. */
@@ -448,10 +491,11 @@ export function GlobeCover() {
 
   const handleStagePointerMove = (event: ReactPointerEvent<HTMLDivElement>) => {
     const down = pointerDownRef.current
-    if (down === null || down.moved || isInsideMarker(event.target)) return
+    if (down === null || down.moved || isInsideMarker(event.target) || isInsideControl(event.target)) return
     if (Math.hypot(event.clientX - down.x, event.clientY - down.y) <= DRAG_THRESHOLD_PX) return
     // The visitor is dragging the globe away from wherever it rested (this closes an auto-opened card).
     down.moved = true
+    cancelStep()
     restingIndexRef.current = null
     setView({ kind: 'free' })
   }
@@ -480,7 +524,61 @@ export function GlobeCover() {
     window.clearTimeout(resumeTimerRef.current)
     setInteractionHold(false)
     if (selectedCityId !== null && !playing) setSelectedCityId(null)
+    const stepTarget = stepTargetRef.current
+    if (stepTarget !== null) {
+      // Play pressed while an arrow step is still turning: the tour carries on to that city.
+      cancelStep()
+      restingIndexRef.current = null
+      nextIndexRef.current = stepTarget
+    }
     setPlaying((value) => !value)
+  }
+
+  /**
+   * The globe's previous/next arrows (round 2, item 2). Steps one city back or on in CYCLE_ORDER,
+   * turns the globe to it and, when the turn ends, rests on it and opens its card, exactly as the
+   * idle tour does. A press is an explicit pause: `playing` goes false, so the pause button shows
+   * the paused (Play) state and the tour stays stopped until play is pressed.
+   *
+   * Where it steps from: the city a step is already turning to (so a burst of presses goes one
+   * city per press, whatever the animation is doing, the carousel's BUG 5 lesson), else the city
+   * the globe rests on, else (mid-turn or after a drag) the city the tour was heading to for "next"
+   * and the one before it for "previous".
+   */
+  const stepCity = (direction: -1 | 1) => {
+    const api = apiRef.current
+    if (api === null) return
+    const count = CYCLE_ORDER.length
+    const pending = stepTargetRef.current
+    let target: number
+    if (pending !== null) target = (pending + direction + count) % count
+    else if (view.kind === 'resting') target = (view.index + direction + count) % count
+    else target = direction === 1 ? nextIndexRef.current : (nextIndexRef.current - 1 + count) % count
+
+    window.clearTimeout(resumeTimerRef.current)
+    setInteractionHold(false)
+    setPlaying(false)
+    setSelectedCityId(null)
+    setAutoCardDismissed(false)
+    // Set the resting position BEFORE the cycle cleanup runs (pausing stops the cycle, and its
+    // cleanup freezes the camera unless a city is resting), so it does not cancel the turn below.
+    restingIndexRef.current = target
+    nextIndexRef.current = (target + 1) % count
+    stepTargetRef.current = target
+    // Turning: names, mission line and card fade out, as in the tour.
+    setView({ kind: 'free' })
+
+    const city = CYCLE_ORDER[target]
+    const duration = reducedMotion ? 0 : SELECT_TURN_MS
+    api.turnTo(city.lat, city.lng, duration)
+    window.clearTimeout(stepTimerRef.current)
+    // Side effect: timer that rests on the city once the turn ends (cleared by cancelStep/unmount).
+    stepTimerRef.current = window.setTimeout(() => {
+      stepTargetRef.current = null
+      setView({ kind: 'resting', index: target })
+      setLastShownIndex(target)
+      setAutoCardDismissed(false)
+    }, duration)
   }
 
   const fade = 'transition-opacity duration-700 ease-out motion-reduce:transition-none'
@@ -540,11 +638,34 @@ export function GlobeCover() {
               hold, so an explicit pause stays paused and an explicit play starts the cycle. */}
           <button
             type="button"
+            data-atlas-control="true"
             onClick={togglePlaying}
             aria-label={playing ? 'Pause the city tour' : 'Play the city tour'}
             className="atlas-pause pointer-events-auto absolute flex h-14 w-14 items-center justify-center rounded-full border border-foreground/20 bg-background text-foreground transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground"
           >
             {playing ? <Pause className="h-5 w-5" aria-hidden="true" /> : <Play className="h-5 w-5" aria-hidden="true" />}
+          </button>
+
+          {/* Previous/next city (round 2, item 2): the carousel's arrow style (navArrowClass), on a
+              white fill because here they can sit over the globe or the dark city name. Placed by
+              .atlas-step in COVER_LAYOUT_CSS. See stepCity. */}
+          <button
+            type="button"
+            data-atlas-control="true"
+            onClick={() => stepCity(-1)}
+            aria-label="Previous city"
+            className={`atlas-step atlas-step-prev pointer-events-auto absolute bg-background ${navArrowClass(false)}`}
+          >
+            <ArrowLeft className="h-5 w-5" aria-hidden="true" />
+          </button>
+          <button
+            type="button"
+            data-atlas-control="true"
+            onClick={() => stepCity(1)}
+            aria-label="Next city"
+            className={`atlas-step atlas-step-next pointer-events-auto absolute bg-background ${navArrowClass(false)}`}
+          >
+            <ArrowRight className="h-5 w-5" aria-hidden="true" />
           </button>
         </div>
       </div>
