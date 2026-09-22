@@ -2,18 +2,25 @@
  * AtlasGlobe.tsx — the react-globe.gl globe for the Breathe Atlas cover (brief 4.2).
  *
  * Purpose
- *   Renders the grey shaded-relief globe with 16 pulsating HTML city markers, and hands the parent
- *   (GlobeCover) a small imperative API to turn the globe. It owns everything that touches three.js
- *   and the DOM nodes globe.gl manages; GlobeCover owns the cycle, pause and card state.
+ *   Renders the shaded-relief globe (grey, with pale region tints) with 16 pulsating HTML city
+ *   markers, and hands the parent (GlobeCover) a small imperative API to turn the globe. It owns
+ *   everything that touches three.js and the DOM nodes globe.gl manages; GlobeCover owns the cycle,
+ *   pause and card state.
  *
  *   This module touches `window` (WebGL, canvas, DOM markers), so it must only ever be loaded
  *   client-side: GlobeCover imports it through `next/dynamic` with `ssr: false`. The globe ref is
  *   kept inside this component (dynamic() does not forward refs) and exposed via `onReady`.
  *
- * The look (grey wireframe, no decorative colour)
+ * The look (grey wireframe; colour only where it encodes something)
  *   - Colour texture: built at runtime by globe-texture.ts from two images shipped in the
  *     `three-globe` npm package (land/water mask + elevation map): near-white ocean, light grey
  *     land with baked hillshade. Grey levels are derived from BC tokens, never hardcoded.
+ *   - Region tints (round 2, item 6): the land of each Breathe Cities region (Africa, Asia, Europe,
+ *     LAC, with M49's country extent) carries a pale tint of one BC token, baked into the same
+ *     texture (region-raster.ts paints the regions, globe-texture.ts shades them). Colour here
+ *     encodes region, which the functional-colour rule allows. See REGION_TINTS. No legend or labels
+ *     this round (Jack reviews live). If the tokens or the countries file are unavailable, the globe
+ *     renders plain grey.
  *   - Bump map: the same elevation image, so relief also catches the live scene light.
  *   - Lighting: soft ambient plus a directional light parented to the camera, so the relief is lit
  *     from the upper left of the view whichever city the globe turns to.
@@ -52,18 +59,35 @@
  *   blue glow.
  *   Reduced motion: the animation is removed and the halo stays still at a middle size.
  *
+ * City name labels (round 2, item 8)
+ *   Every marker carries a small label with the city's name: 11px, medium weight, in the muted text
+ *   colour the concept uses for secondary text (foreground at 70%), not full brand blue, with a thin
+ *   white halo so it reads on the relief and the region tints. (The `--muted-foreground` token is BC
+ *   steel, which is too pale to read on the pale globe.) The label lives inside the marker element,
+ *   so it is hidden on the far side of the globe with its marker. By default it sits to the right of
+ *   the dot; LABEL_SIDE moves it for the dense European cluster (London above, Paris to the left,
+ *   Brussels to the right), for Madrid and for Mexico City. Any collision left over (Brussels and
+ *   Warsaw on a 375px phone) drops the lower-priority label, chapter cities first
+ *   (labelPriorityOrder), re-checked every frame as the globe turns. While a city's card is open,
+ *   that city's label is hidden (the card already names it). Decorative: aria-hidden, because the
+ *   marker button is already named "City, Country".
+ *
  * Focus city (brief 4.2)
  *   `focusCityId` marks one marker as the focus: its dot and halo scale up (an enlarged pulsating
  *   dot). GlobeCover passes the city the globe rests on, or the city whose card the visitor opened.
  *
- * Key exports: AtlasGlobe (default), AtlasGlobeApi (type), GLOBE_ALTITUDE
+ * Key exports: AtlasGlobe (default), AtlasGlobeApi (type)
  * External dependencies: react, react-dom (createPortal), react-globe.gl (three.js),
- *   ./globe-texture, ../_data/cities (AtlasCity type).
+ *   ./globe-texture, ./region-raster, ./globe-framing (GLOBE_ALTITUDE), ../_data/cities (AtlasCity
+ *   type), ../_data/m49-regions.
  *
  * Side effects (all cleaned up on unmount):
- *   - Builds the globe texture (offscreen canvases) and creates an object URL; revoked on unmount.
+ *   - Builds the globe texture (offscreen canvases, plus the region layer, which loads world-atlas's
+ *     110m countries file) and creates an object URL; revoked on unmount.
  *   - Creates 16 detached marker DOM nodes and attaches click listeners to their buttons.
  *   - Sets a `data-focus` attribute on the focus marker's button when `focusCityId` changes.
+ *   - An animation-frame loop that shows or hides the city name labels (inline visibility): the open
+ *     card's city, far-side cities and collisions are hidden.
  *   - Mutates three.js objects owned by globe.gl once the globe is ready: controls flags, canvas
  *     touch-action style, light intensities and parenting, globe material settings.
  */
@@ -76,10 +100,12 @@ import { createPortal } from 'react-dom'
 import Globe from 'react-globe.gl'
 import type { GlobeMethods } from 'react-globe.gl'
 import type { AtlasCity } from '../_data/cities'
-import { buildGreyReliefTexture, tokenLuminance } from './globe-texture'
-
-/** Camera altitude (in globe radii above the surface) for the cover framing. */
-export const GLOBE_ALTITUDE = 2
+import { ATLAS_REGIONS } from '../_data/m49-regions'
+import type { AtlasRegion } from '../_data/m49-regions'
+import { buildReliefTexture, TEXTURE_HEIGHT, TEXTURE_WIDTH, tokenLuminance, tokenRgb } from './globe-texture'
+import { GLOBE_ALTITUDE } from './globe-framing'
+import { buildRegionTintLayer } from './region-raster'
+import type { RegionTintColours } from './region-raster'
 
 /** Package-shipped images copied into public/ (see globe-texture.ts for provenance). */
 const WATER_MASK_URL = '/ux-concepts/breathe-atlas/earth-water.png'
@@ -116,6 +142,42 @@ const PULSE_CSS = `@keyframes atlas-marker-pulse {
 }
 .atlas-marker-halo { animation: atlas-marker-pulse ${PULSE_PERIOD_MS}ms ease-in-out infinite; }
 @media (prefers-reduced-motion: reduce) { .atlas-marker-halo { animation: none; } }`
+
+/**
+ * Region tints (round 2, item 6): one existing BC token per Breathe Cities region, and how much of
+ * that token is mixed into the land grey. Heavy on the grey, so the tint stays light, the relief
+ * reads through it and the dark blue pins stay the strongest thing on the globe. Four distinct hues
+ * (blue, tangerine, yellow, teal), none of them the pins' dark blue. The shares differ because the
+ * tokens differ in strength: yellow and teal need more to show at all against the pale grey, blue
+ * and tangerine less. Tuned by eye in the browser; Jack reviews live.
+ */
+const REGION_TINTS: Record<AtlasRegion, { token: string; share: number }> = {
+  africa: { token: '--bc-color-tangerine', share: 0.2 },
+  asia: { token: '--bc-color-yellow', share: 0.24 },
+  europe: { token: '--bc-color-blue', share: 0.18 },
+  lac: { token: '--bc-color-teal', share: 0.24 },
+}
+
+/**
+ * The tint colour for each region: its token mixed into the land grey by its share (see
+ * REGION_TINTS). Returns null if any token is unavailable, and the globe then stays grey.
+ *
+ * Side effect: reads computed style (tokenRgb).
+ */
+function regionTintColours(landGrey: number): RegionTintColours | null {
+  const colours: Partial<RegionTintColours> = {}
+  for (const region of ATLAS_REGIONS) {
+    const { token, share } = REGION_TINTS[region]
+    const rgb = tokenRgb(token)
+    if (rgb === null) return null
+    colours[region] = [
+      Math.round(landGrey + (rgb[0] - landGrey) * share),
+      Math.round(landGrey + (rgb[1] - landGrey) * share),
+      Math.round(landGrey + (rgb[2] - landGrey) * share),
+    ]
+  }
+  return colours as RegionTintColours
+}
 
 /** The small imperative API the cover uses to drive the globe. */
 export type AtlasGlobeApi = {
@@ -175,7 +237,64 @@ type PhongMaterialLike = {
 }
 
 /** Per-city marker DOM: the element globe.gl positions, its button, and the card host. */
-type MarkerNodes = { element: HTMLDivElement; button: HTMLButtonElement; cardHost: HTMLDivElement }
+type MarkerNodes = {
+  element: HTMLDivElement
+  button: HTMLButtonElement
+  label: HTMLSpanElement
+  cardHost: HTMLDivElement
+}
+
+/** Which side of its dot a city name label sits on. */
+type LabelSide = 'right' | 'left' | 'above' | 'below'
+
+/**
+ * Label placement for the cities whose label must not sit on the default right (round 2, item 8).
+ * London, Paris and Brussels are within a few degrees of each other, so at globe scale their dots
+ * are 10 to 12px apart: London's label goes above, Paris's to the left (below would run into Milan),
+ * Brussels's stays right. Madrid goes left, over the Atlantic. Every other city: right.
+ */
+const LABEL_SIDE: Record<string, LabelSide> = {
+  london: 'above',
+  paris: 'left',
+  brussels: 'right',
+  madrid: 'left',
+  // Seen from South America, Mexico City sits just up and left of Bogotá: its label goes left.
+  'mexico-city': 'left',
+}
+
+/**
+ * The order labels are placed in when they would collide (round 2, item 8: "offset labels so they
+ * do not collide, or drop the lowest-priority one"). Chapter cities first, then the rest, each
+ * group alphabetical. A label that would overlap one already placed is dropped for that frame.
+ * The static LABEL_SIDE offsets keep this rare; on a 375px phone Brussels can still meet Warsaw.
+ */
+function labelPriorityOrder(cities: AtlasCity[]): AtlasCity[] {
+  return [...cities].sort((a, b) => {
+    if (a.hasChapter !== b.hasChapter) return a.hasChapter ? -1 : 1
+    return a.name.localeCompare(b.name, 'en')
+  })
+}
+
+/** True when two boxes overlap (touching edges do not count). Pure. */
+function rectsOverlap(a: DOMRect, b: DOMRect): boolean {
+  return a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom
+}
+
+/**
+ * Label position classes per side. The marker element is 44px square with the dot at its centre, so
+ * 36px from an edge puts the label 14px from the dot's centre: clear of the focus city's enlarged dot.
+ */
+const LABEL_SIDE_CLASS: Record<LabelSide, string> = {
+  right: 'left-[36px] top-1/2 -translate-y-1/2',
+  left: 'right-[36px] top-1/2 -translate-y-1/2',
+  above: 'bottom-[36px] left-1/2 -translate-x-1/2',
+  below: 'top-[36px] left-1/2 -translate-x-1/2',
+}
+
+/** Label text colour: the concept's muted text (foreground at 70%), not full brand blue. */
+const LABEL_COLOUR = 'color-mix(in srgb, var(--foreground) 70%, transparent)'
+/** A thin halo in the page background colour, so the label reads over relief and tints. */
+const LABEL_HALO = '0 0 2px var(--background), 0 0 3px var(--background), 0 0 4px var(--background)'
 
 /**
  * Builds one marker's DOM. The wrapper is the element globe.gl's CSS2D layer centres on the city;
@@ -227,8 +346,18 @@ function createMarkerNodes(city: AtlasCity): MarkerNodes {
   const cardHost = document.createElement('div')
   cardHost.className = 'pointer-events-auto'
 
-  element.append(button, cardHost)
-  return { element, button, cardHost }
+  // City name label (round 2, item 8): decorative, the button already carries the name.
+  const label = document.createElement('span')
+  label.setAttribute('aria-hidden', 'true')
+  label.textContent = city.name
+  label.className = `pointer-events-none absolute whitespace-nowrap text-[11px] font-medium leading-none ${
+    LABEL_SIDE_CLASS[LABEL_SIDE[city.id] ?? 'right']
+  }`
+  label.style.color = LABEL_COLOUR
+  label.style.textShadow = LABEL_HALO
+
+  element.append(button, label, cardHost)
+  return { element, button, label, cardHost }
 }
 
 /**
@@ -282,6 +411,48 @@ export default function AtlasGlobe({
     return () => cleanups.forEach((cleanup) => cleanup())
   }, [cities, markers])
 
+  // The open card's city, in a ref so the label loop below reads the latest without restarting.
+  const cardCityIdRef = useRef(cardCityId)
+  useEffect(() => {
+    cardCityIdRef.current = cardCityId
+  }, [cardCityId])
+
+  /**
+   * Side effect: decide, every animation frame, which city name labels show (round 2, item 8).
+   * Hidden: the open card's city (the card names it), far-side cities (their marker is hidden by
+   * globe.gl), and any label that would overlap one already placed. Labels are placed in
+   * LABEL_PRIORITY order, so when two collide the lower-priority one is dropped (chapter cities
+   * win). Runs per frame because the markers move with every turn and drag; it reads 16 label
+   * boxes (visibility does not affect layout, so a hidden label can still be measured) and writes a
+   * label's visibility only when it changes. An empty value lets the label follow its marker's
+   * visibility. The loop is cancelled on unmount.
+   */
+  useEffect(() => {
+    const ordered = labelPriorityOrder(cities)
+    const shown = new Map<string, boolean>()
+    let frame = 0
+    const place = () => {
+      const placed: DOMRect[] = []
+      for (const city of ordered) {
+        const nodes = markers.get(city.id)
+        if (nodes === undefined) continue
+        let show = city.id !== cardCityIdRef.current && nodes.element.style.visibility !== 'hidden'
+        if (show) {
+          const rect = nodes.label.getBoundingClientRect()
+          if (placed.some((other) => rectsOverlap(other, rect))) show = false
+          else placed.push(rect)
+        }
+        if (shown.get(city.id) !== show) {
+          nodes.label.style.visibility = show ? '' : 'hidden'
+          shown.set(city.id, show)
+        }
+      }
+      frame = window.requestAnimationFrame(place)
+    }
+    place()
+    return () => window.cancelAnimationFrame(frame)
+  }, [cities, markers])
+
   // Side effect: mark the focus city's marker button (data-focus drives the enlarged dot and halo).
   useEffect(() => {
     markers.forEach((nodes, cityId) => {
@@ -290,7 +461,8 @@ export default function AtlasGlobe({
     })
   }, [markers, focusCityId])
 
-  // Side effect: build the grey relief texture from BC token greys; revoke its object URL on unmount.
+  // Side effect: build the relief texture (BC token greys, region tints baked in); revoke its object
+  // URL on unmount.
   useEffect(() => {
     let cancelled = false
     let createdUrl: string | null = null
@@ -315,7 +487,16 @@ export default function AtlasGlobe({
     const steelGrey = Math.round(steel)
     setAtmosphereColor(`rgb(${steelGrey}, ${steelGrey}, ${steelGrey})`)
 
-    buildGreyReliefTexture(WATER_MASK_URL, TOPOLOGY_URL, tones)
+    const tintColours = regionTintColours(tones.land)
+    // Region tints are optional: if the tokens or the countries file are unavailable, the globe
+    // still renders, in plain grey.
+    const tintLayer: Promise<Uint8ClampedArray | null> =
+      tintColours === null
+        ? Promise.resolve(null)
+        : buildRegionTintLayer(TEXTURE_WIDTH, TEXTURE_HEIGHT, tintColours).catch(() => null)
+
+    tintLayer
+      .then((tints) => buildReliefTexture(WATER_MASK_URL, TOPOLOGY_URL, tones, tints))
       .then((url) => {
         if (url === null) return
         if (cancelled) {

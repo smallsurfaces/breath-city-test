@@ -4,7 +4,7 @@
  *
  * Purpose
  *   Brief 4.2 wordmark (updated 2026-09-17 after Jack's phone test; swap mode removed):
- *   - "BREATHE" / "CITIES" stays still at low contrast, pinned to the top and bottom of the stage.
+ *   - "BREATHE" / "CITIES" stays still at low contrast, above and below the globe's centre.
  *   - While the globe rests on a city, the city name fades in on ONE line in the gap between the two
  *     words, in the same type treatment (bold, uppercase, tight tracking and leading) but in a dark,
  *     high-contrast colour. It sits BEHIND the globe, so the globe covers its middle. It fades out as
@@ -19,6 +19,12 @@
  * Sizing
  *   - Wordmark lines: sized in container query units so "BREATHE" fills the stage width (capped),
  *     as before. The stage is a size container, so cqw/cqh resolve against it.
+ *   - Wordmark line POSITION (round 2, items 3 and 5): the OUTER edge of each line (the top of
+ *     "BREATHE", the bottom of "CITIES") sits `lineReach` from the stage's centre, which is the
+ *     globe's centre. GlobeCover passes a share of the globe's diameter, so the wordmark-to-globe
+ *     relationship is the same at every breakpoint (see WORDMARK_REACH_SHARE there), and sizes the
+ *     stage to match, so in practice the lines sit on the stage's top and bottom edges as before;
+ *     what changed is that the stage is now sized from the globe, not given fixed heights.
  *   - City name: BLEEDS OFF BOTH EDGES (Jack, second round, brief 4.2). The name is set to the
  *     VIEWPORT width plus BLEED_PX * 2, and centred, so it hangs BLEED_PX past each edge and its
  *     first and last letters are cropped. Every name therefore lands with the same impact whatever
@@ -76,6 +82,11 @@ type WordmarkProps = {
   cityName: string
   /** True while the globe is resting on `cityName`. */
   visible: boolean
+  /**
+   * How far the outer edge of each wordmark line sits from the stage's centre, as a CSS length
+   * (GlobeCover passes a share of the globe's diameter; see the header, "Sizing").
+   */
+  lineReach: string
 }
 
 /** Largest wordmark size, as a percentage of stage width (cqw). */
@@ -133,7 +144,7 @@ const TYPE_CLASS = 'block whitespace-nowrap font-bold uppercase leading-[0.8] tr
 const MEASURED_NAMES: string[] = ATLAS_CITIES.map((city) => city.name)
 
 /** The behind-the-globe wordmark layer, with the city name in the gap. */
-export function Wordmark({ cityName, visible }: WordmarkProps) {
+export function Wordmark({ cityName, visible, lineReach }: WordmarkProps) {
   const measureRef = useRef<HTMLDivElement>(null)
   // Measured width per em, by name. Empty until measured.
   const [emWidths, setEmWidths] = useState<Record<string, number>>({})
@@ -167,15 +178,20 @@ export function Wordmark({ cityName, visible }: WordmarkProps) {
 
   return (
     <div aria-hidden="true" className="pointer-events-none absolute inset-0 select-none">
-      {/* "BREATHE" pinned to the top, "CITIES" to the bottom: still, low contrast. */}
-      <div className="absolute inset-0 flex flex-col items-center justify-between py-[2cqw]">
-        <span className={TYPE_CLASS} style={wordmarkStyle}>
-          Breathe
-        </span>
-        <span className={TYPE_CLASS} style={wordmarkStyle}>
-          Cities
-        </span>
-      </div>
+      {/* "BREATHE" above the globe's centre, "CITIES" below it, each with its outer edge
+          `lineReach` away: still, low contrast. */}
+      <span
+        className={`${TYPE_CLASS} absolute left-1/2 -translate-x-1/2`}
+        style={{ ...wordmarkStyle, top: `calc(50% - ${lineReach})` }}
+      >
+        Breathe
+      </span>
+      <span
+        className={`${TYPE_CLASS} absolute left-1/2 -translate-x-1/2`}
+        style={{ ...wordmarkStyle, bottom: `calc(50% - ${lineReach})` }}
+      >
+        Cities
+      </span>
 
       {/* The city name, centred in the gap between the lines (the stage's vertical centre) and
           bleeding BLEED_PX past each edge of the viewport.

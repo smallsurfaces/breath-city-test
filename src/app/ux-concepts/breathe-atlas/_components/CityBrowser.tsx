@@ -19,8 +19,9 @@
  *   All 16 cities in alphabetical order (CITIES_ALPHABETICAL). Each card: city name top-left, a
  *   circular arrow button under it (accessible name "Open [City]"), and BC's city card image anchored
  *   to the bottom in greyscale. The arrow links to the chapter for the seven chapter cities; for the
- *   other nine it is greyed out and not focusable (the same pattern as the globe card's disabled
- *   Open: a role="link" span with aria-disabled).
+ *   other nine it is greyed out: a role="link" span with aria-disabled that stays FOCUSABLE here
+ *   (see Accessibility, BUG 9). The globe's city card uses the same greyed-out look but, per the
+ *   round 2 spec (item 7), keeps its disabled arrow out of the tab order.
  *
  * Card size (Jack, brief 4.3, 2026-09-17)
  *   "About half the size of the first build, so more cities read at once and the carousel sits
@@ -75,9 +76,15 @@
  *   The progress bar is decorative (aria-hidden): the row itself is the content.
  *   Scrolling by button is instant under prefers-reduced-motion.
  *
+ * Arrow style
+ *   The arrow classes (and the 56px CARD_ARROW_HIT_AREA) live in ./atlas-arrow-styles.ts since
+ *   round 2, shared with the globe's prev/next arrows and the city card, so the concept has one
+ *   arrow style.
+ *
  * Key exports: CityBrowser (named)
  * External dependencies: react, next/link, lucide-react (ArrowLeft, ArrowRight, ArrowUpRight),
- *   ../breathe-atlas-chrome.config (atlasChapterHref), ../_data/cities, ../_data/cover-copy.
+ *   ../breathe-atlas-chrome.config (atlasChapterHref), ../_data/cities, ../_data/cover-copy,
+ *   ./atlas-arrow-styles.
  *
  * Side effects (all cleaned up on unmount):
  *   - Scroll listener on the row and a ResizeObserver on it (progress bar and arrow states), with one
@@ -93,6 +100,7 @@ import Link from 'next/link'
 import { ArrowLeft, ArrowRight, ArrowUpRight } from 'lucide-react'
 import { atlasChapterHref } from '../breathe-atlas-chrome.config'
 import { CITIES_ALPHABETICAL } from '../_data/cities'
+import { CARD_ARROW_CLASS, CARD_ARROW_DISABLED_CLASS, FOCUS_RING, navArrowClass } from './atlas-arrow-styles'
 import type { AtlasCity } from '../_data/cities'
 import { BC_ABOUT_LINK, BC_ONE_LINER } from '../_data/cover-copy'
 
@@ -115,18 +123,6 @@ type RowWindow = {
   /** True when scrolled fully right. */
   atEnd: boolean
 }
-
-/** Shared focus ring for the controls. */
-const FOCUS_RING = 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground'
-
-/**
- * Extends a card arrow's hit area to 56 x 56 (frontend-standards R8) around its 44px circle,
- * without changing the layout by a pixel: a centred, transparent, absolutely positioned
- * pseudo-element inside the control, which passes its pointer events to the control itself.
- * See "Touch targets" in the header for why the visible circle stays 44px.
- */
-const CARD_ARROW_HIT_AREA =
-  "relative before:absolute before:left-1/2 before:top-1/2 before:h-14 before:w-14 before:-translate-x-1/2 before:-translate-y-1/2 before:content-['']"
 
 /** Reads the row's scroll position into a RowWindow. Pure: no side effects. */
 function readRowWindow(row: HTMLElement): RowWindow {
@@ -181,7 +177,7 @@ function CityBrowserCard({ city, current }: { city: AtlasCity; current: boolean 
             href={atlasChapterHref(city.slug)}
             aria-label={`Open ${city.name}`}
             aria-current={current ? 'page' : undefined}
-            className={`flex h-11 w-11 items-center justify-center rounded-full border border-foreground bg-background text-foreground transition-colors hover:bg-foreground hover:text-background ${CARD_ARROW_HIT_AREA} ${FOCUS_RING}`}
+            className={CARD_ARROW_CLASS}
           >
             <ArrowRight className="h-4 w-4" aria-hidden="true" />
           </Link>
@@ -196,7 +192,7 @@ function CityBrowserCard({ city, current }: { city: AtlasCity; current: boolean 
             tabIndex={0}
             aria-disabled="true"
             aria-label={`Open ${city.name}`}
-            className={`flex h-11 w-11 cursor-default items-center justify-center rounded-full border border-foreground/15 bg-muted text-foreground/35 ${CARD_ARROW_HIT_AREA} ${FOCUS_RING}`}
+            className={CARD_ARROW_DISABLED_CLASS}
           >
             <ArrowRight className="h-4 w-4" aria-hidden="true" />
           </span>
@@ -314,13 +310,6 @@ export function CityBrowser({ headingId, currentCityId }: CityBrowserProps) {
     row.scrollTo({ left: Math.min(next * step, maxScroll), behavior: reduceMotion ? 'auto' : 'smooth' })
   }
 
-  const arrowClass = (disabled: boolean) =>
-    `flex h-14 w-14 items-center justify-center rounded-full border transition-colors ${FOCUS_RING} ${
-      disabled
-        ? 'cursor-default border-foreground/15 text-foreground/35'
-        : 'border-foreground/60 text-foreground hover:bg-foreground hover:text-background'
-    }`
-
   return (
     <div className="grid grid-cols-1 gap-y-6 md:grid-cols-[13rem_minmax(0,1fr)] md:gap-x-8 lg:grid-cols-[15rem_minmax(0,1fr)]">
       {/* Text block: heading, the one line about BC, link to BC's site. */}
@@ -351,7 +340,7 @@ export function CityBrowser({ headingId, currentCityId }: CityBrowserProps) {
             aria-controls={rowId}
             aria-disabled={rowWindow.atStart}
             aria-label="Previous cities"
-            className={arrowClass(rowWindow.atStart)}
+            className={navArrowClass(rowWindow.atStart)}
           >
             <ArrowLeft className="h-5 w-5" aria-hidden="true" />
           </button>
@@ -361,7 +350,7 @@ export function CityBrowser({ headingId, currentCityId }: CityBrowserProps) {
             aria-controls={rowId}
             aria-disabled={rowWindow.atEnd}
             aria-label="Next cities"
-            className={arrowClass(rowWindow.atEnd)}
+            className={navArrowClass(rowWindow.atEnd)}
           >
             <ArrowRight className="h-5 w-5" aria-hidden="true" />
           </button>
