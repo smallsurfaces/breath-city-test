@@ -23,7 +23,7 @@
  *   - Pointer: opens on hover after a short delay. Base UI keeps the popup open while the pointer
  *     travels into it, so its links can be clicked.
  *   - Touch: tap the "i" to open, tap it again or tap outside to close.
- *   - Keyboard: the trigger is a real <button>; Enter or Space opens it and moves focus into the
+ *   - Keyboard: the trigger is a real <button>; Enter or Space opens it and moves focus onto the
  *     popup, Tab reaches the links, Escape closes and returns focus to the "i".
  *
  * Touch target
@@ -37,11 +37,12 @@
  *   popup is the concept's card surface (rounded-2xl, hairline border, shadow). No hex. Light mode.
  *
  * Key exports: CreditInfo (named)
- * External dependencies: react (ReactNode), @base-ui/react/popover (Popover), lucide-react (Info).
+ * External dependencies: react (useRef, ReactNode), @base-ui/react/popover (Popover), lucide-react (Info).
  */
 
 'use client'
 
+import { useRef } from 'react'
 import type { ReactNode } from 'react'
 import { Popover } from '@base-ui/react/popover'
 import { Info } from 'lucide-react'
@@ -82,6 +83,7 @@ const TRIGGER_CLASS = [
 
 /** The "i" and its popover. */
 export function CreditInfo({ label, children, align, className }: CreditInfoProps) {
+  const popupRef = useRef<HTMLDivElement | null>(null)
   return (
     <Popover.Root>
       <Popover.Trigger
@@ -100,6 +102,12 @@ export function CreditInfo({ label, children, align, className }: CreditInfoProp
             screen it flips below the "i" instead of sliding under the disclaimer. */}
         <Popover.Positioner side="top" align={align} sideOffset={8} collisionPadding={COLLISION_PADDING} className="z-50">
           <Popover.Popup
+            ref={popupRef}
+            // Focus the popup itself on open, not its first link. Base UI focuses a link WITHOUT
+            // preventScroll, which scrolled the page by about 30px on every tap on an iPhone
+            // (measured in the iOS 26.5 simulator); the popup itself is focused with preventScroll.
+            // Keyboard users are then one Tab from the first link.
+            initialFocus={popupRef}
             aria-label={label}
             className="w-max max-w-[min(20rem,calc(100vw-2rem))] rounded-2xl border border-border bg-background px-4 py-3 text-left text-sm leading-snug text-foreground shadow-lg outline-none"
           >
