@@ -1,10 +1,11 @@
 /**
- * CityBrowser.tsx — the cover browser: all 16 cities in a sideways-scrolling carousel (brief 4.3).
+ * CityBrowser.tsx — the cover browser: every in-scope city in a sideways-scrolling carousel
+ * (brief 4.3).
  *
  * Purpose
  *   A copy of the LAYOUT of Breathe Cities' own city carousel on breathecities.org (homepage and
  *   /cities/), in grey wireframe:
- *   - a text block on the left: a heading derived from the data ("16 cities"), the one line about
+ *   - a text block on the left: a heading counted from the data ("N cities"), the one line about
  *     BC, and a link to breathecities.org,
  *   - prev/next arrow buttons and a progress bar (a thin track with a darker thumb showing which part
  *     of the row is in view),
@@ -16,10 +17,10 @@
  *   (AllCitiesPanel), where `currentCityId` highlights the chapter's city and scrolls it into view.
  *
  * Cards
- *   All 16 cities in alphabetical order (CITIES_ALPHABETICAL). Each card: city name top-left, a
+ *   Every in-scope city in alphabetical order (CITIES_ALPHABETICAL). Each card: city name top-left, a
  *   circular arrow button under it (accessible name "Open [City]"), and BC's city card image anchored
  *   to the bottom in greyscale. The arrow links to the chapter for the seven chapter cities; for the
- *   other nine it is greyed out: a role="link" span with aria-disabled that stays FOCUSABLE here
+ *   rest it is greyed out: a role="link" span with aria-disabled that stays FOCUSABLE here
  *   (see Accessibility, BUG 9). The globe's city card uses the same greyed-out look but, per the
  *   round 2 spec (item 7), keeps its disabled arrow out of the tab order.
  *
@@ -70,7 +71,7 @@
  *   Section heading (h2) labels the list; each card name is an h3. The prev/next arrow buttons are
  *   56px, carry aria-controls for the row, and use aria-disabled (not `disabled`) at either end so
  *   keyboard focus is never dropped. The per-card arrows have a 56px hit area (see above).
- *   The nine cities with no chapter render a focusable aria-disabled link, so a keyboard or screen
+ *   The cities with no chapter render a focusable aria-disabled link, so a keyboard or screen
  *   reader user meets them and hears that they are unavailable instead of never finding them
  *   (bug report 2026-09-17, BUG 9).
  *   The progress bar is decorative (aria-hidden): the row itself is the content.
@@ -184,7 +185,7 @@ function CityBrowserCard({ city, current }: { city: AtlasCity; current: boolean 
         ) : (
           // Greyed out: this city has no chapter in the concept. FOCUSABLE though disabled
           // (tabIndex 0 with aria-disabled, the disabled-but-discoverable pattern): without a tab
-          // stop, a keyboard or screen reader user passed straight over these nine cities and
+          // stop, a keyboard or screen reader user passed straight over these cities and
           // never learned they had no chapter, while a sighted user could see it at a glance
           // (bug report 2026-09-17, BUG 9). There is no click handler, so it stays inert.
           <span

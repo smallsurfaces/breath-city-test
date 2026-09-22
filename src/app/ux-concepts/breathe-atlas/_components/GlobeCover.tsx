@@ -3,7 +3,7 @@
  *
  * Purpose
  *   Composes the cover: the oversized wordmark behind the globe (with the resting city's name in the
- *   gap, bleeding off both edges), the globe with its 16 pulsating city markers, the city card, the
+ *   gap, bleeding off both edges), the globe with a pulsating marker per in-scope city, the city card, the
  *   pause/play control at the globe's top right and the mission lines below the globe. Owns the idle
  *   cycle and all interaction state; AtlasGlobe owns three.js.
  *
