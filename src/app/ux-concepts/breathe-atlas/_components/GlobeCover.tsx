@@ -7,12 +7,29 @@
  *   pause/play control at the globe's top right and the mission lines below the globe. Owns the idle
  *   cycle and all interaction state; AtlasGlobe owns three.js.
  *
+ * Layout (round 2, items 3 to 5)
+ *   Sized around the SPHERE, in CSS (COVER_LAYOUT_CSS), so the server-rendered page already has the
+ *   final layout:
+ *   - The globe is near full width inside 16px gutters on a phone (item 4); from `sm` and `lg` it
+ *     keeps the size Jack tested.
+ *   - "BREATHE" and "CITIES" sit a fixed share of the globe's diameter from its centre at every
+ *     breakpoint (WORDMARK_REACH_SHARE, item 5), overlapping the top and bottom of the globe, and
+ *     the stage is exactly that tall: the empty height above and below the globe is gone (item 3).
+ *     At 1280 x 800 the mission lines now sit above the fold.
+ *   - The WebGL canvas is larger than the sphere (globe-framing.ts); its transparent margin
+ *     overflows the stage and the section clips it.
+ *   - The controls sit on a square laid exactly over the sphere.
+ *   - The city card is clamped inside the viewport by CityCard itself (item 4).
+ *   Trade-off on a phone: the near-full-width globe covers most of the city name behind it (only
+ *   its first and last letters show) and more of "BREATHE" and "CITIES" than before. That was the
+ *   reason for the old 0.8 phone scale; item 4 asked for the bigger globe.
+ *
  * Idle cycle (brief 4.2)
  *   Starts resting on Bogotá, then visits every city eastward (CYCLE_ORDER). For each city the globe
  *   turns to it over TURN_MS (6s), rests REST_MS (5s), then moves on: about 11s per city, about
  *   3 minutes for the loop. While the globe rests on a city (the focus city):
  *     - its marker becomes an enlarged pulsating dot,
- *     - its card opens automatically above the marker, inviting a tap on Open,
+ *     - its card opens automatically above the marker, inviting a tap on its arrow,
  *     - its name fades in between "BREATHE" and "CITIES", behind the globe,
  *     - its mission line fades in below the globe.
  *   As the globe moves on, the card closes and the name and city mission line fade out. BC's mission
@@ -48,10 +65,10 @@
  *
  * Key exports: GlobeCover (named)
  * External dependencies: react, next/dynamic, lucide-react (Pause, Play), ./AtlasGlobe (client-only,
- *   loaded with ssr: false), ./CityCard, ./Wordmark, ../_data/cities.
+ *   loaded with ssr: false), ./CityCard, ./Wordmark, ./globe-framing, ../_data/cities.
  *
  * Side effects (all cleaned up on unmount):
- *   - ResizeObserver on the stage (globe sizing).
+ *   - ResizeObserver on the canvas box (the WebGL canvas's pixel size).
  *   - matchMedia listener for prefers-reduced-motion.
  *   - Timers for the cycle and the interaction resume countdown.
  *   - Document pointerdown/pointerup/keydown listeners while a held card is open (tap-outside, Escape).
@@ -64,7 +81,8 @@ import type { FocusEvent as ReactFocusEvent, KeyboardEvent as ReactKeyboardEvent
 import dynamic from 'next/dynamic'
 import { Pause, Play } from 'lucide-react'
 import type { AtlasGlobeApi } from './AtlasGlobe'
-import { CITY_CARD_WIDTH_PX, CityCard } from './CityCard'
+import { CITY_CARD_WIDTH_PX, CITY_CARD_WIDTH_PX_SM, CityCard } from './CityCard'
+import { SPHERE_SHARE_OF_CANVAS } from './globe-framing'
 import { Wordmark } from './Wordmark'
 import { ATLAS_CITIES, BC_MISSION_LINE, CYCLE_ORDER } from '../_data/cities'
 import type { AtlasCity } from '../_data/cities'
@@ -82,57 +100,105 @@ const INTERACTION_RESUME_MS = 10000
 const SELECT_TURN_MS = 1200
 /** Pointer travel (px) above which a press counts as a drag rather than a tap. */
 const DRAG_THRESHOLD_PX = 6
-/** Stage width (px) below which the phone layout applies (Tailwind's `sm` breakpoint). */
-const PHONE_MAX_STAGE_WIDTH = 640
-/** Stage width (px) from which the desktop layout applies (Tailwind's `lg` breakpoint). */
-const DESKTOP_MIN_STAGE_WIDTH = 1024
 /**
- * Globe canvas size on a phone, as a share of the stage's narrower side. Below 1, so the ends of the
- * city name behind the globe show either side of it: at full size the globe hid the whole name on a
- * 390px screen. This is the size Jack tested on his phone, so it is kept as it is even though the
- * name now bleeds past the viewport and is always wider than the globe.
+ * Side gutter (px) between the globe and the screen edge on a phone, and the minimum anywhere
+ * (round 2, item 4: "close to full width inside the 16px gutters").
  */
-const PHONE_GLOBE_SCALE = 0.8
+const GUTTER_PX = 16
 /**
- * Largest globe canvas from `sm` and from `lg`, in px: the stage heights before the city name moved
- * into the wordmark gap (2026-09-17). The stages are now taller, to open the gap between "BREATHE"
- * and "CITIES" for the name; these caps keep the globe itself the size Jack tested.
+ * Largest globe (the visible sphere) from `sm` and from `lg`, in px. These are the sphere sizes of
+ * the 540px and 620px canvases Jack tested, so tablet and desktop keep the globe he signed off; what
+ * changed in round 2 is the empty height around it (items 3 and 5).
  */
-const GLOBE_MAX_PX_TABLET = 540
-const GLOBE_MAX_PX_DESKTOP = 620
+const SPHERE_MAX_PX_TABLET = Math.round(540 * SPHERE_SHARE_OF_CANVAS)
+const SPHERE_MAX_PX_DESKTOP = Math.round(620 * SPHERE_SHARE_OF_CANVAS)
+/**
+ * THE wordmark-to-globe rule (round 2, items 3 and 5), the same at every breakpoint: the OUTER edge
+ * of each wordmark line (the top of "BREATHE", the bottom of "CITIES") sits this share of the
+ * globe's diameter from the globe's centre, and the stage is exactly that tall either side. So the
+ * stage is 1.12 globe diameters tall and the page loses the empty height it used to carry above and
+ * below the globe (item 3), and the lines overlap the top and bottom of the globe.
+ *
+ * Anchored on the outer edge rather than the line's centre because the wordmark's type scales with
+ * the page width and the globe does not scale the same way: on a phone the type is small next to a
+ * near-full-width globe, and a centre anchor tucked "BREATHE" and "CITIES" almost entirely behind
+ * it. 0.56 was judged on the tablet layout (the reference, item 5); at 1024px and up the lines come
+ * in further over the globe, on a phone slightly less. Jack judges it live; this is the one number
+ * to tune. It also keeps the globe's pale atmosphere glow (radius 0.58 of the diameter) almost
+ * whole: the cover section clips at its top edge.
+ */
+const WORDMARK_REACH_SHARE = 0.56
+/**
+ * Extra stage height beyond each wordmark line's outer edge: a little air between the nav and the
+ * top of "BREATHE" (and below "CITIES"). Nothing clips without it (measured: in the rendered font
+ * the capitals sit 0.05em inside their 0.8em line box); before round 2 the lines had `py-[2cqw]`,
+ * which is 26px at 1280 and pushed the mission line back below the fold.
+ */
+const WORDMARK_EDGE_PAD = '8px'
 /** Diameter of the pause/play button, in px (its `h-14 w-14` classes). */
 const PAUSE_BUTTON_PX = 56
-/** Clear space kept between the pause/play button and the open city card, in px. */
+/** Clear space kept between the pause/play button and the open city card on a phone, in px. */
 const PAUSE_CARD_CLEARANCE_PX = 8
+/** The same from `sm`, where there is room for more. */
+const PAUSE_CARD_CLEARANCE_PX_SM = 16
 
 /**
- * Where the pause/play button sits inside the stage: at the TOP RIGHT OF THE GLOBE (Jack, brief
- * 4.2), as insets from the stage's top and right edges.
+ * The cover layout, as CSS (round 2, items 3 to 5). Rendered once in a <style> element. Written as
+ * CSS rather than computed in JavaScript so the server-rendered page already has the final layout:
+ * nothing jumps when the script loads.
  *
- * Both values are computed rather than written as classes because the globe is a square centred in
- * a stage whose width and height change independently, so "the globe's top-right corner" is a
- * different point at every width, and at the narrowest widths it is a point the open city card also
- * wants.
+ * Container: the cover <section> is an inline-size container ("atlas-cover"), so on the stage 100cqw
+ * is the page width and the breakpoints below match Tailwind's `sm` (640) and `lg` (1024). Inside
+ * the stage (itself a size container), 100cqw is the stage width, which is the same number up to
+ * `max-w-6xl`, and beyond it the globe is capped anyway.
  *
- * - `top` is the globe canvas's top edge.
- * - `right` is the canvas's right edge, EXCEPT where that would put the button under the card. The
- *   card is centred on the stage and CITY_CARD_WIDTH_PX wide, so the button's left edge clears it
- *   only while the right inset is at most (stage - card) / 2 - button - clearance. On a 375px
- *   screen the globe is 300px wide and the card 240px, which leaves 30px either side of the card
- *   inside the globe: far too little for a 56px button, so the inset drops and the button moves out
- *   to the stage's own edge, where it still reads as the globe's top right because the globe nearly
- *   fills the width. From `sm` the globe is much wider than the card and the cap never binds.
- *
- * Both are clamped at 0, so the button can never be pushed off the stage.
+ * --atlas-sphere: the globe's diameter. On a phone the page width less the two gutters (item 4);
+ *   from `sm` and `lg` the sizes Jack tested (SPHERE_MAX_PX_*), never wider than the page allows.
+ * --atlas-wordmark-reach: WORDMARK_REACH_SHARE of the diameter (item 5), read by Wordmark.
+ * Stage height: twice the reach plus WORDMARK_EDGE_PAD each side, so the wordmark lines sit just
+ *   inside the stage's top and bottom edges.
+ * .atlas-canvas-box: the WebGL canvas, 1 / SPHERE_SHARE_OF_CANVAS of the diameter so the SPHERE is
+ *   --atlas-sphere wide. Its empty margin overflows the stage, which is harmless: it is transparent,
+ *   and the cover section clips anything past the page edges.
+ * .atlas-sphere-box: a square exactly over the sphere, which the controls are placed on.
+ * .atlas-pause: the pause/play button at the TOP RIGHT OF THE GLOBE (Jack, brief 4.2), except
+ *   where that would put it under the open city card: the card is centred and --atlas-card-w wide,
+ *   so the button clears it only while its inset from the stage edge is at most
+ *   (stage - card) / 2 - button - clearance. On a narrow phone that is less than the gutter, so the
+ *   button moves out towards the stage's own edge, where it still reads as the globe's top right
+ *   because the globe nearly fills the width. (It sits in the sphere box, so `right` is measured
+ *   from the sphere's edge, hence the "- --atlas-inset".) Clamped at the stage edge, so it can never
+ *   be pushed off the stage.
  */
-function pauseButtonPosition(stageWidth: number, stageHeight: number, canvasSide: number): { top: number; right: number } {
-  const canvasInsetX = (stageWidth - canvasSide) / 2
-  const maxInsetClearingCard = (stageWidth - CITY_CARD_WIDTH_PX) / 2 - PAUSE_BUTTON_PX - PAUSE_CARD_CLEARANCE_PX
-  return {
-    top: Math.max((stageHeight - canvasSide) / 2, 0),
-    right: Math.max(Math.min(canvasInsetX, maxInsetClearingCard), 0),
+const COVER_LAYOUT_CSS = `.atlas-cover { container: atlas-cover / inline-size; }
+.atlas-stage {
+  --atlas-sphere: calc(100cqw - ${GUTTER_PX * 2}px);
+  --atlas-card-w: ${CITY_CARD_WIDTH_PX}px;
+  --atlas-pause-clearance: ${PAUSE_CARD_CLEARANCE_PX}px;
+  --atlas-wordmark-reach: calc(${WORDMARK_REACH_SHARE} * var(--atlas-sphere));
+  height: calc(2 * (var(--atlas-wordmark-reach) + ${WORDMARK_EDGE_PAD}));
+}
+@container atlas-cover (min-width: 640px) {
+  .atlas-stage {
+    --atlas-sphere: min(calc(100cqw - ${GUTTER_PX * 2}px), ${SPHERE_MAX_PX_TABLET}px);
+    --atlas-card-w: ${CITY_CARD_WIDTH_PX_SM}px;
+    --atlas-pause-clearance: ${PAUSE_CARD_CLEARANCE_PX_SM}px;
   }
 }
+@container atlas-cover (min-width: 1024px) {
+  .atlas-stage { --atlas-sphere: min(calc(100cqw - ${GUTTER_PX * 2}px), ${SPHERE_MAX_PX_DESKTOP}px); }
+}
+.atlas-canvas-box {
+  width: calc(var(--atlas-sphere) / ${SPHERE_SHARE_OF_CANVAS.toFixed(5)});
+  height: calc(var(--atlas-sphere) / ${SPHERE_SHARE_OF_CANVAS.toFixed(5)});
+}
+.atlas-sphere-box { width: var(--atlas-sphere); height: var(--atlas-sphere); }
+.atlas-pause {
+  --atlas-inset: calc((100cqw - var(--atlas-sphere)) / 2);
+  --atlas-pause-cap: calc((100cqw - var(--atlas-card-w)) / 2 - ${PAUSE_BUTTON_PX}px - var(--atlas-pause-clearance));
+  top: 0;
+  right: calc(max(min(var(--atlas-inset), var(--atlas-pause-cap)), 0px) - var(--atlas-inset));
+}`
 
 /** What the cover is showing: resting on a cycle city, or not resting on any. */
 type CoverView = { kind: 'resting'; index: number } | { kind: 'free' }
@@ -156,9 +222,11 @@ function isInsideCard(target: EventTarget | null): boolean {
 /** The globe cover. */
 export function GlobeCover() {
   const stageRef = useRef<HTMLDivElement>(null)
+  const canvasBoxRef = useRef<HTMLDivElement>(null)
   const apiRef = useRef<AtlasGlobeApi | null>(null)
 
-  const [size, setSize] = useState({ width: 0, height: 0 })
+  // The WebGL canvas side in px, measured from its CSS-sized box (0 until measured).
+  const [canvasSide, setCanvasSide] = useState(0)
   const [globeReady, setGlobeReady] = useState(false)
   const [reducedMotion, setReducedMotion] = useState(false)
   const [playing, setPlaying] = useState(true)
@@ -191,16 +259,17 @@ export function GlobeCover() {
   // The focus city (enlarged pulsating marker): the held card's city, else the resting city.
   const focusCityId = selectedCityId ?? (resting ? shownCity.id : null)
 
-  // Side effect: size the globe to its stage (ResizeObserver attach/detach).
+  // Side effect: size the WebGL canvas to its CSS-sized box (ResizeObserver attach/detach). The
+  // layout itself is CSS (COVER_LAYOUT_CSS); the canvas is the one thing that needs a number.
   useEffect(() => {
-    const stage = stageRef.current
-    if (stage === null) return
+    const box = canvasBoxRef.current
+    if (box === null) return
     const observer = new ResizeObserver((entries) => {
       const rect = entries[0]?.contentRect
       if (rect === undefined) return
-      setSize({ width: Math.round(rect.width), height: Math.round(rect.height) })
+      setCanvasSide(Math.round(rect.width))
     })
-    observer.observe(stage)
+    observer.observe(box)
     return () => observer.disconnect()
   }, [])
 
@@ -414,23 +483,22 @@ export function GlobeCover() {
     setPlaying((value) => !value)
   }
 
-  const globeScale = size.width < PHONE_MAX_STAGE_WIDTH ? PHONE_GLOBE_SCALE : 1
-  const globeMaxPx = size.width >= DESKTOP_MIN_STAGE_WIDTH ? GLOBE_MAX_PX_DESKTOP : GLOBE_MAX_PX_TABLET
-  const canvasSide = Math.round(Math.min(size.width, size.height, globeMaxPx) * globeScale)
-  const pausePosition = pauseButtonPosition(size.width, size.height, canvasSide)
   const fade = 'transition-opacity duration-700 ease-out motion-reduce:transition-none'
 
   return (
-    <section aria-labelledby="atlas-cover-title" className="relative overflow-hidden">
+    <section aria-labelledby="atlas-cover-title" className="atlas-cover relative overflow-hidden">
+      {/* The cover layout (stage height, globe size, wordmark offset, control positions). */}
+      <style>{COVER_LAYOUT_CSS}</style>
       <h1 id="atlas-cover-title" className="sr-only">
         Breathe Cities
       </h1>
 
-      {/* Stage: wordmark and city name behind, globe in front. A size container, so the wordmark
-          can size its type against the stage's width (cqw) and height (cqh). */}
+      {/* Stage: wordmark and city name behind, globe in front. Sized by COVER_LAYOUT_CSS around the
+          globe (round 2, items 3 to 5). A size container, so the wordmark can size its type against
+          the stage's width (cqw). */}
       <div
         ref={stageRef}
-        className="relative mx-auto h-[380px] w-full max-w-6xl touch-pan-y sm:h-[580px] lg:h-[680px]"
+        className="atlas-stage relative mx-auto w-full max-w-6xl touch-pan-y"
         style={{ containerType: 'size' }}
         onPointerDown={handleStagePointerDown}
         onPointerMove={handleStagePointerMove}
@@ -439,18 +507,12 @@ export function GlobeCover() {
         onKeyDown={handleStageKeyDown}
         onFocus={handleStageFocus}
       >
-        <Wordmark cityName={shownCity.name} visible={resting} />
+        <Wordmark cityName={shownCity.name} visible={resting} lineReach="var(--atlas-wordmark-reach)" />
 
-        {/* Square canvas centred in the stage, so the globe always fits the narrower side (on a
-            portrait phone the globe would otherwise size to the height and overflow the width).
-            Smaller on a phone (PHONE_GLOBE_SCALE) so the city name shows either side of it; the
-            phone stage is shorter to match, keeping "BREATHE" and "CITIES" close to the globe.
-            From `sm` the stage is taller than the globe (GLOBE_MAX_PX_*), which opens the gap
-            between the wordmark lines for the city name. */}
-        <div
-          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
-          style={{ width: canvasSide, height: canvasSide }}
-        >
+        {/* The WebGL canvas: a square centred in the stage, sized in CSS so the SPHERE inside it is
+            --atlas-sphere wide (see COVER_LAYOUT_CSS and globe-framing.ts). Its transparent margin
+            overflows the stage. The canvas pixel size is measured from this box. */}
+        <div ref={canvasBoxRef} className="atlas-canvas-box absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
           <AtlasGlobe
             width={canvasSide}
             height={canvasSide}
@@ -465,25 +527,26 @@ export function GlobeCover() {
           />
         </div>
 
-        {/* Pause/play (WCAG 2.2.2). At the TOP RIGHT OF THE GLOBE, within thumb reach (Jack, brief
-            4.2); it used to sit below the globe with the mission lines. Positioned by
-            pauseButtonPosition (see there for why it is computed and how it keeps clear of the open
-            card). It is a child of the STAGE, not of the globe canvas, so it can move outside the
-            canvas square when the card needs that room. It renders after the canvas and carries
-            z-20 so neither the WebGL surface nor the card can cover it.
+        {/* A square exactly over the sphere, for placing the controls on the globe. It ignores
+            pointer events itself, so drags still reach the globe; only the controls take them.
+            It renders after the canvas and carries z-20, so neither the WebGL surface nor the card
+            can cover the controls. */}
+        <div className="atlas-sphere-box pointer-events-none absolute left-1/2 top-1/2 z-20 -translate-x-1/2 -translate-y-1/2">
+          {/* Pause/play (WCAG 2.2.2). At the TOP RIGHT OF THE GLOBE, within thumb reach (Jack, brief
+              4.2); placed by .atlas-pause in COVER_LAYOUT_CSS, which keeps it clear of the open card.
 
-            It sits inside the stage's pointer handlers, which is harmless: a press on it starts an
-            interaction hold, and `togglePlaying` runs last (pointerup, then click) and clears that
-            hold, so an explicit pause stays paused and an explicit play starts the cycle. */}
-        <button
-          type="button"
-          onClick={togglePlaying}
-          aria-label={playing ? 'Pause the city tour' : 'Play the city tour'}
-          style={{ top: pausePosition.top, right: pausePosition.right }}
-          className="absolute z-20 flex h-14 w-14 items-center justify-center rounded-full border border-foreground/20 bg-background text-foreground transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground"
-        >
-          {playing ? <Pause className="h-5 w-5" aria-hidden="true" /> : <Play className="h-5 w-5" aria-hidden="true" />}
-        </button>
+              It sits inside the stage's pointer handlers, which is harmless: a press on it starts an
+              interaction hold, and `togglePlaying` runs last (pointerup, then click) and clears that
+              hold, so an explicit pause stays paused and an explicit play starts the cycle. */}
+          <button
+            type="button"
+            onClick={togglePlaying}
+            aria-label={playing ? 'Pause the city tour' : 'Play the city tour'}
+            className="atlas-pause pointer-events-auto absolute flex h-14 w-14 items-center justify-center rounded-full border border-foreground/20 bg-background text-foreground transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground"
+          >
+            {playing ? <Pause className="h-5 w-5" aria-hidden="true" /> : <Play className="h-5 w-5" aria-hidden="true" />}
+          </button>
+        </div>
       </div>
 
       {/* Below the globe: the city's mission line (changes and fades) and BC's mission line

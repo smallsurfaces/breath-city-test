@@ -63,9 +63,10 @@
  *   `focusCityId` marks one marker as the focus: its dot and halo scale up (an enlarged pulsating
  *   dot). GlobeCover passes the city the globe rests on, or the city whose card the visitor opened.
  *
- * Key exports: AtlasGlobe (default), AtlasGlobeApi (type), GLOBE_ALTITUDE
+ * Key exports: AtlasGlobe (default), AtlasGlobeApi (type)
  * External dependencies: react, react-dom (createPortal), react-globe.gl (three.js),
- *   ./globe-texture, ./region-raster, ../_data/cities (AtlasCity type), ../_data/m49-regions.
+ *   ./globe-texture, ./region-raster, ./globe-framing (GLOBE_ALTITUDE), ../_data/cities (AtlasCity
+ *   type), ../_data/m49-regions.
  *
  * Side effects (all cleaned up on unmount):
  *   - Builds the globe texture (offscreen canvases, plus the region layer, which loads world-atlas's
@@ -87,11 +88,9 @@ import type { AtlasCity } from '../_data/cities'
 import { ATLAS_REGIONS } from '../_data/m49-regions'
 import type { AtlasRegion } from '../_data/m49-regions'
 import { buildReliefTexture, TEXTURE_HEIGHT, TEXTURE_WIDTH, tokenLuminance, tokenRgb } from './globe-texture'
+import { GLOBE_ALTITUDE } from './globe-framing'
 import { buildRegionTintLayer } from './region-raster'
 import type { RegionTintColours } from './region-raster'
-
-/** Camera altitude (in globe radii above the surface) for the cover framing. */
-export const GLOBE_ALTITUDE = 2
 
 /** Package-shipped images copied into public/ (see globe-texture.ts for provenance). */
 const WATER_MASK_URL = '/ux-concepts/breathe-atlas/earth-water.png'

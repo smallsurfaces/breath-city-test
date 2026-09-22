@@ -34,6 +34,16 @@
  *   screen size. The card only opens on the focus city, which the globe turns to the centre of the
  *   canvas, so there is room for it above the marker.
  *
+ * Never clipped at the screen edge (round 2, item 4)
+ *   While the globe is still turning a tapped city to the centre, or after the visitor drags the
+ *   globe, the marker can be near the screen edge, and a card centred on it used to run off the
+ *   screen (seen on iPhone). The card is now clamped inside the viewport with a CARD_GUTTER_PX gutter
+ *   on each side: THE CARD MOVES, THE MARKER STAYS PUT. The marker moves every frame while the globe
+ *   turns, so the clamp is re-measured on every animation frame while the card is open (one
+ *   getBoundingClientRect of the marker per frame) and written only when it changes. Measured once
+ *   before the first paint, so the card never shows unclamped. Horizontal only: vertically the card
+ *   hangs above a marker the globe is bringing to the centre.
+ *
  * Accessibility
  *   A non-modal dialog (role="dialog", labelled by the city name). It follows the marker button in
  *   DOM order, so Tab moves from the marker straight into the card. The arrow and the close button
@@ -48,11 +58,17 @@
  *   The shared ConceptCard surface; bridged semantics only (foreground/background/muted). No hex.
  *
  * Key exports: CityCard (named), CITY_CARD_WIDTH_PX, CITY_CARD_WIDTH_PX_SM
- * External dependencies: next/link, lucide-react (ArrowUpRight, X), @/components/concept
+ * External dependencies: react, next/link, lucide-react (ArrowUpRight, X), @/components/concept
  *   (ConceptCard), ../breathe-atlas-chrome.config (atlasChapterHref), ../_data/cities (AtlasCity
  *   type), ./atlas-arrow-styles.
+ *
+ * Side effects (cleaned up on unmount): an animation-frame loop that reads the marker's position and
+ *   writes the card's `left` (the viewport clamp above).
  */
 
+'use client'
+
+import { useLayoutEffect, useRef } from 'react'
 import Link from 'next/link'
 import { ArrowUpRight, X } from 'lucide-react'
 import { ConceptCard } from '@/components/concept'
@@ -79,6 +95,24 @@ export const CITY_CARD_WIDTH_PX = 248
 /** The card's width in px from `sm` (Tailwind `sm:w-72`). */
 export const CITY_CARD_WIDTH_PX_SM = 288
 
+/** Smallest gap (px) between the card and either side of the screen (round 2, item 4). */
+const CARD_GUTTER_PX = 16
+
+/**
+ * How far (px) to move a card sideways from centred-on-its-marker so it stays inside the viewport
+ * with CARD_GUTTER_PX either side. 0 when it already fits. If the card is wider than the viewport
+ * allows, it is centred on the screen instead. Pure.
+ */
+function clampShift(markerCentreX: number, cardWidth: number, viewportWidth: number): number {
+  const centredLeft = markerCentreX - cardWidth / 2
+  const maxLeft = viewportWidth - CARD_GUTTER_PX - cardWidth
+  const left =
+    maxLeft < CARD_GUTTER_PX
+      ? (viewportWidth - cardWidth) / 2
+      : Math.min(Math.max(centredLeft, CARD_GUTTER_PX), maxLeft)
+  return Math.round(left - centredLeft)
+}
+
 /** Props for CityCard. */
 type CityCardProps = {
   /** The city the card is for. */
@@ -90,8 +124,39 @@ type CityCardProps = {
 /** The marker card. */
 export function CityCard({ city, onClose }: CityCardProps) {
   const headingId = `atlas-card-${city.id}`
+  const rootRef = useRef<HTMLDivElement>(null)
+
+  // Side effect: keep the card inside the viewport while it is open (see "Never clipped at the
+  // screen edge" in the header). DOM reads (marker position) and writes (the card's `left`) every
+  // animation frame; the loop is cancelled on unmount. Layout effect, so the first clamp lands
+  // before the first paint.
+  useLayoutEffect(() => {
+    const card = rootRef.current
+    if (card === null) return
+    const marker = card.closest<HTMLElement>('.atlas-marker')
+    if (marker === null) return
+    let frame = 0
+    let appliedShift = 0
+    const follow = () => {
+      const markerRect = marker.getBoundingClientRect()
+      const shift = clampShift(
+        markerRect.left + markerRect.width / 2,
+        card.offsetWidth,
+        document.documentElement.clientWidth,
+      )
+      if (shift !== appliedShift) {
+        card.style.left = shift === 0 ? '' : `calc(50% + ${shift}px)`
+        appliedShift = shift
+      }
+      frame = window.requestAnimationFrame(follow)
+    }
+    follow()
+    return () => window.cancelAnimationFrame(frame)
+  }, [])
+
   return (
     <div
+      ref={rootRef}
       role="dialog"
       aria-labelledby={headingId}
       data-atlas-card="true"
