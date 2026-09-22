@@ -1,5 +1,6 @@
 /**
- * globe-texture.ts — builds the grey shaded-relief globe texture in the browser.
+ * globe-texture.ts — builds the shaded-relief globe texture in the browser, with the region tints
+ * baked in.
  *
  * Purpose
  *   The brief (4.2) asks for a grey shaded-relief globe in the spirit of Natural Earth's "Gray
@@ -12,12 +13,22 @@
  *   map bakes soft, lit-from-the-upper-left relief into the land. The bump map then adds live
  *   relief under the scene lighting on top of that.
  *
- * Colour source
- *   No hardcoded colour values. The caller passes grey levels that it derives from BC tokens at
- *   runtime (see `tokenLuminance` below and AtlasGlobe.tsx), because WebGL and canvas pixels cannot
- *   read CSS variables directly. The output is pure greyscale: no decorative colour (brief section 2).
+ * Region tints (round 2, item 6)
+ *   Optionally, a region tint layer (region-raster.ts) is baked into the LAND pixels: each tinted
+ *   pixel takes its region's pale tint colour and then gets the same hillshade delta the grey land
+ *   would have had, so the relief reads through the tint unchanged. Ocean pixels are never tinted.
+ *   Region edges blend by coverage, so borders between regions are soft rather than stepped.
+ *   Baked into the texture rather than drawn as a polygon layer: no extra geometry, and the relief
+ *   and the bump map keep working exactly as before.
  *
- * Key exports: GreyReliefTones (type), buildGreyReliefTexture, tokenLuminance
+ * Colour source
+ *   No hardcoded colour values. The caller passes grey levels and tint colours that it derives from
+ *   BC tokens at runtime (see `tokenLuminance` and `tokenRgb` below, and AtlasGlobe.tsx), because
+ *   WebGL and canvas pixels cannot read CSS variables directly. Without a tint layer the output is
+ *   pure greyscale, as before.
+ *
+ * Key exports: GreyReliefTones (type), buildReliefTexture, tokenLuminance, tokenRgb,
+ *   TEXTURE_WIDTH, TEXTURE_HEIGHT
  * External dependencies: browser only (HTMLImageElement, canvas 2D, getComputedStyle). Never call
  *   during server rendering.
  */
@@ -33,8 +44,8 @@ export type GreyReliefTones = {
 }
 
 /** Output texture size. Matches the topology map (2048 x 1024) so no relief detail is lost. */
-const TEXTURE_WIDTH = 2048
-const TEXTURE_HEIGHT = 1024
+export const TEXTURE_WIDTH = 2048
+export const TEXTURE_HEIGHT = 1024
 
 /**
  * Elevation below which masked water counts as ocean. The water mask also marks inland rivers and
@@ -47,13 +58,13 @@ const OCEAN_MAX_ELEVATION = 3
 const RELIEF_EXAGGERATION = 6
 
 /**
- * Reads a CSS custom property from :root and returns its perceived grey level (Rec. 709 luma,
- * 0-255). Lets canvas and WebGL colour come from BC tokens instead of hardcoded values.
+ * Reads a CSS custom property from :root and returns it as 0-255 RGB. Lets canvas and WebGL colour
+ * come from BC tokens instead of hardcoded values.
  *
  * Side effect: reads computed style from document.documentElement.
  * Returns null when the token is missing or is not a colour the canvas can parse.
  */
-export function tokenLuminance(tokenName: string): number | null {
+export function tokenRgb(tokenName: string): [number, number, number] | null {
   const raw = getComputedStyle(document.documentElement).getPropertyValue(tokenName).trim()
   if (raw.length === 0) return null
 
@@ -66,7 +77,23 @@ export function tokenLuminance(tokenName: string): number | null {
   ctx.fillStyle = raw
   ctx.fillRect(0, 0, 1, 1)
   const [r, g, b] = ctx.getImageData(0, 0, 1, 1).data
+  return [r, g, b]
+}
+
+/**
+ * Reads a CSS custom property from :root and returns its perceived grey level (Rec. 709 luma,
+ * 0-255). Returns null when the token is missing or unparseable (see tokenRgb).
+ */
+export function tokenLuminance(tokenName: string): number | null {
+  const rgb = tokenRgb(tokenName)
+  if (rgb === null) return null
+  const [r, g, b] = rgb
   return 0.2126 * r + 0.7152 * g + 0.0722 * b
+}
+
+/** Rounds and clamps a channel value to 0-255. */
+function clampByte(value: number): number {
+  return Math.max(0, Math.min(255, Math.round(value)))
 }
 
 /** Loads an image from a same-origin URL and resolves once it is decoded. */
@@ -92,7 +119,7 @@ function pixelsOf(img: HTMLImageElement): Uint8ClampedArray | null {
 }
 
 /**
- * Builds the grey relief texture and returns it as a PNG blob URL for globe.gl's `globeImageUrl`.
+ * Builds the relief texture and returns it as a PNG blob URL for globe.gl's `globeImageUrl`.
  * The caller owns the URL and must revoke it (URL.revokeObjectURL) when the globe unmounts.
  *
  * How the relief is shaded: for each land pixel, a surface normal is estimated from the elevation
@@ -101,14 +128,19 @@ function pixelsOf(img: HTMLImageElement): Uint8ClampedArray | null {
  * and the difference from a flat surface's brightness moves the grey level up (sunlit slopes) or
  * down (shaded slopes) within `reliefRange`. Flat land stays exactly at `land`.
  *
+ * `regionTints`, when given, is an RGBA layer of TEXTURE_WIDTH x TEXTURE_HEIGHT (region-raster.ts).
+ * A land pixel under it becomes its tint colour plus the pixel's hillshade delta (grey - land),
+ * blended with the plain grey by the layer's alpha. Pass null for the plain grey globe.
+ *
  * Returns null if a canvas context or blob is unavailable. Rejects if an image fails to load.
  *
  * Side effects: creates offscreen canvases; creates an object URL (see above).
  */
-export async function buildGreyReliefTexture(
+export async function buildReliefTexture(
   waterMaskUrl: string,
   topologyUrl: string,
   tones: GreyReliefTones,
+  regionTints: Uint8ClampedArray | null,
 ): Promise<string | null> {
   const [waterImg, topoImg] = await Promise.all([loadImage(waterMaskUrl), loadImage(topologyUrl)])
   const water = pixelsOf(waterImg)
@@ -155,10 +187,22 @@ export async function buildGreyReliefTexture(
         grey = tones.land + relative * tones.reliefRange
       }
 
-      const value = Math.max(0, Math.min(255, Math.round(grey)))
-      px[i] = value
-      px[i + 1] = value
-      px[i + 2] = value
+      const tintAlpha = isOcean || regionTints === null ? 0 : regionTints[i + 3]
+      if (regionTints === null || tintAlpha === 0) {
+        const value = clampByte(grey)
+        px[i] = value
+        px[i + 1] = value
+        px[i + 2] = value
+      } else {
+        // Tinted land: the region's tint, shaded by the same relief delta as the grey land, blended
+        // with the grey by coverage (soft region edges).
+        const shadeDelta = grey - tones.land
+        const mix = tintAlpha / 255
+        for (let c = 0; c < 3; c++) {
+          const tinted = regionTints[i + c] + shadeDelta
+          px[i + c] = clampByte(grey + (tinted - grey) * mix)
+        }
+      }
       px[i + 3] = 255
     }
   }

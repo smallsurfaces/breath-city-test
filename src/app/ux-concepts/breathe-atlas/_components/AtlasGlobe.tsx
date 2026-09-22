@@ -2,18 +2,25 @@
  * AtlasGlobe.tsx — the react-globe.gl globe for the Breathe Atlas cover (brief 4.2).
  *
  * Purpose
- *   Renders the grey shaded-relief globe with 16 pulsating HTML city markers, and hands the parent
- *   (GlobeCover) a small imperative API to turn the globe. It owns everything that touches three.js
- *   and the DOM nodes globe.gl manages; GlobeCover owns the cycle, pause and card state.
+ *   Renders the shaded-relief globe (grey, with pale region tints) with 16 pulsating HTML city
+ *   markers, and hands the parent (GlobeCover) a small imperative API to turn the globe. It owns
+ *   everything that touches three.js and the DOM nodes globe.gl manages; GlobeCover owns the cycle,
+ *   pause and card state.
  *
  *   This module touches `window` (WebGL, canvas, DOM markers), so it must only ever be loaded
  *   client-side: GlobeCover imports it through `next/dynamic` with `ssr: false`. The globe ref is
  *   kept inside this component (dynamic() does not forward refs) and exposed via `onReady`.
  *
- * The look (grey wireframe, no decorative colour)
+ * The look (grey wireframe; colour only where it encodes something)
  *   - Colour texture: built at runtime by globe-texture.ts from two images shipped in the
  *     `three-globe` npm package (land/water mask + elevation map): near-white ocean, light grey
  *     land with baked hillshade. Grey levels are derived from BC tokens, never hardcoded.
+ *   - Region tints (round 2, item 6): the land of each Breathe Cities region (Africa, Asia, Europe,
+ *     LAC, with M49's country extent) carries a pale tint of one BC token, baked into the same
+ *     texture (region-raster.ts paints the regions, globe-texture.ts shades them). Colour here
+ *     encodes region, which the functional-colour rule allows. See REGION_TINTS. No legend or labels
+ *     this round (Jack reviews live). If the tokens or the countries file are unavailable, the globe
+ *     renders plain grey.
  *   - Bump map: the same elevation image, so relief also catches the live scene light.
  *   - Lighting: soft ambient plus a directional light parented to the camera, so the relief is lit
  *     from the upper left of the view whichever city the globe turns to.
@@ -58,10 +65,11 @@
  *
  * Key exports: AtlasGlobe (default), AtlasGlobeApi (type), GLOBE_ALTITUDE
  * External dependencies: react, react-dom (createPortal), react-globe.gl (three.js),
- *   ./globe-texture, ../_data/cities (AtlasCity type).
+ *   ./globe-texture, ./region-raster, ../_data/cities (AtlasCity type), ../_data/m49-regions.
  *
  * Side effects (all cleaned up on unmount):
- *   - Builds the globe texture (offscreen canvases) and creates an object URL; revoked on unmount.
+ *   - Builds the globe texture (offscreen canvases, plus the region layer, which loads world-atlas's
+ *     110m countries file) and creates an object URL; revoked on unmount.
  *   - Creates 16 detached marker DOM nodes and attaches click listeners to their buttons.
  *   - Sets a `data-focus` attribute on the focus marker's button when `focusCityId` changes.
  *   - Mutates three.js objects owned by globe.gl once the globe is ready: controls flags, canvas
@@ -76,7 +84,11 @@ import { createPortal } from 'react-dom'
 import Globe from 'react-globe.gl'
 import type { GlobeMethods } from 'react-globe.gl'
 import type { AtlasCity } from '../_data/cities'
-import { buildGreyReliefTexture, tokenLuminance } from './globe-texture'
+import { ATLAS_REGIONS } from '../_data/m49-regions'
+import type { AtlasRegion } from '../_data/m49-regions'
+import { buildReliefTexture, TEXTURE_HEIGHT, TEXTURE_WIDTH, tokenLuminance, tokenRgb } from './globe-texture'
+import { buildRegionTintLayer } from './region-raster'
+import type { RegionTintColours } from './region-raster'
 
 /** Camera altitude (in globe radii above the surface) for the cover framing. */
 export const GLOBE_ALTITUDE = 2
@@ -116,6 +128,42 @@ const PULSE_CSS = `@keyframes atlas-marker-pulse {
 }
 .atlas-marker-halo { animation: atlas-marker-pulse ${PULSE_PERIOD_MS}ms ease-in-out infinite; }
 @media (prefers-reduced-motion: reduce) { .atlas-marker-halo { animation: none; } }`
+
+/**
+ * Region tints (round 2, item 6): one existing BC token per Breathe Cities region, and how much of
+ * that token is mixed into the land grey. Heavy on the grey, so the tint stays light, the relief
+ * reads through it and the dark blue pins stay the strongest thing on the globe. Four distinct hues
+ * (blue, tangerine, yellow, teal), none of them the pins' dark blue. The shares differ because the
+ * tokens differ in strength: yellow and teal need more to show at all against the pale grey, blue
+ * and tangerine less. Tuned by eye in the browser; Jack reviews live.
+ */
+const REGION_TINTS: Record<AtlasRegion, { token: string; share: number }> = {
+  africa: { token: '--bc-color-tangerine', share: 0.2 },
+  asia: { token: '--bc-color-yellow', share: 0.24 },
+  europe: { token: '--bc-color-blue', share: 0.18 },
+  lac: { token: '--bc-color-teal', share: 0.24 },
+}
+
+/**
+ * The tint colour for each region: its token mixed into the land grey by its share (see
+ * REGION_TINTS). Returns null if any token is unavailable, and the globe then stays grey.
+ *
+ * Side effect: reads computed style (tokenRgb).
+ */
+function regionTintColours(landGrey: number): RegionTintColours | null {
+  const colours: Partial<RegionTintColours> = {}
+  for (const region of ATLAS_REGIONS) {
+    const { token, share } = REGION_TINTS[region]
+    const rgb = tokenRgb(token)
+    if (rgb === null) return null
+    colours[region] = [
+      Math.round(landGrey + (rgb[0] - landGrey) * share),
+      Math.round(landGrey + (rgb[1] - landGrey) * share),
+      Math.round(landGrey + (rgb[2] - landGrey) * share),
+    ]
+  }
+  return colours as RegionTintColours
+}
 
 /** The small imperative API the cover uses to drive the globe. */
 export type AtlasGlobeApi = {
@@ -290,7 +338,8 @@ export default function AtlasGlobe({
     })
   }, [markers, focusCityId])
 
-  // Side effect: build the grey relief texture from BC token greys; revoke its object URL on unmount.
+  // Side effect: build the relief texture (BC token greys, region tints baked in); revoke its object
+  // URL on unmount.
   useEffect(() => {
     let cancelled = false
     let createdUrl: string | null = null
@@ -315,7 +364,16 @@ export default function AtlasGlobe({
     const steelGrey = Math.round(steel)
     setAtmosphereColor(`rgb(${steelGrey}, ${steelGrey}, ${steelGrey})`)
 
-    buildGreyReliefTexture(WATER_MASK_URL, TOPOLOGY_URL, tones)
+    const tintColours = regionTintColours(tones.land)
+    // Region tints are optional: if the tokens or the countries file are unavailable, the globe
+    // still renders, in plain grey.
+    const tintLayer: Promise<Uint8ClampedArray | null> =
+      tintColours === null
+        ? Promise.resolve(null)
+        : buildRegionTintLayer(TEXTURE_WIDTH, TEXTURE_HEIGHT, tintColours).catch(() => null)
+
+    tintLayer
+      .then((tints) => buildReliefTexture(WATER_MASK_URL, TOPOLOGY_URL, tones, tints))
       .then((url) => {
         if (url === null) return
         if (cancelled) {
