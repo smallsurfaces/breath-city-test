@@ -12,7 +12,8 @@
  *   sideways-swipe strip (5.2); it does not ask for the affordance to be taken away.
  *
  *   The photos themselves (PhotoFigure, a server-renderable component) are passed in as children
- *   list items, so this client component only owns the scrolling.
+ *   list items, so this client component only owns the scrolling. Each photo's credit and source
+ *   link sit behind the "i" on its corner (round 2, item 9; see PhotoFigure).
  *
  * Accessibility
  *   - The row is a labelled list and is keyboard-focusable, so arrow keys scroll it without a mouse.
@@ -180,8 +181,10 @@ export function PhotoStrip({ label, children }: PhotoStripProps) {
         </button>
       </div>
       {/* Keyboard-focusable so the arrow keys scroll it. The scrollbar is hidden: swipe or buttons.
-          `relative` makes the row the containing block for absolutely positioned descendants (the
-          links' sr-only text); without it they escape the row's scroll clip and widen the page. */}
+          `relative` keeps any absolutely positioned descendant inside the row's scroll clip, where
+          without it one would escape and widen the page. (Since round 2 the credit links, and their
+          sr-only text, live in the credit popover, which is portaled out of the row; each photo's
+          credit "i" is positioned inside its own figure.) */}
       <ul
         id={rowId}
         ref={rowRef}

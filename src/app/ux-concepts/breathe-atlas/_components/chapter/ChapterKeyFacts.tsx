@@ -5,11 +5,13 @@
  *   The city's key facts as tiles, in the brief's order:
  *   - Population: each city's OWN published figure for the area it administers, labelled
  *     "City population · city's own figure" and credited to the city's source (Jack, 2026-09-17).
- *     The area and date sit under it, then the pack's `basis` line, which is how a rounded or
- *     estimated figure says so in the publisher's own terms. The credit LINKS to the page the
- *     figure is published on (see PopulationCredit). The UN urban-area estimate is carried in the
- *     data but NOT rendered; it appears as the figure only where the pack labels it as one, for a
- *     city that publishes nothing we can confirm.
+ *     Only the tile label and the figure are visible (round 2, item 9, 2026-09-22). The rest sits
+ *     behind the "i" beside the label (CreditInfo, "Source and method"): the qualifier line, the
+ *     area and date, the pack's `basis` line (how a rounded or estimated figure says so in the
+ *     publisher's own terms) and the credit, which LINKS to the page the figure is published on
+ *     (see PopulationCredit). The UN urban-area estimate is carried in the data but NOT rendered;
+ *     it appears as the figure only where the pack labels it as one, for a city that publishes
+ *     nothing we can confirm.
  *   - Sensors by type (tiers 2 to 4): a circle for low-cost, a square for reference-grade, with counts.
  *   - Lead agency.
  *   - Joined Breathe Cities.
@@ -32,6 +34,10 @@
  *   counts and the current conditions — and only those. They carry `DerivedStatus`, a vocabulary
  *   of one ('sample'), separate from the pack's `ContentStatus`, so the marker can never be
  *   reached by pack content. Pack content renders as real content or not at all.
+ *   Since round 2 (item 9, 2026-09-22) the marker is no longer a visible text line: it sits behind
+ *   the "i" beside the tile label (CreditInfo, "About this figure"), whose popover says "Sample
+ *   figure, made for this prototype from mock sensor data. Not the city's real numbers." The
+ *   nav's "Prototype with sample data" notice stays visible on every page.
  *   No colour: current conditions is text only, since a city's index colours belong to the data
  *   map and the sensor card (brief 2).
  *
@@ -41,14 +47,15 @@
  *
  * Key exports: ChapterKeyFacts (named)
  * External dependencies: react (Fragment, ReactNode), @/components/concept (ConceptCard, ConceptSectionHeader),
- *   ./StylisedCountryMap, ./ChapterLink, ../../_data/cities (type), ../../_data/chapters (types),
- *   ../../_data/country-maps (COUNTRY_MAPS).
+ *   ./StylisedCountryMap, ./ChapterLink, ./CreditInfo, ../../_data/cities (type),
+ *   ../../_data/chapters (types), ../../_data/country-maps (COUNTRY_MAPS).
  */
 
 import { Fragment } from 'react'
 import type { ReactNode } from 'react'
 import { ConceptCard, ConceptSectionHeader } from '@/components/concept'
 import { OutboundLink } from './ChapterLink'
+import { CreditInfo } from './CreditInfo'
 import { StylisedCountryMap } from './StylisedCountryMap'
 import type { AtlasCity } from '../../_data/cities'
 import type {
@@ -87,18 +94,28 @@ function factColumnsClass(count: number, hasMapTile: boolean): string {
   return ''
 }
 
+/** The "About this figure" popover copy for a fact derived from the mock sensors (round 2, item 9). */
+const SAMPLE_FIGURE_NOTE =
+  "Sample figure, made for this prototype from mock sensor data. Not the city's real numbers."
+
 /**
- * "Sample figure" note, for a fact derived from the mock sensors (brief section 7). It takes
- * `DerivedStatus`, so only a derived fact can reach it: pack content is either real content or
- * absent, and can no longer be labelled instead of omitted (brief section 2).
+ * "Sample figure" marker, for a fact derived from the mock sensors (brief section 7), behind the
+ * "i" beside the tile label (round 2, item 9). It takes `DerivedStatus`, so only a derived fact can
+ * reach it: pack content is either real content or absent, and can no longer be labelled instead of
+ * omitted (brief section 2). Returns null for any other status, so the tile then has no "i".
  */
-function SampleNote({ status }: { status: DerivedStatus }) {
+function sampleInfo(status: DerivedStatus): ReactNode {
   if (status !== 'sample') return null
-  return <p className="mt-1 text-xs text-foreground/60">Sample figure</p>
+  return (
+    <CreditInfo label="About this figure" align="start" className="">
+      <p>{SAMPLE_FIGURE_NOTE}</p>
+    </CreditInfo>
+  )
 }
 
 /**
- * The population figure's credit, linked to the page the figure is published on.
+ * The population figure's credit, linked to the page the figure is published on. Rendered inside
+ * the "Source and method" popover.
  *
  * Unlinked where `url` is null: the pack may name the publication behind a figure without a public
  * page that carries it. A credit is never dropped, and a URL is never invented to make one
@@ -107,72 +124,83 @@ function SampleNote({ status }: { status: DerivedStatus }) {
  */
 function PopulationCredit({ source }: { source: ChapterCredit }) {
   if (source.url === null) {
-    return <p className="mt-2 text-xs font-medium leading-snug text-foreground/70">Source: {source.label}</p>
+    return <p className="mt-2 text-xs font-medium leading-snug text-foreground">Source: {source.label}</p>
   }
   return (
     // leading-snug because the pack's `sourceName` is the publication in full, so several of these
-    // credits wrap to three or four lines inside a tile.
-    <OutboundLink href={source.url} className="-mb-3 text-xs font-medium leading-snug text-foreground/70">
+    // credits wrap to three or four lines. -mb-3 tucks the 56px target into the popup's padding.
+    <OutboundLink href={source.url} className="-mb-3 text-xs font-medium leading-snug text-foreground">
       Source: {source.label}
     </OutboundLink>
   )
 }
 
-/** One fact tile: a ConceptCard holding a <dt> label and a <dd> value. */
-function FactTile({ label, children, wide }: { label: string; children: ReactNode; wide: boolean }) {
+/**
+ * One fact tile: a ConceptCard holding a <dt> label and a <dd> value. `info` is the tile's "i"
+ * (CreditInfo), shown beside the label, or null for a tile with nothing behind an "i".
+ */
+function FactTile({
+  label,
+  info,
+  children,
+  wide,
+}: {
+  label: string
+  info: ReactNode
+  children: ReactNode
+  wide: boolean
+}) {
   return (
     <ConceptCard className={wide ? 'col-span-full' : ''}>
-      <dt className={TILE_LABEL}>{label}</dt>
+      <dt className={`flex items-center gap-2 ${TILE_LABEL}`}>
+        {label}
+        {info}
+      </dt>
       <dd className="mt-2">{children}</dd>
     </ConceptCard>
   )
 }
 
-/** Sensor counts by type: circle for low-cost, square for reference-grade (brief 5.3). Zero counts are left out. */
+/**
+ * Sensor counts by type: circle for low-cost, square for reference-grade (brief 5.3). Zero counts
+ * are left out. The sample marker sits behind the tile's "i" (see sampleInfo).
+ */
 function SensorCounts({ sensors }: { sensors: ChapterSensorCounts }) {
   const rows = [
     { key: 'low-cost', count: sensors.lowCost, noun: 'low-cost sensors', shape: 'rounded-full' },
     { key: 'reference', count: sensors.referenceGrade, noun: 'reference-grade stations', shape: 'rounded-[2px]' },
   ].filter((row) => row.count > 0)
   return (
-    <>
-      <ul className="space-y-2">
-        {rows.map((row) => (
-          <li key={row.key} className="flex items-baseline gap-3">
-            <span aria-hidden="true" className={`inline-block h-3.5 w-3.5 shrink-0 self-center bg-foreground ${row.shape}`} />
-            <span className="text-2xl font-bold tabular-nums text-foreground">{FIGURE_FORMAT.format(row.count)}</span>
-            <span className="text-sm text-foreground/80">{row.noun}</span>
-          </li>
-        ))}
-      </ul>
-      <SampleNote status={sensors.status} />
-    </>
+    <ul className="space-y-2">
+      {rows.map((row) => (
+        <li key={row.key} className="flex items-baseline gap-3">
+          <span aria-hidden="true" className={`inline-block h-3.5 w-3.5 shrink-0 self-center bg-foreground ${row.shape}`} />
+          <span className="text-2xl font-bold tabular-nums text-foreground">{FIGURE_FORMAT.format(row.count)}</span>
+          <span className="text-sm text-foreground/80">{row.noun}</span>
+        </li>
+      ))}
+    </ul>
   )
 }
 
 /**
  * Current conditions text. Tier 4: the city's own index and its city-wide level, as the city
  * publishes the level name. Tier 3: the live line, with no reading and no level (brief 5.3).
- * Both are derived from the mock sensors, so both carry the sample marker.
+ * Both are derived from the mock sensors, so both carry the sample marker, behind the tile's "i"
+ * (see sampleInfo).
  */
 function ConditionsLine({ conditions }: { conditions: IndexConditions | LiveConditions }) {
   if ('indexName' in conditions) {
     return (
-      <>
-        <p className="text-2xl font-bold text-foreground">
-          {conditions.indexName}: {conditions.level}
-        </p>
-        <SampleNote status={conditions.status} />
-      </>
+      <p className="text-2xl font-bold text-foreground">
+        {conditions.indexName}: {conditions.level}
+      </p>
     )
   }
   return (
-    <>
-      <p className="text-lg font-semibold text-foreground">
-        Live from {FIGURE_FORMAT.format(conditions.liveSensors)} sensors · updated {conditions.updatedMinutesAgo} min ago
-      </p>
-      <SampleNote status={conditions.status} />
-    </>
+    <p className="text-lg font-semibold text-foreground">
+      Live from {FIGURE_FORMAT.format(conditions.liveSensors)} sensors · updated {conditions.updatedMinutesAgo} min ago
+    </p>
   )
 }
 
@@ -188,22 +216,30 @@ export function ChapterKeyFacts({ city, chapter }: ChapterKeyFactsProps) {
     tiles.push({
       key: 'population',
       node: (
-        <FactTile label="Population" wide={false}>
-          {/* The figure as the pack publishes it ("10.9 million"), not a re-derived number. */}
+        <FactTile
+          label="Population"
+          wide={false}
+          info={
+            // Round 2, item 9: everything but the label and the figure sits behind this "i".
+            <CreditInfo label="Source and method" align="start" className="">
+              <p className="font-medium">{population.label}</p>
+              {/* What the figure covers and when, so a city figure is never read as a metro one,
+                  and a census year is never read as today (brief 5.3). */}
+              <p className="mt-1 text-xs text-foreground/70">
+                {population.covers} · {population.asAt}
+              </p>
+              {/* The pack's own `basis` line: it is what makes a rounded or estimated figure say
+                  so, in the publisher's terms, rather than the build classifying the figure. */}
+              <p className="mt-1 text-xs text-foreground/70">{population.basis}</p>
+              <PopulationCredit source={population.source} />
+            </CreditInfo>
+          }
+        >
+          {/* The figure as the pack publishes it ("10.9 million"), not a re-derived number. No
+              "Sample figure" here: a population is pack content, so it is either the city's own
+              confirmed figure or absent altogether (brief 2). The `basis` line carries any hedge
+              the publisher itself states. */}
           <p className="text-3xl font-bold tracking-tight text-foreground">{population.display}</p>
-          <p className="mt-1 text-sm text-foreground/80">{population.label}</p>
-          {/* What the figure covers and when, so a city figure is never read as a metro one, and a
-              census year is never read as today (brief 5.3). */}
-          <p className="mt-1 text-xs leading-snug text-foreground/70">
-            {population.covers} · {population.asAt}
-          </p>
-          {/* The pack's own `basis` line: it is what makes a rounded or estimated figure say so,
-              in the publisher's terms, rather than the build classifying the figure itself. */}
-          <p className="mt-1 text-xs leading-snug text-foreground/70">{population.basis}</p>
-          {/* No "Sample figure" here: a population is pack content, so it is either the city's own
-              confirmed figure or absent altogether (brief 2). The `basis` line above carries any
-              hedge the publisher itself states. */}
-          <PopulationCredit source={population.source} />
         </FactTile>
       ),
     })
@@ -213,7 +249,7 @@ export function ChapterKeyFacts({ city, chapter }: ChapterKeyFactsProps) {
     tiles.push({
       key: 'sensors',
       node: (
-        <FactTile label="Sensors" wide={false}>
+        <FactTile label="Sensors" wide={false} info={sampleInfo(sensors.status)}>
           <SensorCounts sensors={sensors} />
         </FactTile>
       ),
@@ -224,7 +260,7 @@ export function ChapterKeyFacts({ city, chapter }: ChapterKeyFactsProps) {
     tiles.push({
       key: 'lead-agency',
       node: (
-        <FactTile label="Lead agency" wide={false}>
+        <FactTile label="Lead agency" wide={false} info={null}>
           <p className="text-lg font-semibold leading-snug text-foreground">{leadAgency.name}</p>
         </FactTile>
       ),
@@ -235,7 +271,7 @@ export function ChapterKeyFacts({ city, chapter }: ChapterKeyFactsProps) {
     tiles.push({
       key: 'joined',
       node: (
-        <FactTile label="Joined Breathe Cities" wide={false}>
+        <FactTile label="Joined Breathe Cities" wide={false} info={null}>
           <p className="text-3xl font-bold tracking-tight tabular-nums text-foreground">{joined.year}</p>
         </FactTile>
       ),
@@ -248,7 +284,7 @@ export function ChapterKeyFacts({ city, chapter }: ChapterKeyFactsProps) {
         <Fragment key={tile.key}>{tile.node}</Fragment>
       ))}
       {facts.currentConditions !== null && (
-        <FactTile label="Current conditions" wide={true}>
+        <FactTile label="Current conditions" wide={true} info={sampleInfo(facts.currentConditions.status)}>
           <ConditionsLine conditions={facts.currentConditions} />
         </FactTile>
       )}
