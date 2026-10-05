@@ -62,6 +62,9 @@
  *   Below the bar row sits a thin, full-width disclaimer banner shown on EVERY build that mounts
  *   this header (so the framing is single-sourced, not per-concept). The copy is deliberately
  *   GENERIC — it names no concept — so it reads correctly everywhere. See WIREFRAME_DISCLAIMER.
+ *   A page may override the copy with the optional `disclaimer` prop (e.g. the hub home); every
+ *   other build omits it and renders the default unchanged. The pinned-height
+ *   ResizeObserver measures whichever copy is shown.
  *
  * Key exports: PrototypeHeader (named)
  * External dependencies: react (useEffect, useMemo, useRef), next/link, next/navigation
@@ -135,6 +138,11 @@ type PrototypeHeaderProps = {
   commentSlot?: ReactNode;
   /** Reserved future LEFT-slot controls. Empty for now. */
   controls?: ReactNode;
+  /**
+   * Optional override for the disclaimer banner copy. Omit to render the default
+   * WIREFRAME_DISCLAIMER (every concept build does). Used by the hub home page.
+   */
+  disclaimer?: string;
 };
 
 /**
@@ -146,6 +154,7 @@ export function PrototypeHeader({
   date,
   commentSlot,
   controls,
+  disclaimer,
 }: PrototypeHeaderProps) {
   const pathname = usePathname();
   // Prefer an explicitly-passed date; otherwise resolve from the current route.
@@ -294,7 +303,7 @@ export function PrototypeHeader({
         className="sticky top-0 z-[105] w-full flex-shrink-0 border-y border-border bg-background shadow-sm"
       >
         <div className="bg-muted/40 px-4 py-1.5 text-center text-[11px] leading-snug text-muted-foreground">
-          {WIREFRAME_DISCLAIMER}
+          {disclaimer ?? WIREFRAME_DISCLAIMER}
         </div>
       </div>
     </>

@@ -94,6 +94,11 @@ const BUILDS = [
     routes: ["/ux-concepts/toolkit"],
     folder: "src/app/ux-concepts/toolkit",
   },
+  {
+    // Visual concept page for the BC AQ Roadmap UX concept (Figma mockup landing page).
+    routes: ["/visual-concepts/bc-aq-roadmap"],
+    folder: "src/app/visual-concepts/bc-aq-roadmap",
+  },
 ];
 
 /**
