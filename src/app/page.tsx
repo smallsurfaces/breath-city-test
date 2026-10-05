@@ -1,6 +1,16 @@
 import Link from "next/link";
 import { CONCEPTS } from "./_data/concept-registry";
 
+/** Visual concepts — Figma mockups of existing UX concepts. External links, so they live here
+    rather than in the internal-route concept registry. Title mirrors the UX concept's. */
+const VISUAL_CONCEPTS = [
+  {
+    title: CONCEPTS.roadmap.title,
+    description: "Visual mockup of the UX concept — previous work stream (Figma)",
+    href: "https://www.figma.com/proto/xyPcakbg26AL59CnFRDYWW/Breathe-Cities-V2?node-id=7932-21&viewport=588%2C148%2C0.15&t=CcifXU4zt9pZkJId-1&scaling=min-zoom&content-scaling=fixed&page-id=7932%3A2",
+  },
+];
+
 export default function HomePage() {
   return (
     <main className="min-h-screen flex flex-col items-center justify-center gap-10 p-8 bg-background">
@@ -95,6 +105,44 @@ export default function HomePage() {
               >
                 Open →
               </Link>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="flex flex-col items-center gap-4">
+        <p
+          className="text-xs font-semibold tracking-widest uppercase"
+          style={{ color: "var(--bc-semantic-muted)" }}
+        >
+          Visual Concepts
+        </p>
+
+        <div className="flex flex-col gap-3 w-full max-w-xl">
+          {VISUAL_CONCEPTS.map((concept) => (
+            <div key={concept.href} className="flex items-center gap-3">
+              <div className="flex flex-col w-52 shrink-0">
+                <span className="text-sm" style={{ color: "var(--bc-semantic-text)" }}>
+                  {concept.title}
+                </span>
+                <span className="text-xs" style={{ color: "var(--bc-semantic-muted)" }}>
+                  {concept.description}
+                </span>
+              </div>
+              <a
+                href={concept.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={`${concept.title} — open Figma prototype (opens in a new tab)`}
+                className="inline-flex items-center justify-center px-4 py-2 rounded-xl text-sm font-medium transition-colors"
+                style={{
+                  backgroundColor: "var(--bc-semantic-brand)",
+                  color: "var(--bc-color-white)",
+                  borderRadius: "var(--bc-border-radius-md)",
+                }}
+              >
+                Open in Figma <span aria-hidden="true">&nbsp;↗</span>
+              </a>
             </div>
           ))}
         </div>
