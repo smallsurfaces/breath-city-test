@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { PrototypeHeader } from "./_components/PrototypeHeader";
 import { CONCEPTS } from "./_data/concept-registry";
 
 /** Visual concepts — Figma mockups of existing UX concepts. External links, so they live here
@@ -11,8 +12,13 @@ const VISUAL_CONCEPTS = [
   },
 ];
 
+const HOME_DISCLAIMER =
+  "Concept hub — work in progress. Content, data and visual treatment are illustrative and may change. Review the experience and the overall idea.";
+
 export default function HomePage() {
   return (
+    <>
+    <PrototypeHeader buildName="Design Hub" disclaimer={HOME_DISCLAIMER} />
     <main className="min-h-screen flex flex-col items-center justify-center gap-10 p-8 bg-background">
       <div className="flex flex-col items-center gap-3 text-center">
         <div
@@ -245,5 +251,6 @@ export default function HomePage() {
         </div>
       </div>
     </main>
+    </>
   );
 }
