@@ -1,0 +1,475 @@
+{
+ "_note": "Mock sensors for the Breathe Atlas data map (brief section 7). LOCATIONS: see locationSource. READINGS: invented, see readingsNote. Generated once on 2026-09-17; regenerate rather than hand-edit.",
+ "city": "sofia",
+ "tier": 4,
+ "locationSource": "OpenAQ provider 'EEA' carries Bulgaria's official automatic measuring stations (the AMS stations) as reported to the European Environment Agency. Excluded: 'senstate' (a community network) and AirGradient (private and community sensors). No public city low-cost network was used; these are PLACED (placed: true).",
+ "locationSnapshot": "OpenAQ v3 GET /locations?bbox=... , taken 2026-09-17, then filtered as described above and to points inside the city's OSM boundary.",
+ "readingsNote": "Readings are INVENTED for the prototype and are not a measurement of anything. The air reads relatively clean: every sensor sits at the best level of the city's own index except one moderate sensor and one sensitive-groups sensor (brief section 7). PM10 is always at or above PM2.5. Nothing is stale or offline: every sensor updated 2 to 10 minutes ago.",
+ "indexName": "European Air Quality Index",
+ "sensors": [
+  {
+   "lngLat": [
+    23.2684,
+    42.6698
+   ],
+   "type": "reference-grade",
+   "placed": false,
+   "openaqLocationId": 8844,
+   "openaqName": "AMS ExEA/Pavlovo-Sofia",
+   "openaqProvider": "EEA",
+   "id": "sofia-01",
+   "band": 1,
+   "updatedMinutesAgo": 8,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 8.8,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "PM10",
+     "value": 16.6,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "NO₂",
+     "value": 6.2,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "O₃",
+     "value": 46.3,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "SO₂",
+     "value": 6.9,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "CO",
+     "value": 0.6,
+     "unit": "mg/m³"
+    }
+   ]
+  },
+  {
+   "lngLat": [
+    23.24386,
+    42.63719
+   ],
+   "type": "reference-grade",
+   "placed": false,
+   "openaqLocationId": 8846,
+   "openaqName": "AMS Kopitoto",
+   "openaqProvider": "EEA",
+   "id": "sofia-02",
+   "band": 1,
+   "updatedMinutesAgo": 7,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 6.6,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "PM10",
+     "value": 13.0,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "NO₂",
+     "value": 7.3,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "O₃",
+     "value": 25.1,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "SO₂",
+     "value": 6.4,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "CO",
+     "value": 0.8,
+     "unit": "mg/m³"
+    }
+   ]
+  },
+  {
+   "lngLat": [
+    23.40016,
+    42.66651
+   ],
+   "type": "reference-grade",
+   "placed": false,
+   "openaqLocationId": 8853,
+   "openaqName": "AMS Druzhba -Sofia",
+   "openaqProvider": "EEA",
+   "id": "sofia-03",
+   "band": 1,
+   "updatedMinutesAgo": 6,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 7.5,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "PM10",
+     "value": 12.4,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "NO₂",
+     "value": 25.0,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "O₃",
+     "value": 50.0,
+     "unit": "µg/m³"
+    }
+   ]
+  },
+  {
+   "lngLat": [
+    23.29679,
+    42.68056
+   ],
+   "type": "reference-grade",
+   "placed": false,
+   "openaqLocationId": 8856,
+   "openaqName": "AMS Hipodruma-Sofia",
+   "openaqProvider": "EEA",
+   "id": "sofia-04",
+   "band": 1,
+   "updatedMinutesAgo": 5,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 4.7,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "PM10",
+     "value": 8.0,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "NO₂",
+     "value": 25.1,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "O₃",
+     "value": 51.7,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "SO₂",
+     "value": 4.0,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "CO",
+     "value": 0.8,
+     "unit": "mg/m³"
+    }
+   ]
+  },
+  {
+   "lngLat": [
+    23.31097,
+    42.73229
+   ],
+   "type": "reference-grade",
+   "placed": false,
+   "openaqLocationId": 8860,
+   "openaqName": "AMS Nadezhda-Sofia",
+   "openaqProvider": "EEA",
+   "id": "sofia-05",
+   "band": 2,
+   "updatedMinutesAgo": 4,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 21.7,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "PM10",
+     "value": 37.4,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "NO₂",
+     "value": 12.4,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "O₃",
+     "value": 42.3,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "SO₂",
+     "value": 2.7,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "CO",
+     "value": 0.5,
+     "unit": "mg/m³"
+    }
+   ]
+  },
+  {
+   "lngLat": [
+    23.38327,
+    42.65549
+   ],
+   "type": "reference-grade",
+   "placed": false,
+   "openaqLocationId": 2162110,
+   "openaqName": "AMS Mladost-Sofia",
+   "openaqProvider": "EEA",
+   "id": "sofia-06",
+   "band": 1,
+   "updatedMinutesAgo": 5,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 10.7,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "PM10",
+     "value": 19.5,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "NO₂",
+     "value": 6.5,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "O₃",
+     "value": 19.3,
+     "unit": "µg/m³"
+    }
+   ]
+  },
+  {
+   "lngLat": [
+    23.324,
+    42.7346
+   ],
+   "type": "low-cost",
+   "placed": true,
+   "openaqLocationId": null,
+   "openaqName": null,
+   "openaqProvider": null,
+   "id": "sofia-07",
+   "band": 1,
+   "updatedMinutesAgo": 7,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 6.8,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "PM10",
+     "value": 13.1,
+     "unit": "µg/m³"
+    }
+   ]
+  },
+  {
+   "lngLat": [
+    23.5242,
+    42.822
+   ],
+   "type": "low-cost",
+   "placed": true,
+   "openaqLocationId": null,
+   "openaqName": null,
+   "openaqProvider": null,
+   "id": "sofia-08",
+   "band": 1,
+   "updatedMinutesAgo": 5,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 10.6,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "PM10",
+     "value": 17.7,
+     "unit": "µg/m³"
+    }
+   ]
+  },
+  {
+   "lngLat": [
+    23.2693,
+    42.5677
+   ],
+   "type": "low-cost",
+   "placed": true,
+   "openaqLocationId": null,
+   "openaqName": null,
+   "openaqProvider": null,
+   "id": "sofia-09",
+   "band": 1,
+   "updatedMinutesAgo": 5,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 10.0,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "PM10",
+     "value": 18.3,
+     "unit": "µg/m³"
+    }
+   ]
+  },
+  {
+   "lngLat": [
+    23.2509,
+    42.666
+   ],
+   "type": "low-cost",
+   "placed": true,
+   "openaqLocationId": null,
+   "openaqName": null,
+   "openaqProvider": null,
+   "id": "sofia-10",
+   "band": 3,
+   "updatedMinutesAgo": 5,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 29.1,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "PM10",
+     "value": 58.2,
+     "unit": "µg/m³"
+    }
+   ]
+  },
+  {
+   "lngLat": [
+    23.4266,
+    42.6887
+   ],
+   "type": "low-cost",
+   "placed": true,
+   "openaqLocationId": null,
+   "openaqName": null,
+   "openaqProvider": null,
+   "id": "sofia-11",
+   "band": 1,
+   "updatedMinutesAgo": 6,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 9.6,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "PM10",
+     "value": 21.0,
+     "unit": "µg/m³"
+    }
+   ]
+  },
+  {
+   "lngLat": [
+    23.2515,
+    42.6855
+   ],
+   "type": "low-cost",
+   "placed": true,
+   "openaqLocationId": null,
+   "openaqName": null,
+   "openaqProvider": null,
+   "id": "sofia-12",
+   "band": 1,
+   "updatedMinutesAgo": 8,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 7.0,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "PM10",
+     "value": 11.5,
+     "unit": "µg/m³"
+    }
+   ]
+  },
+  {
+   "lngLat": [
+    23.5199,
+    42.7314
+   ],
+   "type": "low-cost",
+   "placed": true,
+   "openaqLocationId": null,
+   "openaqName": null,
+   "openaqProvider": null,
+   "id": "sofia-13",
+   "band": 1,
+   "updatedMinutesAgo": 9,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 4.8,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "PM10",
+     "value": 9.9,
+     "unit": "µg/m³"
+    }
+   ]
+  },
+  {
+   "lngLat": [
+    23.2844,
+    42.7198
+   ],
+   "type": "low-cost",
+   "placed": true,
+   "openaqLocationId": null,
+   "openaqName": null,
+   "openaqProvider": null,
+   "id": "sofia-14",
+   "band": 1,
+   "updatedMinutesAgo": 8,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 10.9,
+     "unit": "µg/m³"
+    },
+    {
+     "pollutant": "PM10",
+     "value": 23.0,
+     "unit": "µg/m³"
+    }
+   ]
+  }
+ ]
+}
