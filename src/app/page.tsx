@@ -66,6 +66,28 @@ export default function HomePage() {
               Open →
             </Link>
           </div>
+
+          {/* AQ Product Landscape: an external FigJam board (added 2026-10-25, Jack), so a plain
+              anchor that opens in a new tab, styled like the JTBD row's "Open →" button. */}
+          <div className="flex items-center gap-3">
+            <span className="text-sm w-52 shrink-0" style={{ color: "var(--bc-semantic-text)" }}>
+              AQ Product Landscape
+            </span>
+            <a
+              href="https://www.figma.com/board/BzmDMIoBLERR8C9n0q2Y1e/AQ-product-landscape?node-id=157-874"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="AQ Product Landscape, open FigJam board (opens in a new tab)"
+              className="inline-flex items-center justify-center px-4 py-2 rounded-xl text-sm font-medium transition-colors"
+              style={{
+                backgroundColor: "var(--bc-semantic-brand)",
+                color: "var(--bc-color-white)",
+                borderRadius: "var(--bc-border-radius-md)",
+              }}
+            >
+              Open →
+            </a>
+          </div>
         </div>
       </div>
 
