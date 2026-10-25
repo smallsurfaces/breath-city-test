@@ -480,7 +480,7 @@ export function AtlasDataMap({ city, boundary }: AtlasDataMapProps) {
         const freshness = freshnessOf(sensor, city.updateCycleMinutes)
         const ratesStations = city.mapMethod === 'station' && city.index !== null
         const element = createSensorMarkerElement(sensor, {
-          fill: markerFillFor(freshness, ratesStations, sensor.overallBand),
+          fill: markerFillFor(freshness, ratesStations, sensor.overallBand, city.index !== null),
           colour: !ratesStations || sensor.overallBand === null || city.index === null ? null : indexLevel(city.index, sensor.overallBand).hex,
           label: markerLabel(city, sensor, freshness),
         })
@@ -764,7 +764,7 @@ export function AtlasDataMap({ city, boundary }: AtlasDataMapProps) {
         }}
         eyebrow=""
         title={detailSensor === null ? '' : placeName(detailSensor)}
-        above={detailSensor === null ? null : <SensorDetailAbove sensor={detailSensor} />}
+        above={detailSensor === null ? null : <SensorDetailAbove city={city} sensor={detailSensor} />}
         below={detailSensor === null || detailSensor.stationType === null ? null : <SensorDetailBelow sensor={detailSensor} />}
       >
         {detailSensor !== null && <SensorDetail city={city} sensor={detailSensor} />}

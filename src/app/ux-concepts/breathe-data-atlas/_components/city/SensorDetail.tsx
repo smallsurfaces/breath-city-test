@@ -36,7 +36,8 @@
 
 import { useState } from 'react'
 import { ChevronDown } from 'lucide-react'
-import { BandChip, CurrentAdvice, SensorTypeIcon } from './city-ui'
+import { BandChip, CurrentAdvice, SensorMarkIcon, SensorTypeIcon } from './city-ui'
+import { markerFillFor } from '../chapter/atlas-markers'
 import { PollutantExplainerShort } from './Explainers'
 import { CreditInfo } from '../chapter/CreditInfo'
 import { OutboundLink } from '../chapter/ChapterLink'
@@ -63,11 +64,23 @@ type SensorHeaderProps = {
   sensor: CitySensor
 }
 
-/** The header's small top line (decision D1): sensor-type icon and type. */
-export function SensorDetailAbove({ sensor }: SensorHeaderProps) {
+/** Props for SensorDetailAbove. */
+type SensorDetailAboveProps = SensorHeaderProps & {
+  city: CityPage
+}
+
+/**
+ * The header's small top line (decision D1): sensor-type icon and type. For a fresh sensor in a city
+ * with no index the icon is the marker's own plain black, as on the map (round 3, Jack's marker
+ * rule); stale keeps the existing grey type icon.
+ */
+export function SensorDetailAbove({ city, sensor }: SensorDetailAboveProps) {
+  const freshness = freshnessOf(sensor, city.updateCycleMinutes)
   return (
     <p className="flex items-center gap-2 text-xs font-medium text-foreground/70" data-detail-type="">
-      <SensorTypeIcon type={sensor.type} fill={null} />
+      {city.index === null && freshness === 'fresh'
+        ? <SensorMarkIcon type={sensor.type} fill={markerFillFor(freshness, false, null, false)} colour={null} />
+        : <SensorTypeIcon type={sensor.type} fill={null} />}
       {sensorTypeCardLabel(sensor.type)}
     </p>
   )

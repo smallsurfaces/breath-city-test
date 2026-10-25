@@ -29,7 +29,8 @@
  *
  * Accessibility
  *   Each tile is a button (at least 56px tall) whose name says what it is and what it opens. The
- *   pop-up opens in AtlasDialog, which traps focus and returns it to the tile.
+ *   pop-up opens in AtlasDialog, which traps focus and returns it to the tile. A pollutant tile's
+ *   source icon is its own sibling button, named with the city's category, with a tooltip.
  *
  * Key exports: CitySection, BreatheCitiesSection (named)
  * External dependencies: react, lucide-react, @/components/concept, ./AtlasDialog, ./Explainers,
@@ -39,7 +40,7 @@
 
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { ArrowRight, ArrowUpRight } from 'lucide-react'
 import { ConceptSectionHeader } from '@/components/concept'
@@ -145,32 +146,87 @@ type PollutantTileProps = {
 
 /**
  * One pollutant tile (round 3 decisions I and J): the pollutant's notation and its arrow, and, where
- * the city's own source study names a largest source, that source's icon with a small label under
- * it. No count and no sparkline (decision I: a rising line read as the pollutant trending up).
+ * the city's own source study names a largest source, that source's ICON ONLY (round 3, Jack: the
+ * text label under it is gone). The city's category wording stays as the icon's accessible name and
+ * as a hover / focus / tap tooltip, and in the tile's own name. No count and no sparkline (decision
+ * I: a rising line read as the pollutant trending up).
+ *
+ * Structure: the tile is a box holding two SIBLING buttons, never one nested in the other. The main
+ * button's ::after covers the whole tile, so the whole tile still opens the pop-up; the source icon
+ * button sits above it and only toggles its tooltip.
  */
 function PollutantTile({ pollutant, source, onOpen }: PollutantTileProps) {
   return (
-    <button
-      type="button"
-      onClick={onOpen}
-      className={TILE}
-      aria-label={`${pollutant}${source === null ? '' : `, largest source: ${source.label}`}. Opens about ${pollutant}`}
-      data-pollutant-tile={pollutant}
-    >
-      <span className="min-w-0 break-words pr-9 text-lg font-bold leading-tight text-foreground">{pollutant}</span>
-      {source !== null && (
-        <span className="mt-auto flex flex-col items-start gap-1 pt-1 text-foreground/75" data-largest-source={source.icon}>
-          <SourceIcon icon={source.icon} className="h-6 w-6" />
-          <span className="text-xs leading-tight">{source.label}</span>
-        </span>
-      )}
+    <div className={TILE} data-pollutant-tile={pollutant}>
+      <button
+        type="button"
+        onClick={onOpen}
+        className="min-w-0 break-words pr-9 text-left text-lg font-bold leading-tight text-foreground outline-none after:absolute after:inset-0 after:rounded-2xl after:content-[''] focus-visible:after:outline-2 focus-visible:after:outline-offset-2 focus-visible:after:outline-foreground"
+        aria-label={`${pollutant}${source === null ? '' : `, largest source: ${source.label}`}. Opens about ${pollutant}`}
+      >
+        {pollutant}
+      </button>
+      {source !== null && <SourceTooltipIcon source={source} />}
       <span
         aria-hidden="true"
-        className="absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-full border border-border text-foreground/70 transition-transform group-hover:translate-x-0.5 group-hover:border-foreground/40 group-hover:text-foreground"
+        className="pointer-events-none absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-full border border-border text-foreground/70 transition-transform group-hover:translate-x-0.5 group-hover:border-foreground/40 group-hover:text-foreground"
       >
         <ArrowRight className="h-3.5 w-3.5" />
       </span>
-    </button>
+    </div>
+  )
+}
+
+/** Props for SourceTooltipIcon. */
+type SourceTooltipIconProps = {
+  source: LargestSource
+}
+
+/**
+ * The largest-source icon on a pollutant tile, with the city's category wording as its accessible
+ * name and as a tooltip on hover, keyboard focus or tap (the BandScale tooltip pattern). Side
+ * effect: while open by tap, a tap elsewhere or Escape closes it.
+ */
+function SourceTooltipIcon({ source }: SourceTooltipIconProps) {
+  const [tapped, setTapped] = useState(false)
+  const rootRef = useRef<HTMLSpanElement>(null)
+  useEffect(() => {
+    if (!tapped) return
+    const onPointerDown = (event: PointerEvent) => {
+      const root = rootRef.current
+      if (root !== null && event.target instanceof Node && root.contains(event.target)) return
+      setTapped(false)
+    }
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setTapped(false)
+    }
+    document.addEventListener('pointerdown', onPointerDown)
+    document.addEventListener('keydown', onKeyDown)
+    return () => {
+      document.removeEventListener('pointerdown', onPointerDown)
+      document.removeEventListener('keydown', onKeyDown)
+    }
+  }, [tapped])
+  return (
+    <span ref={rootRef} className="relative z-10 mt-auto self-start pt-1" data-largest-source={source.icon}>
+      <button
+        type="button"
+        aria-label={source.label}
+        onClick={() => setTapped((open) => !open)}
+        className="group/source relative -m-1 flex cursor-default rounded-md p-1 text-foreground/75 before:absolute before:-inset-2 before:content-[''] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground"
+      >
+        <SourceIcon icon={source.icon} className="h-6 w-6" />
+        <span
+          role="tooltip"
+          data-source-tooltip=""
+          className={`pointer-events-none absolute left-full top-1/2 z-20 ml-2 w-max max-w-[9rem] -translate-y-1/2 rounded-md bg-foreground px-2 py-1 text-left text-xs font-semibold leading-tight text-background shadow-md group-hover/source:block group-focus-visible/source:block ${
+            tapped ? 'block' : 'hidden'
+          }`}
+        >
+          {source.label}
+        </span>
+      </button>
+    </span>
   )
 }
 
