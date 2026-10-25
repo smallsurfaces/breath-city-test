@@ -126,7 +126,13 @@ export function SensorDetail({ city, sensor }: SensorDetailProps) {
         <CurrentAdvice city={city} index={city.index} band={sensor.overallBand} caption={null} />
       )}
       {city.index !== null && area !== null && area.band !== null && (
-        <CurrentAdvice city={city} index={city.index} band={area.band} caption={areaCaption(city, area.name)} />
+        <CurrentAdvice
+          city={city}
+          index={city.index}
+          band={area.band}
+          // No "In Tebet" label when the sensor is already named by its district.
+          caption={city.mapMethod === 'district' && sensor.name === null && sensor.location === area.name ? null : areaCaption(city, area.name)}
+        />
       )}
       {/* Round 3 decision R (addition): with no band (fresh but not sent, or an unrated district)
           there is no advice box at all; the detail goes straight to "Latest readings". */}

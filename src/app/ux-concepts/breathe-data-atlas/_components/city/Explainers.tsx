@@ -82,8 +82,14 @@ function StepHeading({ children, sources, sourcesLabel, notes }: StepHeadingProp
   )
 }
 
-/** WHO's source links, as CityLinks. */
-const WHO_SOURCES: CityLink[] = WHO_SOURCE_LINKS.map((link) => ({ label: `WHO: ${link.label}`, url: link.url }))
+/**
+ * A pollutant's sources as CityLinks for the "i": WHO's two pages for the original six (labelled
+ * "WHO: ..."), the content file's own sources for the rest (decision Y). Pure.
+ */
+function sourcesFor(sources: Array<{ label: string; url: string }>): CityLink[] {
+  if (sources === WHO_SOURCE_LINKS) return WHO_SOURCE_LINKS.map((link) => ({ label: `WHO: ${link.label}`, url: link.url }))
+  return sources.map((link) => ({ label: link.label, url: link.url }))
+}
 
 /** Props for the two WHO steps. */
 type WhoStepsProps = {
@@ -96,7 +102,7 @@ function WhatItIs({ pollutant }: WhoStepsProps) {
   if (global === undefined) return null
   return (
     <section>
-      <StepHeading sources={WHO_SOURCES} sourcesLabel="Sources for what it is" notes={[]}>
+      <StepHeading sources={sourcesFor(global.sources)} sourcesLabel="Sources for what it is" notes={[]}>
         What it is
       </StepHeading>
       <p className={BODY}>
@@ -109,10 +115,12 @@ function WhatItIs({ pollutant }: WhoStepsProps) {
 /** "What it does to the body". */
 function WhatItDoes({ pollutant }: WhoStepsProps) {
   const global = POLLUTANT_EXPLAINERS[pollutant]
-  if (global === undefined) return null
+  // Decision Y: only where WHO body text exists; never filled in.
+  if (global === undefined || (global.body === null && global.shortTerm === null && global.longTerm === null)) return null
+  const whoSix = global.body === null
   return (
     <section>
-      <StepHeading sources={WHO_SOURCES} sourcesLabel="Sources for what it does to the body" notes={[]}>
+      <StepHeading sources={sourcesFor(global.sources)} sourcesLabel="Sources for what it does to the body" notes={[]}>
         What it does to the body
       </StepHeading>
       {global.shortTerm !== null && (
@@ -127,7 +135,9 @@ function WhatItDoes({ pollutant }: WhoStepsProps) {
           {global.longTerm}
         </p>
       )}
-      <p className={BODY}>{WHO_GROUPS_LINE}</p>
+      {global.body !== null && <p className={BODY}>{global.body}</p>}
+      {/* The groups line is WHO's statement for air pollution as a whole: kept with the original six. */}
+      {whoSix && <p className={BODY}>{WHO_GROUPS_LINE}</p>}
     </section>
   )
 }

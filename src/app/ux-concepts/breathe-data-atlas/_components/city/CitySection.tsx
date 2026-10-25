@@ -189,7 +189,7 @@ export function CitySection({ city }: CitySectionProps) {
   const pollutants = city.publishedPollutants
 
   const dialogTitle =
-    open === null ? '' : open.kind === 'sensor-type' ? 'Sensor types' : `${open.pollutant}: ${POLLUTANT_NAMES[open.pollutant]}`
+    open === null ? '' : open.kind === 'sensor-type' ? 'Sensor types' : POLLUTANT_NAMES[open.pollutant] === open.pollutant ? open.pollutant : `${open.pollutant}: ${POLLUTANT_NAMES[open.pollutant]}`
 
   return (
     <section aria-label={`${city.name}'s air quality network`} className="mx-auto max-w-6xl px-4">
@@ -199,7 +199,7 @@ export function CitySection({ city }: CitySectionProps) {
         <div>
           <h3 className="mb-3 text-base font-semibold text-foreground">Sensor types</h3>
           {/* Two columns across the full content width at every size (decision E2). */}
-          <div className="grid grid-cols-2 gap-3" data-tile-grid="sensor-types">
+          <div className="grid auto-rows-fr grid-cols-2 gap-3" data-tile-grid="sensor-types">
             {types.map((type) => (
               <Tile
                 key={type}
@@ -234,7 +234,8 @@ export function CitySection({ city }: CitySectionProps) {
           <h3 className="mb-3 text-base font-semibold text-foreground">Pollutants monitored</h3>
           {/* Two columns on a phone, four from tablet up (decision E3). Decision I: name and arrow
               only, plus the largest-source icon where the city's study names one (decision J). */}
-          <div className="grid grid-cols-2 gap-3 md:grid-cols-4" data-tile-grid="pollutants">
+          {/* Every row the same height, also a row with no source icon (auto-rows-fr). */}
+          <div className="grid auto-rows-fr grid-cols-2 gap-3 md:grid-cols-4" data-tile-grid="pollutants">
             {pollutants.map((pollutant) => (
               <PollutantTile
                 key={pollutant}

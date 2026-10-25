@@ -169,7 +169,8 @@ function SensorBody({ city, sensor, onOpenDetail, headingId, headingRef }: Senso
       {/* Decision R: a district with no band gets no line at all. */}
       {index !== null && city.mapMethod === 'district' && area !== null && area.band !== null && (
         <p className="flex flex-wrap items-center gap-1.5 text-sm text-foreground/85" data-card-district-line="">
-          <span>In {area.name}:</span>
+          {/* Don't repeat the district when the sensor is already named by it ("In Tebet"). */}
+          {!(sensor.name === null && sensor.location === area.name) && <span>In {area.name}:</span>}
           <BandChip index={index} band={area.band} pollutant={null} stale={false} />
           <span aria-hidden="true">·</span>
           <span>{index.name}</span>
