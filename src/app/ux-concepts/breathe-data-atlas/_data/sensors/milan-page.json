@@ -41,6 +41,14 @@
      "averaging": "1-hour average",
      "band": null,
      "updatedMinutesAgo": null
+    },
+    {
+     "pollutant": "NOₓ",
+     "value": 40.1,
+     "unit": "µg/m³",
+     "averaging": "1-hour average",
+     "band": null,
+     "updatedMinutesAgo": null
     }
    ]
   },
@@ -91,10 +99,34 @@
      "updatedMinutesAgo": null
     },
     {
+     "pollutant": "NOₓ",
+     "value": 99.7,
+     "unit": "µg/m³",
+     "averaging": "1-hour average",
+     "band": null,
+     "updatedMinutesAgo": null
+    },
+    {
      "pollutant": "CO",
      "value": 1085,
      "unit": "µg/m³",
      "averaging": "8-hour average",
+     "band": null,
+     "updatedMinutesAgo": null
+    },
+    {
+     "pollutant": "Black carbon",
+     "value": 2.0,
+     "unit": "µg/m³",
+     "averaging": "24-hour average",
+     "band": null,
+     "updatedMinutesAgo": null
+    },
+    {
+     "pollutant": "Benzene",
+     "value": 2.16,
+     "unit": "µg/m³",
+     "averaging": "24-hour average",
      "band": null,
      "updatedMinutesAgo": null
     }
@@ -139,10 +171,74 @@
      "updatedMinutesAgo": null
     },
     {
+     "pollutant": "NOₓ",
+     "value": 102.9,
+     "unit": "µg/m³",
+     "averaging": "1-hour average",
+     "band": null,
+     "updatedMinutesAgo": null
+    },
+    {
      "pollutant": "SO₂",
      "value": 7.5,
      "unit": "µg/m³",
      "averaging": "1-hour average",
+     "band": null,
+     "updatedMinutesAgo": null
+    },
+    {
+     "pollutant": "Black carbon",
+     "value": 1.3,
+     "unit": "µg/m³",
+     "averaging": "24-hour average",
+     "band": null,
+     "updatedMinutesAgo": null
+    },
+    {
+     "pollutant": "Benzene",
+     "value": 1.83,
+     "unit": "µg/m³",
+     "averaging": "24-hour average",
+     "band": null,
+     "updatedMinutesAgo": null
+    },
+    {
+     "pollutant": "As",
+     "value": 0.86,
+     "unit": "ng/m³",
+     "averaging": "24-hour average",
+     "band": null,
+     "updatedMinutesAgo": null
+    },
+    {
+     "pollutant": "Cd",
+     "value": 0.34,
+     "unit": "ng/m³",
+     "averaging": "24-hour average",
+     "band": null,
+     "updatedMinutesAgo": null
+    },
+    {
+     "pollutant": "Ni",
+     "value": 1.58,
+     "unit": "ng/m³",
+     "averaging": "24-hour average",
+     "band": null,
+     "updatedMinutesAgo": null
+    },
+    {
+     "pollutant": "Pb",
+     "value": 5.66,
+     "unit": "ng/m³",
+     "averaging": "24-hour average",
+     "band": null,
+     "updatedMinutesAgo": null
+    },
+    {
+     "pollutant": "BaP",
+     "value": 1.34,
+     "unit": "ng/m³",
+     "averaging": "24-hour average",
      "band": null,
      "updatedMinutesAgo": null
     }
@@ -195,10 +291,26 @@
      "updatedMinutesAgo": null
     },
     {
+     "pollutant": "NOₓ",
+     "value": 68.7,
+     "unit": "µg/m³",
+     "averaging": "1-hour average",
+     "band": null,
+     "updatedMinutesAgo": null
+    },
+    {
      "pollutant": "CO",
      "value": 806,
      "unit": "µg/m³",
      "averaging": "8-hour average",
+     "band": null,
+     "updatedMinutesAgo": null
+    },
+    {
+     "pollutant": "NH₃",
+     "value": 5.1,
+     "unit": "µg/m³",
+     "averaging": "24-hour average",
      "band": null,
      "updatedMinutesAgo": null
     }
@@ -237,6 +349,14 @@
     {
      "pollutant": "NO₂",
      "value": 56.9,
+     "unit": "µg/m³",
+     "averaging": "1-hour average",
+     "band": null,
+     "updatedMinutesAgo": null
+    },
+    {
+     "pollutant": "NOₓ",
+     "value": 91.6,
      "unit": "µg/m³",
      "averaging": "1-hour average",
      "band": null,

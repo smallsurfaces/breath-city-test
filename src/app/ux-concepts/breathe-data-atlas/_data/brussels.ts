@@ -84,6 +84,10 @@ export const BRUSSELS: CityPage = {
   sensorTypeGrowth: {
     'reference-grade': { startYear: 2010, values: [7, 7, 7, 7, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8], status: 'sample' },
   },
+  // Round 3 decision X: every pollutant the city publishes in its station data, in tile order.
+  publishedPollutants: ['PM2.5', 'PM10', 'O₃', 'NO₂', 'NO', 'SO₂', 'CO', 'Black carbon', 'Benzene'],
+  publishedPollutantsSource: 'brussels-pollutant-names.csv: qualitedelair.brussels telemetric dashboard menu.',
+  indexPollutants: ['PM2.5', 'PM10', 'O₃', 'NO₂'],
   pollutants: {
     'PM2.5': {
       sources: [
@@ -94,7 +98,7 @@ export const BRUSSELS: CityPage = {
       ],
       sourcesNote: null,
       largestSource: { icon: 'home-heating', label: 'Heating buildings' },
-      sitesGrowth: { startYear: 2010, values: [5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 8, 8], status: 'sample' },
+      sourcesSubject: null,
     },
     PM10: {
       sources: [
@@ -103,7 +107,7 @@ export const BRUSSELS: CityPage = {
       ],
       sourcesNote: null,
       largestSource: { icon: 'road-traffic', label: 'Road transport' },
-      sitesGrowth: { startYear: 2010, values: [7, 7, 7, 7, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8], status: 'sample' },
+      sourcesSubject: null,
     },
     'O₃': {
       sources: [
@@ -113,7 +117,7 @@ export const BRUSSELS: CityPage = {
       ],
       sourcesNote: 'Ozone is not emitted directly. The inventory lists sources of the gases that form it.',
       largestSource: null,
-      sitesGrowth: { startYear: 2010, values: [6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 7, 8, 8, 8, 8, 8, 8], status: 'sample' },
+      sourcesSubject: null,
     },
     'NO₂': {
       sources: [
@@ -123,7 +127,48 @@ export const BRUSSELS: CityPage = {
       ],
       sourcesNote: 'Shares are of nitrogen oxides, the group nitrogen dioxide belongs to.',
       largestSource: { icon: 'road-traffic', label: 'Road transport' },
-      sitesGrowth: { startYear: 2010, values: [7, 7, 7, 7, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8], status: 'sample' },
+      sourcesSubject: 'nitrogen oxides',
+    },
+    NO: {
+      sources: [],
+      sourcesNote: null,
+      largestSource: null,
+      sourcesSubject: null,
+    },
+    'SO₂': {
+      sources: [
+        { category: 'Combustion in buildings', share: '82%', icon: 'home-heating' },
+        { category: 'Public power', share: '11.5%', icon: 'industry' },
+      ],
+      sourcesNote: null,
+      largestSource: { icon: 'home-heating', label: 'Heating buildings' },
+      sourcesSubject: null,
+    },
+    CO: {
+      sources: [
+        { category: 'Heating buildings (other stationary combustion)', share: '44.5%', icon: 'home-heating' },
+        { category: 'Road transport', share: '38.9%', icon: 'road-traffic' },
+        { category: 'Off-road machinery', share: '10.3%', icon: 'construction' },
+      ],
+      sourcesNote: null,
+      largestSource: { icon: 'home-heating', label: 'Heating buildings' },
+      sourcesSubject: null,
+    },
+    'Black carbon': {
+      sources: [
+        { category: 'Heating buildings (other stationary combustion)', share: '51.3%', icon: 'home-heating' },
+        { category: 'Road transport', share: '30.2%', icon: 'road-traffic' },
+        { category: 'Industry', share: '13.0%', icon: 'industry' },
+      ],
+      sourcesNote: null,
+      largestSource: { icon: 'home-heating', label: 'Heating buildings' },
+      sourcesSubject: null,
+    },
+    Benzene: {
+      sources: [],
+      sourcesNote: null,
+      largestSource: null,
+      sourcesSubject: null,
     },
   },
   sourcesCredit: INVENTORY,

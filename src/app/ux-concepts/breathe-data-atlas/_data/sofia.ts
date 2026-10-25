@@ -43,11 +43,11 @@ export const SOFIA: CityPage = {
   methodLine: 'Sofia publishes readings from its monitoring stations and a PM10 concentration scale, but no air quality index.',
   legendLine: 'Sofia does not publish an air quality index. Tap a sensor to see its latest readings.',
   // Round 3 decision U, extended to Sofia (Jack): one line in place of the legend's index block.
-  // "forecast" is confirmed: sofia-aqi-bands.csv lists the NIMH PM10 forecast on air.sofia.bg
-  // (https://air.sofia.bg/airpublic/forecasts/list/).
+  // Refined (coordinator, 25 October): matches Milan's line; links the NIMH PM10 forecast page listed
+  // in sofia-aqi-bands.csv (confirmed live 25 October: today and tomorrow). No forecast view on our map.
   legendNote: {
-    text: 'For Sofia’s air quality readings and forecast, visit',
-    link: { label: 'air.sofia.bg', url: 'https://air.sofia.bg/' },
+    text: 'For Sofia’s PM10 forecast, visit',
+    link: { label: 'air.sofia.bg', url: 'https://air.sofia.bg/airpublic/forecasts/list/' },
   },
   mapCredit: null,
   updateCycleMinutes: 180,
@@ -67,6 +67,10 @@ export const SOFIA: CityPage = {
     'reference-grade': { startYear: 2012, values: [5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6], status: 'sample' },
     'low-cost': { startYear: 2021, values: [2, 3, 5, 6, 7, 8], status: 'sample' },
   },
+  // Round 3 decision X: every pollutant the city publishes in its station data, in tile order.
+  publishedPollutants: ['PM2.5', 'PM10', 'O₃', 'NO₂', 'NO', 'NOₓ', 'SO₂', 'CO', 'Benzene', 'H₂S', 'CH₄', 'NMHC', 'THC'],
+  publishedPollutantsSource: 'sofia-pollutant-names.csv: air.sofia.bg station charts and report selector.',
+  indexPollutants: [],
   pollutants: {
     'PM2.5': {
       sources: [
@@ -78,7 +82,7 @@ export const SOFIA: CityPage = {
       ],
       sourcesNote: null,
       largestSource: { icon: 'home-heating', label: 'Household heating' },
-      sitesGrowth: { startYear: 2012, values: [3, 3, 3, 4, 4, 5, 5, 5, 5, 7, 8, 10, 11, 13, 14], status: 'sample' },
+      sourcesSubject: null,
     },
     PM10: {
       sources: [
@@ -90,13 +94,13 @@ export const SOFIA: CityPage = {
       ],
       sourcesNote: null,
       largestSource: { icon: 'home-heating', label: 'Household heating' },
-      sitesGrowth: { startYear: 2012, values: [5, 5, 5, 5, 5, 6, 6, 6, 6, 8, 9, 11, 12, 13, 14], status: 'sample' },
+      sourcesSubject: null,
     },
     'O₃': {
       sources: [],
       sourcesNote: null,
       largestSource: null,
-      sitesGrowth: { startYear: 2012, values: [4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6], status: 'sample' },
+      sourcesSubject: null,
     },
     'NO₂': {
       sources: [
@@ -106,13 +110,13 @@ export const SOFIA: CityPage = {
       ],
       sourcesNote: 'Shares are of nitrogen oxides, the group nitrogen dioxide belongs to.',
       largestSource: { icon: 'road-traffic', label: 'Road transport' },
-      sitesGrowth: { startYear: 2012, values: [4, 4, 4, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6], status: 'sample' },
+      sourcesSubject: 'nitrogen oxides',
     },
     'SO₂': {
       sources: [],
       sourcesNote: null,
       largestSource: null,
-      sitesGrowth: { startYear: 2012, values: [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2], status: 'sample' },
+      sourcesSubject: null,
     },
     CO: {
       sources: [
@@ -122,7 +126,53 @@ export const SOFIA: CityPage = {
       ],
       sourcesNote: null,
       largestSource: { icon: 'home-heating', label: 'Household heating' },
-      sitesGrowth: { startYear: 2012, values: [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2], status: 'sample' },
+      sourcesSubject: null,
+    },
+    NO: {
+      sources: [],
+      sourcesNote: null,
+      largestSource: null,
+      sourcesSubject: null,
+    },
+    'NOₓ': {
+      sources: [
+        { category: 'Road transport', share: '78.73%', icon: 'road-traffic' },
+        { category: 'Industry', share: '15.55%', icon: 'industry' },
+        { category: 'Household heating', share: '5.72%', icon: 'home-heating' },
+      ],
+      sourcesNote: null,
+      largestSource: { icon: 'road-traffic', label: 'Road transport' },
+      sourcesSubject: null,
+    },
+    Benzene: {
+      sources: [],
+      sourcesNote: null,
+      largestSource: null,
+      sourcesSubject: null,
+    },
+    'H₂S': {
+      sources: [],
+      sourcesNote: null,
+      largestSource: null,
+      sourcesSubject: null,
+    },
+    'CH₄': {
+      sources: [],
+      sourcesNote: null,
+      largestSource: null,
+      sourcesSubject: null,
+    },
+    NMHC: {
+      sources: [],
+      sourcesNote: null,
+      largestSource: null,
+      sourcesSubject: null,
+    },
+    THC: {
+      sources: [],
+      sourcesNote: null,
+      largestSource: null,
+      sourcesSubject: null,
     },
   },
   sourcesCredit: PROGRAMME,

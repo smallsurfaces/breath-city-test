@@ -133,6 +133,10 @@ export const JAKARTA: CityPage = {
     'reference-grade': { startYear: 2019, values: [5, 5, 5, 6, 8, 10, 11, 12], status: 'sample' },
     'low-cost': { startYear: 2023, values: [12, 40, 72, 90], status: 'sample' },
   },
+  // Round 3 decision X: every pollutant the city publishes in its station data, in tile order.
+  publishedPollutants: ['PM2.5', 'PM10', 'TSP', 'O₃', 'NO₂', 'NO', 'SO₂', 'CO', 'HC'],
+  publishedPollutantsSource: 'jakarta-pollutant-names.csv: Udara Jakarta station pages (PM2.5, PM10, CO, SO2, NO2, O3, HC, NO); BMKG (TSP).',
+  indexPollutants: ['PM2.5', 'PM10', 'O₃', 'NO₂', 'SO₂', 'CO', 'HC'],
   pollutants: {
     'PM2.5': {
       sources: [
@@ -143,19 +147,19 @@ export const JAKARTA: CityPage = {
       ],
       sourcesNote: null,
       largestSource: { icon: 'other', label: 'Transport and industry' },
-      sitesGrowth: { startYear: 2019, values: [5, 5, 5, 6, 20, 50, 83, 102], status: 'sample' },
+      sourcesSubject: null,
     },
     PM10: {
       sources: [{ category: 'Transport and industry (combined)', share: 'above 46%', icon: 'other' }],
       sourcesNote: null,
       largestSource: { icon: 'other', label: 'Transport and industry' },
-      sitesGrowth: { startYear: 2019, values: [5, 5, 5, 6, 8, 10, 11, 12], status: 'sample' },
+      sourcesSubject: null,
     },
     'O₃': {
       sources: [],
       sourcesNote: null,
       largestSource: null,
-      sitesGrowth: { startYear: 2019, values: [5, 5, 5, 6, 8, 10, 11, 12], status: 'sample' },
+      sourcesSubject: null,
     },
     'NO₂': {
       sources: [
@@ -165,7 +169,7 @@ export const JAKARTA: CityPage = {
       ],
       sourcesNote: 'Shares are ranges across the emission inventories the plan reviewed.',
       largestSource: { icon: 'road-traffic', label: 'Transport' },
-      sitesGrowth: { startYear: 2019, values: [5, 5, 5, 6, 8, 10, 11, 12], status: 'sample' },
+      sourcesSubject: 'nitrogen oxides',
     },
     'SO₂': {
       sources: [
@@ -175,13 +179,31 @@ export const JAKARTA: CityPage = {
       ],
       sourcesNote: 'Shares are ranges across the emission inventories the plan reviewed.',
       largestSource: { icon: 'industry', label: 'Industry' },
-      sitesGrowth: { startYear: 2019, values: [5, 5, 5, 6, 8, 10, 11, 12], status: 'sample' },
+      sourcesSubject: null,
     },
     CO: {
       sources: [],
       sourcesNote: null,
       largestSource: null,
-      sitesGrowth: { startYear: 2019, values: [5, 5, 5, 6, 8, 10, 11, 12], status: 'sample' },
+      sourcesSubject: null,
+    },
+    TSP: {
+      sources: [],
+      sourcesNote: null,
+      largestSource: null,
+      sourcesSubject: null,
+    },
+    NO: {
+      sources: [],
+      sourcesNote: null,
+      largestSource: null,
+      sourcesSubject: null,
+    },
+    HC: {
+      sources: [],
+      sourcesNote: null,
+      largestSource: null,
+      sourcesSubject: null,
     },
   },
   sourcesCredit: GRAND_DESIGN,

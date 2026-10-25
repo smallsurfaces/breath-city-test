@@ -37,11 +37,50 @@
  * External dependencies: none (the caller passes the JSON in).
  */
 
-/** Pollutants as Bogotá's feed names them, in the order the page lists them. */
-export type PollutantId = 'PM2.5' | 'PM10' | 'O₃' | 'NO₂' | 'SO₂' | 'CO'
+/**
+ * Every pollutant any of the five cities publishes in its station data (round 3 decision X:
+ * "we show the data that we get from the cities"), by its notation. Each city lists its own in
+ * CityPage.publishedPollutants, from its <city>-pollutant-names.csv.
+ */
+export type PollutantId =
+  | 'PM1' | 'PM2.5' | 'PM10' | 'TSP' | 'O₃' | 'NO₂' | 'NO' | 'NOₓ' | 'SO₂' | 'CO' | 'HC' | 'Black carbon'
+  | 'Benzene' | 'H₂S' | 'CH₄' | 'NMHC' | 'THC' | 'NH₃' | 'As' | 'Cd' | 'Ni' | 'Pb' | 'BaP'
 
-/** The order pollutants are listed in, everywhere. */
-export const POLLUTANT_ORDER: PollutantId[] = ['PM2.5', 'PM10', 'O₃', 'NO₂', 'SO₂', 'CO']
+/** The order pollutants are listed in, everywhere (particles, the index gases, then the rest). */
+export const POLLUTANT_ORDER: PollutantId[] = [
+  'PM1', 'PM2.5', 'PM10', 'TSP', 'O₃', 'NO₂', 'NO', 'NOₓ', 'SO₂', 'CO', 'HC', 'Black carbon',
+  'Benzene', 'H₂S', 'CH₄', 'NMHC', 'THC', 'NH₃', 'As', 'Cd', 'Ni', 'Pb', 'BaP',
+]
+
+/**
+ * Each pollutant's English name, as the cities' own lists name it (translated). A name, not a
+ * description: nothing here explains what a pollutant is or does (decision X: "we don't interpret it").
+ */
+export const POLLUTANT_NAMES: Record<PollutantId, string> = {
+  PM1: 'Particulate matter PM1',
+  'PM2.5': 'Fine particulate matter',
+  PM10: 'Coarse particulate matter',
+  TSP: 'Total suspended particulates',
+  'O₃': 'Ozone',
+  'NO₂': 'Nitrogen dioxide',
+  NO: 'Nitrogen monoxide',
+  'NOₓ': 'Nitrogen oxides',
+  'SO₂': 'Sulfur dioxide',
+  CO: 'Carbon monoxide',
+  HC: 'Hydrocarbons',
+  'Black carbon': 'Black carbon',
+  Benzene: 'Benzene',
+  'H₂S': 'Hydrogen sulfide',
+  'CH₄': 'Methane',
+  NMHC: 'Non-methane hydrocarbons',
+  THC: 'Total hydrocarbons',
+  'NH₃': 'Ammonia',
+  As: 'Arsenic',
+  Cd: 'Cadmium',
+  Ni: 'Nickel',
+  Pb: 'Lead',
+  BaP: 'Benzo(a)pyrene',
+}
 
 /** Sensor type: circle on the map for low-cost, square for a reference monitor. */
 export type SensorType = 'low-cost' | 'reference-grade'

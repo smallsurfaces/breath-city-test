@@ -48,7 +48,8 @@ function areaCaption(city: CityPage, name: string | null): string {
   if (city.mapMethod === 'surface') return 'Regional model at this point'
   return name === null ? 'In this district' : `In ${name}`
 }
-import { ageWords, freshnessOf, sensorTypeCardLabel } from '../../_data/city-sensors'
+import { ageWords, freshnessOf, POLLUTANT_NAMES, sensorTypeCardLabel } from '../../_data/city-sensors'
+import { POLLUTANT_EXPLAINERS } from '../../_data/pollutant-explainers'
 import type { CitySensor, PollutantId } from '../../_data/city-sensors'
 
 /** Props for SensorDetail. */
@@ -77,14 +78,10 @@ export function SensorDetailBelow({ sensor }: SensorHeaderProps) {
   return <p className="text-xs text-foreground/70" data-detail-station-type="">Station type: {sensor.stationType}</p>
 }
 
-/** How the averaging note names a pollutant in prose: particles by symbol, gases by name. */
-const POLLUTANT_PROSE_NAME: Record<PollutantId, string> = {
-  'PM2.5': 'PM2.5',
-  PM10: 'PM10',
-  'O₃': 'ozone',
-  'NO₂': 'nitrogen dioxide',
-  'SO₂': 'sulfur dioxide',
-  CO: 'carbon monoxide',
+/** How the averaging note names a pollutant in prose: particles by notation, gases by name. Pure. */
+function proseName(pollutant: PollutantId): string {
+  if (pollutant.startsWith('PM') || pollutant === 'TSP') return pollutant
+  return POLLUTANT_NAMES[pollutant].toLowerCase()
 }
 
 /** "a" or "an" before an averaging time: "an 8-hour", "a 12-hour", "a 1-hour". Pure. */
@@ -100,8 +97,12 @@ function articleFor(averaging: string): string {
  */
 function averagingNote(city: CityPage, pollutant: PollutantId, averaging: string): string {
   // A city with no index sets no level (Sofia, Milan): say how the reading is published instead.
-  if (city.index === null) return `${city.name} publishes this reading as ${articleFor(averaging)} ${averaging}.`
-  return `${city.index.name} sets the ${POLLUTANT_PROSE_NAME[pollutant]} level from ${articleFor(averaging)} ${averaging}.`
+  // Decision X: the index only sets a level for the pollutants it rates; any other published reading
+  // is described as the city publishes it.
+  if (city.index === null || !city.indexPollutants.includes(pollutant)) {
+    return `${city.name} publishes this reading as ${articleFor(averaging)} ${averaging}.`
+  }
+  return `${city.index.name} sets the ${proseName(pollutant)} level from ${articleFor(averaging)} ${averaging}.`
 }
 
 /** The sensor detail's content. */
@@ -140,7 +141,9 @@ export function SensorDetail({ city, sensor }: SensorDetailProps) {
         </div>
         <ul className="mt-2 divide-y divide-border border-y border-border">
           {sensor.readings.map((reading) => {
-            const open = openPollutant === reading.pollutant
+            // Decision X: a pollutant without a sourced description has nothing to expand.
+            const expandable = POLLUTANT_EXPLAINERS[reading.pollutant] !== undefined
+            const open = expandable && openPollutant === reading.pollutant
             const panelId = `bda-explainer-${sensor.id}-${reading.pollutant}`
             // Its own time only where it is older than the heading's (decision D3).
             const ownTime =
@@ -153,16 +156,20 @@ export function SensorDetail({ city, sensor }: SensorDetailProps) {
                     row (after:inset-0). The "i" sits above that layer (z-10), outside the button,
                     since a button cannot hold another button. */}
                 <div className="relative flex min-h-14 w-full items-center gap-3 py-2" data-reading-row={reading.pollutant}>
-                  <button
-                    type="button"
-                    aria-expanded={open}
-                    aria-controls={panelId}
-                    onClick={() => setOpenPollutant(open ? null : reading.pollutant)}
-                    className="w-14 shrink-0 text-left text-sm font-semibold text-foreground outline-none after:absolute after:inset-0 after:content-[''] focus-visible:after:outline-2 focus-visible:after:outline-offset-2 focus-visible:after:outline-foreground"
-                  >
-                    {reading.pollutant}
-                    <span className="sr-only">: {open ? 'hide' : 'show'} what {reading.pollutant} is</span>
-                  </button>
+                  {expandable ? (
+                    <button
+                      type="button"
+                      aria-expanded={open}
+                      aria-controls={panelId}
+                      onClick={() => setOpenPollutant(open ? null : reading.pollutant)}
+                      className="w-20 shrink-0 text-left text-sm font-semibold text-foreground outline-none after:absolute after:inset-0 after:content-[''] focus-visible:after:outline-2 focus-visible:after:outline-offset-2 focus-visible:after:outline-foreground"
+                    >
+                      {reading.pollutant}
+                      <span className="sr-only">: {open ? 'hide' : 'show'} what {reading.pollutant} is</span>
+                    </button>
+                  ) : (
+                    <span className="w-20 shrink-0 [overflow-wrap:normal] text-sm font-semibold leading-tight text-foreground">{reading.pollutant}</span>
+                  )}
                   <span className="flex min-w-0 flex-1 items-center gap-1.5">
                     <span className="text-base font-semibold tabular-nums text-foreground">
                       {reading.value}
@@ -183,11 +190,15 @@ export function SensorDetail({ city, sensor }: SensorDetailProps) {
                       <BandChip index={city.index} band={reading.band} pollutant={null} stale={false} />
                     </span>
                   )}
-                  <ChevronDown className={`pointer-events-none h-4 w-4 shrink-0 transition-transform ${open ? 'rotate-180' : ''}`} aria-hidden="true" />
+                  {expandable ? (
+                    <ChevronDown className={`pointer-events-none h-4 w-4 shrink-0 transition-transform ${open ? 'rotate-180' : ''}`} aria-hidden="true" />
+                  ) : (
+                    <span className="h-4 w-4 shrink-0" aria-hidden="true" />
+                  )}
                 </div>
                 {open && (
-                  // Starts at the value's left edge: the pollutant column (w-14) plus the gap (decision D4).
-                  <div id={panelId} className="pb-4 pl-[4.25rem] pt-1" data-explainer-panel="">
+                  // Starts at the value's left edge: the pollutant column (w-20) plus the gap (decision D4).
+                  <div id={panelId} className="pb-4 pl-[5.75rem] pt-1" data-explainer-panel="">
                     <PollutantExplainerShort pollutant={reading.pollutant} />
                   </div>
                 )}

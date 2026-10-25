@@ -50,9 +50,8 @@ import { PassiveTubeIcon, SensorTypeIcon, Sparkline } from './city-ui'
 import { hasYearOfArchive } from '../../_data/city-page'
 import type { CityPage, GrowthSeries, LargestSource } from '../../_data/city-page'
 import { SourceIcon } from './SourceIcon'
-import { POLLUTANT_ORDER, sensorTypeLabel } from '../../_data/city-sensors'
+import { POLLUTANT_NAMES, sensorTypeLabel } from '../../_data/city-sensors'
 import type { PollutantId, SensorType } from '../../_data/city-sensors'
-import { POLLUTANT_EXPLAINERS } from '../../_data/pollutant-explainers'
 
 /** What the pop-up is showing. */
 type OpenExplainer = { kind: 'sensor-type' } | { kind: 'pollutant'; pollutant: PollutantId } | null
@@ -186,10 +185,11 @@ export function CitySection({ city }: CitySectionProps) {
   )
   // Round 3 decision T: the pop-up lists exactly the kinds the tiles show (S adds passive tubes).
   const kinds: SensorKind[] = [...types, ...(city.passiveTubes === null ? [] : (['passive-tubes'] as SensorKind[]))]
-  const pollutants = POLLUTANT_ORDER.filter((pollutant) => sitesMeasuring(city, pollutant) > 0)
+  // Decision X: exactly the city's published list (the build checks each has a reporting station).
+  const pollutants = city.publishedPollutants
 
   const dialogTitle =
-    open === null ? '' : open.kind === 'sensor-type' ? 'Sensor types' : `${open.pollutant}: ${POLLUTANT_EXPLAINERS[open.pollutant].name}`
+    open === null ? '' : open.kind === 'sensor-type' ? 'Sensor types' : `${open.pollutant}: ${POLLUTANT_NAMES[open.pollutant]}`
 
   return (
     <section aria-label={`${city.name}'s air quality network`} className="mx-auto max-w-6xl px-4">
@@ -261,7 +261,7 @@ export function CitySection({ city }: CitySectionProps) {
             city={city}
             pollutant={open.pollutant}
             sites={sitesMeasuring(city, open.pollutant)}
-            series={city.pollutants[open.pollutant]?.sitesGrowth ?? null}
+            series={null}
             showSparkline={sparklines}
           />
         )}

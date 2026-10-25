@@ -130,6 +130,10 @@ export const BOGOTA: CityPage = {
     'reference-grade': { startYear: 2015, values: [13, 13, 13, 14, 14, 14, 15, 15, 15, 16, 16, 16], status: 'sample' },
     'low-cost': { startYear: 2022, values: [2, 4, 6, 7, 8], status: 'sample' },
   },
+  // Round 3 decision X: every pollutant the city publishes in its station data, in tile order.
+  publishedPollutants: ['PM1', 'PM2.5', 'PM10', 'O₃', 'NO₂', 'NO', 'NOₓ', 'SO₂', 'CO', 'Black carbon'],
+  publishedPollutantsSource: 'bogota-pollutant-names.csv: RMCAB station feed (PM10, O3, NO2, NO, NOX, SO2, CO, eBC), microsensor tables (PM1, PM2.5); BBP excluded (not a pollutant, per the file).',
+  indexPollutants: ['PM2.5', 'PM10', 'O₃', 'NO₂', 'SO₂', 'CO'],
   pollutants: {
     'PM2.5': {
       sources: [
@@ -143,7 +147,7 @@ export const BOGOTA: CityPage = {
       sourcesNote: null,
       // Largest share: road dust resuspension, 40%.
       largestSource: { icon: 'road-dust', label: 'Road dust' },
-      sitesGrowth: { startYear: 2015, values: [14, 14, 15, 15, 16, 16, 18, 20, 21, 23, 24, 24], status: 'sample' },
+      sourcesSubject: null,
     },
     PM10: {
       sources: [
@@ -154,7 +158,7 @@ export const BOGOTA: CityPage = {
       sourcesNote: null,
       // Largest share in the file: road dust resuspension (76.2%, derived from the inventory's tonnes).
       largestSource: { icon: 'road-dust', label: 'Road dust' },
-      sitesGrowth: { startYear: 2015, values: [15, 15, 15, 16, 16, 17, 18, 20, 21, 23, 24, 24], status: 'sample' },
+      sourcesSubject: null,
     },
     'O₃': {
       sources: [
@@ -164,7 +168,7 @@ export const BOGOTA: CityPage = {
       sourcesNote: 'Ozone is not emitted directly. The inventory lists sources of the gases that form it.',
       // Ozone forms in the air: no direct source, so no icon (decision J).
       largestSource: null,
-      sitesGrowth: { startYear: 2015, values: [11, 11, 11, 12, 12, 12, 12, 13, 13, 13, 13, 13], status: 'sample' },
+      sourcesSubject: null,
     },
     'NO₂': {
       sources: [
@@ -175,7 +179,7 @@ export const BOGOTA: CityPage = {
       sourcesNote: null,
       // Largest share in the file: on-road mobile sources, combustion (79.4% of NOx, derived).
       largestSource: { icon: 'road-traffic', label: 'Vehicle exhaust' },
-      sitesGrowth: { startYear: 2015, values: [10, 10, 11, 11, 11, 12, 12, 12, 13, 13, 13, 13], status: 'sample' },
+      sourcesSubject: 'nitrogen oxides',
     },
     'SO₂': {
       sources: [
@@ -185,14 +189,45 @@ export const BOGOTA: CityPage = {
       sourcesNote: null,
       // Largest share in the file: industrial fixed sources (81.1% of SOx, derived).
       largestSource: { icon: 'industry', label: 'Industry' },
-      sitesGrowth: { startYear: 2015, values: [6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 7, 7], status: 'sample' },
+      sourcesSubject: null,
     },
     CO: {
       sources: [{ category: 'Fuel burned by vehicles on roads', share: null, icon: 'road-traffic' }],
       sourcesNote: null,
       // Largest share in the file: on-road mobile sources, combustion (92.6%, derived).
       largestSource: { icon: 'road-traffic', label: 'Vehicle exhaust' },
-      sitesGrowth: { startYear: 2015, values: [7, 7, 7, 7, 8, 8, 8, 8, 8, 8, 8, 8], status: 'sample' },
+      sourcesSubject: null,
+    },
+    PM1: {
+      sources: [],
+      sourcesNote: null,
+      largestSource: null,
+      sourcesSubject: null,
+    },
+    NO: {
+      sources: [],
+      sourcesNote: null,
+      largestSource: null,
+      sourcesSubject: null,
+    },
+    'NOₓ': {
+      sources: [
+        { category: 'Fuel burned by vehicles on roads', share: null, icon: 'road-traffic' },
+        { category: 'Off-road machinery', share: null, icon: 'construction' },
+        { category: 'Industry', share: null, icon: 'industry' },
+      ],
+      sourcesNote: null,
+      largestSource: { icon: 'road-traffic', label: 'Vehicle exhaust' },
+      sourcesSubject: null,
+    },
+    'Black carbon': {
+      sources: [
+        { category: 'Off-road machinery', share: null, icon: 'construction' },
+        { category: 'Vehicles on roads', share: null, icon: 'road-traffic' },
+      ],
+      sourcesNote: null,
+      largestSource: { icon: 'construction', label: 'Off-road machinery' },
+      sourcesSubject: null,
     },
   },
   sourcesCredit: {
