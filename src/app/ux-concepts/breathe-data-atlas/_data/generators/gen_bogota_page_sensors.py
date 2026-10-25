@@ -6,7 +6,11 @@ Output: _data/sensors/bogota-page.json
 What is real and what is not
   POSITIONS and SENSOR TYPES are taken unchanged from the Atlas file _data/sensors/bogota.json
   (16 real RMCAB positions from the 2026-09-17 OpenAQ snapshot, 8 placed low-cost positions).
-  The OpenAQ provenance fields are NOT copied: nothing in the page file names a station.
+  Iteration 2 (round 1 feedback, decision C2): the card shows the station's NAME, or its LOCATION
+  where it has no name. Real stations (placed: false) carry RMCAB's own station name, from the
+  Atlas file's openaqName (the snapshot of the city's own network), with RMCAB's Spanish accents
+  restored. Placed low-cost sensors have no name; they carry the Bogotá locality (localidad) their
+  PLACED position falls in, read by eye from the locality map: MOCK, like the position itself.
   EVERYTHING ELSE IS INVENTED: readings, bands, freshness, station types. The page's nav notice
   ("Prototype with sample data") covers it, and every derived figure is marked "Sample figure".
 
@@ -81,6 +85,37 @@ PLAN = {
     'bogota-24': ({'PM2.5': 1, 'PM10': 1}, 5, None),
 }
 
+# RMCAB's station names, accents as RMCAB writes them (OpenAQ drops them). Keyed by Atlas id.
+STATION_NAMES = {
+    'bogota-01': 'Usme',
+    'bogota-02': 'Ciudad Bolívar',
+    'bogota-03': 'Fontibón',
+    'bogota-04': 'Guaymaral',
+    'bogota-05': 'Centro de Alto Rendimiento',
+    'bogota-06': 'Puente Aranda',
+    'bogota-07': 'Jazmín',
+    'bogota-08': 'Carvajal - Sevillana',
+    'bogota-09': 'San Cristóbal',
+    'bogota-10': 'MinAmbiente',
+    'bogota-11': 'Tunal',
+    'bogota-12': 'Las Ferias',
+    'bogota-13': 'Usaquén',
+    'bogota-14': 'Bosa',
+    'bogota-15': 'Bolivia',
+    'bogota-16': 'Móvil Fontibón',
+}
+# Placed low-cost sensors: the locality their mock position falls in (mock, by eye).
+LOCALITIES = {
+    'bogota-17': 'Kennedy',
+    'bogota-18': 'Usaquén',
+    'bogota-19': 'Suba',
+    'bogota-20': 'Bosa',
+    'bogota-21': 'Kennedy',
+    'bogota-22': 'Suba',
+    'bogota-23': 'San Cristóbal',
+    'bogota-24': 'Suba',
+}
+
 ORDER = ['PM2.5', 'PM10', 'O₃', 'NO₂', 'SO₂', 'CO']
 
 
@@ -131,6 +166,8 @@ for s in atlas['sensors']:
         'lngLat': s['lngLat'],
         'type': s['type'],
         'placed': s['placed'],
+        'name': STATION_NAMES.get(s['id']) if not s['placed'] else None,
+        'location': LOCALITIES.get(s['id']) if s['placed'] else None,
         'stationType': station_type,
         'overallBand': max(r['band'] for r in readings),
         'updatedMinutesAgo': minutes,

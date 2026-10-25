@@ -1,33 +1,35 @@
 /**
- * Explainers.tsx — the pollutant explainer and the sensor-type explainer (spec section 8).
+ * Explainers.tsx — the pollutant explainer at two levels, and the sensor-type explainer
+ * (spec section 8, reworked in iteration 2, decisions E4, G and H).
  *
  * Purpose
- *   ONE content component per explainer, shown in two places with the same content: inline in the
- *   sensor detail (a pollutant row expands to it) and in a dialog opened from the city section's
- *   tiles. Neither place adds or drops anything.
+ *   Two levels of pollutant explainer (confirmed by Jack, round 1):
+ *   - FULL, the pollutant pop-up opened from a tile (PollutantExplainerFull, decision G), in order:
+ *       1. Sites measuring it: the count and the sparkline, as on the tile
+ *       2. What it is                     (WHO)
+ *       3. What it does to the body       (WHO, no numbers)
+ *       4. What Bogotá advises            all bands: "IBOCA index" once, then each band as
+ *                                         swatch and label with its items (AdviceLadder)
+ *       5. Where it comes from in Bogotá  the inventory's categories, shares only where published
+ *     "Why Bogotá measures it" is dropped. Each section's source link sits behind an "i" next to
+ *     its heading (SourceInfo), not as a visible line.
+ *   - SHORT, inline in the sensor detail (PollutantExplainerShort, decision E4): "What it is" and
+ *     "What it does to the body" only.
+ *   The "Draft content" tag is gone (decision K2).
  *
- * Pollutant explainer, in the spec's order
- *   1. What it is                     WHO, plain words (../../_data/pollutant-explainers)
- *   2. Where it comes from in Bogotá  the city's own inventory categories, shares only where
- *                                     published, credited to the inventory
- *   3. What it does to the body       WHO, short and long term where stated, no numbers
- *   4. Why Bogotá measures it         one line, with a link to the city's index and its legal basis
- *   5. What Bogotá advises            every IBOCA level as label and colour, each with Bogotá's own
- *                                     advice (type R), and "IBOCA · Find out more". No breakpoints.
- *   Marked "Draft content": CAF has not confirmed WHO as the source.
+ * Sensor-type explainer (decision H)
+ *   The two descriptions only: no "On the map it is a square/circle" lines, no grey/hollow footnote.
  *
- * Sensor-type explainer
- *   What a reference monitor and a low-cost sensor are, what the square and circle on the map mean,
- *   and what each typically measures. Short, neutral, no accuracy figures.
- *
- * Key exports: PollutantExplainer, SensorTypeExplainer (named)
- * External dependencies: ./city-ui, ../chapter/ChapterLink, ../../_data/*.
+ * Key exports: PollutantExplainerFull, PollutantExplainerShort, SensorTypeExplainer (named)
+ * External dependencies: react (types), ./city-ui, ../chapter/CreditInfo, ../chapter/ChapterLink,
+ *   ../../_data/*.
  */
 
-import { AdviceBlock, DraftTag, SensorTypeIcon } from './city-ui'
+import type { ReactNode } from 'react'
+import { AdviceLadder, SensorTypeIcon, Sparkline } from './city-ui'
+import { CreditInfo } from '../chapter/CreditInfo'
 import { OutboundLink } from '../chapter/ChapterLink'
-import { levelDisplayName } from '../../_data/indexes'
-import type { CityPage } from '../../_data/bogota'
+import type { CityLink, CityPage, GrowthSeries } from '../../_data/bogota'
 import type { PollutantId } from '../../_data/city-sensors'
 import { POLLUTANT_EXPLAINERS, WHO_GROUPS_LINE, WHO_SOURCE_LINKS } from '../../_data/pollutant-explainers'
 
@@ -36,29 +38,138 @@ const STEP_HEADING = 'text-sm font-semibold text-foreground'
 /** Body text style. */
 const BODY = 'mt-1 text-sm leading-relaxed text-foreground/85'
 
-/** Props for PollutantExplainer. */
-type PollutantExplainerProps = {
-  city: CityPage
+/** Props for StepHeading. */
+type StepHeadingProps = {
+  children: ReactNode
+  /** The section's sources, behind an "i" beside the heading; empty for none. */
+  sources: CityLink[]
+  /** Accessible name for the "i". */
+  sourcesLabel: string
+}
+
+/** A step heading, with its sources behind an "i" (decision G). Sits inside a dialog. */
+function StepHeading({ children, sources, sourcesLabel }: StepHeadingProps) {
+  return (
+    <h4 className={`${STEP_HEADING} flex items-center gap-2`}>
+      {children}
+      {sources.length > 0 && (
+        <CreditInfo label={sourcesLabel} align="start" className="" inDialog={true}>
+          <ul className="space-y-1">
+            {sources.map((source) => (
+              <li key={source.url}>
+                <OutboundLink href={source.url} className="-my-3 text-sm font-medium text-foreground underline">
+                  {source.label}
+                </OutboundLink>
+              </li>
+            ))}
+          </ul>
+        </CreditInfo>
+      )}
+    </h4>
+  )
+}
+
+/** WHO's source links, as CityLinks. */
+const WHO_SOURCES: CityLink[] = WHO_SOURCE_LINKS.map((link) => ({ label: `WHO: ${link.label}`, url: link.url }))
+
+/** Props for the two WHO steps. */
+type WhoStepsProps = {
   pollutant: PollutantId
 }
 
-/** The pollutant explainer's content. Server-safe: no state. */
-export function PollutantExplainer({ city, pollutant }: PollutantExplainerProps) {
+/** "What it is". */
+function WhatItIs({ pollutant }: WhoStepsProps) {
   const global = POLLUTANT_EXPLAINERS[pollutant]
+  return (
+    <section>
+      <StepHeading sources={WHO_SOURCES} sourcesLabel="Sources for what it is">
+        What it is
+      </StepHeading>
+      <p className={BODY}>
+        <span className="font-medium text-foreground">{global.name}.</span> {global.whatItIs}
+      </p>
+    </section>
+  )
+}
+
+/** "What it does to the body". */
+function WhatItDoes({ pollutant }: WhoStepsProps) {
+  const global = POLLUTANT_EXPLAINERS[pollutant]
+  return (
+    <section>
+      <StepHeading sources={WHO_SOURCES} sourcesLabel="Sources for what it does to the body">
+        What it does to the body
+      </StepHeading>
+      {global.shortTerm !== null && (
+        <p className={BODY}>
+          <span className="font-medium text-foreground">Short term: </span>
+          {global.shortTerm}
+        </p>
+      )}
+      {global.longTerm !== null && (
+        <p className={BODY}>
+          <span className="font-medium text-foreground">Long term: </span>
+          {global.longTerm}
+        </p>
+      )}
+      <p className={BODY}>{WHO_GROUPS_LINE}</p>
+    </section>
+  )
+}
+
+/** Props for PollutantExplainerShort. */
+type PollutantExplainerShortProps = {
+  pollutant: PollutantId
+}
+
+/** The short explainer, inline in the sensor detail (decision E4). Server-safe: no state. */
+export function PollutantExplainerShort({ pollutant }: PollutantExplainerShortProps) {
+  return (
+    <div className="space-y-4">
+      <WhatItIs pollutant={pollutant} />
+      <WhatItDoes pollutant={pollutant} />
+    </div>
+  )
+}
+
+/** Props for PollutantExplainerFull. */
+type PollutantExplainerFullProps = {
+  city: CityPage
+  pollutant: PollutantId
+  /** Sites measuring it today (the tile's count). */
+  sites: number
+  series: GrowthSeries
+  /** Whether the city has a year of archive, so the sparkline shows (spec 6.2). */
+  showSparkline: boolean
+}
+
+/** The full explainer, the pollutant pop-up (decision G). Server-safe: no state. */
+export function PollutantExplainerFull({ city, pollutant, sites, series, showSparkline }: PollutantExplainerFullProps) {
   const local = city.pollutants[pollutant]
   return (
-    <div className="space-y-5">
-      <DraftTag>Draft content</DraftTag>
+    <div className="space-y-6">
+      <section aria-label={`Sites measuring ${pollutant}`}>
+        <h4 className={STEP_HEADING}>Sites measuring it</h4>
+        <div className="mt-1 flex items-end gap-5">
+          <span className="text-3xl font-bold leading-none text-foreground">{sites}</span>
+          {showSparkline && <Sparkline values={series.values} startYear={series.startYear} />}
+        </div>
+      </section>
+
+      <WhatItIs pollutant={pollutant} />
+      <WhatItDoes pollutant={pollutant} />
 
       <section>
-        <h4 className={STEP_HEADING}>What it is</h4>
-        <p className={BODY}>
-          <span className="font-medium text-foreground">{global.name}.</span> {global.whatItIs}
-        </p>
+        <h4 className={STEP_HEADING}>What {city.name} advises</h4>
+        <div className="mt-1">
+          <AdviceLadder city={city} />
+        </div>
       </section>
 
       <section>
-        <h4 className={STEP_HEADING}>Where it comes from in {city.name}</h4>
+        <StepHeading sources={[city.sourcesCredit]} sourcesLabel={`Source for where it comes from in ${city.name}`}>
+          Where it comes from in {city.name}
+        </StepHeading>
         {local.sourcesNote !== null && <p className={BODY}>{local.sourcesNote}</p>}
         <ul className="mt-1 space-y-1">
           {local.sources.map((line) => (
@@ -68,101 +179,36 @@ export function PollutantExplainer({ city, pollutant }: PollutantExplainerProps)
             </li>
           ))}
         </ul>
-        <p className="mt-1 text-xs text-foreground/70">
-          Source:{' '}
-          <a href={city.sourcesCredit.url} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">
-            {city.sourcesCredit.label}
-            <span className="sr-only"> (opens in a new tab)</span>
-          </a>
-        </p>
-      </section>
-
-      <section>
-        <h4 className={STEP_HEADING}>What it does to the body</h4>
-        {global.shortTerm !== null && (
-          <p className={BODY}>
-            <span className="font-medium text-foreground">Short term: </span>
-            {global.shortTerm}
-          </p>
-        )}
-        {global.longTerm !== null && (
-          <p className={BODY}>
-            <span className="font-medium text-foreground">Long term: </span>
-            {global.longTerm}
-          </p>
-        )}
-        <p className={BODY}>{WHO_GROUPS_LINE}</p>
-        <p className="mt-1 text-xs text-foreground/70">
-          Source: WHO.{' '}
-          {WHO_SOURCE_LINKS.map((link, position) => (
-            <span key={link.url}>
-              {position > 0 && ' · '}
-              <a href={link.url} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">
-                {link.label}
-                <span className="sr-only"> (opens in a new tab)</span>
-              </a>
-            </span>
-          ))}
-        </p>
-      </section>
-
-      <section>
-        <h4 className={STEP_HEADING}>Why {city.name} measures it</h4>
-        <p className={BODY}>{local.whyMeasured}</p>
-        <OutboundLink href={city.standardLink.url} className="-my-2 text-sm font-medium text-foreground underline">
-          {city.standardLink.label}
-        </OutboundLink>
-      </section>
-
-      <section>
-        <h4 className={STEP_HEADING}>What {city.name} advises</h4>
-        <ol className="mt-2 space-y-4">
-          {city.index.levels.map((level) => (
-            <li key={level.order}>
-              <p className="flex items-center gap-2 text-sm font-semibold text-foreground">
-                <span aria-hidden="true" className="inline-block h-3 w-5 shrink-0 rounded-[3px]" style={{ backgroundColor: level.hex }} />
-                {city.index.name} · {levelDisplayName(level)}
-              </p>
-              <div className="mt-1">
-                <AdviceBlock city={city} band={level.order} compact={false} />
-              </div>
-            </li>
-          ))}
-        </ol>
       </section>
     </div>
   )
 }
 
-/** The sensor-type explainer's content. Server-safe: no state. */
+/** The sensor-type explainer's content (decision H). Server-safe: no state. */
 export function SensorTypeExplainer() {
   return (
     <div className="space-y-5">
       <section>
         <h4 className={`${STEP_HEADING} flex items-center gap-2`}>
-          <SensorTypeIcon type="reference-grade" />
+          <SensorTypeIcon type="reference-grade" fill={null} />
           Reference monitor
         </h4>
         <p className={BODY}>
           A monitoring station run to official methods, usually in a small cabin with its own instruments for each
           pollutant. Reference monitors typically measure several pollutants, such as PM2.5, PM10, ozone, nitrogen
-          dioxide, sulfur dioxide and carbon monoxide. On the map it is a square.
+          dioxide, sulfur dioxide and carbon monoxide.
         </p>
       </section>
       <section>
         <h4 className={`${STEP_HEADING} flex items-center gap-2`}>
-          <SensorTypeIcon type="low-cost" />
+          <SensorTypeIcon type="low-cost" fill={null} />
           Low-cost sensor
         </h4>
         <p className={BODY}>
           A small device that can be placed in many more locations, closer to where people live and move. Low-cost
-          sensors typically measure particles (PM2.5, sometimes PM10). On the map it is a circle.
+          sensors typically measure particles (PM2.5, sometimes PM10).
         </p>
       </section>
-      <p className="text-xs text-foreground/70">
-        Grey on the map means the last reading is older than the city&apos;s update cycle. A hollow shape means no
-        reading for more than a day.
-      </p>
     </div>
   )
 }

@@ -15,6 +15,11 @@
  *
  *   Markers show NO VALUES (rule 7).
  *
+ * Selected state (iteration 2, decision B6)
+ *   While a sensor's card is open its marker is ENLARGED with a DARK OUTLINE RING (a white halo
+ *   under a near-black ring, so it reads on the grey basemap and on any band colour). Other markers
+ *   are unchanged. setMarkerSelected toggles it; the ring is in every marker's SVG, hidden until then.
+ *
  * Motion
  *   Keyframes in a <style> inside each marker's SVG (prototype build standard 4); a
  *   prefers-reduced-motion block in that style hides the pulse ring.
@@ -29,7 +34,7 @@
  *   detached marker is built as SVG markup before it is in the document. They are neutral chrome and
  *   say nothing about air quality. Every colour that MEANS something comes from the city's index.
  *
- * Key exports: createSensorMarkerElement, createPinElement, SensorMarkerStyle, TOUCH_TARGET,
+ * Key exports: createSensorMarkerElement, setMarkerSelected, createPinElement, SensorMarkerStyle, TOUCH_TARGET,
  *   SENSOR_MARKER_INK, SENSOR_STALE_GREY
  * External dependencies: ../../_data/city-sensors (CitySensor, Freshness types).
  */
@@ -50,6 +55,12 @@ export const TOUCH_TARGET = 44
 
 /** Drawn size of the shape in px. */
 const SHAPE_SIZE = 15
+
+/** Radius in px of the selected-state ring (decision B6), in the marker's own units. */
+const SELECTED_RING_R = 12.5
+
+/** Scale applied to a selected marker's drawing (decision B6). */
+const SELECTED_SCALE = 1.35
 
 /** Diameter in px the pulse ring grows to. */
 const PULSE_SIZE = 30
@@ -91,7 +102,9 @@ function markerSVG(square: boolean, style: SensorMarkerStyle): string {
          @media (prefers-reduced-motion: reduce) { .bda-sensor-pulse { animation: none; opacity: 0; } }
        </style>`
     : ''
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${TOUCH_TARGET}" height="${TOUCH_TARGET}" viewBox="0 0 ${TOUCH_TARGET} ${TOUCH_TARGET}" aria-hidden="true" focusable="false">${css}${ring}${shape}</svg>`
+  // The selected-state ring (decision B6): hidden until setMarkerSelected shows it.
+  const selected = `<g class="bda-sensor-selected" style="display:none"><circle cx="${centre}" cy="${centre}" r="${SELECTED_RING_R}" fill="none" stroke="${SENSOR_HOLLOW_FILL}" stroke-width="5" /><circle cx="${centre}" cy="${centre}" r="${SELECTED_RING_R}" fill="none" stroke="${SENSOR_MARKER_INK}" stroke-width="2.5" /></g>`
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${TOUCH_TARGET}" height="${TOUCH_TARGET}" viewBox="0 0 ${TOUCH_TARGET} ${TOUCH_TARGET}" aria-hidden="true" focusable="false" style="overflow:visible;transition:transform 150ms ease-out">${css}${ring}${selected}${shape}</svg>`
 }
 
 /** The marker button for one sensor. Side effects: none (the caller adds it to the map). */
@@ -110,6 +123,21 @@ export function createSensorMarkerElement(sensor: CitySensor, style: SensorMarke
   button.style.borderRadius = '50%'
   button.innerHTML = markerSVG(sensor.type === 'reference-grade', style)
   return button
+}
+
+/**
+ * Show or clear a marker's selected state (decision B6): enlarge its drawing, show the dark ring,
+ * raise it above its neighbours and mark it for assistive tech. Side effects: mutates the element.
+ */
+export function setMarkerSelected(element: HTMLElement, selected: boolean): void {
+  const svg = element.querySelector('svg')
+  const ring = element.querySelector<SVGGElement>('.bda-sensor-selected')
+  if (svg !== null) svg.style.transform = selected ? `scale(${SELECTED_SCALE})` : ''
+  if (ring !== null) ring.style.display = selected ? '' : 'none'
+  element.style.zIndex = selected ? '3' : ''
+  element.setAttribute('aria-pressed', selected ? 'true' : 'false')
+  if (selected) element.setAttribute('data-selected', 'true')
+  else element.removeAttribute('data-selected')
 }
 
 /**

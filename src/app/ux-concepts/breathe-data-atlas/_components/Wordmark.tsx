@@ -1,4 +1,16 @@
 /**
+ * ITERATION 2 (Breathe Data Atlas round 1, decision A1; supersedes the city-name rules below)
+ *   The globe blocked the large city name ("MILAN" showed only its outer letters). Now:
+ *   - The city name sits on the "CITIES" line (the lower wordmark line) and IN FRONT OF the globe,
+ *     readable in full. It is a separate layer, WordmarkCityName, which GlobeCover renders AFTER the
+ *     globe canvas (and below the controls).
+ *   - It never bleeds: it is sized to fit the stage width less the 16px gutters, and no larger than
+ *     the wordmark lines themselves (so "SOFIA" is as big as "CITIES" and "MEXICO CITY" shrinks to
+ *     fit). Measured as before (MEASURE_PX spans); the bleed rule below no longer applies.
+ *   - While a name shows, the pale "CITIES" fades out under it (developer's call: two words on one
+ *     line would overprint); it fades back as the globe moves on. "BREATHE" never changes.
+ *   - A soft halo in the page background colour keeps the dark name legible over the globe.
+ *
  * Wordmark.tsx — the oversized "BREATHE / CITIES" type behind the globe, with the city name in
  * the gap between the two lines.
  *
@@ -61,7 +73,7 @@
  *   Colour only via the bridged `--foreground` semantic (mixed toward transparent for the low-contrast
  *   wordmark, full strength for the city name). No hex, no decorative colour.
  *
- * Key exports: Wordmark (named), WORDMARK_SIZE_CQW, WORDMARK_LINE_HEIGHT_EM (for placing the globe's
+ * Key exports: Wordmark, WordmarkCityName (named), WORDMARK_SIZE_CQW, WORDMARK_LINE_HEIGHT_EM (for placing the globe's
  *   arrows level with "CITIES", round 3 R3.5)
  * External dependencies: react, ../_data/cities (ATLAS_CITIES, for the names to measure).
  *
@@ -94,11 +106,6 @@ type WordmarkProps = {
 const MAX_SIZE_CQW = 20.5
 /** Share of stage width a wordmark line may fill. */
 const FILL_CQW = 94
-/**
- * How far the city name hangs past each edge of the viewport, in px (Jack, brief 4.2). The name is
- * set to the viewport width plus twice this, so its first and last letters are cropped.
- */
-const BLEED_PX = 20
 /** Approximate advance width of one bold uppercase glyph with tight tracking, in em (fallback only). */
 const GLYPH_EM = 0.66
 /** Font size the hidden measuring spans render at, in px. */
@@ -133,20 +140,17 @@ export const WORDMARK_SIZE_CQW = fitSizeCqw('Breathe'.length, FILL_CQW, MAX_SIZE
 export const WORDMARK_LINE_HEIGHT_EM = 0.8
 
 /**
- * CSS font size for a city name, so the name renders (100vw + 2 * BLEED_PX) wide and therefore
- * hangs BLEED_PX past each edge of the viewport (see the file header, "Sizing").
- *
- * `emWidth` is the name's measured advance width per em. Dividing the target width by it gives the
- * font size that produces exactly that width. There is NO cap in either direction: the name never
- * shrinks to fit the page, and a short name is deliberately enormous.
- *
- * Before the first measurement, `emWidth` is null and the GLYPH_EM character-count estimate stands
- * in, which bleeds by roughly rather than exactly BLEED_PX for one paint.
+ * CSS font size for a city name on the "CITIES" line (iteration 2, decision A1): the name fits the
+ * stage width less the gutters, and is never larger than the wordmark. Inside the stage (a size
+ * container), 100cqw is the stage width. Pure.
  */
-function cityNameFontSize(name: string, emWidth: number | null): string {
+function cityNameFitFontSize(name: string, emWidth: number | null): string {
   const perEm = emWidth ?? Math.max(name.length, 1) * GLYPH_EM
-  return `calc((100vw + ${BLEED_PX * 2}px) / ${round3(perEm)})`
+  return `min(calc((100cqw - ${NAME_GUTTER_PX * 2}px) / ${round3(perEm)}), ${round3(WORDMARK_SIZE_CQW)}cqw)`
 }
+
+/** Side gutter the city name keeps from the stage edges, px (iteration 2: readable in full). */
+const NAME_GUTTER_PX = 16
 
 /** Shared type treatment for the wordmark lines and the city name. `leading-[0.8]` is WORDMARK_LINE_HEIGHT_EM. */
 const TYPE_CLASS = 'block whitespace-nowrap font-bold uppercase leading-[0.8] tracking-[-0.04em]'
@@ -154,8 +158,33 @@ const TYPE_CLASS = 'block whitespace-nowrap font-bold uppercase leading-[0.8] tr
 /** Every city name, measured once each. */
 const MEASURED_NAMES: string[] = ATLAS_CITIES.map((city) => city.name)
 
-/** The behind-the-globe wordmark layer, with the city name in the gap. */
+/** The behind-the-globe wordmark layer ("BREATHE" and "CITIES"). */
 export function Wordmark({ cityName, visible, lineReach }: WordmarkProps) {
+  const wordmarkStyle: CSSProperties = { color: WORDMARK_COLOUR, fontSize: `${round3(WORDMARK_SIZE_CQW)}cqw` }
+  const showName = visible && cityName.length > 0
+
+  return (
+    <div aria-hidden="true" className="pointer-events-none absolute inset-0 select-none">
+      {/* "BREATHE" above the globe's centre, "CITIES" below it, each with its outer edge
+          `lineReach` away: still, low contrast. "CITIES" fades while a city name sits on its line. */}
+      <span
+        className={`${TYPE_CLASS} absolute left-1/2 -translate-x-1/2`}
+        style={{ ...wordmarkStyle, top: `calc(50% - ${lineReach})` }}
+      >
+        Breathe
+      </span>
+      <span
+        className={`${TYPE_CLASS} absolute left-1/2 -translate-x-1/2 transition-opacity duration-700 ease-out motion-reduce:transition-none`}
+        style={{ ...wordmarkStyle, bottom: `calc(50% - ${lineReach})`, opacity: showName ? 0 : 1 }}
+      >
+        Cities
+      </span>
+    </div>
+  )
+}
+
+/** The city name on the "CITIES" line, IN FRONT OF the globe (iteration 2, decision A1). */
+export function WordmarkCityName({ cityName, visible, lineReach }: WordmarkProps) {
   const measureRef = useRef<HTMLDivElement>(null)
   // Measured width per em, by name. Empty until measured.
   const [emWidths, setEmWidths] = useState<Record<string, number>>({})
@@ -183,41 +212,20 @@ export function Wordmark({ cityName, visible, lineReach }: WordmarkProps) {
     }
   }, [])
 
-  const wordmarkStyle: CSSProperties = { color: WORDMARK_COLOUR, fontSize: `${round3(WORDMARK_SIZE_CQW)}cqw` }
   const showName = visible && cityName.length > 0
   const emWidth = emWidths[cityName] ?? null
 
   return (
-    <div aria-hidden="true" className="pointer-events-none absolute inset-0 select-none">
-      {/* "BREATHE" above the globe's centre, "CITIES" below it, each with its outer edge
-          `lineReach` away: still, low contrast. */}
+    <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-10 select-none">
       <span
-        className={`${TYPE_CLASS} absolute left-1/2 -translate-x-1/2`}
-        style={{ ...wordmarkStyle, top: `calc(50% - ${lineReach})` }}
-      >
-        Breathe
-      </span>
-      <span
-        className={`${TYPE_CLASS} absolute left-1/2 -translate-x-1/2`}
-        style={{ ...wordmarkStyle, bottom: `calc(50% - ${lineReach})` }}
-      >
-        Cities
-      </span>
-
-      {/* The city name, centred in the gap between the lines (the stage's vertical centre) and
-          bleeding BLEED_PX past each edge of the viewport.
-          Positioned with left-1/2 and a -50% shift rather than by flex centring, because the box is
-          WIDER than the stage that contains it: this way its centre is the stage's centre (and so
-          the viewport's, the stage being centred) whatever the two widths are, instead of depending
-          on how overflow resolves in a centred flex line. `text-center` keeps the crop symmetric if
-          the measurement is slightly off. */}
-      <span
-        className={`${TYPE_CLASS} absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-center transition-opacity duration-700 ease-out motion-reduce:transition-none`}
+        data-wordmark-city-name={cityName}
+        className={`${TYPE_CLASS} absolute left-1/2 -translate-x-1/2 text-center transition-opacity duration-700 ease-out motion-reduce:transition-none`}
         style={{
           color: CITY_NAME_COLOUR,
-          fontSize: cityNameFontSize(cityName, emWidth),
-          width: `calc(100vw + ${BLEED_PX * 2}px)`,
+          fontSize: cityNameFitFontSize(cityName, emWidth),
+          bottom: `calc(50% - ${lineReach})`,
           opacity: showName ? 1 : 0,
+          textShadow: '0 0 18px var(--background), 0 0 6px var(--background)',
         }}
       >
         {cityName}

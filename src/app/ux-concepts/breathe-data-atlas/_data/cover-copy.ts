@@ -16,7 +16,12 @@
  *   Our own copy in BC's voice, not the text beside BC's carousel on breathecities.org
  *   (brief 4.3). It makes no claim beyond what BC's site states.
  *
- * Key exports: BC_ONE_LINER, BC_ABOUT_LINK, CityBrowserLink (type), FRAMING_LINE, SITE_CAVEAT
+ * Iteration 2 (round 1): FRAMING_LINE replaced (decision A2, Jack's wording); SITE_CAVEAT split
+ * into ENTRY_CAVEAT and cityCaveat() (decision K1/A2, approved wording); OSM_FOOTER_CREDIT added
+ * for the entry page footer (decision A4).
+ *
+ * Key exports: BC_ONE_LINER, BC_ABOUT_LINK, CityBrowserLink (type), FRAMING_LINE, ENTRY_CAVEAT,
+ *   cityCaveat, OSM_FOOTER_CREDIT
  * External dependencies: none.
  */
 
@@ -42,11 +47,20 @@ export const BC_ABOUT_LINK: CityBrowserLink = {
  * using data, with the emphasis on use; makes no outcome claim (no city publishes results as data).
  */
 export const FRAMING_LINE =
-  "See how cities in the Breathe Cities network use air quality data. Choose a city to see its sensors, today's air near you and what the city advises."
+  'Cities in the Breathe Cities network use air quality sensors to measure and inform. Choose a city to see how.'
+
+/** The entry page caveat (decision A2), in the entry page footer. Approved; CAF may fine-tune. */
+export const ENTRY_CAVEAT =
+  'The data shown here comes from each city, as the city publishes it. Breathe Cities does not interpret, rank or compare it.'
+
+/** A city page's caveat (decision K1), in that page's footer. Approved; CAF may fine-tune. Pure. */
+export function cityCaveat(cityName: string): string {
+  return `The data shown here comes from ${cityName}, as the city publishes it. Breathe Cities does not interpret, rank or compare it.`
+}
 
 /**
- * The site-level caveat (spec 3.4), in the landing page footer and on every city page footer.
- * DRAFT for a ux-writer pass.
+ * The OpenStreetMap credit for the entry page's poster maps (decision A4): one plain footer line for
+ * the whole page, required by the ODbL. It replaced the two "i" credits (framing line and carousel
+ * heading, decisions A4 and A5). The station provenance note stays in the data files only.
  */
-export const SITE_CAVEAT =
-  "Air quality data, bands and advice on this site are each city's own, shown as the city publishes them. Breathe Cities does not interpret, rank or compare them."
+export const OSM_FOOTER_CREDIT = 'City outlines and streets © OpenStreetMap contributors (ODbL).'

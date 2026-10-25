@@ -2,21 +2,35 @@
  * SiteCaveat.tsx — the site-level caveat line in the page footer (spec 3.4).
  *
  * Purpose
- *   One short line, the same on the landing page and on every city page: the data, bands and advice
- *   are each city's own, and Breathe Cities does not interpret, rank or compare them. Draft copy
- *   from ../_data/cover-copy (SITE_CAVEAT). Neutral, quiet, no colour.
+ *   One short line in the footer of the entry page and every city page, leading with where the data
+ *   comes from (round 1, decision K1 and A2): the caller passes the wording, ENTRY_CAVEAT or
+ *   cityCaveat(name) from ../_data/cover-copy. Optional plain extra lines below it (the entry page's
+ *   OpenStreetMap credit, decision A4). Neutral, quiet, no colour.
  *
  * Key exports: SiteCaveat (named)
- * External dependencies: ../_data/cover-copy (SITE_CAVEAT).
+ * External dependencies: none.
  */
 
-import { SITE_CAVEAT } from '../_data/cover-copy'
+/** Props for SiteCaveat. */
+type SiteCaveatProps = {
+  /** The caveat line. */
+  text: string
+  /** Further plain lines (credits), smaller; empty for none. */
+  notes: string[]
+}
 
 /** The caveat footer. Server component. */
-export function SiteCaveat() {
+export function SiteCaveat({ text, notes }: SiteCaveatProps) {
   return (
     <footer className="border-t border-border bg-background">
-      <p className="mx-auto max-w-6xl px-4 py-6 text-sm leading-relaxed text-foreground/70">{SITE_CAVEAT}</p>
+      <div className="mx-auto max-w-6xl space-y-2 px-4 py-6">
+        <p className="text-sm leading-relaxed text-foreground/70">{text}</p>
+        {notes.map((note) => (
+          <p key={note} className="text-xs leading-relaxed text-foreground/60">
+            {note}
+          </p>
+        ))}
+      </div>
     </footer>
   )
 }
