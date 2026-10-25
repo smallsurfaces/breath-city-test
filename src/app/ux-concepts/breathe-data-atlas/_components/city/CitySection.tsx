@@ -109,7 +109,7 @@ function Tile({ title, icon, count, lead, series, showSparkline, opensLabel, onO
         <span className="min-w-0 break-words pr-9 text-lg font-bold leading-tight text-foreground">{title}</span>
       )}
       <span className="mt-auto block w-full pt-1">
-        {showSparkline && series !== null ? (
+        {showSparkline && series !== null && grew(series) ? (
           <Sparkline values={series.values} startYear={series.startYear} end={countNode} />
         ) : (
           <span className="flex justify-end">{countNode}</span>
@@ -124,6 +124,15 @@ function Tile({ title, icon, count, lead, series, showSparkline, opensLabel, onO
       </span>
     </button>
   )
+}
+
+/**
+ * True when the network grew over the series (Jack, round 3): today's count is higher than the
+ * series' first value. Flat or falling series get no sparkline and no start year: the sparkline
+ * tells a growth story, so it only shows one. Pure.
+ */
+function grew(series: GrowthSeries): boolean {
+  return series.values.length > 1 && series.values[series.values.length - 1] > series.values[0]
 }
 
 /** Props for PollutantTile. */

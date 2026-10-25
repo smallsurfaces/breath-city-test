@@ -137,7 +137,7 @@ export const POLLUTANT_EXPLAINERS: Partial<Record<PollutantId, PollutantExplaine
   },
   NO: {
     name: 'Nitrogen monoxide',
-    whatItIs: 'Also called nitric oxide. A gas in the nitrogen oxides family that turns into nitrogen dioxide when exposed to air.',
+    whatItIs: 'also called nitric oxide. A gas in the nitrogen oxides family that turns into nitrogen dioxide when exposed to air.',
     shortTerm: null,
     longTerm: null,
     body: null,
