@@ -1,4 +1,13 @@
 /**
+ * ITERATION 2 (round 1 feedback, decisions B2 and B3)
+ *   - ONE "i" for the index, above the colour bands, beside the index name. It holds the method
+ *     line ("Bogotá rates air quality at each monitoring station with IBOCA."), the publisher text
+ *     and the "IBOCA index" link. The page header no longer carries a method line or its own "i".
+ *   - The visible line "Colour shows each station's IBOCA level." stays as the one visible
+ *     explanation of the map's colour.
+ *   - The marker key lists sensor types only (low-cost sensor, reference monitor). The grey and
+ *     hollow entries are gone: a stale or dead sensor explains itself when tapped (B4).
+ *
  * AtlasMapLegend.tsx — the city map's legend. Copied from breathe-atlas on 2026-10-25 (the original
  * is never edited). Breathe Data Atlas changes (spec 5.3, 5.5): the index is always present (a city
  * page needs its index); one line names the colour's job ("Colour shows each station's IBOCA
@@ -55,16 +64,14 @@
  */
 
 import { CreditInfo } from './CreditInfo'
+import { OutboundLink } from './ChapterLink'
 import { levelDisplayName } from '../../_data/indexes'
-import type { CityAirQualityIndex } from '../../_data/indexes'
+import type { CityPage } from '../../_data/bogota'
 
 /** Props for AtlasMapLegend. */
 type AtlasMapLegendProps = {
-  /** The city's own index. */
-  index: CityAirQualityIndex | null
-  /** Whether any sensor is stale (grey) or dead (hollow), so the key never explains an absent state. */
-  hasStale: boolean
-  hasDead: boolean
+  /** The city: its own index, method line and index link. */
+  city: CityPage
   /** Which sensor types this city actually has, so the legend never explains an absent shape. */
   hasLowCost: boolean
   hasReferenceGrade: boolean
@@ -74,7 +81,8 @@ type AtlasMapLegendProps = {
 const LABEL = 'text-[11px] leading-tight text-foreground/75'
 
 /** The legend. */
-export function AtlasMapLegend({ index, hasLowCost, hasReferenceGrade, hasStale, hasDead }: AtlasMapLegendProps) {
+export function AtlasMapLegend({ city, hasLowCost, hasReferenceGrade }: AtlasMapLegendProps) {
+  const index = city.index
   return (
     <div className="flex flex-col gap-3 border-t border-border bg-background px-4 py-3">
       {/* Sensor types: a separate small key, above the index bar (brief 6.1). */}
@@ -97,28 +105,20 @@ export function AtlasMapLegend({ index, hasLowCost, hasReferenceGrade, hasStale,
             <span className={LABEL}>Reference monitor</span>
           </li>
         )}
-        {hasStale && (
-          <li className="flex items-center gap-2">
-            <span aria-hidden="true" className="inline-block h-3 w-3 rounded-full border border-foreground/70 bg-foreground/40" />
-            <span className={LABEL}>Grey: last reading is not recent</span>
-          </li>
-        )}
-        {hasDead && (
-          <li className="flex items-center gap-2">
-            <span aria-hidden="true" className="inline-block h-3 w-3 rounded-full border-2 border-dashed border-foreground/70 bg-background" />
-            <span className={LABEL}>Hollow: no reading for over a day</span>
-          </li>
-        )}
       </ul>
 
-      {index !== null && (
+      {(
         <div>
           {/* The index name above the bar, so the scale reads as the city's own. Its publisher line
               sits behind the "i" beside it (round 2, item 9). */}
           <div className="flex items-center gap-2">
             <p className="text-[11px] font-semibold leading-tight text-foreground">{index.name}</p>
-            <CreditInfo label="Index source" align="start" className="">
-              <p>{index.publisher}</p>
+            <CreditInfo label={`About ${index.name}`} align="start" className="" inDialog={false}>
+              <p>{city.methodLine}</p>
+              <p className="mt-2">{index.publisher}</p>
+              <OutboundLink href={city.adviceLink.url} className="-mb-3 text-sm font-semibold text-foreground underline">
+                {city.adviceLink.label}
+              </OutboundLink>
             </CreditInfo>
           </div>
           {/* The colour's one job (spec 5.3). */}

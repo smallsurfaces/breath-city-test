@@ -10,14 +10,26 @@
  *   single-card discipline. CHANGED:
  *     - Markers: shape = sensor type; colour = the station's overall IBOCA level as Bogotá
  *       publishes it (spec 5.2), fresh only; stale grey; dead hollow (5.5). See ./atlas-markers.
- *     - The card is TapCard (5.4): tap the map to drop a pin and list the nearest three reporting
- *       sensors, with dashed lines from the pin to each; tap a sensor for that sensor and its three
- *       nearest neighbours, with dashed lines to them. One card, docked inside the map frame.
- *     - "Sensor details" opens the sensor detail in a dialog (5.6, see ../city/SensorDetail).
- *     - Pollutant helper lines (spec 5.8) in the card and the detail, in the variant the page
- *       passes from ?helper= (text, icons or chips; see ../city/PollutantHelper).
+ *     - The card is TapCard: tap the map to drop a pin and list the nearest three reporting
+ *       sensors, with dashed lines from the pin to each (decision D); tap a sensor for that sensor
+ *       alone, with NO dashed lines (decisions B7, C). One card at a time.
+ *     - "More" opens the sensor detail in a dialog (5.6, see ../city/SensorDetail).
  *     - A Today / Tomorrow switch appears ONLY when the city's data carries a forecast published as
  *       a band (5.7). Bogotá's carries none, so there is no switch.
+ *
+ * Iteration 2 (round 1 feedback, decisions B5, B6 and B8)
+ *   - CITY LOCK (B5): `maxBounds` is the city outline's bounding box plus LOCK_MARGIN of its size on
+ *     each side, so panning stops at the city, and minZoom is the zoom that shows that whole box, so
+ *     zooming out stops there. Mercator projection: Mapbox ignores maxBounds on the globe.
+ *   - SELECTED STATE (B6): the tapped sensor's marker is enlarged with a dark outline ring
+ *     (setMarkerSelected); the others are unchanged.
+ *   - CARD NEXT TO THE TAP (B8): the map moves, not the card. On a sensor tap the map eases so the
+ *     sensor sits to one side (from 640px wide: to the right of the card; on a phone: in the lower
+ *     part of the map), zooming in to SENSOR_MIN_ZOOM if it is further out. On a tap anywhere it fits
+ *     the pin and the three nearest sensors into the space beside the card. The card is then placed
+ *     next to what it describes (placeCard), and follows it while the map moves. Every move goes
+ *     through the camera, so it stays inside the city lock; where the lock stops the map short, the
+ *     card takes whichever side still has room.
  *
  * Nothing on the map interprets air quality (spec section 2)
  *   No averaging, no interpolation, no value for the pin: the pin only orders sensors by distance.
@@ -36,26 +48,25 @@
  *   Mapbox paint values below are literals: WebGL cannot read CSS custom properties. All neutral.
  *
  * Key exports: AtlasDataMap (named)
- * External dependencies: react, mapbox-gl (+ css), ./atlas-markers, ./AtlasMapLegend,
+ * External dependencies: react, mapbox-gl (+ css), ./atlas-markers (incl. setMarkerSelected), ./AtlasMapLegend,
  *   ../city/TapCard, ../city/AtlasDialog, ../city/SensorDetail, ../../_data/*.
  */
 
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import mapboxgl from 'mapbox-gl'
 import { AtlasMapLegend } from './AtlasMapLegend'
-import { createPinElement, createSensorMarkerElement } from './atlas-markers'
+import { createPinElement, createSensorMarkerElement, setMarkerSelected } from './atlas-markers'
 import { AtlasDialog } from '../city/AtlasDialog'
 import { SensorDetail } from '../city/SensorDetail'
 import { neighboursFor, TapCard } from '../city/TapCard'
-import type { MapSelection } from '../city/TapCard'
-import type { HelperVariant } from '../city/PollutantHelper'
+import type { CardPlacement, MapSelection } from '../city/TapCard'
 import { BOUNDARY_ATTRIBUTION } from '../../_data/boundaries'
 import type { CityBoundary } from '../../_data/boundaries'
 import { indexLevel, levelDisplayName } from '../../_data/indexes'
 import type { CityPage } from '../../_data/bogota'
-import { freshnessOf, sensorTypeLabel } from '../../_data/city-sensors'
+import { freshnessOf, placeName, sensorTypeLabel } from '../../_data/city-sensors'
 import type { CitySensor, Freshness } from '../../_data/city-sensors'
 
 import 'mapbox-gl/dist/mapbox-gl.css'
@@ -88,13 +99,56 @@ const LINKS_COLOUR = '#1f2328'
 /** How the map fits on load. */
 const FIT_OPTIONS = { padding: 48, maxZoom: 13 }
 
+/** City lock (decision B5): margin around the outline's bounding box, as a share of its size. */
+const LOCK_MARGIN = 0.12
+
+/** A sensor tap zooms in to at least this (decision B8, "zoom in slightly if needed"). */
+const SENSOR_MIN_ZOOM = 12.5
+
+/** Map frame width from which the card sits beside the tap rather than above it (phone). */
+const SIDE_LAYOUT_MIN_PX = 640
+
+/** Space kept between the card and the marker or pin it describes, and from the frame edges, px. */
+const CARD_GAP_PX = 26
+const FRAME_INSET_PX = 8
+
+/** Card widths, px: the sensor card, the nearest-three card, and the cap on a phone. */
+const SENSOR_CARD_W = 288
+const NEAREST_CARD_W = 320
+const PHONE_CARD_MAX_W = 380
+
+/** How long the map takes to make room, ms (0 under reduced motion). */
+const MOVE_MS = 650
+
+/** The lock box: the outline's (or, without one, the sensors') bounds plus LOCK_MARGIN. Pure. */
+function lockBounds(boundary: CityBoundary | null, sensors: CitySensor[]): [[number, number], [number, number]] | null {
+  const points: Array<[number, number]> =
+    boundary !== null ? boundary.rings.flat() as Array<[number, number]> : sensors.map((s) => s.lngLat)
+  if (points.length === 0) return null
+  const lngs = points.map((p) => p[0])
+  const lats = points.map((p) => p[1])
+  const [west, east, south, north] = [Math.min(...lngs), Math.max(...lngs), Math.min(...lats), Math.max(...lats)]
+  const padLng = (east - west) * LOCK_MARGIN
+  const padLat = (north - south) * LOCK_MARGIN
+  return [
+    [west - padLng, south - padLat],
+    [east + padLng, north + padLat],
+  ]
+}
+
+/** True when the visitor asked for reduced motion. */
+function prefersReducedMotion(): boolean {
+  return typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+}
+
 /** The marker's accessible name: what shape, colour and fill say, with no value (rule 7). */
 function markerLabel(city: CityPage, sensor: CitySensor, freshness: Freshness): string {
   const type = sensorTypeLabel(sensor.type)
-  if (freshness === 'dead') return `${type}, no reading for over 24 hours. Open sensor card.`
-  if (freshness === 'stale') return `${type}, last reading older than the update cycle. Open sensor card.`
+  const name = placeName(sensor)
+  if (freshness === 'dead') return `${name}, ${type}, no reading for over 24 hours. Open sensor card.`
+  if (freshness === 'stale') return `${name}, ${type}, last reading older than the update cycle. Open sensor card.`
   const level = levelDisplayName(indexLevel(city.index, sensor.overallBand))
-  return `${type}, ${city.index.name} ${level}. Open sensor card.`
+  return `${name}, ${type}, ${city.index.name} ${level}. Open sensor card.`
 }
 
 /** The mask polygon: the world with the city's rings as holes. */
@@ -142,15 +196,16 @@ type AtlasDataMapProps = {
   city: CityPage
   /** The city's outline, or null (then no mask and no outline, as in the Atlas). */
   boundary: CityBoundary | null
-  /** The pollutant helper variant (spec 5.8, from ?helper=). */
-  helperVariant: HelperVariant
 }
 
 /** The city map. Client component: Mapbox needs the browser. */
-export function AtlasDataMap({ city, boundary, helperVariant }: AtlasDataMapProps) {
+export function AtlasDataMap({ city, boundary }: AtlasDataMapProps) {
   const containerRef = useRef<HTMLDivElement | null>(null)
   const mapRef = useRef<mapboxgl.Map | null>(null)
   const markersRef = useRef<mapboxgl.Marker[]>([])
+  const markerElementsRef = useRef<Record<string, HTMLButtonElement>>({})
+  const cardRef = useRef<HTMLElement | null>(null)
+  const [placement, setPlacement] = useState<CardPlacement>(null)
   const pinRef = useRef<mapboxgl.Marker | null>(null)
   const openerRef = useRef<HTMLElement | null>(null)
   const fittedRef = useRef<boolean>(false)
@@ -165,6 +220,62 @@ export function AtlasDataMap({ city, boundary, helperVariant }: AtlasDataMapProp
   }, [selection])
 
   const bounds = sensorBounds(city.sensors)
+  const lock = lockBounds(boundary, city.sensors)
+
+  /** Open the card for a selection: the card is re-placed once the map has made room. */
+  const select = useCallback((next: MapSelection): void => {
+    setPlacement(null)
+    setSelection(next)
+  }, [])
+
+  /**
+   * Place the card next to what it describes (decision B8), from where those points are on screen
+   * NOW. Side layout from SIDE_LAYOUT_MIN_PX: beside the points (left of them when there is room,
+   * else right), vertically centred on the tap. Phone: above the points when there is room, else
+   * below. Clamped inside the frame. Called on every map move while a card is open.
+   */
+  const placeCard = useCallback((): void => {
+    const map = mapRef.current
+    const card = cardRef.current
+    const current = selectionRef.current
+    if (map === null || card === null || current === null) return
+    const box = map.getContainer()
+    const width = box.clientWidth
+    const height = box.clientHeight
+    const anchor = current.kind === 'point' ? current.lngLat : current.sensor.lngLat
+    const lngLats = [anchor, ...neighboursFor(city, current).map((n) => n.sensor.lngLat)]
+    const points = lngLats.map((lngLat) => map.project(lngLat))
+    const minX = Math.min(...points.map((p) => p.x))
+    const maxX = Math.max(...points.map((p) => p.x))
+    const minY = Math.min(...points.map((p) => p.y))
+    const maxY = Math.max(...points.map((p) => p.y))
+    const anchorPoint = points[0]
+    const cardH = card.offsetHeight
+    const clamp = (value: number, low: number, high: number): number => Math.max(low, Math.min(high, value))
+    if (width >= SIDE_LAYOUT_MIN_PX) {
+      const cardW = current.kind === 'point' ? NEAREST_CARD_W : SENSOR_CARD_W
+      const leftOfPoints = minX - CARD_GAP_PX - cardW
+      const left =
+        leftOfPoints >= FRAME_INSET_PX
+          ? leftOfPoints
+          : maxX + CARD_GAP_PX + cardW <= width - FRAME_INSET_PX
+            ? maxX + CARD_GAP_PX
+            : clamp(leftOfPoints, FRAME_INSET_PX, width - cardW - FRAME_INSET_PX)
+      const top = clamp(anchorPoint.y - cardH / 2, FRAME_INSET_PX, Math.max(FRAME_INSET_PX, height - cardH - FRAME_INSET_PX))
+      setPlacement({ left: Math.round(left), top: Math.round(top), width: cardW })
+      return
+    }
+    const cardW = Math.min(width - FRAME_INSET_PX * 2, PHONE_CARD_MAX_W)
+    const left = clamp(anchorPoint.x - cardW / 2, FRAME_INSET_PX, width - cardW - FRAME_INSET_PX)
+    const above = minY - CARD_GAP_PX - cardH
+    const top =
+      above >= FRAME_INSET_PX
+        ? above
+        : maxY + CARD_GAP_PX + cardH <= height - FRAME_INSET_PX
+          ? maxY + CARD_GAP_PX
+          : FRAME_INSET_PX
+    setPlacement({ left: Math.round(left), top: Math.round(top), width: Math.round(cardW) })
+  }, [city])
 
   /** Close the card, clear the pin and the lines, and return focus to whatever opened it. */
   const closeCard = useCallback((restoreFocus: boolean): void => {
@@ -188,6 +299,9 @@ export function AtlasDataMap({ city, boundary, helperVariant }: AtlasDataMapProp
       bounds,
       fitBoundsOptions: FIT_OPTIONS,
       maxZoom: 15,
+      // City lock (decision B5). Mercator, because Mapbox ignores maxBounds on the globe projection.
+      projection: 'mercator',
+      maxBounds: lock ?? undefined,
       dragRotate: false,
       pitchWithRotate: false,
       touchPitch: false,
@@ -222,8 +336,9 @@ export function AtlasDataMap({ city, boundary, helperVariant }: AtlasDataMapProp
           // Without this the map's own click would also fire and drop a pin.
           event.stopPropagation()
           openerRef.current = element
-          setSelection({ kind: 'sensor', sensor })
+          select({ kind: 'sensor', sensor })
         })
+        markerElementsRef.current[sensor.id] = element
         markersRef.current.push(new mapboxgl.Marker({ element, anchor: 'center' }).setLngLat(sensor.lngLat).addTo(map))
       })
     setSensorsPlaced(true)
@@ -234,6 +349,22 @@ export function AtlasDataMap({ city, boundary, helperVariant }: AtlasDataMapProp
       if (box.clientWidth === 0 || box.clientHeight === 0) return
       fittedRef.current = true
       map.resize()
+      // City lock (decision B5). Mapbox keeps the whole VIEWPORT inside maxBounds, so a lock box
+      // narrower than the frame's shape would stop the map before the whole city fits (Bogotá is
+      // tall; the desktop frame is wide). So: frame the lock box once, widen the lock to the
+      // viewport it produces, and make that framing the furthest zoom-out.
+      if (lock !== null) {
+        map.setMaxBounds([[-180, -85], [180, 85]])
+        map.fitBounds(lock, { padding: 0, duration: 0 })
+        const view = map.getBounds()
+        if (view !== null) {
+          map.setMaxBounds([
+            [Math.min(lock[0][0], view.getWest()), Math.min(lock[0][1], view.getSouth())],
+            [Math.max(lock[1][0], view.getEast()), Math.max(lock[1][1], view.getNorth())],
+          ])
+        }
+        map.setMinZoom(map.getZoom())
+      }
       map.fitBounds(bounds, { ...FIT_OPTIONS, duration: 0 })
     }
 
@@ -264,9 +395,8 @@ export function AtlasDataMap({ city, boundary, helperVariant }: AtlasDataMapProp
       // Draw links for a selection made before the style was ready.
       const current = selectionRef.current
       const source = map.getSource(LINKS_SOURCE) as mapboxgl.GeoJSONSource | undefined
-      if (current !== null && source !== undefined) {
-        const origin = current.kind === 'point' ? current.lngLat : current.sensor.lngLat
-        source.setData(linkFeatures(origin, neighboursFor(city, current).map((n) => n.sensor)))
+      if (current !== null && current.kind === 'point' && source !== undefined) {
+        source.setData(linkFeatures(current.lngLat, neighboursFor(city, current).map((n) => n.sensor)))
       }
     }
 
@@ -278,10 +408,14 @@ export function AtlasDataMap({ city, boundary, helperVariant }: AtlasDataMapProp
     // Tap the map (not a marker): drop a pin and open the card for that point (spec 5.4).
     const onMapClick = (event: mapboxgl.MapMouseEvent): void => {
       openerRef.current = null
-      setSelection({ kind: 'point', lngLat: [event.lngLat.lng, event.lngLat.lat] })
+      select({ kind: 'point', lngLat: [event.lngLat.lng, event.lngLat.lat] })
     }
 
+    // The open card follows what it describes while the map moves (decision B8).
+    const onMove = (): void => placeCard()
+
     map.on('load', onStyleReady)
+    map.on('move', onMove)
     map.on('styledata', onStyleReady)
     map.on('idle', onStyleReady)
     map.on('click', onMapClick)
@@ -292,8 +426,10 @@ export function AtlasDataMap({ city, boundary, helperVariant }: AtlasDataMapProp
       map.off('styledata', onStyleReady)
       map.off('idle', onStyleReady)
       map.off('click', onMapClick)
+      map.off('move', onMove)
       markersRef.current.forEach((marker) => marker.remove())
       markersRef.current = []
+      markerElementsRef.current = {}
       pinRef.current?.remove()
       pinRef.current = null
       map.remove()
@@ -317,12 +453,63 @@ export function AtlasDataMap({ city, boundary, helperVariant }: AtlasDataMapProp
       source?.setData({ type: 'FeatureCollection', features: [] })
       return
     }
-    const origin = selection.kind === 'point' ? selection.lngLat : selection.sensor.lngLat
+    // Dashed lines belong to a tap on an empty spot only (decision B7); a sensor tap draws none.
     if (selection.kind === 'point') {
-      pinRef.current = new mapboxgl.Marker({ element: createPinElement(), anchor: 'bottom' }).setLngLat(origin).addTo(map)
+      pinRef.current = new mapboxgl.Marker({ element: createPinElement(), anchor: 'bottom' }).setLngLat(selection.lngLat).addTo(map)
+      source?.setData(linkFeatures(selection.lngLat, neighboursFor(city, selection).map((n) => n.sensor)))
+    } else {
+      source?.setData({ type: 'FeatureCollection', features: [] })
     }
-    source?.setData(linkFeatures(origin, neighboursFor(city, selection).map((n) => n.sensor)))
   }, [selection, city])
+
+  // ── Selected state on the tapped sensor's marker (decision B6) ──────────────────────────────
+  useEffect(() => {
+    const selectedId = selection !== null && selection.kind === 'sensor' ? selection.sensor.id : null
+    Object.entries(markerElementsRef.current).forEach(([id, element]) => setMarkerSelected(element, id === selectedId))
+  }, [selection, sensorsPlaced])
+
+  // ── Make room for the card, then place it (decision B8) ─────────────────────────────────────
+  // Layout effect: the card has rendered (invisible) so its height can be measured first.
+  useLayoutEffect(() => {
+    const map = mapRef.current
+    const card = cardRef.current
+    if (map === null || selection === null || card === null) return
+    const box = map.getContainer()
+    const width = box.clientWidth
+    const height = box.clientHeight
+    const cardH = card.offsetHeight
+    const duration = prefersReducedMotion() ? 0 : MOVE_MS
+    const side = width >= SIDE_LAYOUT_MIN_PX
+    if (selection.kind === 'sensor') {
+      const zoom = Math.max(map.getZoom(), SENSOR_MIN_ZOOM)
+      // Where the sensor should land: right of a left-hand card (side layout), or in the lower part
+      // of the map below the card (phone).
+      const target = side
+        ? { x: FRAME_INSET_PX + SENSOR_CARD_W + CARD_GAP_PX + 24, y: height / 2 }
+        : { x: width / 2, y: Math.max(height * 0.72, Math.min(height - 48, FRAME_INSET_PX + cardH + CARD_GAP_PX + 24)) }
+      map.easeTo({ center: selection.sensor.lngLat, zoom, offset: [target.x - width / 2, target.y - height / 2], duration })
+    } else {
+      const lngLats = [selection.lngLat, ...neighboursFor(city, selection).map((n) => n.sensor.lngLat)]
+      const lngs = lngLats.map((p) => p[0])
+      const lats = lngLats.map((p) => p[1])
+      const box2: [[number, number], [number, number]] = [
+        [Math.min(...lngs), Math.min(...lats)],
+        [Math.max(...lngs), Math.max(...lats)],
+      ]
+      const padding = side
+        ? { left: FRAME_INSET_PX + NEAREST_CARD_W + CARD_GAP_PX + 16, right: 48, top: 56, bottom: 56 }
+        : { left: 40, right: 40, top: Math.min(height * 0.6, FRAME_INSET_PX + cardH + CARD_GAP_PX + 24), bottom: 40 }
+      map.fitBounds(box2, { padding, maxZoom: 15, duration })
+    }
+    placeCard()
+    if (duration === 0) return
+    // Place again once the move has settled (the move handler places it on the way).
+    const settle = (): void => placeCard()
+    map.once('moveend', settle)
+    return () => {
+      map.off('moveend', settle)
+    }
+  }, [selection, city, placeCard])
 
   // ── Escape closes the card (when no dialog is open: the dialog owns Escape then) ─────────────
   useEffect(() => {
@@ -337,8 +524,6 @@ export function AtlasDataMap({ city, boundary, helperVariant }: AtlasDataMapProp
 
   const hasLowCost = city.sensors.some((s) => s.type === 'low-cost')
   const hasReferenceGrade = city.sensors.some((s) => s.type === 'reference-grade')
-  const hasStale = city.sensors.some((s) => freshnessOf(s, city.updateCycleMinutes) === 'stale')
-  const hasDead = city.sensors.some((s) => freshnessOf(s, city.updateCycleMinutes) === 'dead')
 
   return (
     <div className="flex w-full flex-col border-y border-border bg-muted" data-city={city.slug}>
@@ -380,28 +565,27 @@ export function AtlasDataMap({ city, boundary, helperVariant }: AtlasDataMapProp
           <TapCard
             city={city}
             selection={selection}
+            placement={placement}
+            cardRef={cardRef}
             onClose={() => closeCard(true)}
             onOpenDetail={(sensor) => setDetailSensor(sensor)}
-            variant={helperVariant}
+            onSelectSensor={(sensor) => {
+              openerRef.current = markerElementsRef.current[sensor.id] ?? null
+              select({ kind: 'sensor', sensor })
+            }}
           />
         )}
       </div>
-      <AtlasMapLegend
-        index={city.index}
-        hasLowCost={hasLowCost}
-        hasReferenceGrade={hasReferenceGrade}
-        hasStale={hasStale}
-        hasDead={hasDead}
-      />
+      <AtlasMapLegend city={city} hasLowCost={hasLowCost} hasReferenceGrade={hasReferenceGrade} />
       <AtlasDialog
         open={detailSensor !== null}
         onOpenChange={(open) => {
           if (!open) setDetailSensor(null)
         }}
         eyebrow="Sensor details"
-        title={detailSensor === null ? '' : sensorTypeLabel(detailSensor.type)}
+        title={detailSensor === null ? '' : placeName(detailSensor)}
       >
-        {detailSensor !== null && <SensorDetail city={city} sensor={detailSensor} variant={helperVariant} />}
+        {detailSensor !== null && <SensorDetail city={city} sensor={detailSensor} />}
       </AtlasDialog>
     </div>
   )

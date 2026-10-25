@@ -22,11 +22,12 @@
  * Mock data (READ BEFORE EDITING)
  *   Positions and sensor types come from the Atlas's snapshot file; readings, bands, freshness and
  *   station types are INVENTED (see the generator). The nav's "Prototype with sample data" notice
- *   covers them. Station names are never in the file and never shown.
+ *   covers them. Iteration 2 (decision C2): real stations carry RMCAB's own station name; placed
+ *   low-cost sensors carry the locality their mock position falls in (mock). placeName() says which.
  *
  * Key exports: PollutantId, SensorType, Freshness, SensorReading, CitySensor, POLLUTANT_ORDER,
  *   parseCitySensors, freshnessOf, distanceKm, nearestReporting, distanceWords, ageWords,
- *   sensorTypeLabel, DEAD_AFTER_MINUTES
+ *   sensorTypeLabel, sensorTypeCardLabel, placeName, DEAD_AFTER_MINUTES
  * External dependencies: none (the caller passes the JSON in).
  */
 
@@ -65,6 +66,10 @@ export type CitySensor = {
   type: SensorType
   /** Station type where the city publishes one (reference monitors), translated; else null. */
   stationType: string | null
+  /** The station's name as the city publishes it, or null (placed sensors have none). */
+  name: string | null
+  /** Where there is no name: the locality (such as the district) the sensor sits in, else null. */
+  location: string | null
   /** The station's overall level as the city's feed publishes it (spec 5.2). */
   overallBand: number
   /** Minutes since the last reading. */
@@ -139,8 +144,16 @@ export function parseCitySensors(value: unknown, slug: string, bandCount: number
     if (minutes < 0) {
       throw new Error(`Breathe Data Atlas sensors: ${id}.updatedMinutesAgo is negative`)
     }
+    const name = record.name === null || record.name === undefined ? null : asString(record.name, `${id}.name`)
+    const location =
+      record.location === null || record.location === undefined ? null : asString(record.location, `${id}.location`)
+    if (name === null && location === null) {
+      throw new Error(`Breathe Data Atlas sensors: ${id} has neither a name nor a location`)
+    }
     return {
       id,
+      name,
+      location,
       lngLat: [asNumber(lngLat[0], `${id}.lngLat[0]`), asNumber(lngLat[1], `${id}.lngLat[1]`)],
       type: record.type,
       stationType: record.stationType === null ? null : asString(record.stationType, `${id}.stationType`),
@@ -215,7 +228,21 @@ export function ageWords(minutes: number): string {
   return days === 1 ? '1 day ago' : `${days} days ago`
 }
 
-/** The sensor type as the page names it. */
+/**
+ * What the card and the detail call a sensor (decision C2): its station name, or "In [locality]"
+ * where it has no name, so a place is never mistaken for a station name. Pure.
+ */
+export function placeName(sensor: CitySensor): string {
+  if (sensor.name !== null) return sensor.name
+  return `In ${sensor.location ?? 'an unnamed place'}`
+}
+
+/** The sensor type as the sensor card and detail name it (decision C3). */
+export function sensorTypeCardLabel(type: SensorType): string {
+  return type === 'reference-grade' ? 'Reference-grade station' : 'Low-cost sensor'
+}
+
+/** The sensor type as the page names it (legend and tiles). */
 export function sensorTypeLabel(type: SensorType): string {
   return type === 'reference-grade' ? 'Reference monitor' : 'Low-cost sensor'
 }

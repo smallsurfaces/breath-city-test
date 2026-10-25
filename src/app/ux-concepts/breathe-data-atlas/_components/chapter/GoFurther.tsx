@@ -3,10 +3,10 @@
  *
  * Purpose
  *   Copied from breathe-atlas/_components/chapter/GoFurther.tsx on 2026-10-25 (the original is
- *   never edited). Keeps "Check today's air" and "Get the data" with the city's links. REMOVES
- *   "Department responsible". ADDS a link to the city's Breathe Cities profile under a heading that
- *   tells visitors programmes and policies are there ("Programmes and policies in Bogotá", draft).
- *   An empty group is left out (rule 6).
+ *   never edited). Iteration 2 (decision J): TWO columns, "[City]'s air quality services" (renamed
+ *   from "Check today's air") and "Get the data". The programmes column is dropped: the Breathe
+ *   Cities link now lives in the "Breathe Cities in [City]" section. "Department responsible" stays
+ *   removed. An empty group is left out (rule 6).
  *
  * Key exports: GoFurther (named)
  * External dependencies: @/components/concept (ConceptSectionHeader), ./ChapterLink (OutboundLink),
@@ -21,6 +21,8 @@ import type { CityLink, CityPage } from '../../_data/bogota'
 type GoFurtherProps = {
   /** The city's grouped links. */
   links: CityPage['goFurther']
+  /** The city's name, for the services heading. */
+  cityName: string
 }
 
 /** Columns for the number of groups present, so they share the row evenly from `md`. */
@@ -31,11 +33,10 @@ const GROUP_COLUMNS: Record<number, string> = {
 }
 
 /** The go further section. Server component. */
-export function GoFurther({ links }: GoFurtherProps) {
+export function GoFurther({ links, cityName }: GoFurtherProps) {
   const groups: Array<{ key: string; title: string; items: CityLink[] }> = [
-    { key: 'air', title: "Check today's air", items: links.checkTodaysAir },
+    { key: 'services', title: `${cityName}’s air quality services`, items: links.services },
     { key: 'data', title: 'Get the data', items: links.getTheData },
-    { key: 'programmes', title: links.programmes.heading, items: [links.programmes.link] },
   ].filter((group) => group.items.length > 0)
 
   if (groups.length === 0) return null

@@ -1,25 +1,26 @@
 /**
- * SensorDetail.tsx — the sensor detail's content (spec 5.6), shown in AtlasDialog.
+ * SensorDetail.tsx — the sensor detail's content (spec 5.6, reworked in iteration 2, decision E),
+ * shown in AtlasDialog, opened from the sensor card's "More".
  *
  * Purpose
  *   The expert layer: the only place raw numbers appear (rule 7). Contents, in order:
- *     - Freshness in words, and the station type where the city publishes one (feature 14).
- *     - "Readings available": each pollutant with its raw value, unit, averaging time and time of
- *       reading. The averaging time is shown as data and never next to a band (spec 5.6).
- *       Each row expands to the pollutant explainer inline (section 8), one row at a time.
- *     - FIRST, the helper block (spec 5.8): one plain line per pollutant above any raw number, in
- *       the chosen variant; it carries the station's level per pollutant, smaller than the readings.
- *     - Sensor type, the source line, and "Past readings and downloads on Bogotá's site".
- *   No history chart, no weather, no forecast, no limit or guideline lines.
+ *     1. The dialog header carries the station name or location (set by the map; E1).
+ *     2. "What Bogotá advises" for the station's CURRENT band only (E2): "IBOCA index" once, then
+ *        the band's colour, label and Bogotá's health items (type R). A stale or dead sensor has no
+ *        current band, so no advice block: no current band, no advice.
+ *     3. Sensor type, station type and update time (E3).
+ *     4. The readings: each pollutant with raw value, unit, averaging time and time of reading, and
+ *        the city's per-pollutant band as smaller context, set apart from the averaging time
+ *        (spec 5.6: never next to it). Each pollutant expands to two parts only (E4): "What it is"
+ *        and "What it does to the body" (WHO).
+ *     5. Data source and "Past readings and downloads on Bogotá's site" (E5).
+ *   The helper sentences and the `?helper` variants are gone (E6).
  *
- * Card or dialog (spec 5.6, developer's call)
- *   Tried against the brief's test: a six-pollutant reference monitor's readings, levels, source
- *   and expandable explainers do not fit at 390px wide inside the map without scrolling past one
- *   screen, so the detail is a DIALOG (full-height sheet on a phone), as the spec's fallback says.
+ * Card or dialog (spec 5.6, developer's call, round 1): a dialog (full-height sheet on a phone).
  *
  * Freshness
- *   Stale: the last reading is kept and labelled with its age; levels are grey, never band colour.
- *   Dead: no readings are listed (none in the last 24 hours); the age is stated.
+ *   Stale: the last readings are kept with their age; bands are grey, never band colour; no advice.
+ *   Dead: no readings are listed (none in the last 24 hours); the age is stated; no advice.
  *
  * Key exports: SensorDetail (named)
  * External dependencies: react, lucide-react, ./city-ui, ./Explainers, ../chapter/ChapterLink,
@@ -30,40 +31,37 @@
 
 import { useState } from 'react'
 import { ChevronDown } from 'lucide-react'
-import { AdviceBlock, SensorTypeIcon } from './city-ui'
-import { PollutantHelperLine } from './PollutantHelper'
-import type { HelperVariant } from './PollutantHelper'
-import { PollutantExplainer } from './Explainers'
+import { BandChip, CurrentAdvice, SensorTypeIcon } from './city-ui'
+import { PollutantExplainerShort } from './Explainers'
 import { OutboundLink } from '../chapter/ChapterLink'
 import type { CityPage } from '../../_data/bogota'
-import { ageWords, freshnessOf, sensorTypeLabel } from '../../_data/city-sensors'
+import { ageWords, freshnessOf, sensorTypeCardLabel } from '../../_data/city-sensors'
 import type { CitySensor, PollutantId } from '../../_data/city-sensors'
 
 /** Props for SensorDetail. */
 type SensorDetailProps = {
   city: CityPage
   sensor: CitySensor
-  /** How the helper block shows each pollutant (spec 5.8). */
-  variant: HelperVariant
 }
 
 /** The sensor detail's content. */
-export function SensorDetail({ city, sensor, variant }: SensorDetailProps) {
+export function SensorDetail({ city, sensor }: SensorDetailProps) {
   const freshness = freshnessOf(sensor, city.updateCycleMinutes)
   // One pollutant explainer open at a time.
   const [openPollutant, setOpenPollutant] = useState<PollutantId | null>(null)
-  // One helper chip's advice open at a time.
-  const [openAdvice, setOpenAdvice] = useState<PollutantId | null>(null)
-  const adviceReading = sensor.readings.find((reading) => reading.pollutant === openAdvice) ?? null
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" data-sensor-detail={sensor.id}>
+      {/* 2. Advice for the current band only; none without a current band. */}
+      {freshness === 'fresh' && <CurrentAdvice city={city} band={sensor.overallBand} />}
+
+      {/* 3. Sensor type, station type, update time. */}
       <div className="space-y-1 text-sm text-foreground/85">
         <p className="flex items-center gap-2">
-          <SensorTypeIcon type={sensor.type} />
-          {sensorTypeLabel(sensor.type)}
-          {sensor.stationType !== null && <span className="text-foreground/70">· Station type: {sensor.stationType}</span>}
+          <SensorTypeIcon type={sensor.type} fill={null} />
+          {sensorTypeCardLabel(sensor.type)}
         </p>
+        {sensor.stationType !== null && <p>Station type: {sensor.stationType}</p>}
         <p className={freshness === 'fresh' ? '' : 'font-medium text-foreground'}>
           {freshness === 'dead'
             ? `No reading for ${ageWords(sensor.updatedMinutesAgo).replace(' ago', '')}`
@@ -73,34 +71,7 @@ export function SensorDetail({ city, sensor, variant }: SensorDetailProps) {
         </p>
       </div>
 
-      {/* The helper block (spec 5.8): one plain line per pollutant, above any raw number. It also
-          carries the station's level per pollutant (spec 5.6's context line), so that separate
-          list is not repeated below. */}
-      {freshness !== 'dead' && (
-        <section aria-label={`${city.index.name} level per pollutant`} className="rounded-xl bg-muted p-3">
-          <ul className={variant === 'chips' ? 'flex flex-wrap gap-x-2 gap-y-3' : 'space-y-2'}>
-            {sensor.readings.map((reading) => (
-              <li key={reading.pollutant}>
-                <PollutantHelperLine
-                  city={city}
-                  reading={reading}
-                  stale={freshness === 'stale'}
-                  variant={variant}
-                  expanded={openAdvice === reading.pollutant}
-                  onToggle={() => setOpenAdvice(openAdvice === reading.pollutant ? null : reading.pollutant)}
-                />
-              </li>
-            ))}
-          </ul>
-          {adviceReading !== null && freshness === 'fresh' && (
-            <div className="mt-3 border-t border-border pt-2">
-              <p className="text-xs font-semibold text-foreground/70">What {city.name} advises</p>
-              <AdviceBlock city={city} band={adviceReading.band} compact={true} />
-            </div>
-          )}
-        </section>
-      )}
-
+      {/* 4. Readings. */}
       <section>
         <h3 className="text-base font-semibold text-foreground">Readings available</h3>
         {freshness === 'dead' ? (
@@ -129,12 +100,16 @@ export function SensorDetail({ city, sensor, variant }: SensorDetailProps) {
                         {reading.averaging} · read {ageWords(sensor.updatedMinutesAgo)}
                       </span>
                     </span>
+                    {/* The city's band for this pollutant, as context, at the row's far end. */}
+                    <span className="shrink-0">
+                      <BandChip index={city.index} band={reading.band} pollutant={null} stale={freshness !== 'fresh'} />
+                    </span>
                     <ChevronDown className={`h-4 w-4 shrink-0 transition-transform ${open ? 'rotate-180' : ''}`} aria-hidden="true" />
                     <span className="sr-only">{open ? 'Hide' : 'Show'} what {reading.pollutant} is</span>
                   </button>
                   {open && (
                     <div id={panelId} className="pb-4 pt-1">
-                      <PollutantExplainer city={city} pollutant={reading.pollutant} />
+                      <PollutantExplainerShort pollutant={reading.pollutant} />
                     </div>
                   )}
                 </li>
@@ -144,6 +119,7 @@ export function SensorDetail({ city, sensor, variant }: SensorDetailProps) {
         )}
       </section>
 
+      {/* 5. Data source and past readings. */}
       <section className="space-y-1 border-t border-border pt-4 text-sm text-foreground/80">
         <p>Source: {city.sensorSource[sensor.type]}</p>
         <OutboundLink href={city.pastReadings.url} className="-my-2 font-medium text-foreground underline">

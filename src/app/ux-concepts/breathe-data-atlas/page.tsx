@@ -17,6 +17,7 @@ import { AtlasNav } from './_components/AtlasNav'
 import { CityBrowser } from './_components/CityBrowser'
 import { GlobeCover } from './_components/GlobeCover'
 import { SiteCaveat } from './_components/SiteCaveat'
+import { ENTRY_CAVEAT, OSM_FOOTER_CREDIT } from './_data/cover-copy'
 
 /** Id of the cover browser heading, which labels its section. */
 const BROWSER_HEADING_ID = 'atlas-browser-heading'
@@ -31,7 +32,7 @@ export default function BreatheDataAtlasPage() {
           <CityBrowser headingId={BROWSER_HEADING_ID} currentCityId={null} />
         </section>
       </main>
-      <SiteCaveat />
+      <SiteCaveat text={ENTRY_CAVEAT} notes={[OSM_FOOTER_CREDIT]} />
     </>
   )
 }

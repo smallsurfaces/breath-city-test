@@ -112,8 +112,6 @@ import { CITIES_ALPHABETICAL } from '../_data/cities'
 import { CARD_ARROW_CLASS, CARD_ARROW_DISABLED_CLASS, FOCUS_RING, navArrowClass } from './atlas-arrow-styles'
 import type { AtlasCity } from '../_data/cities'
 import { BC_ABOUT_LINK, BC_ONE_LINER } from '../_data/cover-copy'
-import { POSTER_ATTRIBUTION, POSTER_STATION_NOTE } from '../_data/posters'
-import { CreditInfo } from './chapter/CreditInfo'
 import { PosterMap } from './PosterMap'
 
 /** Props for CityBrowser. */
@@ -322,16 +320,11 @@ export function CityBrowser({ headingId, currentCityId }: CityBrowserProps) {
     <div className="grid grid-cols-1 gap-y-6 md:grid-cols-[13rem_minmax(0,1fr)] md:gap-x-8 lg:grid-cols-[15rem_minmax(0,1fr)]">
       {/* Text block: heading, the one line about BC, link to BC's site. */}
       <div className="md:col-start-1 md:row-start-1">
-        <div className="flex items-center gap-2">
-          <h2 id={headingId} className="text-xl font-semibold leading-tight text-foreground sm:text-2xl">
-            {CITIES_ALPHABETICAL.length} cities
-          </h2>
-          {/* The poster maps' credit (OpenStreetMap, ODbL) and how the stations were placed. */}
-          <CreditInfo label="Map credits" align="start" className="">
-            <p>{POSTER_ATTRIBUTION}</p>
-            <p className="mt-2">{POSTER_STATION_NOTE}</p>
-          </CreditInfo>
-        </div>
+        {/* The poster maps' OpenStreetMap credit is the entry page footer's plain line (iteration 2,
+            decisions A4 and A5); the "i" that sat here is gone. */}
+        <h2 id={headingId} className="text-xl font-semibold leading-tight text-foreground sm:text-2xl">
+          {CITIES_ALPHABETICAL.length} cities
+        </h2>
         <p className="mt-3 text-base leading-relaxed text-foreground/80">{BC_ONE_LINER}</p>
         <a
           href={BC_ABOUT_LINK.href}

@@ -2,8 +2,15 @@
  * Breathe Data Atlas copy (2026-10-25, from breathe-atlas/_components/GlobeCover.tsx; the original
  * is never edited). Changes (spec 3.2, 3.3): the per-city mission line under the globe is REMOVED;
  * in its place a fixed framing line (draft copy, FRAMING_LINE in ../_data/cover-copy) presents the
- * network as using data. BC's mission line stays. An "i" beside the framing line carries the poster
- * maps' credit, so the OpenStreetMap attribution is reachable from the globe card too.
+ * network as using data. BC's mission line stays.
+ *
+ * Iteration 2 (round 1 feedback, decisions A1 to A5):
+ *   - A1: the city name moves to the "CITIES" line and sits IN FRONT OF the globe, readable in full
+ *     (WordmarkCityName, rendered after the canvas, below the controls). The previous/next arrows
+ *     move to the VERTICAL CENTRE of the globe (.atlas-step), clear of the name.
+ *   - A2: new framing line (Jack's wording, FRAMING_LINE).
+ *   - A4/A5: the "i" after the framing line is gone; the OpenStreetMap credit is a plain line in the
+ *     entry page footer (OSM_FOOTER_CREDIT). The station provenance note stays in the data files.
  *
  * Original header follows.
  *
@@ -120,11 +127,9 @@ import type { AtlasGlobeApi } from './AtlasGlobe'
 import { navArrowClass } from './atlas-arrow-styles'
 import { CITY_CARD_WIDTH_PX, CITY_CARD_WIDTH_PX_SM, CityCard } from './CityCard'
 import { SPHERE_SHARE_OF_CANVAS } from './globe-framing'
-import { Wordmark, WORDMARK_LINE_HEIGHT_EM, WORDMARK_SIZE_CQW } from './Wordmark'
+import { Wordmark, WordmarkCityName } from './Wordmark'
 import { ATLAS_CITIES, BC_MISSION_LINE, CYCLE_ORDER } from '../_data/cities'
 import { FRAMING_LINE } from '../_data/cover-copy'
-import { POSTER_ATTRIBUTION, POSTER_STATION_NOTE } from '../_data/posters'
-import { CreditInfo } from './chapter/CreditInfo'
 import type { AtlasCity } from '../_data/cities'
 
 /** The globe touches `window` (WebGL, canvas, DOM markers): client-only, never server-rendered. */
@@ -212,7 +217,9 @@ const PAUSE_CARD_CLEARANCE_PX_SM = 16
  *   from the sphere's edge, hence the "- --atlas-inset".) Clamped at the stage edge, so it can never
  *   be pushed off the stage.
  * .atlas-step: the previous/next city arrows (round 2, item 2), either side of the globe.
- *   Vertically (round 3, R3.5), ONE rule at every breakpoint: each arrow is centred on the pale
+ *   ITERATION 2 (decision A1) SUPERSEDES the vertical rule below: the arrows sit at the globe's
+ *   vertical CENTRE, clear of the city name, which now lives on the "CITIES" line.
+ *   Previously (round 3, R3.5), ONE rule at every breakpoint: each arrow is centred on the pale
  *   "CITIES" line, not the globe's centre, where it sat on top of the big dark city name. The line's
  *   centre is its outer edge (--atlas-wordmark-reach below the globe's centre) less half its line
  *   height (WORDMARK_LINE_HEIGHT_EM x the wordmark size, WORDMARK_SIZE_CQW, both from Wordmark), so
@@ -255,7 +262,7 @@ const COVER_LAYOUT_CSS = `.atlas-cover { container: atlas-cover / inline-size; }
   right: calc(max(min(var(--atlas-inset), var(--atlas-pause-cap)), 0px) - var(--atlas-inset));
 }
 .atlas-step {
-  top: calc(50% + var(--atlas-wordmark-reach) - ${WORDMARK_LINE_HEIGHT_EM / 2} * ${WORDMARK_SIZE_CQW.toFixed(3)}cqw);
+  top: 50%;
   translate: 0 -50%;
 }
 .atlas-step-prev { left: 0; }
@@ -716,6 +723,10 @@ export function GlobeCover() {
           />
         </div>
 
+        {/* The city name on the "CITIES" line, in front of the globe (iteration 2, A1). Ignores
+            pointer events, so drags and taps still reach the globe. */}
+        <WordmarkCityName cityName={shownCity.name} visible={resting} lineReach="var(--atlas-wordmark-reach)" />
+
         {/* A square exactly over the sphere, for placing the controls on the globe. It ignores
             pointer events itself, so drags still reach the globe; only the controls take them.
             It renders after the canvas and carries z-20, so neither the WebGL surface nor the card
@@ -765,14 +776,9 @@ export function GlobeCover() {
           per-city mission line that used to change here is gone. */}
       <div className="mx-auto max-w-2xl px-4 pb-10 pt-2 text-center">
         <p className="text-base font-medium leading-snug text-foreground sm:text-lg">
+          {/* No "i" here any more (iteration 2, decision A4): the OpenStreetMap credit is a plain
+              line in the entry page footer. */}
           {FRAMING_LINE}
-          {/* The poster maps' credit (OpenStreetMap, ODbL), reachable from the globe card. */}
-          <span className="ml-2 inline-flex align-middle">
-            <CreditInfo label="Map credits" align="center" className="">
-              <p>{POSTER_ATTRIBUTION}</p>
-              <p className="mt-2">{POSTER_STATION_NOTE}</p>
-            </CreditInfo>
-          </span>
         </p>
         {/* BC's mission line: always visible, never fades or changes. */}
         <p className="mt-2 text-sm text-foreground/70">{BC_MISSION_LINE}</p>

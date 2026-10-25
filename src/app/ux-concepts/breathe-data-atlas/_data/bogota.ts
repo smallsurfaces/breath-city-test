@@ -32,16 +32,17 @@
  *
  * Mock and sample (spec rule 8)
  *   Sensors: ./sensors/bogota-page.json (positions from the snapshot; readings, bands, freshness and
- *   station types invented). Growth series: invented, start years stated, marked "Sample figure".
- *   The Breathe Cities intro is sample copy (status 'sample').
+ *   station types invented). Growth series: invented, start years stated. Iteration 2 removes the
+ *   on-page sample markers (decision K2): the nav's "Prototype with sample data" notice is the one
+ *   disclosure. The Breathe Cities blurb is still draft copy, not taken from Breathe Cities.
  *
- * Helper sentences (spec 5.8, Jack 25 October)
- *   Each pollutant's `helper` is the source half of "Road dust is the largest source of PM2.5 in
- *   Bogotá. It's Bajo right now." From the inventory where the spec says it covers the pollutant
- *   (PM2.5, PM10, NOx), otherwise WHO. Wording never overstates a share: road dust is about 40% of
- *   PM2.5, so it is "the largest source", never "mostly". The band half is the sensor's own level.
+ * Iteration 2 (round 1 feedback, "Decisions for iteration 2", 25 October)
+ *   The helper sentences and the `?helper` variants are gone (decision E6), and with them each
+ *   pollutant's `helper` field. "Why Bogotá measures it" is dropped (G), so `whyMeasured` and
+ *   `standardLink` are gone. The index link reads "IBOCA index" (feedback item 8). Go further has
+ *   two groups (J); the Breathe Cities link moved to the "Breathe Cities in Bogotá" section (I).
  *
- * Key exports: CityLink, SourceIconId, PollutantHelper, GrowthSeries, PollutantSourceLine, PollutantCityInfo, PlaceFact, CityPage,
+ * Key exports: CityLink, GrowthSeries, PollutantSourceLine, PollutantCityInfo, PlaceFact, CityPage,
  *   BOGOTA, hasYearOfArchive, PROTOTYPE_YEAR
  * External dependencies: ./indexes, ./city-sensors, ./sensors/bogota-page.json.
  */
@@ -59,42 +60,19 @@ export type CityLink = { label: string; url: string }
 export type GrowthSeries = {
   startYear: number
   values: number[]
-  /** Always 'sample': invented for the prototype and marked "Sample figure". */
+  /** Always 'sample': invented for the prototype (covered by the nav notice). */
   status: 'sample'
 }
 
 /** One source category for a pollutant, with its share only where the inventory publishes one. */
 export type PollutantSourceLine = { category: string; share: string | null }
 
-/** The concept-local source icons (spec 5.8): neutral, one per kind of source. */
-export type SourceIconId = 'road-dust' | 'traffic' | 'industry' | 'home-heating' | 'forms-in-air' | 'burning-fuel'
-
-/**
- * The "where it comes from" half of a pollutant helper sentence (spec 5.8). From the city's own
- * source study where it covers the pollutant, otherwise WHO, kept faithful. Never states a share the
- * study does not support ("the largest source", not "mostly", when the largest share is 40%).
- */
-export type PollutantHelper = {
-  /** The sentence, e.g. "Road dust is the largest source of PM2.5 in Bogotá." */
-  sentence: string
-  /** Whose statement it is: the city's study or WHO. */
-  origin: 'city' | 'who'
-  /** The icon for the icons variant, mapped from the source category in data. */
-  icon: SourceIconId
-  /** The short source label beside the icon, in the city's wording where it is the city's. */
-  label: string
-}
-
-/** The Bogotá-specific steps of a pollutant explainer (spec 8, steps 2 and 4) and its tile. */
+/** The Bogotá-specific step of a pollutant explainer ("Where it comes from") and its tile. */
 export type PollutantCityInfo = {
-  /** The helper sentence's source half (spec 5.8). */
-  helper: PollutantHelper
   /** Where it comes from in the city, as the inventory lists it. */
   sources: PollutantSourceLine[]
   /** A note shown above the sources (e.g. ozone is not emitted directly), or null. */
   sourcesNote: string | null
-  /** Why the city measures it: one line. */
-  whyMeasured: string
   /** Sample growth of the number of sites measuring it. Its last value must equal today's count. */
   sitesGrowth: GrowthSeries
 }
@@ -119,9 +97,9 @@ export type CityPage = {
   country: string
   /** The city's own index. Colour on the page comes only from here (rule 2). */
   index: CityAirQualityIndex
-  /** The index's credit link label: always "[Index] · Find out more" (rule 4). */
+  /** The index's link, named once wherever advice appears: "IBOCA index" (feedback item 8). */
   adviceLink: CityLink
-  /** The method line above the map (spec 5.1), in the city's own terms. */
+  /** The method line, now behind the legend's "i" (decision B2), in the city's own terms. */
   methodLine: string
   /** The feed's update cycle in minutes: a reading older than this is stale (spec 5.5). */
   updateCycleMinutes: number
@@ -135,7 +113,8 @@ export type CityPage = {
   forecastBands: Record<string, number> | null
   /** The city's advice per index level (type R only), keyed by level order. */
   advice: Record<number, string[]>
-  /** Area and population, as published (spec 6.1). Empty when not published (rule 6). */
+  /** Population (and area where it matches the map), as published. Shown in the Breathe Cities
+   *  section (decision I). Empty when not published (rule 6). */
   placeFacts: PlaceFact[]
   /** Sample growth of each sensor type (spec 6.2). Last value must equal today's count. */
   sensorTypeGrowth: Record<SensorType, GrowthSeries>
@@ -143,16 +122,17 @@ export type CityPage = {
   pollutants: Record<PollutantId, PollutantCityInfo>
   /** Credit for the pollutant sources. */
   sourcesCredit: CityLink
-  /** Link for "Why the city measures it" (the city's index and its legal basis). */
-  standardLink: CityLink
   /** The sensor detail's source line, per sensor type. */
   sensorSource: Record<SensorType, string>
   /** "Past readings and downloads on [City]'s site" (spec 5.6). */
   pastReadings: CityLink
-  /** The Breathe Cities intro blurb (spec 6.4). Sample copy. */
-  bcIntro: { text: string; link: CityLink; status: 'sample' }
-  /** Go further (spec 7). */
-  goFurther: { checkTodaysAir: CityLink[]; getTheData: CityLink[]; programmes: { heading: string; link: CityLink } }
+  /**
+   * The "Breathe Cities in [City]" section (decision I): the blurb, then the line
+   * "[linkLead] [link]", e.g. "More on Bogotá's programmes and policies on [Breathe Cities]".
+   */
+  bcIntro: { text: string; linkLead: string; link: CityLink }
+  /** Go further (decision J): the city's own air quality services, and where to get the data. */
+  goFurther: { services: CityLink[]; getTheData: CityLink[] }
   /** The city's mock sensors. */
   sensors: CitySensor[]
 }
@@ -176,7 +156,7 @@ export const BOGOTA: CityPage = {
   name: 'Bogotá',
   country: 'Colombia',
   index: IBOCA,
-  adviceLink: { label: 'IBOCA · Find out more', url: 'https://iboca.ambientebogota.gov.co/mapa/' },
+  adviceLink: { label: 'IBOCA index', url: 'https://iboca.ambientebogota.gov.co/mapa/' },
   methodLine: 'Bogotá rates air quality at each monitoring station with IBOCA.',
   // Spec 5.5 default (3 hours). IBOCA's map refreshes hourly; the default is kept for review.
   updateCycleMinutes: 180,
@@ -229,7 +209,6 @@ export const BOGOTA: CityPage = {
   },
   pollutants: {
     'PM2.5': {
-      helper: { sentence: 'Road dust is the largest source of PM2.5 in Bogotá.', origin: 'city', icon: 'road-dust', label: 'Road dust' },
       sources: [
         { category: 'Dust lifted from roads by traffic', share: '40%' },
         { category: 'Fuel burned by vehicles on roads', share: '17%' },
@@ -239,66 +218,51 @@ export const BOGOTA: CityPage = {
         { category: 'Quarries', share: '6%' },
       ],
       sourcesNote: null,
-      whyMeasured: 'PM2.5 is one of the pollutants in IBOCA, Bogotá’s air quality and health index.',
       sitesGrowth: { startYear: 2015, values: [14, 14, 15, 15, 16, 16, 18, 20, 21, 23, 24, 24], status: 'sample' },
     },
     PM10: {
-      helper: { sentence: 'Road dust is the largest source of PM10 in Bogotá.', origin: 'city', icon: 'road-dust', label: 'Road dust' },
       sources: [
         { category: 'Dust lifted from roads by traffic', share: null },
         { category: 'Construction work', share: null },
         { category: 'Brake and tyre wear', share: null },
       ],
       sourcesNote: null,
-      whyMeasured: 'PM10 is one of the pollutants in IBOCA, Bogotá’s air quality and health index.',
       sitesGrowth: { startYear: 2015, values: [15, 15, 15, 16, 16, 17, 18, 20, 21, 23, 24, 24], status: 'sample' },
     },
     'O₃': {
-      helper: { sentence: 'O₃ forms from traffic and industrial fumes in sunlight.', origin: 'who', icon: 'forms-in-air', label: 'Forms in the air' },
       sources: [
         { category: 'Vehicles on roads', share: null },
         { category: 'Evaporation from commercial sources', share: null },
       ],
       sourcesNote: 'Ozone is not emitted directly. The inventory lists sources of the gases that form it.',
-      whyMeasured: 'O₃ is one of the pollutants in IBOCA, Bogotá’s air quality and health index.',
       sitesGrowth: { startYear: 2015, values: [11, 11, 11, 12, 12, 12, 12, 13, 13, 13, 13, 13], status: 'sample' },
     },
     'NO₂': {
-      helper: { sentence: 'Vehicles on roads are the largest source of nitrogen oxides, which include NO₂, in Bogotá.', origin: 'city', icon: 'traffic', label: 'Vehicles on roads' },
       sources: [
         { category: 'Fuel burned by vehicles on roads', share: null },
         { category: 'Off-road machinery', share: null },
         { category: 'Industry', share: null },
       ],
       sourcesNote: null,
-      whyMeasured: 'NO₂ is one of the pollutants in IBOCA, Bogotá’s air quality and health index.',
       sitesGrowth: { startYear: 2015, values: [10, 10, 11, 11, 11, 12, 12, 12, 13, 13, 13, 13], status: 'sample' },
     },
     'SO₂': {
-      helper: { sentence: 'SO₂ comes from burning fossil fuels such as coal and oil.', origin: 'who', icon: 'industry', label: 'Burning coal and oil' },
       sources: [
         { category: 'Industry', share: null },
         { category: 'Vehicles on roads', share: null },
       ],
       sourcesNote: null,
-      whyMeasured: 'SO₂ is one of the pollutants in IBOCA, Bogotá’s air quality and health index.',
       sitesGrowth: { startYear: 2015, values: [6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 7, 7], status: 'sample' },
     },
     CO: {
-      helper: { sentence: 'CO forms when fuels such as wood, petrol or gas burn incompletely.', origin: 'who', icon: 'burning-fuel', label: 'Fuel burning incompletely' },
       sources: [{ category: 'Fuel burned by vehicles on roads', share: null }],
       sourcesNote: null,
-      whyMeasured: 'CO is one of the pollutants in IBOCA, Bogotá’s air quality and health index.',
       sitesGrowth: { startYear: 2015, values: [7, 7, 7, 7, 8, 8, 8, 8, 8, 8, 8, 8], status: 'sample' },
     },
   },
   sourcesCredit: {
     label: 'Inventario de Emisiones de Bogotá 2023 (Secretaría Distrital de Ambiente)',
     url: 'https://www.ambientebogota.gov.co/documents/10184/397082/INVENTARIO+EMISIONES_2023_w_apnds.pdf',
-  },
-  standardLink: {
-    label: 'About IBOCA (Resolución Conjunta 2840 de 2023)',
-    url: 'https://iboca.ambientebogota.gov.co/publicaciones/175/que-es-el-iboca/',
   },
   sensorSource: {
     'reference-grade': 'Bogotá Air Quality Monitoring Network (RMCAB), Secretaría Distrital de Ambiente',
@@ -307,19 +271,15 @@ export const BOGOTA: CityPage = {
   pastReadings: { label: 'Past readings and downloads on Bogotá’s site', url: 'http://rmcab.ambientebogota.gov.co/' },
   bcIntro: {
     text: 'Bogotá works with Breathe Cities on clean air zones in the southwest of the city, which bring road repairs, greening, sustainable transport and air quality monitoring together, one neighbourhood at a time.',
-    link: { label: 'Bogotá on Breathe Cities', url: 'https://breathecities.org/cities/bogota/' },
-    status: 'sample',
+    linkLead: 'More on Bogotá’s programmes and policies on',
+    link: { label: 'Breathe Cities', url: 'https://breathecities.org/cities/bogota/' },
   },
   goFurther: {
-    checkTodaysAir: [
+    services: [
       { label: 'IBOCA air quality map', url: 'https://iboca.ambientebogota.gov.co/mapa/' },
       { label: 'RMCAB live monitoring map', url: 'http://rmcab.ambientebogota.gov.co/home/map' },
     ],
     getTheData: [{ label: 'RMCAB data reports', url: 'http://rmcab.ambientebogota.gov.co/' }],
-    programmes: {
-      heading: 'Programmes and policies in Bogotá',
-      link: { label: 'Bogotá on breathecities.org', url: 'https://breathecities.org/cities/bogota/' },
-    },
   },
   sensors: parseCitySensors(bogotaPageSensors as unknown, 'bogota', IBOCA.levels.length),
 }

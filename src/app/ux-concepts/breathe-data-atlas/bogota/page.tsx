@@ -4,22 +4,23 @@
  * Purpose
  *   Order, top to bottom (spec 4):
  *     1. City name (h1). No landmark image, no intro sentence.
- *     2. The map (section 5): method line with the IBOCA "i" credit above it, then AtlasDataMap,
- *        the largest element on the page, with its legend.
- *     3. The city section (section 6): the air quality network and the Breathe Cities intro.
- *     4. Go further (section 7).
- *     5. Next city (the re-skinned Atlas ending), then the site-level caveat in the footer (3.4).
+ *     2. The map (section 5): AtlasDataMap, the largest element on the page, with its legend. The
+ *        method line and its "i" moved into the legend's one "i" (iteration 2, decisions B1, B2).
+ *     3. "Bogotá's air quality network" (decision F), then the separate "Breathe Cities in Bogotá"
+ *        section (decision I).
+ *     4. Go further (decision J).
+ *     5. Next city (the re-skinned Atlas ending), then the city caveat in the footer (decision K1).
  *   Everything else from the copied Atlas chapter is gone: opener image, key facts, feature story,
  *   programme list, photos, the "current conditions" line and the world locator map.
  *
- * Helper variants (spec 5.8)
- *   `?helper=text` (default), `?helper=icons`, `?helper=chips` switch how each pollutant reads in
- *   the tap card and the sensor detail. Reading the search param makes this page render per request.
+ * Static rendering
+ *   The `?helper` variants are gone (iteration 2, decision E6), so the page reads no search params
+ *   and is pre-rendered again.
  *
  * Data
  *   ../_data/bogota.ts (index, cycle, advice, sources, links, mock sensors), ../_data/boundaries.ts
  *   (the OSM outline for the map mask). All mock figures sit under the nav's "Prototype with sample
- *   data" notice; derived figures carry "Sample figure" (rule 8).
+ *   data" notice, the one sample disclosure (decision K2).
  *
  * Key exports: BogotaPage (default), metadata
  * External dependencies: next (Metadata), ../_components/*, ../_data/*.
@@ -30,12 +31,10 @@ import { AtlasNav } from '../_components/AtlasNav'
 import { SiteCaveat } from '../_components/SiteCaveat'
 import { AtlasDataMap } from '../_components/chapter/AtlasDataMap'
 import { ChapterEnding } from '../_components/chapter/ChapterEnding'
-import { CreditInfo } from '../_components/chapter/CreditInfo'
-import { OutboundLink } from '../_components/chapter/ChapterLink'
 import { GoFurther } from '../_components/chapter/GoFurther'
-import { CitySection } from '../_components/city/CitySection'
-import { helperVariantFrom } from '../_components/city/PollutantHelper'
+import { BreatheCitiesSection, CitySection } from '../_components/city/CitySection'
 import { BOGOTA } from '../_data/bogota'
+import { cityCaveat } from '../_data/cover-copy'
 import { cityBoundary } from '../_data/boundaries'
 import { ATLAS_CITIES } from '../_data/cities'
 
@@ -56,15 +55,8 @@ function nextCity() {
   return next
 }
 
-/** Next 15 page props: search params arrive as a promise. */
-type BogotaPageProps = {
-  searchParams: Promise<Record<string, string | string[] | undefined>>
-}
-
-export default async function BogotaPage({ searchParams }: BogotaPageProps) {
+export default function BogotaPage() {
   const city = BOGOTA
-  // The pollutant helper variant (spec 5.8): ?helper=text (default), ?helper=icons, ?helper=chips.
-  const helperVariant = helperVariantFrom((await searchParams).helper)
   const self = ATLAS_CITIES.find((entry) => entry.slug === city.slug)
   if (self === undefined) throw new Error('Breathe Data Atlas: Bogotá is missing from the city list')
 
@@ -80,31 +72,23 @@ export default async function BogotaPage({ searchParams }: BogotaPageProps) {
             </h1>
           </header>
 
-          {/* 2. The map, with its method line (spec 5.1) and the IBOCA credit. */}
+          {/* 2. The map. The method line and the index credit sit behind the legend's "i". */}
           <section aria-label={`${city.name} air quality map`}>
-            <div className="mx-auto flex max-w-6xl items-center gap-2 px-4 pb-3">
-              <p className="text-base text-foreground/85">{city.methodLine}</p>
-              <CreditInfo label={`About ${city.index.name}`} align="start" className="">
-                <p>{city.index.publisher}</p>
-                <OutboundLink href={city.adviceLink.url} className="-mb-3 text-sm font-semibold text-foreground underline">
-                  {city.adviceLink.label}
-                </OutboundLink>
-              </CreditInfo>
-            </div>
-            <AtlasDataMap city={city} boundary={cityBoundary(city.slug)} helperVariant={helperVariant} />
+            <AtlasDataMap city={city} boundary={cityBoundary(city.slug)} />
           </section>
 
           <div className="space-y-20 pb-20 pt-12 sm:space-y-28 sm:pb-28 sm:pt-16">
-            {/* 3. The city section. */}
+            {/* 3. The network, then Breathe Cities in the city. */}
             <CitySection city={city} />
+            <BreatheCitiesSection city={city} />
             {/* 4. Go further. */}
-            <GoFurther links={city.goFurther} />
+            <GoFurther links={city.goFurther} cityName={city.name} />
             {/* 5. Next city. */}
             <ChapterEnding city={self} next={nextCity()} />
           </div>
         </article>
       </main>
-      <SiteCaveat />
+      <SiteCaveat text={cityCaveat(city.name)} notes={[]} />
     </>
   )
 }

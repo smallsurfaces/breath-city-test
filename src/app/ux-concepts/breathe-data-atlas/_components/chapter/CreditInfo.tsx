@@ -60,6 +60,12 @@ type CreditInfoProps = {
   align: 'start' | 'center' | 'end'
   /** Placement classes from the caller (e.g. absolute positioning on a photo). Empty string for none. */
   className: string
+  /**
+   * True when the "i" sits inside an AtlasDialog (z-110): the popup then layers at z-120, above the
+   * dialog, instead of z-50, where the dialog would cover it (iteration 2: the pollutant pop-up's
+   * section sources moved behind an "i").
+   */
+  inDialog: boolean
 }
 
 /** How long the pointer rests on the "i" before it opens, in ms. */
@@ -82,7 +88,7 @@ const TRIGGER_CLASS = [
 ].join(' ')
 
 /** The "i" and its popover. */
-export function CreditInfo({ label, children, align, className }: CreditInfoProps) {
+export function CreditInfo({ label, children, align, className, inDialog }: CreditInfoProps) {
   const popupRef = useRef<HTMLDivElement | null>(null)
   return (
     <Popover.Root>
@@ -100,7 +106,7 @@ export function CreditInfo({ label, children, align, className }: CreditInfoProp
             (z-105). It opens above the "i"; the larger top collision padding keeps it clear of
             that pinned disclaimer (up to about 45px tall on a phone), so near the top of the
             screen it flips below the "i" instead of sliding under the disclaimer. */}
-        <Popover.Positioner side="top" align={align} sideOffset={8} collisionPadding={COLLISION_PADDING} className="z-50">
+        <Popover.Positioner side="top" align={align} sideOffset={8} collisionPadding={COLLISION_PADDING} className={inDialog ? 'z-[120]' : 'z-50'}>
           <Popover.Popup
             ref={popupRef}
             // Focus the popup itself on open, not its first link. Base UI focuses a link WITHOUT
