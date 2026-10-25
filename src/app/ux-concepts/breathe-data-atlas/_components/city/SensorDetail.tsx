@@ -13,8 +13,8 @@
  *     2. The advice block for the station's CURRENT band only: the scale with its capsule above the
  *        current band (decision C), then the city's items, grouped (decision E); the index link
  *        behind an "i". No current band, no advice: a stale sensor has none, and a fresh sensor
- *        whose city sent no band shows "No IBOCA level reported · updated 12 min ago" instead
- *        (decision B2). A city that rates areas, not stations, passes `areaBand` to show the area's
+ *        whose city sent no band (or an unrated district) shows NO box: the detail goes straight to
+ *        "Latest readings" (decision B2, amended by R). A city that rates areas, not stations, passes `areaBand` to show the area's
  *        band here (phase 2); a city with no index shows no block.
  *     3. "Latest readings", with "Updated 11 min ago" right-aligned on the heading line (decision
  *        D2; stale: "Last reading 9 hours ago"). Each row (decision D3): pollutant, value and unit,
@@ -37,7 +37,6 @@
 import { useState } from 'react'
 import { ChevronDown } from 'lucide-react'
 import { BandChip, CurrentAdvice, SensorTypeIcon } from './city-ui'
-import { BandScale } from './BandScale'
 import { PollutantExplainerShort } from './Explainers'
 import { CreditInfo } from '../chapter/CreditInfo'
 import { OutboundLink } from '../chapter/ChapterLink'
@@ -128,23 +127,8 @@ export function SensorDetail({ city, sensor }: SensorDetailProps) {
       {city.index !== null && area !== null && area.band !== null && (
         <CurrentAdvice city={city} index={city.index} band={area.band} caption={areaCaption(city, area.name)} />
       )}
-      {city.index !== null && area !== null && area.band === null && (
-        <section className="rounded-xl bg-muted p-4" data-current-advice="none">
-          <p className="text-sm font-semibold text-foreground">
-            {area.name === null ? '' : `In ${area.name}: `}No {city.index.name} level reported
-          </p>
-        </section>
-      )}
-      {city.index !== null && city.mapMethod === 'station' && fresh && sensor.overallBand === null && (
-        <section className="rounded-xl bg-muted p-4" data-current-advice="none">
-          <p className="text-sm font-semibold text-foreground">
-            No {city.index.name} level reported · updated {ageWords(sensor.updatedMinutesAgo)}
-          </p>
-          <div className="mt-2">
-            <BandScale index={city.index} band={null} />
-          </div>
-        </section>
-      )}
+      {/* Round 3 decision R (addition): with no band (fresh but not sent, or an unrated district)
+          there is no advice box at all; the detail goes straight to "Latest readings". */}
 
       {/* 3. Readings, with the update time on the heading line (decision D2). */}
       <section>
