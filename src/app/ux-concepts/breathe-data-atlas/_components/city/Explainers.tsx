@@ -106,7 +106,13 @@ function WhatItIs({ pollutant }: WhoStepsProps) {
         What it is
       </StepHeading>
       <p className={BODY}>
-        <span className="font-medium text-foreground">{global.name}.</span> {global.whatItIs}
+        {/* The name leads the text as the source gives it: "Benzene. A chemical…", or with a comma
+            where the text continues the sentence ("Nitrogen monoxide, also called nitric oxide."). */}
+        <span className="font-medium text-foreground">
+          {global.name}
+          {/^[a-z]/.test(global.whatItIs) ? ',' : '.'}
+        </span>{' '}
+        {global.whatItIs}
       </p>
     </section>
   )
