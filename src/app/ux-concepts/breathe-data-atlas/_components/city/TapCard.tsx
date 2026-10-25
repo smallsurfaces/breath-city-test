@@ -7,7 +7,7 @@
  *         1. the scale bar of equal-width segments (BandScale, a tooltip per segment), with the band
  *            capsule above the current band as its marker (iteration 4, round 3 decision C) and the
  *            index name under it. Stale: grey bar, "No current IBOCA level". Fresh but no band sent
- *            (decision B2): grey bar, "No IBOCA level reported";
+ *            (decision B2, amended by R): the empty grey bar only, no text;
  *         2. the station name, or its location where it has no name (placeName);
  *         3. the sensor type ("Reference grade" / "Low-cost sensor", iteration 3 decision B);
  *         4. "Live · updated 6 min ago" (stale: grey, "Last reading 9 hours ago");
@@ -138,9 +138,9 @@ function SensorBody({ city, sensor, onOpenDetail, headingId, headingRef }: Senso
             <ScaleWithName index={index} band={sensor.overallBand} note={null} />
           ) : (
             <>
-              <p className="pb-1 text-sm font-semibold text-foreground/70">
-                {live ? `No ${index.name} level reported` : `No current ${index.name} level`}
-              </p>
+              {/* Round 3 decision R: a fresh reading with no band shows only the empty grey bar
+                  (no text, no capsule); stale keeps its line. */}
+              {!live && <p className="pb-1 text-sm font-semibold text-foreground/70">No current {index.name} level</p>}
               <BandScale index={index} band={null} />
             </>
           )}
@@ -166,18 +166,13 @@ function SensorBody({ city, sensor, onOpenDetail, headingId, headingRef }: Senso
         {live ? `Live · updated ${ageWords(sensor.updatedMinutesAgo)}` : `Last reading ${ageWords(sensor.updatedMinutesAgo)}`}
       </p>
       {/* District method: the district's band as a small line (SPEC ADDENDUM, Jakarta). */}
-      {index !== null && city.mapMethod === 'district' && area !== null && (
+      {/* Decision R: a district with no band gets no line at all. */}
+      {index !== null && city.mapMethod === 'district' && area !== null && area.band !== null && (
         <p className="flex flex-wrap items-center gap-1.5 text-sm text-foreground/85" data-card-district-line="">
           <span>In {area.name}:</span>
-          {area.band !== null ? (
-            <>
-              <BandChip index={index} band={area.band} pollutant={null} stale={false} />
-              <span aria-hidden="true">·</span>
-              <span>{index.name}</span>
-            </>
-          ) : (
-            <span>No {index.name} level reported</span>
-          )}
+          <BandChip index={index} band={area.band} pollutant={null} stale={false} />
+          <span aria-hidden="true">·</span>
+          <span>{index.name}</span>
         </p>
       )}
       {/* 5. More. */}
@@ -238,7 +233,6 @@ function NearestRow({ city, sensor, km, onSelect }: NearestRowProps) {
         {ratesStations && live && level !== null && index !== null && sensor.overallBand !== null && (
           <BandChip index={index} band={sensor.overallBand} pollutant={null} stale={false} />
         )}
-        {ratesStations && live && level === null && <span className="text-xs text-foreground/70">No level reported</span>}
         <ChevronRight className="h-4 w-4 shrink-0 text-foreground/70" aria-hidden="true" />
       </button>
     </li>
@@ -266,10 +260,8 @@ function AreaHeader({ city, index, area, onOpenArea }: AreaHeaderProps) {
       {area.band !== null ? (
         <ScaleWithName index={index} band={area.band} note={city.mapMethod === 'surface' ? 'IRCELINE model' : null} />
       ) : (
-        <>
-          <p className="pb-1 text-sm font-semibold text-foreground/70">No {index.name} level reported</p>
-          <BandScale index={index} band={null} />
-        </>
+        // Decision R: no band, only the empty grey bar.
+        <BandScale index={index} band={null} />
       )}
       <p className="pt-1 text-base font-bold leading-tight text-foreground">{place}</p>
       {area.band !== null && (
