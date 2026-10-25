@@ -256,22 +256,22 @@ export function PassiveTubeIcon() {
 type SensorMarkIconProps = {
   type: SensorType
   /** What the map marker's fill says (../chapter/atlas-markers MarkerFill). */
-  fill: 'band' | 'no-band' | 'neutral' | 'stale'
+  fill: 'band' | 'no-band' | 'no-index' | 'neutral' | 'stale'
   /** The band colour, used only when `fill` is 'band'. */
   colour: string | null
 }
 
 /**
  * The sensor's map marker in small, for list rows (iteration 4, decisions B1 to B3): the band colour;
- * black with a white "–" for a fresh reading with no band; neutral for a city that rates no
- * stations; grey for stale. Shape is the sensor type, as on the map.
+ * black with a white "–" for a fresh reading with no band; plain black (no "–") in a city with no
+ * index; neutral for a city that rates areas; grey for stale. Shape is the sensor type, as on the map.
  */
 export function SensorMarkIcon({ type, fill, colour }: SensorMarkIconProps) {
   const shape = type === 'reference-grade' ? 'rounded-[2px]' : 'rounded-full'
   const background =
     fill === 'band' && colour !== null
       ? colour
-      : fill === 'no-band'
+      : fill === 'no-band' || fill === 'no-index'
         ? '#000000'
         : fill === 'neutral'
           ? 'var(--background)'

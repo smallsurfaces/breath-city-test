@@ -15,7 +15,7 @@
  *       No pollutant lines, no raw numbers, no data source line.
  *     - Tap the map (decision D): a pin drops and the card lists the NEAREST THREE REPORTING
  *       sensors, fresh or stale (iteration 4, decision B1: nothing drops out), one compact row each:
- *       the marker in small (SensorMarkIcon: band colour, black "–", or grey), name or location,
+ *       the marker in small (SensorMarkIcon: band colour, black "–", plain black, or grey), name or location,
  *       distance, recency, the band capsule (none when stale; "No level reported" when the city sent
  *       no band), and an arrow that opens that sensor's card. No header value, no
  *       pollutant lines. The dashed lines from the pin are drawn by the map.
@@ -157,7 +157,11 @@ function SensorBody({ city, sensor, onOpenDetail, headingId, headingRef }: Senso
       </h3>
       {/* 3. Sensor type. */}
       <p className="flex items-center gap-2 text-sm text-foreground/85">
-        <SensorTypeIcon type={sensor.type} fill={null} />
+        {/* A fresh sensor in a city with no index: the marker's own plain black, as on the map.
+            Stale keeps the existing grey type icon. */}
+        {city.index === null && live
+          ? <SensorMarkIcon type={sensor.type} fill={markerFillFor('fresh', false, null, false)} colour={null} />
+          : <SensorTypeIcon type={sensor.type} fill={null} />}
         {sensorTypeCardLabel(sensor.type)}
       </p>
       {/* 4. Live line, or the age of the last reading. */}
@@ -222,7 +226,7 @@ function NearestRow({ city, sensor, km, onSelect }: NearestRowProps) {
       >
         <SensorMarkIcon
           type={sensor.type}
-          fill={markerFillFor(live ? 'fresh' : 'stale', ratesStations, sensor.overallBand)}
+          fill={markerFillFor(live ? 'fresh' : 'stale', ratesStations, sensor.overallBand, index !== null)}
           colour={level?.hex ?? null}
         />
         <span className="min-w-0 flex-1">

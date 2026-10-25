@@ -13,8 +13,11 @@
  *       no-band  fresh, but the city sent no band (Bogotá's "SIN DATOS"): BLACK with a white "–"
  *                inside, echoing the "--" on Bogotá's own IBOCA map; the hyphen keeps it apart from
  *                any dark band colour and does not rely on colour alone. Pulses (it is live).
- *       neutral  fresh, where the city rates areas or nothing, not stations (Jakarta, Brussels,
- *                Sofia, Milan): a plain neutral fill with a neutral pulse. Nothing is missing.
+ *       no-index fresh, in a city that has NO live index at all (Sofia, Milan, round 3, Jack's marker
+ *                rule): PLAIN BLACK, no hyphen. The sensor publishes readings; there is no band to
+ *                miss. Driven by the city's data (index === null), never by city name. Pulses.
+ *       neutral  fresh, where the city rates areas, not stations (Jakarta, Brussels): a plain
+ *                neutral fill with a neutral pulse. Nothing is missing.
  *       stale    older than the city's cycle, however old: grey, still, never a band colour.
  *     There is no dead or hollow state any more (decision B1).
  *
@@ -59,7 +62,7 @@ const SENSOR_HOLLOW_FILL = '#ffffff'
 /** Fill for a fresh reading with no band (decision B2): black, as Bogotá's feed colours "Sin data". */
 export const SENSOR_NO_BAND_FILL = '#000000'
 
-/** Fill for a neutral marker (a city that rates no stations): a light neutral grey-white. */
+/** Fill for a neutral marker (a city that rates areas, not stations): a light neutral grey-white. */
 export const SENSOR_NEUTRAL_FILL = '#f4f4f5'
 
 /** Hit area in px (see Accessibility in the header). */
@@ -78,7 +81,7 @@ const SELECTED_SCALE = 1.35
 const PULSE_SIZE = 30
 
 /** What a marker's fill says (see the header). */
-export type MarkerFill = 'band' | 'no-band' | 'neutral' | 'stale'
+export type MarkerFill = 'band' | 'no-band' | 'no-index' | 'neutral' | 'stale'
 
 /** What one marker shows. */
 export type SensorMarkerStyle = {
@@ -89,9 +92,13 @@ export type SensorMarkerStyle = {
   label: string
 }
 
-/** The marker fill for a sensor: stale beats everything; then band, no band, or neutral. Pure. */
-export function markerFillFor(freshness: Freshness, ratesStations: boolean, band: number | null): MarkerFill {
+/**
+ * The marker fill for a sensor: stale beats everything; then a city with no index (plain black);
+ * then band, no band, or neutral. `cityHasIndex` is the city's data (index !== null). Pure.
+ */
+export function markerFillFor(freshness: Freshness, ratesStations: boolean, band: number | null, cityHasIndex: boolean): MarkerFill {
   if (freshness === 'stale') return 'stale'
+  if (!cityHasIndex) return 'no-index'
   if (!ratesStations) return 'neutral'
   return band === null ? 'no-band' : 'band'
 }
@@ -102,7 +109,7 @@ function markerSVG(square: boolean, style: SensorMarkerStyle): string {
   const fill =
     style.fill === 'band'
       ? (style.colour ?? SENSOR_STALE_GREY)
-      : style.fill === 'no-band'
+      : style.fill === 'no-band' || style.fill === 'no-index'
         ? SENSOR_NO_BAND_FILL
         : style.fill === 'neutral'
           ? SENSOR_NEUTRAL_FILL
