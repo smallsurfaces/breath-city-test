@@ -42,125 +42,23 @@
  *   `standardLink` are gone. The index link reads "IBOCA index" (feedback item 8). Go further has
  *   two groups (J); the Breathe Cities link moved to the "Breathe Cities in Bogotá" section (I).
  *
- * Key exports: AdviceItem, CityLink, GrowthSeries, PollutantSourceLine, PollutantCityInfo, PlaceFact, CityPage,
- *   BOGOTA, hasYearOfArchive, PROTOTYPE_YEAR
- * External dependencies: ./indexes, ./city-sensors, ./sensors/bogota-page.json.
+ * Phase 2 (2026-10-25): the types moved to ./city-page.ts, shared by every city page; Bogotá uses
+ *   the 'station' map method. Each pollutant names its largest source (round 3 decision J) from
+ *   bogota-sources-of-pollutants.csv: the category with the largest share, mapped explicitly to an icon.
+ *
+ * Key exports: BOGOTA
+ * External dependencies: ./indexes, ./city-sensors, ./city-page, ./sensors/bogota-page.json.
  */
 
 import bogotaPageSensors from './sensors/bogota-page.json'
 import { CITY_INDEXES } from './indexes'
-import type { CityAirQualityIndex } from './indexes'
-import { parseCitySensors, POLLUTANT_ORDER } from './city-sensors'
-import type { CitySensor, PollutantId, SensorType } from './city-sensors'
-
-/**
- * One advice item, as the city publishes it (never reworded), with the group the city ties it to
- * (iteration 4, decision E). `group` is null for general advice, else the group's English name,
- * from the `group` column of the city's *-health-advice.csv.
- */
-export type AdviceItem = { text: string; group: string | null }
+import { parseCitySensors } from './city-sensors'
+import { checkCityPage } from './city-page'
+import type { CityPage } from './city-page'
 
 /** Bogotá's two named groups (decision E), English names. */
 const PHYSICAL_ACTIVITY = 'People doing physical activity'
 const ALLERGIES = 'People with allergies or respiratory diseases'
-
-/** A labelled external link. */
-export type CityLink = { label: string; url: string }
-
-/** A sample growth series for a sparkline: one value per year from `startYear`. */
-export type GrowthSeries = {
-  startYear: number
-  values: number[]
-  /** Always 'sample': invented for the prototype (covered by the nav notice). */
-  status: 'sample'
-}
-
-/** One source category for a pollutant, with its share only where the inventory publishes one. */
-export type PollutantSourceLine = { category: string; share: string | null }
-
-/** The Bogotá-specific step of a pollutant explainer ("Where it comes from") and its tile. */
-export type PollutantCityInfo = {
-  /** Where it comes from in the city, as the inventory lists it. */
-  sources: PollutantSourceLine[]
-  /** A note shown above the sources (e.g. ozone is not emitted directly), or null. */
-  sourcesNote: string | null
-  /** Sample growth of the number of sites measuring it. Its last value must equal today's count. */
-  sitesGrowth: GrowthSeries
-}
-
-/** A plain place fact (area, population) with its source and year, as published. */
-export type PlaceFact = {
-  label: string
-  /** As displayed, e.g. "8.0 million". */
-  value: string
-  /** The figure's year where the source gives one, else null. */
-  year: string | null
-  /** Where the figure comes from, shown behind the "i". */
-  source: CityLink
-  /** The exact figure and how it was read, kept as provenance (not displayed). */
-  provenance: string
-}
-
-/** One city page's data. */
-export type CityPage = {
-  slug: string
-  name: string
-  country: string
-  /** The city's own index. Colour on the page comes only from here (rule 2). */
-  index: CityAirQualityIndex
-  /** The index's link, named once wherever advice appears: "IBOCA index" (feedback item 8). */
-  adviceLink: CityLink
-  /** The method line, now behind the legend's "i" (decision B2), in the city's own terms. */
-  methodLine: string
-  /** The feed's update cycle in minutes: a reading older than this is stale (spec 5.5). */
-  updateCycleMinutes: number
-  /** First year of the city's archive; under one year shows counts without sparklines (spec 6.2). */
-  archiveStartYear: number
-  /**
-   * The city's forecast, only when published AS A BAND. Null when there is none or when it is
-   * published as a number (converting it would be ours, spec 5.7). The Today / Tomorrow switch
-   * appears only when this is not null.
-   */
-  forecastBands: Record<string, number> | null
-  /**
-   * The city's advice per index level, keyed by level order (Bogotá: type R only). Items carry their
-   * group (decision E); the page lists general items first, then each group under its own heading.
-   */
-  advice: Record<number, AdviceItem[]>
-  /** Population (and area where it matches the map), as published. Shown in the Breathe Cities
-   *  section (decision I). Empty when not published (rule 6). */
-  placeFacts: PlaceFact[]
-  /** Sample growth of each sensor type (spec 6.2). Last value must equal today's count. */
-  sensorTypeGrowth: Record<SensorType, GrowthSeries>
-  /** Pollutant-specific content and tile series (spec 6.3, 8). */
-  pollutants: Record<PollutantId, PollutantCityInfo>
-  /** Credit for the pollutant sources. */
-  sourcesCredit: CityLink
-  /** The sensor detail's source line, per sensor type. */
-  sensorSource: Record<SensorType, string>
-  /** "Past readings and downloads on [City]'s site" (spec 5.6). */
-  pastReadings: CityLink
-  /**
-   * The "Breathe Cities in [City]" section (decision I): the blurb, then the line
-   * "[linkLead] [link]", e.g. "More on Bogotá's programmes and policies on [Breathe Cities]".
-   */
-  bcIntro: { text: string; linkLead: string; link: CityLink }
-  /** Go further (decision J): the city's own air quality services, and where to get the data. */
-  goFurther: { services: CityLink[]; getTheData: CityLink[] }
-  /** The city's mock sensors. */
-  sensors: CitySensor[]
-}
-
-/**
- * The year the prototype treats as "now", for the one-year archive rule. A constant, not the
- * clock, so the server and the browser always agree and the page renders the same every time.
- */
-export const PROTOTYPE_YEAR = 2026
-
-/** True when the city has at least one year of archive, so its tiles can show sparklines (spec 6.2). */
-export function hasYearOfArchive(city: CityPage): boolean {
-  return PROTOTYPE_YEAR - city.archiveStartYear >= 1
-}
 
 const IBOCA = CITY_INDEXES.bogota
 
@@ -170,8 +68,11 @@ export const BOGOTA: CityPage = {
   name: 'Bogotá',
   country: 'Colombia',
   index: IBOCA,
+  mapMethod: 'station',
   adviceLink: { label: 'IBOCA index', url: 'https://iboca.ambientebogota.gov.co/mapa/' },
   methodLine: 'Bogotá rates air quality at each monitoring station with IBOCA.',
+  legendLine: 'Colour shows each station’s IBOCA level.',
+  mapCredit: null,
   // Spec 5.5 default (3 hours). IBOCA's map refreshes hourly; the default is kept for review.
   updateCycleMinutes: 180,
   // Sample: the prototype's archive start, not a researched date.
@@ -234,6 +135,8 @@ export const BOGOTA: CityPage = {
         { category: 'Quarries', share: '6%' },
       ],
       sourcesNote: null,
+      // Largest share: road dust resuspension, 40%.
+      largestSource: { icon: 'road-dust', label: 'Road dust' },
       sitesGrowth: { startYear: 2015, values: [14, 14, 15, 15, 16, 16, 18, 20, 21, 23, 24, 24], status: 'sample' },
     },
     PM10: {
@@ -243,6 +146,8 @@ export const BOGOTA: CityPage = {
         { category: 'Brake and tyre wear', share: null },
       ],
       sourcesNote: null,
+      // Largest share in the file: road dust resuspension (76.2%, derived from the inventory's tonnes).
+      largestSource: { icon: 'road-dust', label: 'Road dust' },
       sitesGrowth: { startYear: 2015, values: [15, 15, 15, 16, 16, 17, 18, 20, 21, 23, 24, 24], status: 'sample' },
     },
     'O₃': {
@@ -251,6 +156,8 @@ export const BOGOTA: CityPage = {
         { category: 'Evaporation from commercial sources', share: null },
       ],
       sourcesNote: 'Ozone is not emitted directly. The inventory lists sources of the gases that form it.',
+      // Ozone forms in the air: no direct source, so no icon (decision J).
+      largestSource: null,
       sitesGrowth: { startYear: 2015, values: [11, 11, 11, 12, 12, 12, 12, 13, 13, 13, 13, 13], status: 'sample' },
     },
     'NO₂': {
@@ -260,6 +167,8 @@ export const BOGOTA: CityPage = {
         { category: 'Industry', share: null },
       ],
       sourcesNote: null,
+      // Largest share in the file: on-road mobile sources, combustion (79.4% of NOx, derived).
+      largestSource: { icon: 'road-traffic', label: 'Vehicle exhaust' },
       sitesGrowth: { startYear: 2015, values: [10, 10, 11, 11, 11, 12, 12, 12, 13, 13, 13, 13], status: 'sample' },
     },
     'SO₂': {
@@ -268,11 +177,15 @@ export const BOGOTA: CityPage = {
         { category: 'Vehicles on roads', share: null },
       ],
       sourcesNote: null,
+      // Largest share in the file: industrial fixed sources (81.1% of SOx, derived).
+      largestSource: { icon: 'industry', label: 'Industry' },
       sitesGrowth: { startYear: 2015, values: [6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 7, 7], status: 'sample' },
     },
     CO: {
       sources: [{ category: 'Fuel burned by vehicles on roads', share: null }],
       sourcesNote: null,
+      // Largest share in the file: on-road mobile sources, combustion (92.6%, derived).
+      largestSource: { icon: 'road-traffic', label: 'Vehicle exhaust' },
       sitesGrowth: { startYear: 2015, values: [7, 7, 7, 7, 8, 8, 8, 8, 8, 8, 8, 8], status: 'sample' },
     },
   },
@@ -280,11 +193,6 @@ export const BOGOTA: CityPage = {
     label: 'Inventario de Emisiones de Bogotá 2023 (Secretaría Distrital de Ambiente)',
     url: 'https://www.ambientebogota.gov.co/documents/10184/397082/INVENTARIO+EMISIONES_2023_w_apnds.pdf',
   },
-  sensorSource: {
-    'reference-grade': 'Bogotá Air Quality Monitoring Network (RMCAB), Secretaría Distrital de Ambiente',
-    'low-cost': 'Bogotá Collaborative Microsensor Network, Secretaría Distrital de Ambiente',
-  },
-  pastReadings: { label: 'Past readings and downloads on Bogotá’s site', url: 'http://rmcab.ambientebogota.gov.co/' },
   bcIntro: {
     text: 'Bogotá works with Breathe Cities on clean air zones in the southwest of the city, which bring road repairs, greening, sustainable transport and air quality monitoring together, one neighbourhood at a time.',
     linkLead: 'More on Bogotá’s programmes and policies on',
@@ -298,27 +206,9 @@ export const BOGOTA: CityPage = {
     getTheData: [{ label: 'RMCAB data reports', url: 'http://rmcab.ambientebogota.gov.co/' }],
   },
   sensors: parseCitySensors(bogotaPageSensors as unknown, 'bogota', IBOCA.levels.length),
+  districts: null,
+  surface: null,
 }
 
-// ── Build-time checks: the page is pre-rendered, so a mismatch here fails the build ──────────────
-
-/** Every sample series must end on today's count, so a sparkline never contradicts its tile. */
-function checkSeries(label: string, series: GrowthSeries, count: number): void {
-  const last = series.values[series.values.length - 1]
-  if (last !== count) {
-    throw new Error(`Breathe Data Atlas: ${label} series ends at ${last}, but the sensor file has ${count}`)
-  }
-}
-
-for (const type of ['reference-grade', 'low-cost'] as SensorType[]) {
-  checkSeries(type, BOGOTA.sensorTypeGrowth[type], BOGOTA.sensors.filter((s) => s.type === type).length)
-}
-for (const pollutant of POLLUTANT_ORDER) {
-  const count = BOGOTA.sensors.filter((s) => s.readings.some((r) => r.pollutant === pollutant)).length
-  checkSeries(pollutant, BOGOTA.pollutants[pollutant].sitesGrowth, count)
-}
-for (const level of IBOCA.levels) {
-  if ((BOGOTA.advice[level.order] ?? []).length === 0) {
-    throw new Error(`Breathe Data Atlas: Bogotá has no advice for IBOCA level ${level.order}`)
-  }
-}
+// Build-time checks (the page is pre-rendered, so a mismatch fails the build).
+checkCityPage(BOGOTA)

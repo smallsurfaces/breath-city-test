@@ -216,7 +216,7 @@ export function WordmarkCityName({ cityName, visible, lineReach }: WordmarkProps
   const emWidth = emWidths[cityName] ?? null
 
   return (
-    <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-10 select-none">
+    <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-0 select-none">
       <span
         data-wordmark-city-name={cityName}
         className={`${TYPE_CLASS} absolute left-1/2 -translate-x-1/2 text-center transition-opacity duration-700 ease-out motion-reduce:transition-none`}

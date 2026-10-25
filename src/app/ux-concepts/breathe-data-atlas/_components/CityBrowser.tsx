@@ -169,14 +169,16 @@ function CityBrowserCard({ city, current }: { city: AtlasCity; current: boolean 
         current ? 'ring-4 ring-foreground ring-offset-2 ring-offset-background' : ''
       }`}
     >
-      {/* The city's poster map (spec 3.1), fitted into a fixed safe area below the name and arrow,
-          bottom-aligned, so every outline gets the same room whatever its shape. Decorative. */}
-      <div className="absolute inset-x-3 bottom-3 top-[42%] sm:inset-x-3.5">
+      {/* The city's map (round 3 decision K): outline and major roads only, filling the whole card
+          edge to edge, cropped as needed. Decorative. */}
+      <div className="absolute inset-0">
         <PosterMap slug={city.slug} variant="carousel" />
       </div>
 
-      <div className="relative flex flex-col items-start gap-2.5 p-3 sm:p-3.5">
-        <h3 className="text-lg font-extrabold leading-tight tracking-tight text-foreground sm:text-xl">{city.name}</h3>
+      {/* Decision K: the city name is the most prominent element. A neutral scrim in the card's own
+          background keeps it clear of the roads beneath. */}
+      <div className="relative flex flex-col items-start gap-2.5 bg-gradient-to-b from-muted via-muted/85 to-transparent p-3 pb-6 sm:p-3.5 sm:pb-7">
+        <h3 className="text-xl font-extrabold leading-tight tracking-tight text-foreground sm:text-2xl">{city.name}</h3>
 
         {hasCityPage(city.slug) ? (
           <Link

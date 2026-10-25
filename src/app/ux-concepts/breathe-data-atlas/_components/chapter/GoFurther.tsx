@@ -15,7 +15,7 @@
 
 import { ConceptSectionHeader } from '@/components/concept'
 import { OutboundLink } from './ChapterLink'
-import type { CityLink, CityPage } from '../../_data/bogota'
+import type { CityLink, CityPage } from '../../_data/city-page'
 
 /** Props for GoFurther. */
 type GoFurtherProps = {

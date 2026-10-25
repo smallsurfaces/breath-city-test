@@ -59,9 +59,11 @@ RING_SLICE = {'jakarta': (7, 186)}
 LONG_SIDE = 1000.0           # viewBox units on the poster's longer side
 SIMPLIFY = 0.9               # Douglas-Peucker tolerance, viewBox units
 # Street classes: (stroke width, opacity) in viewBox units. Thin and faint: texture, not a road map.
+# Round 3 decision K (2026-10-25): major roads only (motorway, trunk, primary), slightly stronger,
+# because the cards now crop the poster to cover the image area. See gen_posters_major_roads.py.
 CLASSES = {
-    'motorway': (5.0, 0.55), 'trunk': (5.0, 0.55),
-    'primary': (3.6, 0.45), 'secondary': (2.6, 0.36), 'tertiary': (1.8, 0.26),
+    'motorway': (5.0, 0.7), 'trunk': (5.0, 0.7),
+    'primary': (3.6, 0.55),
 }
 LAND_OPACITY = 0.07
 OUTLINE_WIDTH = 4.0

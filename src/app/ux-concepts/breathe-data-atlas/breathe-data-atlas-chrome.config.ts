@@ -26,8 +26,22 @@ import type { BcChromeConfig } from '@/components/concept'
 /** The concept's canonical route (the landing page globe cover). */
 export const BREATHE_DATA_ATLAS_ROUTE = '/ux-concepts/breathe-data-atlas'
 
-/** The city slugs that have a city page in this pass (spec section 1: Bogotá only). */
-export const CITY_PAGE_SLUGS: readonly string[] = ['bogota']
+/**
+ * The city slugs that have a city page: Bogotá (spec section 1), then Jakarta, Brussels, Sofia and
+ * Milan (SPEC ADDENDUM, 2026-10-25). The other nine cities stay unlinked.
+ */
+export const CITY_PAGE_SLUGS: readonly string[] = ['bogota', 'brussels', 'jakarta', 'milan', 'sofia']
+
+/**
+ * The city page that follows `slug` in "Next city": the built cities in carousel order (alphabetical,
+ * as the cover browser lists them), wrapping round (SPEC ADDENDUM, Entry page).
+ */
+export function nextCityPageSlug(slug: string, alphabetical: readonly string[]): string {
+  const built = alphabetical.filter((entry) => CITY_PAGE_SLUGS.includes(entry))
+  const position = built.indexOf(slug)
+  if (position < 0) throw new Error(`Breathe Data Atlas: ${slug} has no city page`)
+  return built[(position + 1) % built.length]
+}
 
 /** True when the city has a city page in this pass. */
 export function hasCityPage(slug: string): boolean {
