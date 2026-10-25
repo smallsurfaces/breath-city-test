@@ -51,7 +51,11 @@ export const WHO_SOURCE_LINKS: Array<{ label: string; url: string }> = [
 ]
 
 /** The global explainer steps for each pollutant. */
-export const POLLUTANT_EXPLAINERS: Record<PollutantId, PollutantExplainer> = {
+/**
+ * WHO's wording for the six pollutants the WHO source notes cover. Round 3 decision X: a pollutant a
+ * city publishes without a sourced description gets NO explainer sections (Partial on purpose).
+ */
+export const POLLUTANT_EXPLAINERS: Partial<Record<PollutantId, PollutantExplainer>> = {
   'PM2.5': {
     name: 'Fine particulate matter',
     whatItIs:

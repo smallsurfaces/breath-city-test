@@ -81,8 +81,12 @@ export type PollutantCityInfo = {
    * cover the pollutant with local, quantified figures, and always for ozone.
    */
   largestSource: LargestSource | null
-  /** Sample growth of the number of sites measuring it. Its last value must equal today's count. */
-  sitesGrowth: GrowthSeries
+  /**
+   * A heading subject for "Where it comes from" when the city's figures are for a wider group than
+   * the pollutant (decision X: Milan's NO₂ shares are of nitrogen oxides, so the heading reads "Where
+   * nitrogen oxides come from in Milan"). Null for "Where it comes from in [City]".
+   */
+  sourcesSubject: string | null
 }
 
 /** A plain place fact (population) with its source and year, as published. */
@@ -170,7 +174,17 @@ export type CityPage = {
   placeFacts: PlaceFact[]
   /** Sample growth of each sensor type the city has (spec 6.2). Last value must equal today's count. */
   sensorTypeGrowth: Partial<Record<SensorType, GrowthSeries>>
-  /** Pollutant-specific content, for every pollutant the city's sensors report. */
+  /**
+   * The pollutants the city publishes in its station data, in tile order (round 3 decision X), from
+   * its <city>-pollutant-names.csv. The tiles show exactly this list; every station's readings are
+   * drawn from it, and every listed pollutant is reported by at least one station (never a zero tile).
+   */
+  publishedPollutants: PollutantId[]
+  /** Where the city's published list comes from (provenance; not displayed). */
+  publishedPollutantsSource: string
+  /** The pollutants the city's index rates, so the reading's "i" only says the index sets a level for those. */
+  indexPollutants: PollutantId[]
+  /** City-specific content per published pollutant: its sources, where the city's study has them. */
   pollutants: Partial<Record<PollutantId, PollutantCityInfo>>
   /** Credit for the pollutant sources, or null when the city has no source study on file. */
   sourcesCredit: CityLink | null
@@ -321,13 +335,14 @@ export function checkCityPage(city: CityPage): void {
     const count = city.sensors.filter((s) => s.type === type).length
     if (count > 0) checkSeries(type, city.sensorTypeGrowth[type], count)
   }
+  // Decision X: tiles = the published list; no zero tiles; no reading outside the list.
   for (const pollutant of POLLUTANT_ORDER) {
     const count = city.sensors.filter((s) => s.readings.some((r) => r.pollutant === pollutant)).length
-    if (count === 0) continue
+    const published = city.publishedPollutants.includes(pollutant)
+    if (published && count === 0) fail(`${pollutant} is published but no station reports it (a zero tile)`)
+    if (!published && count > 0) fail(`${pollutant} is reported but not in the city's published list`)
     const info = city.pollutants[pollutant]
-    if (info === undefined) fail(`${pollutant} is measured but has no content`)
-    else checkSeries(pollutant, info.sitesGrowth, count)
-    if (pollutant === 'O₃' && info?.largestSource !== null) fail('ozone must not carry a source icon (decision J)')
+    if (pollutant === 'O₃' && info !== undefined && info.largestSource !== null) fail('ozone must not carry a source icon (decision J)')
   }
   if (city.index === null) {
     if (city.mapMethod !== 'none') fail('a city without an index must use the "none" method')

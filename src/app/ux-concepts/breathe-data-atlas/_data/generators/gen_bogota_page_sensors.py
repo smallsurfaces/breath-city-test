@@ -130,6 +130,30 @@ OLDER_READING = {('bogota-06', 'SO₂'): 130}
 
 ORDER = ['PM2.5', 'PM10', 'O₃', 'NO₂', 'SO₂', 'CO']
 
+# Round 3 decision X: Bogotá publishes more than IBOCA's six in its station data
+# (bogota-pollutant-names.csv): PM1 (microsensor tables), NO, NOx and black carbon (RMCAB feed).
+# They carry no IBOCA band (IBOCA does not rate them). MOCK values, drawn from a separate seed so the
+# draws above are unchanged: NO and NOx at every reference station that reports NO₂, black carbon
+# at four stations, PM1 at every low-cost sensor.
+EXTRA_ORDER = ['PM1', 'NO', 'NOₓ', 'Black carbon']
+BLACK_CARBON = {'bogota-03', 'bogota-06', 'bogota-08', 'bogota-10'}
+extra_rng = random.Random(1025)
+
+
+def extras_for(sensor_id, sensor_type, readings):
+    out = []
+    pm25 = next((r['value'] for r in readings if r['pollutant'] == 'PM2.5'), 15)
+    no2 = next((r['value'] for r in readings if r['pollutant'] == 'NO₂'), None)
+    if sensor_type == 'low-cost':
+        out.append(('PM1', round(pm25 * extra_rng.uniform(0.6, 0.8), 1), 'µg/m³', '1-hour average'))
+    if no2 is not None:
+        no = round(extra_rng.uniform(5, 40), 1)
+        out.append(('NO', no, 'µg/m³', '1-hour average'))
+        out.append(('NOₓ', round(no2 + no * 1.53, 1), 'µg/m³', '1-hour average'))
+    if sensor_id in BLACK_CARBON:
+        out.append(('Black carbon', round(extra_rng.uniform(1.5, 6), 1), 'µg/m³', '1-hour average'))
+    return [{'pollutant': p, 'value': v, 'unit': u, 'averaging': a, 'band': None, 'updatedMinutesAgo': None} for p, v, u, a in out]
+
 
 def value_in(pollutant, band, rng):
     low, high = RANGES[pollutant][band - 1]
@@ -175,10 +199,12 @@ for s in atlas['sensors']:
     ]
     coarse_at_least_fine(readings)
     overall = max(r['band'] for r in readings)
+    readings += extras_for(s['id'], s['type'], readings)
     if s['id'] in NO_BAND:
         overall = None
         for r in readings:
             r['band'] = None
+    readings.sort(key=lambda r: (ORDER + EXTRA_ORDER).index(r['pollutant']))
     sensors.append({
         'id': s['id'],
         'lngLat': s['lngLat'],

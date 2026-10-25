@@ -93,6 +93,7 @@ type WhoStepsProps = {
 /** "What it is". */
 function WhatItIs({ pollutant }: WhoStepsProps) {
   const global = POLLUTANT_EXPLAINERS[pollutant]
+  if (global === undefined) return null
   return (
     <section>
       <StepHeading sources={WHO_SOURCES} sourcesLabel="Sources for what it is" notes={[]}>
@@ -108,6 +109,7 @@ function WhatItIs({ pollutant }: WhoStepsProps) {
 /** "What it does to the body". */
 function WhatItDoes({ pollutant }: WhoStepsProps) {
   const global = POLLUTANT_EXPLAINERS[pollutant]
+  if (global === undefined) return null
   return (
     <section>
       <StepHeading sources={WHO_SOURCES} sourcesLabel="Sources for what it does to the body" notes={[]}>
@@ -171,7 +173,7 @@ export function PollutantExplainerFull({ city, pollutant, sites, series, showSpa
       <WhatItDoes pollutant={pollutant} />
 
       {/* The city's advice ladder: only for a city with an index (none for Sofia and Milan). */}
-      {city.index !== null && (
+      {city.index !== null && city.indexPollutants.includes(pollutant) && (
         <section>
           <StepHeading sources={city.indexLinks} sourcesLabel={`About ${city.index.name}`} notes={[]}>
             {city.index.name}
@@ -190,7 +192,7 @@ export function PollutantExplainerFull({ city, pollutant, sites, series, showSpa
             sourcesLabel={`Source for where it comes from in ${city.name}`}
             notes={local.sources.filter((line) => line.share !== null).map((line) => `${line.category}: ${line.share} (as published)`)}
           >
-            Where it comes from in {city.name}
+            {local.sourcesSubject === null ? 'Where it comes from' : `Where ${local.sourcesSubject} come from`} in {city.name}
           </StepHeading>
           {local.sourcesNote !== null && <p className={BODY}>{local.sourcesNote}</p>}
           {/* Decision W: a donut where every share is a single published figure, else icons only. */}

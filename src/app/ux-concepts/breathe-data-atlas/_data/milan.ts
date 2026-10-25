@@ -65,6 +65,10 @@ export const MILAN: CityPage = {
   sensorTypeGrowth: {
     'reference-grade': { startYear: 2010, values: [6, 6, 6, 6, 6, 6, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5], status: 'sample' },
   },
+  // Round 3 decision X: every pollutant the city publishes in its station data, in tile order.
+  publishedPollutants: ['PM2.5', 'PM10', 'O₃', 'NO₂', 'NOₓ', 'SO₂', 'CO', 'Black carbon', 'Benzene', 'NH₃', 'As', 'Cd', 'Ni', 'Pb', 'BaP'],
+  publishedPollutantsSource: 'milan-pollutant-names.csv: Regione Lombardia sensor registry for Milan (nometiposensore).',
+  indexPollutants: [],
   pollutants: {
     'PM2.5': {
       sources: [
@@ -75,7 +79,7 @@ export const MILAN: CityPage = {
       ],
       sourcesNote: null,
       largestSource: { icon: 'road-traffic', label: 'Road transport' },
-      sitesGrowth: { startYear: 2010, values: [3, 3, 3, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5], status: 'sample' },
+      sourcesSubject: null,
     },
     PM10: {
       sources: [
@@ -86,7 +90,7 @@ export const MILAN: CityPage = {
       ],
       sourcesNote: null,
       largestSource: { icon: 'road-traffic', label: 'Road transport' },
-      sitesGrowth: { startYear: 2010, values: [6, 6, 6, 6, 6, 6, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5], status: 'sample' },
+      sourcesSubject: null,
     },
     'O₃': {
       sources: [
@@ -96,7 +100,7 @@ export const MILAN: CityPage = {
       ],
       sourcesNote: 'Ozone is not emitted directly. The inventory lists sources of the gases that form it.',
       largestSource: null,
-      sitesGrowth: { startYear: 2010, values: [3, 3, 3, 3, 3, 3, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2], status: 'sample' },
+      sourcesSubject: null,
     },
     'NO₂': {
       sources: [
@@ -107,7 +111,7 @@ export const MILAN: CityPage = {
       ],
       sourcesNote: 'Shares are of nitrogen oxides, the group nitrogen dioxide belongs to.',
       largestSource: { icon: 'road-traffic', label: 'Road transport' },
-      sitesGrowth: { startYear: 2010, values: [6, 6, 6, 6, 6, 6, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5], status: 'sample' },
+      sourcesSubject: 'nitrogen oxides',
     },
     'SO₂': {
       sources: [
@@ -117,7 +121,7 @@ export const MILAN: CityPage = {
       ],
       sourcesNote: null,
       largestSource: { icon: 'home-heating', label: 'Heating' },
-      sitesGrowth: { startYear: 2010, values: [2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], status: 'sample' },
+      sourcesSubject: null,
     },
     CO: {
       sources: [
@@ -127,7 +131,96 @@ export const MILAN: CityPage = {
       ],
       sourcesNote: null,
       largestSource: { icon: 'road-traffic', label: 'Road transport' },
-      sitesGrowth: { startYear: 2010, values: [3, 3, 3, 3, 3, 3, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2], status: 'sample' },
+      sourcesSubject: null,
+    },
+    'NOₓ': {
+      sources: [
+        { category: 'Road transport', share: '61.61%', icon: 'road-traffic' },
+        { category: 'Non-industrial combustion (heating)', share: '21.60%', icon: 'home-heating' },
+        { category: 'Combustion in industry', share: '6.02%', icon: 'industry' },
+        { category: 'Energy production and fuel transformation', share: '5.94%', icon: 'industry' },
+      ],
+      sourcesNote: null,
+      largestSource: { icon: 'road-traffic', label: 'Road transport' },
+      sourcesSubject: null,
+    },
+    'Black carbon': {
+      sources: [
+        { category: 'Road transport', share: '47.06%', icon: 'road-traffic' },
+        { category: 'Other sources and sinks', share: '39.06%', icon: 'other' },
+        { category: 'Non-industrial combustion (heating)', share: '8.21%', icon: 'home-heating' },
+      ],
+      sourcesNote: null,
+      largestSource: { icon: 'road-traffic', label: 'Road transport' },
+      sourcesSubject: null,
+    },
+    Benzene: {
+      sources: [],
+      sourcesNote: null,
+      largestSource: null,
+      sourcesSubject: null,
+    },
+    'NH₃': {
+      sources: [
+        { category: 'Other sources and sinks', share: '46.87%', icon: 'other' },
+        { category: 'Agriculture', share: '33.11%', icon: 'other' },
+        { category: 'Road transport', share: '12.63%', icon: 'road-traffic' },
+      ],
+      sourcesNote: null,
+      largestSource: { icon: 'other', label: 'Other sources and sinks' },
+      sourcesSubject: null,
+    },
+    As: {
+      sources: [
+        { category: 'Combustion in industry', share: '39.03%', icon: 'industry' },
+        { category: 'Road transport', share: '21.16%', icon: 'road-traffic' },
+        { category: 'Waste treatment and disposal', share: '13.88%', icon: 'waste-burning' },
+        { category: 'Non-industrial combustion (heating)', share: '12.01%', icon: 'home-heating' },
+      ],
+      sourcesNote: null,
+      largestSource: { icon: 'industry', label: 'Industry' },
+      sourcesSubject: null,
+    },
+    Cd: {
+      sources: [
+        { category: 'Non-industrial combustion (heating)', share: '35.39%', icon: 'home-heating' },
+        { category: 'Other sources and sinks', share: '25.92%', icon: 'other' },
+        { category: 'Combustion in industry', share: '20.48%', icon: 'industry' },
+        { category: 'Road transport', share: '15.67%', icon: 'road-traffic' },
+      ],
+      sourcesNote: null,
+      largestSource: { icon: 'home-heating', label: 'Heating' },
+      sourcesSubject: null,
+    },
+    Ni: {
+      sources: [
+        { category: 'Combustion in industry', share: '47.12%', icon: 'industry' },
+        { category: 'Road transport', share: '32.65%', icon: 'road-traffic' },
+        { category: 'Other sources and sinks', share: '10.80%', icon: 'other' },
+      ],
+      sourcesNote: null,
+      largestSource: { icon: 'industry', label: 'Industry' },
+      sourcesSubject: null,
+    },
+    Pb: {
+      sources: [
+        { category: 'Road transport', share: '70.58%', icon: 'road-traffic' },
+        { category: 'Combustion in industry', share: '12.32%', icon: 'industry' },
+        { category: 'Other sources and sinks', share: '10.82%', icon: 'other' },
+      ],
+      sourcesNote: null,
+      largestSource: { icon: 'road-traffic', label: 'Road transport' },
+      sourcesSubject: null,
+    },
+    BaP: {
+      sources: [
+        { category: 'Non-industrial combustion (heating)', share: '51.81%', icon: 'home-heating' },
+        { category: 'Other sources and sinks', share: '30.25%', icon: 'other' },
+        { category: 'Road transport', share: '10.14%', icon: 'road-traffic' },
+      ],
+      sourcesNote: null,
+      largestSource: { icon: 'home-heating', label: 'Heating' },
+      sourcesSubject: null,
     },
   },
   sourcesCredit: INEMAR,
