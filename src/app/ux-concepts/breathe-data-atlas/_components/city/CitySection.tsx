@@ -263,7 +263,8 @@ export function BreatheCitiesSection({ city }: BreatheCitiesSectionProps) {
   return (
     <section aria-label={`Breathe Cities in ${city.name}`} className="mx-auto max-w-6xl px-4">
       <ConceptSectionHeader heading={`Breathe Cities in ${city.name}`} className="mb-6" />
-      <div className="max-w-3xl space-y-6">
+      {/* Round 3 decision Q: the section runs the full content width. */}
+      <div className="space-y-6">
         {/* Iteration 3 (decision F): population first, with no "i", then the blurb, then the link. */}
         {city.placeFacts.length > 0 && (
           <dl className="flex flex-wrap gap-x-10 gap-y-4">
@@ -271,8 +272,8 @@ export function BreatheCitiesSection({ city }: BreatheCitiesSectionProps) {
               <div key={fact.label}>
                 <dt className="text-sm text-foreground/70">{fact.label}</dt>
                 <dd className="text-xl font-bold text-foreground">
+                  {/* Round 3 decision P: the value only; the year stays in the data's provenance. */}
                   {fact.value}
-                  {fact.year !== null && <span className="text-sm font-normal text-foreground/70"> ({fact.year})</span>}
                 </dd>
               </div>
             ))}
