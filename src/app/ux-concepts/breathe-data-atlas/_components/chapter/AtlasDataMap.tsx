@@ -101,8 +101,11 @@ const LINKS_SOURCE = 'bda-links'
 const LINKS_LAYER = 'bda-links-line'
 const LINKS_COLOUR = '#1f2328'
 
-/** How the map fits on load. */
-const FIT_OPTIONS = { padding: 48, maxZoom: 13 }
+/**
+ * How the map fits on load and on recentre (round 3 decision V): the WHOLE city outline with a small
+ * margin on every side. Padding in px; maxZoom only guards a tiny outline.
+ */
+const FIT_OPTIONS = { padding: 20, maxZoom: 13 }
 
 /** City lock (decision B5): margin around the outline's bounding box, as a share of its size. */
 const LOCK_MARGIN = 0.12
@@ -125,10 +128,30 @@ const PHONE_CARD_MAX_W = 380
 /** How long the map takes to make room, ms (0 under reduced motion). */
 const MOVE_MS = 650
 
-/** The lock box: the outline's (or, without one, the sensors') bounds plus LOCK_MARGIN. Pure. */
-function lockBounds(boundary: CityBoundary | null, sensors: CitySensor[]): [[number, number], [number, number]] | null {
-  const points: Array<[number, number]> =
-    boundary !== null ? boundary.rings.flat() as Array<[number, number]> : sensors.map((s) => s.lngLat)
+/**
+ * The points the starting view must show (decision V): the city outline; for a city with districts
+ * (Jakarta) the districts' extent, because its OSM province outline runs out to sea to take in the
+ * Thousand Islands, which would leave the mainland tiny; without an outline, the sensors. Pure.
+ */
+function fitPoints(city: CityPage, boundary: CityBoundary | null): Array<[number, number]> {
+  if (city.districts !== null) return city.districts.flatMap((district) => district.rings.flat())
+  if (boundary !== null) return boundary.rings.flat() as Array<[number, number]>
+  return city.sensors.map((s) => s.lngLat)
+}
+
+/** The bounds of a set of points, [[west, south], [east, north]], or null when empty. Pure. */
+function boundsOf(points: Array<[number, number]>): [[number, number], [number, number]] | null {
+  if (points.length === 0) return null
+  const lngs = points.map((p) => p[0])
+  const lats = points.map((p) => p[1])
+  return [
+    [Math.min(...lngs), Math.min(...lats)],
+    [Math.max(...lngs), Math.max(...lats)],
+  ]
+}
+
+/** The lock box: the fitted area's bounds plus LOCK_MARGIN, so the lock is wider than the start view. Pure. */
+function lockBounds(points: Array<[number, number]>): [[number, number], [number, number]] | null {
   if (points.length === 0) return null
   const lngs = points.map((p) => p[0])
   const lats = points.map((p) => p[1])
@@ -263,17 +286,6 @@ function linkFeatures(origin: [number, number], targets: CitySensor[]): GeoJSON.
   }
 }
 
-/** The bounds of every sensor, [[west, south], [east, north]]. Pure; guards an empty list. */
-function sensorBounds(sensors: CitySensor[]): [[number, number], [number, number]] | null {
-  if (sensors.length === 0) return null
-  const lngs = sensors.map((s) => s.lngLat[0])
-  const lats = sensors.map((s) => s.lngLat[1])
-  return [
-    [Math.min(...lngs), Math.min(...lats)],
-    [Math.max(...lngs), Math.max(...lats)],
-  ]
-}
-
 /** Props for AtlasDataMap. */
 type AtlasDataMapProps = {
   city: CityPage
@@ -347,8 +359,10 @@ export function AtlasDataMap({ city, boundary }: AtlasDataMapProps) {
     selectionRef.current = selection
   }, [selection])
 
-  const bounds = sensorBounds(city.sensors)
-  const lock = lockBounds(boundary, city.sensors)
+  // Decision V: start on (and recentre to) the whole city outline, with the lock a little wider.
+  const areaPoints = fitPoints(city, boundary)
+  const bounds = boundsOf(areaPoints)
+  const lock = lockBounds(areaPoints)
 
   /** Open the card for a selection: the card is re-placed once the map has made room. */
   const select = useCallback((next: MapSelection): void => {

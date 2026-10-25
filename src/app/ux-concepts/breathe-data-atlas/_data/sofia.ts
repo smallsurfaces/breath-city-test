@@ -42,7 +42,13 @@ export const SOFIA: CityPage = {
   indexLinks: [],
   methodLine: 'Sofia publishes readings from its monitoring stations and a PM10 concentration scale, but no air quality index.',
   legendLine: 'Sofia does not publish an air quality index. Tap a sensor to see its latest readings.',
-  legendNote: null,
+  // Round 3 decision U, extended to Sofia (Jack): one line in place of the legend's index block.
+  // "forecast" is confirmed: sofia-aqi-bands.csv lists the NIMH PM10 forecast on air.sofia.bg
+  // (https://air.sofia.bg/airpublic/forecasts/list/).
+  legendNote: {
+    text: 'For Sofia’s air quality readings and forecast, visit',
+    link: { label: 'air.sofia.bg', url: 'https://air.sofia.bg/' },
+  },
   mapCredit: null,
   updateCycleMinutes: 180,
   archiveStartYear: 2012,
