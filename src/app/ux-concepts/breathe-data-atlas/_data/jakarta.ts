@@ -1,8 +1,13 @@
 /**
- * jakarta.ts — the Jakarta city page's data (SPEC ADDENDUM, Jakarta: "band per district").
+ * jakarta.ts — the Jakarta city page's data.
  *
- * Map method: 'district'. Jakarta's districts (kecamatan) are shaded lightly in their ISPU band
- * colour; sensor markers are neutral (the band belongs to the district, not the sensor).
+ * Map method: 'station' (2026-10-25, Jack: show each city's own method). Udara Jakarta
+ * (udara.jakarta.go.id) publishes ISPU per STATION: each station marker takes its own ISPU level's
+ * colour, and its best/worst boxes rank stations labelled by district, not district values. So
+ * Jakarta works exactly like Bogotá: fresh with a level, the level's colour; fresh with no level,
+ * black with "–"; stale, grey. The earlier district shading is gone; its mock file
+ * (./areas/jakarta-districts.json) stays in the repo, unused, for a possible forecast view.
+ * The map starts on the sensors' extent (fitTo), as the province outline includes the Thousand Islands.
  *
  * Sources (READ BEFORE EDITING; research files under
  *   research/landscape/analysis/_data-catalogue/validation/jakarta/v2/)
@@ -27,18 +32,16 @@
  *     page was checked live on 2026-10-25.
  *
  * Mock and sample (spec rule 8): sensors (./sensors/jakarta-page.json; approximate positions from the
- * city's own map), district bands (./areas/jakarta-districts.json), growth series, the blurb.
+ * city's own map; ISPU levels "as fed", see the generator), growth series, the blurb.
  *
  * Key exports: JAKARTA
- * External dependencies: ./indexes, ./city-sensors, ./city-page, ./sensors/jakarta-page.json,
- *   ./areas/jakarta-districts.json.
+ * External dependencies: ./indexes, ./city-sensors, ./city-page, ./sensors/jakarta-page.json.
  */
 
 import jakartaSensors from './sensors/jakarta-page.json'
-import jakartaDistricts from './areas/jakarta-districts.json'
 import { CITY_INDEXES } from './indexes'
 import { parseCitySensors } from './city-sensors'
-import { checkCityPage, parseDistricts } from './city-page'
+import { checkCityPage } from './city-page'
 import type { CityPage } from './city-page'
 
 const ISPU = CITY_INDEXES.jakarta
@@ -64,7 +67,7 @@ export const JAKARTA: CityPage = {
   name: 'Jakarta',
   country: 'Indonesia',
   index: ISPU,
-  mapMethod: 'district',
+  mapMethod: 'station',
   // Round 3 decision O: from jakarta-aqi-bands.csv (source_document) and jakarta-health-advice.csv
   // (source_url), labelled for what each page holds.
   indexLinks: [
@@ -72,10 +75,10 @@ export const JAKARTA: CityPage = {
     { label: 'Udara Jakarta: health advice by ISPU level', url: 'https://udara.jakarta.go.id/' },
     { label: 'National ISPU portal: what to do at each level', url: 'https://ispu.kemenlh.go.id/app/' },
   ],
-  methodLine: 'Jakarta rates air quality for each district with ISPU.',
-  legendLine: 'Colour shows each district’s ISPU level.',
+  methodLine: 'Jakarta rates air quality at each monitoring station with ISPU.',
+  legendLine: 'Colour shows each station’s ISPU level.',
   legendNote: null,
-  mapCredit: { label: 'District outlines: © OpenStreetMap contributors (ODbL)', url: 'https://www.openstreetmap.org/copyright' },
+  mapCredit: null,
   updateCycleMinutes: 180,
   archiveStartYear: 2019,
   forecastBands: null,
@@ -231,8 +234,9 @@ export const JAKARTA: CityPage = {
   },
   sensors: parseCitySensors(jakartaSensors as unknown, 'jakarta', ISPU.levels.length),
   passiveTubes: null,
-  districts: parseDistricts(jakartaDistricts as unknown, ISPU.levels.length),
+  districts: null,
   surface: null,
+  fitTo: 'sensors',
 }
 
 checkCityPage(JAKARTA)

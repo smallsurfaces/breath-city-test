@@ -130,11 +130,13 @@ const MOVE_MS = 650
 
 /**
  * The points the starting view must show (decision V): the city outline; for a city with districts
- * (Jakarta) the districts' extent, because its OSM province outline runs out to sea to take in the
- * Thousand Islands, which would leave the mainland tiny; without an outline, the sensors. Pure.
+ * the districts' extent; for a city that asks for it (fitTo 'sensors': Jakarta, whose OSM province
+ * outline runs out to sea to take in the Thousand Islands, which would leave the mainland tiny) and
+ * for a city without an outline, the sensors. Pure.
  */
 function fitPoints(city: CityPage, boundary: CityBoundary | null): Array<[number, number]> {
   if (city.districts !== null) return city.districts.flatMap((district) => district.rings.flat())
+  if (city.fitTo === 'sensors') return city.sensors.map((s) => s.lngLat)
   if (boundary !== null) return boundary.rings.flat() as Array<[number, number]>
   return city.sensors.map((s) => s.lngLat)
 }
@@ -203,7 +205,7 @@ function greyBasemap(map: mapboxgl.Map): void {
   })
 }
 
-/** Area layers (phase 2): Jakarta's districts and Brussels's surface, shaded lightly. */
+/** Area layers (phase 2): the district method's districts (no city now) and Brussels's surface, shaded lightly. */
 const AREA_SOURCE = 'bda-area-bands'
 const AREA_FILL_LAYER = 'bda-area-fill'
 const AREA_LINE_LAYER = 'bda-area-line'
@@ -705,7 +707,7 @@ export function AtlasDataMap({ city, boundary }: AtlasDataMapProps) {
   return (
     <div className="flex w-full flex-col border-y border-border bg-muted" data-city={city.slug}>
       {/* Greyscale basemap by CSS filter, except where the map carries the city's area colours
-          (phase 2: Jakarta, Brussels), which greyBasemap handles in the style instead. */}
+          (phase 2: Brussels), which greyBasemap handles in the style instead. */}
       {city.districts === null && city.surface === null && <style>{`.bda-city-map .mapboxgl-canvas { filter: grayscale(1); }`}</style>}
       {/* Today / Tomorrow appears only for a forecast published as a band (spec 5.7). */}
       {city.forecastBands !== null && (

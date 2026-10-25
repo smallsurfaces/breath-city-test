@@ -21,8 +21,9 @@
  *       pollutant lines. The dashed lines from the pin are drawn by the map.
  *
  * Phase 2 (four new cities, SPEC ADDENDUM): the card follows the city's map method.
- *   station   (Bogotá) as above.
- *   district  (Jakarta) tap anywhere: the district's band first (scale with capsule, "ISPU", the
+ *   station   (Bogotá, Jakarta) as above. Jakarta moved here from 'district' on 2026-10-25 (Udara
+ *             Jakarta publishes ISPU per station).
+ *   district  (no city now; formerly Jakarta) tap anywhere: the district's band first (scale with capsule, "ISPU", the
  *             district's name, "More" for the district's advice), then the nearest three, rows with
  *             neutral icons and no band. Tap a sensor: no band header (the band belongs to the
  *             district); a small line "In Kebayoran Baru: [Moderate] · ISPU" before "More".
@@ -169,7 +170,7 @@ function SensorBody({ city, sensor, onOpenDetail, headingId, headingRef }: Senso
         <span aria-hidden="true" className={`inline-block h-2 w-2 rounded-full ${live ? 'bg-foreground' : 'bg-foreground/30'}`} />
         {live ? `Live · updated ${ageWords(sensor.updatedMinutesAgo)}` : `Last reading ${ageWords(sensor.updatedMinutesAgo)}`}
       </p>
-      {/* District method: the district's band as a small line (SPEC ADDENDUM, Jakarta). */}
+      {/* District method (no city now): the district's band as a small line. */}
       {/* Decision R: a district with no band gets no line at all. */}
       {index !== null && city.mapMethod === 'district' && area !== null && area.band !== null && (
         <p className="flex flex-wrap items-center gap-1.5 text-sm text-foreground/85" data-card-district-line="">
@@ -253,7 +254,7 @@ type AreaHeaderProps = {
 }
 
 /**
- * The tap-anywhere card's area band, first (SPEC ADDENDUM): Jakarta's district or Brussels's point.
+ * The tap-anywhere card's area band, first (SPEC ADDENDUM): a district (no city now) or Brussels's point.
  * The scale with its capsule, the index named, the place ("Kebayoran Baru" or "At this point"), and
  * "More" for that band's advice. A district with no band says so and has no "More".
  */

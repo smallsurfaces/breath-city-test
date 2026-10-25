@@ -15,7 +15,7 @@
    "name": null,
    "location": "Kalideres",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 3,
    "updatedMinutesAgo": 30,
    "readings": [
     {
@@ -23,7 +23,7 @@
      "value": 39.6,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 2,
      "updatedMinutesAgo": null
     },
     {
@@ -31,7 +31,7 @@
      "value": 55.9,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 2,
      "updatedMinutesAgo": null
     },
     {
@@ -47,7 +47,7 @@
      "value": 67.3,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 1,
      "updatedMinutesAgo": null
     },
     {
@@ -55,7 +55,7 @@
      "value": 46.4,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 1,
      "updatedMinutesAgo": null
     },
     {
@@ -71,7 +71,7 @@
      "value": 20.5,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 1,
      "updatedMinutesAgo": null
     },
     {
@@ -79,7 +79,7 @@
      "value": 1237,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 1,
      "updatedMinutesAgo": null
     },
     {
@@ -87,7 +87,7 @@
      "value": 102.0,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 3,
      "updatedMinutesAgo": null
     }
    ]
@@ -103,7 +103,7 @@
    "name": null,
    "location": "Greater Jakarta",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 3,
    "updatedMinutesAgo": 26,
    "readings": [
     {
@@ -111,7 +111,7 @@
      "value": 71.7,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 3,
      "updatedMinutesAgo": null
     }
    ]
@@ -127,7 +127,7 @@
    "name": null,
    "location": "Kalideres",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 3,
    "updatedMinutesAgo": 52,
    "readings": [
     {
@@ -135,7 +135,7 @@
      "value": 57.3,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 3,
      "updatedMinutesAgo": null
     }
    ]
@@ -151,15 +151,15 @@
    "name": null,
    "location": "Kalideres",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 1,
    "updatedMinutesAgo": 11,
    "readings": [
     {
      "pollutant": "PM2.5",
-     "value": 20.9,
+     "value": 10.8,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 1,
      "updatedMinutesAgo": null
     }
    ]
@@ -175,7 +175,7 @@
    "name": null,
    "location": "Cengkareng",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 2,
    "updatedMinutesAgo": 31,
    "readings": [
     {
@@ -183,7 +183,7 @@
      "value": 40.2,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 2,
      "updatedMinutesAgo": null
     }
    ]
@@ -199,7 +199,7 @@
    "name": null,
    "location": "Kalideres",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 2,
    "updatedMinutesAgo": 51,
    "readings": [
     {
@@ -207,7 +207,7 @@
      "value": 22.3,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 2,
      "updatedMinutesAgo": null
     }
    ]
@@ -223,7 +223,7 @@
    "name": null,
    "location": "Kalideres",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 2,
    "updatedMinutesAgo": 25,
    "readings": [
     {
@@ -231,7 +231,7 @@
      "value": 51.2,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 2,
      "updatedMinutesAgo": null
     }
    ]
@@ -247,7 +247,7 @@
    "name": null,
    "location": "Penjaringan",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 3,
    "updatedMinutesAgo": 300,
    "readings": [
     {
@@ -255,7 +255,7 @@
      "value": 57.6,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 3,
      "updatedMinutesAgo": null
     }
    ]
@@ -271,7 +271,7 @@
    "name": null,
    "location": "Penjaringan",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 3,
    "updatedMinutesAgo": 33,
    "readings": [
     {
@@ -279,7 +279,7 @@
      "value": 74.1,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 3,
      "updatedMinutesAgo": null
     }
    ]
@@ -295,7 +295,7 @@
    "name": null,
    "location": "Penjaringan",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 3,
    "updatedMinutesAgo": 55,
    "readings": [
     {
@@ -303,7 +303,7 @@
      "value": 20.5,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 2,
      "updatedMinutesAgo": null
     },
     {
@@ -311,7 +311,7 @@
      "value": 33.1,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 1,
      "updatedMinutesAgo": null
     },
     {
@@ -327,7 +327,7 @@
      "value": 24.3,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 1,
      "updatedMinutesAgo": null
     },
     {
@@ -335,7 +335,7 @@
      "value": 16.7,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 1,
      "updatedMinutesAgo": null
     },
     {
@@ -351,7 +351,7 @@
      "value": 19.6,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 1,
      "updatedMinutesAgo": null
     },
     {
@@ -359,7 +359,7 @@
      "value": 846,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 1,
      "updatedMinutesAgo": null
     },
     {
@@ -367,7 +367,7 @@
      "value": 140.8,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 3,
      "updatedMinutesAgo": null
     }
    ]
@@ -383,7 +383,7 @@
    "name": null,
    "location": "Grogol Petamburan",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 2,
    "updatedMinutesAgo": 34,
    "readings": [
     {
@@ -391,7 +391,7 @@
      "value": 20.3,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 2,
      "updatedMinutesAgo": null
     }
    ]
@@ -407,7 +407,7 @@
    "name": null,
    "location": "Tambora",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 2,
    "updatedMinutesAgo": 46,
    "readings": [
     {
@@ -415,7 +415,7 @@
      "value": 36.5,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 2,
      "updatedMinutesAgo": null
     }
    ]
@@ -431,15 +431,15 @@
    "name": null,
    "location": "Cengkareng",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 1,
    "updatedMinutesAgo": 27,
    "readings": [
     {
      "pollutant": "PM2.5",
-     "value": 49.0,
+     "value": 12.9,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 1,
      "updatedMinutesAgo": null
     }
    ]
@@ -455,7 +455,7 @@
    "name": null,
    "location": "Grogol Petamburan",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 2,
    "updatedMinutesAgo": 20,
    "readings": [
     {
@@ -463,7 +463,7 @@
      "value": 51.5,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 2,
      "updatedMinutesAgo": null
     }
    ]
@@ -479,7 +479,7 @@
    "name": null,
    "location": "Grogol Petamburan",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 2,
    "updatedMinutesAgo": 17,
    "readings": [
     {
@@ -487,7 +487,7 @@
      "value": 25.6,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 2,
      "updatedMinutesAgo": null
     }
    ]
@@ -503,7 +503,7 @@
    "name": null,
    "location": "Kebon Jeruk",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 2,
    "updatedMinutesAgo": 32,
    "readings": [
     {
@@ -511,7 +511,7 @@
      "value": 55.3,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 2,
      "updatedMinutesAgo": null
     }
    ]
@@ -527,7 +527,7 @@
    "name": null,
    "location": "Kebon Jeruk",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 2,
    "updatedMinutesAgo": 6,
    "readings": [
     {
@@ -535,7 +535,7 @@
      "value": 38.7,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 2,
      "updatedMinutesAgo": null
     }
    ]
@@ -551,7 +551,7 @@
    "name": null,
    "location": "Gambir",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 2,
    "updatedMinutesAgo": 17,
    "readings": [
     {
@@ -559,7 +559,7 @@
      "value": 53.5,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 2,
      "updatedMinutesAgo": null
     }
    ]
@@ -655,7 +655,7 @@
    "name": null,
    "location": "Pademangan",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 3,
    "updatedMinutesAgo": 38,
    "readings": [
     {
@@ -663,7 +663,7 @@
      "value": 67.3,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 3,
      "updatedMinutesAgo": null
     }
    ]
@@ -679,7 +679,7 @@
    "name": null,
    "location": "Pademangan",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 2,
    "updatedMinutesAgo": 38,
    "readings": [
     {
@@ -687,7 +687,7 @@
      "value": 40.7,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 2,
      "updatedMinutesAgo": null
     }
    ]
@@ -703,7 +703,7 @@
    "name": null,
    "location": "Tanjung Priok",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 3,
    "updatedMinutesAgo": 46,
    "readings": [
     {
@@ -711,7 +711,7 @@
      "value": 69.7,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 3,
      "updatedMinutesAgo": null
     }
    ]
@@ -727,7 +727,7 @@
    "name": null,
    "location": "Tanjung Priok",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 2,
    "updatedMinutesAgo": 47,
    "readings": [
     {
@@ -735,7 +735,7 @@
      "value": 24.9,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 2,
      "updatedMinutesAgo": null
     }
    ]
@@ -751,7 +751,7 @@
    "name": null,
    "location": "Tanjung Priok",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 2,
    "updatedMinutesAgo": 600,
    "readings": [
     {
@@ -759,7 +759,7 @@
      "value": 39.6,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 2,
      "updatedMinutesAgo": null
     }
    ]
@@ -775,7 +775,7 @@
    "name": null,
    "location": "Tanjung Priok",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 3,
    "updatedMinutesAgo": 6,
    "readings": [
     {
@@ -783,7 +783,7 @@
      "value": 63.6,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 3,
      "updatedMinutesAgo": null
     }
    ]
@@ -799,7 +799,7 @@
    "name": null,
    "location": "Tanjung Priok",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 2,
    "updatedMinutesAgo": 22,
    "readings": [
     {
@@ -807,7 +807,7 @@
      "value": 47.3,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 2,
      "updatedMinutesAgo": null
     }
    ]
@@ -823,7 +823,7 @@
    "name": null,
    "location": "Kelapa Gading",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 3,
    "updatedMinutesAgo": 27,
    "readings": [
     {
@@ -831,7 +831,7 @@
      "value": 74.0,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 3,
      "updatedMinutesAgo": null
     }
    ]
@@ -847,7 +847,7 @@
    "name": null,
    "location": "Koja",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 3,
    "updatedMinutesAgo": 14,
    "readings": [
     {
@@ -855,7 +855,7 @@
      "value": 55.7,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 3,
      "updatedMinutesAgo": null
     },
     {
@@ -863,7 +863,7 @@
      "value": 91.6,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 2,
      "updatedMinutesAgo": null
     },
     {
@@ -871,7 +871,7 @@
      "value": 68.5,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 1,
      "updatedMinutesAgo": null
     },
     {
@@ -879,7 +879,7 @@
      "value": 24.6,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 1,
      "updatedMinutesAgo": null
     },
     {
@@ -895,7 +895,7 @@
      "value": 5.1,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 1,
      "updatedMinutesAgo": null
     },
     {
@@ -903,7 +903,7 @@
      "value": 1633,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 1,
      "updatedMinutesAgo": null
     },
     {
@@ -911,7 +911,7 @@
      "value": 134.7,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 3,
      "updatedMinutesAgo": null
     }
    ]
@@ -927,7 +927,7 @@
    "name": null,
    "location": "Kelapa Gading",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 3,
    "updatedMinutesAgo": 16,
    "readings": [
     {
@@ -935,7 +935,7 @@
      "value": 59.3,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 3,
      "updatedMinutesAgo": null
     }
    ]
@@ -951,15 +951,15 @@
    "name": null,
    "location": "Cilincing",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 1,
    "updatedMinutesAgo": 30,
    "readings": [
     {
      "pollutant": "PM2.5",
-     "value": 56.5,
+     "value": 8.4,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 1,
      "updatedMinutesAgo": null
     }
    ]
@@ -975,7 +975,7 @@
    "name": null,
    "location": "Cilincing",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 2,
    "updatedMinutesAgo": 49,
    "readings": [
     {
@@ -983,7 +983,7 @@
      "value": 39.0,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 2,
      "updatedMinutesAgo": null
     }
    ]
@@ -999,7 +999,7 @@
    "name": null,
    "location": "Cilincing",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 3,
    "updatedMinutesAgo": 21,
    "readings": [
     {
@@ -1007,7 +1007,7 @@
      "value": 73.0,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 3,
      "updatedMinutesAgo": null
     }
    ]
@@ -1023,7 +1023,7 @@
    "name": null,
    "location": "Cakung",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 2,
    "updatedMinutesAgo": 33,
    "readings": [
     {
@@ -1031,7 +1031,7 @@
      "value": 55.4,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 2,
      "updatedMinutesAgo": null
     }
    ]
@@ -1047,7 +1047,7 @@
    "name": null,
    "location": "Cakung",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 3,
    "updatedMinutesAgo": 3,
    "readings": [
     {
@@ -1055,7 +1055,7 @@
      "value": 61.1,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 3,
      "updatedMinutesAgo": null
     }
    ]
@@ -1071,7 +1071,7 @@
    "name": null,
    "location": "Cakung",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 2,
    "updatedMinutesAgo": 10,
    "readings": [
     {
@@ -1079,7 +1079,7 @@
      "value": 44.2,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 2,
      "updatedMinutesAgo": null
     }
    ]
@@ -1119,7 +1119,7 @@
    "name": null,
    "location": "Cilincing",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 3,
    "updatedMinutesAgo": 32,
    "readings": [
     {
@@ -1127,7 +1127,7 @@
      "value": 72.6,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 3,
      "updatedMinutesAgo": null
     },
     {
@@ -1135,7 +1135,7 @@
      "value": 113.0,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 2,
      "updatedMinutesAgo": null
     },
     {
@@ -1143,7 +1143,7 @@
      "value": 34.2,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 1,
      "updatedMinutesAgo": null
     },
     {
@@ -1151,7 +1151,7 @@
      "value": 64.2,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 2,
      "updatedMinutesAgo": null
     },
     {
@@ -1167,7 +1167,7 @@
      "value": 26.7,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 1,
      "updatedMinutesAgo": null
     },
     {
@@ -1175,7 +1175,7 @@
      "value": 1101,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 1,
      "updatedMinutesAgo": null
     },
     {
@@ -1183,7 +1183,7 @@
      "value": 98.3,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 2,
      "updatedMinutesAgo": null
     }
    ]
@@ -1199,7 +1199,7 @@
    "name": null,
    "location": "Senen",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 2,
    "updatedMinutesAgo": 15,
    "readings": [
     {
@@ -1207,7 +1207,7 @@
      "value": 18.9,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 2,
      "updatedMinutesAgo": null
     }
    ]
@@ -1223,7 +1223,7 @@
    "name": null,
    "location": "Johar Baru",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 2,
    "updatedMinutesAgo": 17,
    "readings": [
     {
@@ -1231,7 +1231,7 @@
      "value": 47.2,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 2,
      "updatedMinutesAgo": null
     }
    ]
@@ -1247,7 +1247,7 @@
    "name": null,
    "location": "Cempaka Putih",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 2,
    "updatedMinutesAgo": 45,
    "readings": [
     {
@@ -1255,7 +1255,7 @@
      "value": 21.2,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 2,
      "updatedMinutesAgo": null
     }
    ]
@@ -1271,7 +1271,7 @@
    "name": null,
    "location": "Pulo Gadung",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 2,
    "updatedMinutesAgo": 13,
    "readings": [
     {
@@ -1279,7 +1279,7 @@
      "value": 45.4,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 2,
      "updatedMinutesAgo": null
     }
    ]
@@ -1295,7 +1295,7 @@
    "name": null,
    "location": "Kelapa Gading",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 3,
    "updatedMinutesAgo": 2880,
    "readings": [
     {
@@ -1303,7 +1303,7 @@
      "value": 66.8,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 3,
      "updatedMinutesAgo": null
     }
    ]
@@ -1319,7 +1319,7 @@
    "name": null,
    "location": "Kelapa Gading",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 3,
    "updatedMinutesAgo": 26,
    "readings": [
     {
@@ -1327,7 +1327,7 @@
      "value": 60.5,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 3,
      "updatedMinutesAgo": null
     }
    ]
@@ -1343,7 +1343,7 @@
    "name": null,
    "location": "Palmerah",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 2,
    "updatedMinutesAgo": 30,
    "readings": [
     {
@@ -1351,7 +1351,7 @@
      "value": 43.6,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 2,
      "updatedMinutesAgo": null
     }
    ]
@@ -1367,7 +1367,7 @@
    "name": null,
    "location": "Tanah Abang",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 2,
    "updatedMinutesAgo": 31,
    "readings": [
     {
@@ -1375,7 +1375,7 @@
      "value": 21.3,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 2,
      "updatedMinutesAgo": null
     }
    ]
@@ -1391,7 +1391,7 @@
    "name": null,
    "location": "Menteng",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 3,
    "updatedMinutesAgo": 31,
    "readings": [
     {
@@ -1399,7 +1399,7 @@
      "value": 69.2,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 3,
      "updatedMinutesAgo": null
     },
     {
@@ -1407,7 +1407,7 @@
      "value": 97.3,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 2,
      "updatedMinutesAgo": null
     },
     {
@@ -1415,7 +1415,7 @@
      "value": 86.8,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 1,
      "updatedMinutesAgo": null
     },
     {
@@ -1423,7 +1423,7 @@
      "value": 66.2,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 2,
      "updatedMinutesAgo": null
     },
     {
@@ -1439,7 +1439,7 @@
      "value": 27.4,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 1,
      "updatedMinutesAgo": null
     },
     {
@@ -1447,7 +1447,7 @@
      "value": 1777,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 1,
      "updatedMinutesAgo": null
     },
     {
@@ -1455,7 +1455,7 @@
      "value": 148.0,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 3,
      "updatedMinutesAgo": null
     }
    ]
@@ -1471,7 +1471,7 @@
    "name": null,
    "location": "Senen",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 2,
    "updatedMinutesAgo": 52,
    "readings": [
     {
@@ -1479,7 +1479,7 @@
      "value": 48.8,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 2,
      "updatedMinutesAgo": null
     }
    ]
@@ -1495,7 +1495,7 @@
    "name": null,
    "location": "Johar Baru",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 2,
    "updatedMinutesAgo": 18,
    "readings": [
     {
@@ -1503,7 +1503,7 @@
      "value": 48.3,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 2,
      "updatedMinutesAgo": null
     }
    ]
@@ -1519,7 +1519,7 @@
    "name": null,
    "location": "Matraman",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 3,
    "updatedMinutesAgo": 35,
    "readings": [
     {
@@ -1527,7 +1527,7 @@
      "value": 59.4,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 3,
      "updatedMinutesAgo": null
     }
    ]
@@ -1543,7 +1543,7 @@
    "name": null,
    "location": "Menteng",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 2,
    "updatedMinutesAgo": 24,
    "readings": [
     {
@@ -1551,7 +1551,7 @@
      "value": 35.3,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 2,
      "updatedMinutesAgo": null
     }
    ]
@@ -1567,15 +1567,15 @@
    "name": null,
    "location": "Palmerah",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 1,
    "updatedMinutesAgo": 23,
    "readings": [
     {
      "pollutant": "PM2.5",
-     "value": 28.9,
+     "value": 9.2,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 1,
      "updatedMinutesAgo": null
     }
    ]
@@ -1591,7 +1591,7 @@
    "name": null,
    "location": "Tanah Abang",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 2,
    "updatedMinutesAgo": 46,
    "readings": [
     {
@@ -1599,7 +1599,7 @@
      "value": 31.9,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 2,
      "updatedMinutesAgo": null
     }
    ]
@@ -1615,7 +1615,7 @@
    "name": null,
    "location": "Tanah Abang",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 2,
    "updatedMinutesAgo": 49,
    "readings": [
     {
@@ -1623,7 +1623,7 @@
      "value": 46.6,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 2,
      "updatedMinutesAgo": null
     }
    ]
@@ -1639,7 +1639,7 @@
    "name": null,
    "location": "Setiabudi",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 2,
    "updatedMinutesAgo": 26,
    "readings": [
     {
@@ -1647,7 +1647,7 @@
      "value": 33.1,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 2,
      "updatedMinutesAgo": null
     }
    ]
@@ -1663,7 +1663,7 @@
    "name": null,
    "location": "Kembangan",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 2,
    "updatedMinutesAgo": 53,
    "readings": [
     {
@@ -1671,7 +1671,7 @@
      "value": 55.2,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 2,
      "updatedMinutesAgo": null
     },
     {
@@ -1679,7 +1679,7 @@
      "value": 97.4,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 2,
      "updatedMinutesAgo": null
     },
     {
@@ -1687,7 +1687,7 @@
      "value": 66.9,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 1,
      "updatedMinutesAgo": null
     },
     {
@@ -1695,7 +1695,7 @@
      "value": 38.2,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 1,
      "updatedMinutesAgo": null
     },
     {
@@ -1711,7 +1711,7 @@
      "value": 14.4,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 1,
      "updatedMinutesAgo": null
     },
     {
@@ -1719,7 +1719,7 @@
      "value": 1236,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 1,
      "updatedMinutesAgo": null
     },
     {
@@ -1727,7 +1727,7 @@
      "value": 60.7,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 2,
      "updatedMinutesAgo": null
     }
    ]
@@ -1743,7 +1743,7 @@
    "name": null,
    "location": "Greater Jakarta",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 2,
    "updatedMinutesAgo": 15,
    "readings": [
     {
@@ -1751,7 +1751,7 @@
      "value": 36.0,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 2,
      "updatedMinutesAgo": null
     }
    ]
@@ -1767,7 +1767,7 @@
    "name": null,
    "location": "Pulo Gadung",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 2,
    "updatedMinutesAgo": 34,
    "readings": [
     {
@@ -1775,7 +1775,7 @@
      "value": 41.8,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 2,
      "updatedMinutesAgo": null
     }
    ]
@@ -1791,7 +1791,7 @@
    "name": null,
    "location": "Cakung",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 3,
    "updatedMinutesAgo": 52,
    "readings": [
     {
@@ -1799,7 +1799,7 @@
      "value": 57.9,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 3,
      "updatedMinutesAgo": null
     }
    ]
@@ -1815,15 +1815,15 @@
    "name": null,
    "location": "Tebet",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 4,
    "updatedMinutesAgo": 3,
    "readings": [
     {
      "pollutant": "PM2.5",
-     "value": 22.3,
+     "value": 167.0,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 4,
      "updatedMinutesAgo": null
     }
    ]
@@ -1839,7 +1839,7 @@
    "name": null,
    "location": "Setiabudi",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 3,
    "updatedMinutesAgo": 39,
    "readings": [
     {
@@ -1847,7 +1847,7 @@
      "value": 56.3,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 3,
      "updatedMinutesAgo": null
     }
    ]
@@ -1863,7 +1863,7 @@
    "name": null,
    "location": "Tebet",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 2,
    "updatedMinutesAgo": 50,
    "readings": [
     {
@@ -1871,7 +1871,7 @@
      "value": 25.6,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 2,
      "updatedMinutesAgo": null
     }
    ]
@@ -1887,7 +1887,7 @@
    "name": null,
    "location": "Jatinegara",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 2,
    "updatedMinutesAgo": 53,
    "readings": [
     {
@@ -1895,7 +1895,7 @@
      "value": 49.5,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 2,
      "updatedMinutesAgo": null
     }
    ]
@@ -1911,7 +1911,7 @@
    "name": null,
    "location": "Jatinegara",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 2,
    "updatedMinutesAgo": 3,
    "readings": [
     {
@@ -1919,7 +1919,7 @@
      "value": 52.0,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 2,
      "updatedMinutesAgo": null
     }
    ]
@@ -1935,7 +1935,7 @@
    "name": null,
    "location": "Duren Sawit",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 3,
    "updatedMinutesAgo": 9,
    "readings": [
     {
@@ -1943,7 +1943,7 @@
      "value": 60.5,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 3,
      "updatedMinutesAgo": null
     },
     {
@@ -1951,7 +1951,7 @@
      "value": 82.0,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 2,
      "updatedMinutesAgo": null
     },
     {
@@ -1959,7 +1959,7 @@
      "value": 78.0,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 1,
      "updatedMinutesAgo": null
     },
     {
@@ -1967,7 +1967,7 @@
      "value": 47.1,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 1,
      "updatedMinutesAgo": null
     },
     {
@@ -1983,7 +1983,7 @@
      "value": 27.0,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 1,
      "updatedMinutesAgo": null
     },
     {
@@ -1991,7 +1991,7 @@
      "value": 1179,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 1,
      "updatedMinutesAgo": null
     },
     {
@@ -1999,7 +1999,7 @@
      "value": 134.7,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 3,
      "updatedMinutesAgo": null
     }
    ]
@@ -2015,7 +2015,7 @@
    "name": null,
    "location": "Duren Sawit",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 2,
    "updatedMinutesAgo": 17,
    "readings": [
     {
@@ -2023,7 +2023,7 @@
      "value": 41.9,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 2,
      "updatedMinutesAgo": null
     }
    ]
@@ -2039,7 +2039,7 @@
    "name": null,
    "location": "Makasar",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 2,
    "updatedMinutesAgo": 6,
    "readings": [
     {
@@ -2047,7 +2047,7 @@
      "value": 21.6,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 2,
      "updatedMinutesAgo": null
     }
    ]
@@ -2063,7 +2063,7 @@
    "name": null,
    "location": "Duren Sawit",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 2,
    "updatedMinutesAgo": 8640,
    "readings": [
     {
@@ -2071,7 +2071,7 @@
      "value": 24.8,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 2,
      "updatedMinutesAgo": null
     }
    ]
@@ -2087,7 +2087,7 @@
    "name": null,
    "location": "Kebayoran Baru",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 2,
    "updatedMinutesAgo": 21,
    "readings": [
     {
@@ -2095,7 +2095,7 @@
      "value": 36.3,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 2,
      "updatedMinutesAgo": null
     }
    ]
@@ -2111,7 +2111,7 @@
    "name": null,
    "location": "Mampang Prapatan",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 2,
    "updatedMinutesAgo": 53,
    "readings": [
     {
@@ -2119,7 +2119,7 @@
      "value": 29.6,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 2,
      "updatedMinutesAgo": null
     }
    ]
@@ -2135,7 +2135,7 @@
    "name": null,
    "location": "Tebet",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 2,
    "updatedMinutesAgo": 44,
    "readings": [
     {
@@ -2143,7 +2143,7 @@
      "value": 39.0,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 2,
      "updatedMinutesAgo": null
     }
    ]
@@ -2159,7 +2159,7 @@
    "name": null,
    "location": "Kebayoran Baru",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 2,
    "updatedMinutesAgo": 32,
    "readings": [
     {
@@ -2167,7 +2167,7 @@
      "value": 24.6,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 2,
      "updatedMinutesAgo": null
     }
    ]
@@ -2183,7 +2183,7 @@
    "name": null,
    "location": "Mampang Prapatan",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 2,
    "updatedMinutesAgo": 37,
    "readings": [
     {
@@ -2191,7 +2191,7 @@
      "value": 32.6,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 2,
      "updatedMinutesAgo": null
     }
    ]
@@ -2207,7 +2207,7 @@
    "name": null,
    "location": "Kebayoran Lama",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 3,
    "updatedMinutesAgo": 13,
    "readings": [
     {
@@ -2215,7 +2215,7 @@
      "value": 18.4,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 2,
      "updatedMinutesAgo": null
     },
     {
@@ -2223,7 +2223,7 @@
      "value": 24.7,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 1,
      "updatedMinutesAgo": null
     },
     {
@@ -2231,7 +2231,7 @@
      "value": 20.2,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 1,
      "updatedMinutesAgo": null
     },
     {
@@ -2239,7 +2239,7 @@
      "value": 22.6,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 1,
      "updatedMinutesAgo": null
     },
     {
@@ -2255,7 +2255,7 @@
      "value": 18.3,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 1,
      "updatedMinutesAgo": null
     },
     {
@@ -2263,7 +2263,7 @@
      "value": 1535,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 1,
      "updatedMinutesAgo": null
     },
     {
@@ -2271,7 +2271,7 @@
      "value": 154.4,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 3,
      "updatedMinutesAgo": null
     }
    ]
@@ -2287,7 +2287,7 @@
    "name": null,
    "location": "Pesanggrahan",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 2,
    "updatedMinutesAgo": 46,
    "readings": [
     {
@@ -2295,7 +2295,7 @@
      "value": 45.4,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 2,
      "updatedMinutesAgo": null
     }
    ]
@@ -2311,7 +2311,7 @@
    "name": null,
    "location": "Pesanggrahan",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 3,
    "updatedMinutesAgo": 36,
    "readings": [
     {
@@ -2319,7 +2319,7 @@
      "value": 56.1,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 3,
      "updatedMinutesAgo": null
     }
    ]
@@ -2335,7 +2335,7 @@
    "name": null,
    "location": "Pesanggrahan",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 3,
    "updatedMinutesAgo": 33,
    "readings": [
     {
@@ -2343,7 +2343,7 @@
      "value": 69.5,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 3,
      "updatedMinutesAgo": null
     }
    ]
@@ -2359,7 +2359,7 @@
    "name": null,
    "location": "Pancoran",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 2,
    "updatedMinutesAgo": 46,
    "readings": [
     {
@@ -2367,7 +2367,7 @@
      "value": 48.9,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 2,
      "updatedMinutesAgo": null
     }
    ]
@@ -2383,15 +2383,15 @@
    "name": null,
    "location": "Pancoran",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 1,
    "updatedMinutesAgo": 29,
    "readings": [
     {
      "pollutant": "PM2.5",
-     "value": 20.9,
+     "value": 13.7,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 1,
      "updatedMinutesAgo": null
     }
    ]
@@ -2407,7 +2407,7 @@
    "name": null,
    "location": "Pasar Minggu",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 3,
    "updatedMinutesAgo": 3,
    "readings": [
     {
@@ -2415,7 +2415,7 @@
      "value": 59.1,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 3,
      "updatedMinutesAgo": null
     }
    ]
@@ -2431,7 +2431,7 @@
    "name": null,
    "location": "Pasar Minggu",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 3,
    "updatedMinutesAgo": 28,
    "readings": [
     {
@@ -2439,7 +2439,7 @@
      "value": 70.6,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 3,
      "updatedMinutesAgo": null
     }
    ]
@@ -2455,7 +2455,7 @@
    "name": null,
    "location": "Kramat Jati",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 2,
    "updatedMinutesAgo": 12,
    "readings": [
     {
@@ -2463,7 +2463,7 @@
      "value": 26.8,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 2,
      "updatedMinutesAgo": null
     }
    ]
@@ -2479,7 +2479,7 @@
    "name": null,
    "location": "Cilandak",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 3,
    "updatedMinutesAgo": 30,
    "readings": [
     {
@@ -2487,7 +2487,7 @@
      "value": 40.9,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 2,
      "updatedMinutesAgo": null
     },
     {
@@ -2495,7 +2495,7 @@
      "value": 66.3,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 2,
      "updatedMinutesAgo": null
     },
     {
@@ -2503,7 +2503,7 @@
      "value": 74.9,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 1,
      "updatedMinutesAgo": null
     },
     {
@@ -2511,7 +2511,7 @@
      "value": 51.3,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 1,
      "updatedMinutesAgo": null
     },
     {
@@ -2527,7 +2527,7 @@
      "value": 16.7,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 1,
      "updatedMinutesAgo": null
     },
     {
@@ -2535,7 +2535,7 @@
      "value": 1737,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 1,
      "updatedMinutesAgo": null
     },
     {
@@ -2543,7 +2543,7 @@
      "value": 153.0,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 3,
      "updatedMinutesAgo": null
     }
    ]
@@ -2559,7 +2559,7 @@
    "name": null,
    "location": "Kramat Jati",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 2,
    "updatedMinutesAgo": 39,
    "readings": [
     {
@@ -2567,7 +2567,7 @@
      "value": 33.6,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 2,
      "updatedMinutesAgo": null
     }
    ]
@@ -2583,7 +2583,7 @@
    "name": null,
    "location": "Kramat Jati",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 2,
    "updatedMinutesAgo": 32,
    "readings": [
     {
@@ -2591,7 +2591,7 @@
      "value": 50.5,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 2,
      "updatedMinutesAgo": null
     }
    ]
@@ -2607,7 +2607,7 @@
    "name": null,
    "location": "Greater Jakarta",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 3,
    "updatedMinutesAgo": 30,
    "readings": [
     {
@@ -2615,7 +2615,7 @@
      "value": 70.3,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 3,
      "updatedMinutesAgo": null
     }
    ]
@@ -2631,7 +2631,7 @@
    "name": null,
    "location": "Cipayung",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 2,
    "updatedMinutesAgo": 21,
    "readings": [
     {
@@ -2639,7 +2639,7 @@
      "value": 34.8,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 2,
      "updatedMinutesAgo": null
     }
    ]
@@ -2655,7 +2655,7 @@
    "name": null,
    "location": "Cipayung",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 3,
    "updatedMinutesAgo": 46,
    "readings": [
     {
@@ -2663,7 +2663,7 @@
      "value": 57.8,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 3,
      "updatedMinutesAgo": null
     }
    ]
@@ -2679,7 +2679,7 @@
    "name": null,
    "location": "Greater Jakarta",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 3,
    "updatedMinutesAgo": 33,
    "readings": [
     {
@@ -2687,7 +2687,7 @@
      "value": 60.0,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 3,
      "updatedMinutesAgo": null
     }
    ]
@@ -2703,7 +2703,7 @@
    "name": null,
    "location": "Cilandak",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 2,
    "updatedMinutesAgo": 52,
    "readings": [
     {
@@ -2711,7 +2711,7 @@
      "value": 42.9,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 2,
      "updatedMinutesAgo": null
     }
    ]
@@ -2727,7 +2727,7 @@
    "name": null,
    "location": "Pasar Minggu",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 2,
    "updatedMinutesAgo": 48,
    "readings": [
     {
@@ -2735,7 +2735,7 @@
      "value": 26.7,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 2,
      "updatedMinutesAgo": null
     }
    ]
@@ -2751,7 +2751,7 @@
    "name": null,
    "location": "Jagakarsa",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 2,
    "updatedMinutesAgo": 15,
    "readings": [
     {
@@ -2759,7 +2759,7 @@
      "value": 41.0,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 2,
      "updatedMinutesAgo": null
     },
     {
@@ -2767,7 +2767,7 @@
      "value": 66.4,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 2,
      "updatedMinutesAgo": null
     },
     {
@@ -2775,7 +2775,7 @@
      "value": 75.6,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 1,
      "updatedMinutesAgo": null
     },
     {
@@ -2783,7 +2783,7 @@
      "value": 69.3,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 2,
      "updatedMinutesAgo": null
     },
     {
@@ -2799,7 +2799,7 @@
      "value": 32.4,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 1,
      "updatedMinutesAgo": null
     },
     {
@@ -2807,7 +2807,7 @@
      "value": 515,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 1,
      "updatedMinutesAgo": null
     },
     {
@@ -2815,7 +2815,7 @@
      "value": 98.5,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 2,
      "updatedMinutesAgo": null
     }
    ]
@@ -2831,7 +2831,7 @@
    "name": null,
    "location": "Pasar Rebo",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 2,
    "updatedMinutesAgo": 7,
    "readings": [
     {
@@ -2839,7 +2839,7 @@
      "value": 25.4,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 2,
      "updatedMinutesAgo": null
     }
    ]
@@ -2855,7 +2855,7 @@
    "name": null,
    "location": "Pasar Rebo",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 3,
    "updatedMinutesAgo": 55,
    "readings": [
     {
@@ -2863,7 +2863,7 @@
      "value": 72.2,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 3,
      "updatedMinutesAgo": null
     }
    ]
@@ -2879,7 +2879,7 @@
    "name": null,
    "location": "Ciracas",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 2,
    "updatedMinutesAgo": 54,
    "readings": [
     {
@@ -2887,7 +2887,7 @@
      "value": 21.3,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 2,
      "updatedMinutesAgo": null
     }
    ]
@@ -2903,7 +2903,7 @@
    "name": null,
    "location": "Jagakarsa",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 2,
    "updatedMinutesAgo": 55,
    "readings": [
     {
@@ -2911,7 +2911,7 @@
      "value": 52.4,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 2,
      "updatedMinutesAgo": null
     }
    ]
@@ -2927,7 +2927,7 @@
    "name": null,
    "location": "Jagakarsa",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 3,
    "updatedMinutesAgo": 44,
    "readings": [
     {
@@ -2935,7 +2935,7 @@
      "value": 71.8,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 3,
      "updatedMinutesAgo": null
     }
    ]
@@ -2951,7 +2951,7 @@
    "name": null,
    "location": "Jagakarsa",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 2,
    "updatedMinutesAgo": 40,
    "readings": [
     {
@@ -2959,7 +2959,7 @@
      "value": 42.0,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 2,
      "updatedMinutesAgo": null
     }
    ]
@@ -2975,7 +2975,7 @@
    "name": null,
    "location": "Pasar Rebo",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 2,
    "updatedMinutesAgo": 41,
    "readings": [
     {
@@ -2983,7 +2983,7 @@
      "value": 34.9,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 2,
      "updatedMinutesAgo": null
     }
    ]
@@ -2999,7 +2999,7 @@
    "name": null,
    "location": "Cipayung",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 2,
    "updatedMinutesAgo": 14,
    "readings": [
     {
@@ -3007,7 +3007,7 @@
      "value": 54.5,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 2,
      "updatedMinutesAgo": null
     }
    ]
@@ -3023,7 +3023,7 @@
    "name": null,
    "location": "Cipayung",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 3,
    "updatedMinutesAgo": 20,
    "readings": [
     {
@@ -3031,7 +3031,7 @@
      "value": 31.8,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 2,
      "updatedMinutesAgo": null
     },
     {
@@ -3039,7 +3039,7 @@
      "value": 49.0,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 1,
      "updatedMinutesAgo": null
     },
     {
@@ -3047,7 +3047,7 @@
      "value": 66.0,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 1,
      "updatedMinutesAgo": null
     },
     {
@@ -3055,7 +3055,7 @@
      "value": 31.6,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 1,
      "updatedMinutesAgo": null
     },
     {
@@ -3071,7 +3071,7 @@
      "value": 27.9,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 1,
      "updatedMinutesAgo": null
     },
     {
@@ -3079,7 +3079,7 @@
      "value": 1796,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 1,
      "updatedMinutesAgo": null
     },
     {
@@ -3087,7 +3087,7 @@
      "value": 150.0,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 3,
      "updatedMinutesAgo": null
     }
    ]
@@ -3103,7 +3103,7 @@
    "name": null,
    "location": "Tanah Abang",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 3,
    "updatedMinutesAgo": 47,
    "readings": [
     {
@@ -3111,7 +3111,7 @@
      "value": 67.8,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 3,
      "updatedMinutesAgo": null
     }
    ]
@@ -3127,7 +3127,7 @@
    "name": null,
    "location": "Tanah Abang",
    "stationType": null,
-   "overallBand": null,
+   "overallBand": 2,
    "updatedMinutesAgo": 23,
    "readings": [
     {
@@ -3135,7 +3135,7 @@
      "value": 51.0,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 2,
      "updatedMinutesAgo": null
     }
    ]
