@@ -177,18 +177,19 @@ export const BRUSSELS: CityPage = {
     linkLead: 'More on Brussels’s programmes and policies on',
     link: { label: 'Breathe Cities', url: 'https://breathecities.org/cities/brussels/' },
   },
-  // Round 3 decision AC (refined): where to get the sensor data for each pollutant, labelled for
-  // what each link holds; every URL checked with curl on 2026-10-25.
+  // Round 3 decision AC, readable pages (Jack): Brussels Environment's own page for each pollutant
+  // (qualitedelair.brussels/mesure/<code>, Brussels stations) and IRCELINE's dedicated page where one
+  // exists; all checked as text/html on 2026-10-25.
   pollutantData: {
-    'PM2.5': [{ label: 'PM2.5 measurement series, IRCELINE open data (all Belgian stations)', url: 'https://geo.irceline.be/sos/api/v1/timeseries?phenomenon=6001' }],
-    PM10: [{ label: 'PM10 measurement series, IRCELINE open data (all Belgian stations)', url: 'https://geo.irceline.be/sos/api/v1/timeseries?phenomenon=5' }],
-    'O₃': [{ label: 'O₃ measurement series, IRCELINE open data (all Belgian stations)', url: 'https://geo.irceline.be/sos/api/v1/timeseries?phenomenon=7' }],
-    'NO₂': [{ label: 'NO₂ measurement series, IRCELINE open data (all Belgian stations)', url: 'https://geo.irceline.be/sos/api/v1/timeseries?phenomenon=8' }],
-    NO: [{ label: 'NO measurement series, IRCELINE open data (all Belgian stations)', url: 'https://geo.irceline.be/sos/api/v1/timeseries?phenomenon=38' }],
-    'SO₂': [{ label: 'SO₂ measurement series, IRCELINE open data (all Belgian stations)', url: 'https://geo.irceline.be/sos/api/v1/timeseries?phenomenon=1' }],
-    CO: [{ label: 'CO measurement series, IRCELINE open data (all Belgian stations)', url: 'https://geo.irceline.be/sos/api/v1/timeseries?phenomenon=10' }],
-    'Black carbon': [{ label: 'Black carbon measurement series, IRCELINE open data (all Belgian stations)', url: 'https://geo.irceline.be/sos/api/v1/timeseries?phenomenon=391' }],
-    Benzene: [{ label: 'Benzene measurement series, IRCELINE open data (all Belgian stations)', url: 'https://geo.irceline.be/sos/api/v1/timeseries?phenomenon=20' }],
+    'PM2.5': [{ label: 'PM2.5 measurements in Brussels, Brussels Environment (in French)', url: 'https://qualitedelair.brussels/mesure/81134' }, { label: 'PM2.5 hourly means across Belgium, IRCELINE', url: 'https://www.irceline.be/en/air-quality/measurements/particulate-matter/pm25_hmean' }],
+    PM10: [{ label: 'PM10 measurements in Brussels, Brussels Environment (in French)', url: 'https://qualitedelair.brussels/mesure/81132' }, { label: 'PM10 hourly means across Belgium, IRCELINE', url: 'https://www.irceline.be/en/air-quality/measurements/particulate-matter/pm10_hmean' }],
+    'O₃': [{ label: 'O₃ measurements in Brussels, Brussels Environment (in French)', url: 'https://qualitedelair.brussels/mesure/44201' }, { label: 'Ozone per monitoring site, IRCELINE', url: 'https://www.irceline.be/en/air-quality/measurements/ozone/per-measuring-station' }],
+    'NO₂': [{ label: 'NO₂ measurements in Brussels, Brussels Environment (in French)', url: 'https://qualitedelair.brussels/mesure/42602' }, { label: 'NO₂ per monitoring site, IRCELINE', url: 'https://www.irceline.be/en/air-quality/measurements/nitrogen-dioxide/per-monitoring-site' }],
+    NO: [{ label: 'NO measurements in Brussels, Brussels Environment (in French)', url: 'https://qualitedelair.brussels/mesure/42601' }],
+    'SO₂': [{ label: 'SO₂ measurements in Brussels, Brussels Environment (in French)', url: 'https://qualitedelair.brussels/mesure/42401' }],
+    CO: [{ label: 'CO measurements in Brussels, Brussels Environment (in French)', url: 'https://qualitedelair.brussels/mesure/42101' }],
+    'Black carbon': [{ label: 'Black carbon measurements in Brussels, Brussels Environment (in French)', url: 'https://qualitedelair.brussels/mesure/16111' }, { label: 'Black carbon hourly means across Belgium, IRCELINE', url: 'https://www.irceline.be/en/air-quality/measurements/particulate-matter/bc_hmean' }],
+    Benzene: [{ label: 'Benzene measurements in Brussels, Brussels Environment (in French)', url: 'https://qualitedelair.brussels/mesure/45201' }],
   },
   goFurther: {
     services: [
