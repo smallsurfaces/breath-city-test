@@ -7,11 +7,16 @@
  *   elements Mapbox positions:
  *
  *     Shape  = sensor type   circle for a low-cost sensor, square for a reference monitor
- *     Colour = the station's OVERALL level as the city publishes it, in the city's own colour
- *              (fresh only). Nothing is computed: the level comes from the feed's own field.
- *     Fresh  = filled in the level colour, with a soft pulse (live)
- *     Stale  = filled grey, still: never a band colour (spec 5.5)
- *     Dead   = hollow, still (spec 5.5)
+ *     Fill (SensorMarkerStyle.fill), iteration 4 (round 3 decisions B1 to B3):
+ *       band     fresh, the city's band: the station's OVERALL level in the city's own colour, with a
+ *                soft pulse (live). Nothing is computed: the level comes from the feed's own field.
+ *       no-band  fresh, but the city sent no band (Bogotá's "SIN DATOS"): BLACK with a white "–"
+ *                inside, echoing the "--" on Bogotá's own IBOCA map; the hyphen keeps it apart from
+ *                any dark band colour and does not rely on colour alone. Pulses (it is live).
+ *       neutral  fresh, where the city rates areas or nothing, not stations (Jakarta, Brussels,
+ *                Sofia, Milan): a plain neutral fill with a neutral pulse. Nothing is missing.
+ *       stale    older than the city's cycle, however old: grey, still, never a band colour.
+ *     There is no dead or hollow state any more (decision B1).
  *
  *   Markers show NO VALUES (rule 7).
  *
@@ -34,8 +39,9 @@
  *   detached marker is built as SVG markup before it is in the document. They are neutral chrome and
  *   say nothing about air quality. Every colour that MEANS something comes from the city's index.
  *
- * Key exports: createSensorMarkerElement, setMarkerSelected, createPinElement, SensorMarkerStyle, TOUCH_TARGET,
- *   SENSOR_MARKER_INK, SENSOR_STALE_GREY
+ * Key exports: createSensorMarkerElement, setMarkerSelected, createPinElement, markerFillFor,
+ *   SensorMarkerStyle, MarkerFill, TOUCH_TARGET, SENSOR_MARKER_INK, SENSOR_STALE_GREY,
+ *   SENSOR_NO_BAND_FILL, SENSOR_NEUTRAL_FILL
  * External dependencies: ../../_data/city-sensors (CitySensor, Freshness types).
  */
 
@@ -47,8 +53,14 @@ export const SENSOR_MARKER_INK = '#1f2328'
 /** Fill for a stale marker: neutral grey, never a band colour (spec 5.5). */
 export const SENSOR_STALE_GREY = '#9aa1a9'
 
-/** Fill for a dead (hollow) marker: near-white, so it reads as empty. */
+/** White: the selected ring's halo, the pin's centre and the no-band hyphen. */
 const SENSOR_HOLLOW_FILL = '#ffffff'
+
+/** Fill for a fresh reading with no band (decision B2): black, as Bogotá's feed colours "Sin data". */
+export const SENSOR_NO_BAND_FILL = '#000000'
+
+/** Fill for a neutral marker (a city that rates no stations): a light neutral grey-white. */
+export const SENSOR_NEUTRAL_FILL = '#f4f4f5'
 
 /** Hit area in px (see Accessibility in the header). */
 export const TOUCH_TARGET = 44
@@ -65,31 +77,49 @@ const SELECTED_SCALE = 1.35
 /** Diameter in px the pulse ring grows to. */
 const PULSE_SIZE = 30
 
+/** What a marker's fill says (see the header). */
+export type MarkerFill = 'band' | 'no-band' | 'neutral' | 'stale'
+
 /** What one marker shows. */
 export type SensorMarkerStyle = {
-  /** The station's level colour (fresh), from the city's index. Ignored for stale and dead. */
-  colour: string
-  freshness: Freshness
+  fill: MarkerFill
+  /** The station's level colour, from the city's index; used only when `fill` is 'band'. */
+  colour: string | null
   /** The accessible name. */
   label: string
+}
+
+/** The marker fill for a sensor: stale beats everything; then band, no band, or neutral. Pure. */
+export function markerFillFor(freshness: Freshness, ratesStations: boolean, band: number | null): MarkerFill {
+  if (freshness === 'stale') return 'stale'
+  if (!ratesStations) return 'neutral'
+  return band === null ? 'no-band' : 'band'
 }
 
 /** The marker SVG markup. Pure. */
 function markerSVG(square: boolean, style: SensorMarkerStyle): string {
   const centre = TOUCH_TARGET / 2
   const fill =
-    style.freshness === 'fresh' ? style.colour : style.freshness === 'stale' ? SENSOR_STALE_GREY : SENSOR_HOLLOW_FILL
-  // Dead markers get a heavier, dashed outline so "hollow" reads at a glance on a grey basemap.
-  const stroke =
-    style.freshness === 'dead'
-      ? `stroke="${SENSOR_MARKER_INK}" stroke-width="2" stroke-dasharray="3 2"`
-      : `stroke="${SENSOR_MARKER_INK}" stroke-width="1.25"`
+    style.fill === 'band'
+      ? (style.colour ?? SENSOR_STALE_GREY)
+      : style.fill === 'no-band'
+        ? SENSOR_NO_BAND_FILL
+        : style.fill === 'neutral'
+          ? SENSOR_NEUTRAL_FILL
+          : SENSOR_STALE_GREY
+  const stroke = `stroke="${SENSOR_MARKER_INK}" stroke-width="${style.fill === 'neutral' ? 1.5 : 1.25}"`
+  // The white hyphen inside a no-band marker (decision B2).
+  const hyphen =
+    style.fill === 'no-band'
+      ? `<line x1="${centre - 3.5}" y1="${centre}" x2="${centre + 3.5}" y2="${centre}" stroke="${SENSOR_HOLLOW_FILL}" stroke-width="2" stroke-linecap="round" />`
+      : ''
   const shape = square
     ? `<rect x="${centre - SHAPE_SIZE / 2}" y="${centre - SHAPE_SIZE / 2}" width="${SHAPE_SIZE}" height="${SHAPE_SIZE}" rx="1.5" fill="${fill}" ${stroke} />`
     : `<circle cx="${centre}" cy="${centre}" r="${SHAPE_SIZE / 2}" fill="${fill}" ${stroke} />`
-  const pulses = style.freshness === 'fresh'
+  const pulses = style.fill !== 'stale'
+  const pulseColour = style.fill === 'band' ? (style.colour ?? SENSOR_MARKER_INK) : SENSOR_MARKER_INK
   const ring = pulses
-    ? `<circle class="bda-sensor-pulse" cx="${centre}" cy="${centre}" r="${PULSE_SIZE / 2}" fill="${style.colour}" />`
+    ? `<circle class="bda-sensor-pulse" cx="${centre}" cy="${centre}" r="${PULSE_SIZE / 2}" fill="${pulseColour}" ${style.fill === 'band' ? '' : 'fill-opacity="0.45"'} />`
     : ''
   const css = pulses
     ? `<style>
@@ -104,7 +134,7 @@ function markerSVG(square: boolean, style: SensorMarkerStyle): string {
     : ''
   // The selected-state ring (decision B6): hidden until setMarkerSelected shows it.
   const selected = `<g class="bda-sensor-selected" style="display:none"><circle cx="${centre}" cy="${centre}" r="${SELECTED_RING_R}" fill="none" stroke="${SENSOR_HOLLOW_FILL}" stroke-width="5" /><circle cx="${centre}" cy="${centre}" r="${SELECTED_RING_R}" fill="none" stroke="${SENSOR_MARKER_INK}" stroke-width="2.5" /></g>`
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${TOUCH_TARGET}" height="${TOUCH_TARGET}" viewBox="0 0 ${TOUCH_TARGET} ${TOUCH_TARGET}" aria-hidden="true" focusable="false" style="overflow:visible;transition:transform 150ms ease-out">${css}${ring}${selected}${shape}</svg>`
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${TOUCH_TARGET}" height="${TOUCH_TARGET}" viewBox="0 0 ${TOUCH_TARGET} ${TOUCH_TARGET}" aria-hidden="true" focusable="false" style="overflow:visible;transition:transform 150ms ease-out">${css}${ring}${selected}${shape}${hyphen}</svg>`
 }
 
 /** The marker button for one sensor. Side effects: none (the caller adds it to the map). */

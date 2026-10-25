@@ -28,13 +28,19 @@ type AtlasDialogProps = {
   onOpenChange: (open: boolean) => void
   /** The dialog's title (its accessible name). */
   title: string
-  /** A small line above the title, e.g. "Sensor details"; empty string for none. */
+  /** A small line above the title, e.g. "Pollutant"; empty string for none. */
   eyebrow: string
+  /**
+   * Header lines around the title (iteration 4, decision D1: the sensor detail's header carries
+   * the sensor facts): `above` replaces the eyebrow line, `below` sits under the title. Null for none.
+   */
+  above?: ReactNode | null
+  below?: ReactNode | null
   children: ReactNode
 }
 
 /** The dialog. Renders nothing while closed. */
-export function AtlasDialog({ open, onOpenChange, title, eyebrow, children }: AtlasDialogProps) {
+export function AtlasDialog({ open, onOpenChange, title, eyebrow, above = null, below = null, children }: AtlasDialogProps) {
   return (
     <Dialog.Root open={open} onOpenChange={(next) => onOpenChange(next)}>
       <Dialog.Portal>
@@ -42,8 +48,13 @@ export function AtlasDialog({ open, onOpenChange, title, eyebrow, children }: At
         <Dialog.Popup className="fixed inset-0 z-[110] flex flex-col bg-background outline-none sm:inset-auto sm:left-1/2 sm:top-1/2 sm:max-h-[85vh] sm:w-[min(36rem,calc(100vw-2rem))] sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-2xl sm:border sm:border-border sm:shadow-xl">
           <div className="flex shrink-0 items-start justify-between gap-3 border-b border-border py-2 pl-4 pr-1">
             <div className="min-w-0 py-2">
-              {eyebrow.length > 0 && <p className="text-xs font-medium uppercase tracking-wide text-foreground/60">{eyebrow}</p>}
+              {above !== null ? (
+                <div className="mb-1">{above}</div>
+              ) : (
+                eyebrow.length > 0 && <p className="text-xs font-medium uppercase tracking-wide text-foreground/60">{eyebrow}</p>
+              )}
               <Dialog.Title className="text-lg font-bold leading-tight text-foreground">{title}</Dialog.Title>
+              {below !== null && <div className="mt-1">{below}</div>}
             </div>
             <Dialog.Close
               aria-label="Close"

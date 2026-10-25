@@ -14,10 +14,16 @@
  *   - Freshness is a statement about time since the last reading, against the city's own update
  *     cycle (`updateCycleMinutes` in the city's data file, spec 5.5), not about air quality.
  *
- * Freshness (spec 5.5)
- *   fresh  within the city's cycle       full treatment, band colour, "12 min ago"
- *   stale  older than the cycle, <= 24h  grey, last reading kept, "last reading 9 hours ago"
- *   dead   more than 24 hours            hollow dot; never in the nearest three
+ * Freshness (iteration 4, round 3 decision B1: two states only, no dead state)
+ *   fresh  within the city's cycle   full treatment, the city's band colour, "12 min ago"
+ *   stale  older, however old        grey, no band, no scale marker, no advice, age in words
+ *                                    ("Last reading 9 hours ago", "Last reading 6 days ago")
+ *   Nothing drops out: a stale sensor stays on the map and can be one of the nearest three.
+ *
+ * Fresh reading, no band (iteration 4, decision B2)
+ *   `overallBand` (and a reading's `band`) can be null: the city sent a fresh reading but no band
+ *   (Bogotá's "SIN DATOS"). The page never fills that gap: no colour, no scale marker, no advice.
+ *   The band ALWAYS comes from the city's feed; nothing here or anywhere computes one.
  *
  * Mock data (READ BEFORE EDITING)
  *   Positions and sensor types come from the Atlas's snapshot file; readings, bands, freshness and
@@ -27,7 +33,7 @@
  *
  * Key exports: PollutantId, SensorType, Freshness, SensorReading, CitySensor, POLLUTANT_ORDER,
  *   parseCitySensors, freshnessOf, distanceKm, nearestReporting, distanceWords, ageWords,
- *   sensorTypeLabel, sensorTypeCardLabel, placeName, DEAD_AFTER_MINUTES
+ *   sensorTypeLabel, sensorTypeCardLabel, placeName
  * External dependencies: none (the caller passes the JSON in).
  */
 
@@ -40,11 +46,8 @@ export const POLLUTANT_ORDER: PollutantId[] = ['PM2.5', 'PM10', 'O₃', 'NO₂',
 /** Sensor type: circle on the map for low-cost, square for a reference monitor. */
 export type SensorType = 'low-cost' | 'reference-grade'
 
-/** Freshness state (spec 5.5). */
-export type Freshness = 'fresh' | 'stale' | 'dead'
-
-/** Readings older than this are dead, whatever the city's cycle (spec 5.5: "more than 24 hours"). */
-export const DEAD_AFTER_MINUTES = 24 * 60
+/** Freshness state (iteration 4, decision B1): two states only. */
+export type Freshness = 'fresh' | 'stale'
 
 /** One pollutant reading at one sensor, as the city's feed publishes it (mock). */
 export type SensorReading = {
@@ -54,8 +57,16 @@ export type SensorReading = {
   unit: string
   /** The averaging time the city publishes for this pollutant. Shown as data, never next to a band. */
   averaging: string
-  /** The city's band for this pollutant at this sensor, 1 = the index's best level. */
-  band: number
+  /**
+   * The city's band for this pollutant at this sensor, 1 = the index's best level, as the feed
+   * publishes it. Null when the feed sent none (decision B2) or the city has no index (Sofia, Milan).
+   */
+  band: number | null
+  /**
+   * Minutes since THIS pollutant was read, only where it is older than the sensor's own update time
+   * (iteration 4, decision D3: shown inside the row's "i"); null when it was read with the rest.
+   */
+  updatedMinutesAgo: number | null
 }
 
 /** One sensor on the city page. */
@@ -70,8 +81,11 @@ export type CitySensor = {
   name: string | null
   /** Where there is no name: the locality (such as the district) the sensor sits in, else null. */
   location: string | null
-  /** The station's overall level as the city's feed publishes it (spec 5.2). */
-  overallBand: number
+  /**
+   * The station's overall level as the city's feed publishes it (spec 5.2). Null when the feed sent
+   * a reading but no band (decision B2), or when the city rates areas or nothing, not stations.
+   */
+  overallBand: number | null
   /** Minutes since the last reading. */
   updatedMinutesAgo: number
   readings: SensorReading[]
@@ -121,7 +135,9 @@ export function parseCitySensors(value: unknown, slug: string, bandCount: number
   if (!Array.isArray(file.sensors) || file.sensors.length === 0) {
     throw new Error(`Breathe Data Atlas sensors: ${slug} has no sensors`)
   }
-  const checkBand = (band: number, where: string): number => {
+  const checkBand = (raw: unknown, where: string): number | null => {
+    if (raw === null || raw === undefined) return null
+    const band = asNumber(raw, where)
     if (!Number.isInteger(band) || band < 1 || band > bandCount) {
       throw new Error(`Breathe Data Atlas sensors: ${where} band ${band} is outside the index`)
     }
@@ -157,7 +173,7 @@ export function parseCitySensors(value: unknown, slug: string, bandCount: number
       lngLat: [asNumber(lngLat[0], `${id}.lngLat[0]`), asNumber(lngLat[1], `${id}.lngLat[1]`)],
       type: record.type,
       stationType: record.stationType === null ? null : asString(record.stationType, `${id}.stationType`),
-      overallBand: checkBand(asNumber(record.overallBand, `${id}.overallBand`), id),
+      overallBand: checkBand(record.overallBand, `${id}.overallBand`),
       updatedMinutesAgo: minutes,
       readings: record.readings.map((reading, index) => {
         const r = asRecord(reading, `${id}.readings[${index}]`)
@@ -166,16 +182,19 @@ export function parseCitySensors(value: unknown, slug: string, bandCount: number
           value: asNumber(r.value, `${id}.readings[${index}].value`),
           unit: asString(r.unit, `${id}.readings[${index}].unit`),
           averaging: asString(r.averaging, `${id}.readings[${index}].averaging`),
-          band: checkBand(asNumber(r.band, `${id}.readings[${index}].band`), `${id}.readings[${index}]`),
+          band: checkBand(r.band, `${id}.readings[${index}].band`),
+          updatedMinutesAgo:
+            r.updatedMinutesAgo === null || r.updatedMinutesAgo === undefined
+              ? null
+              : asNumber(r.updatedMinutesAgo, `${id}.readings[${index}].updatedMinutesAgo`),
         }
       }),
     }
   })
 }
 
-/** A sensor's freshness against the city's update cycle (spec 5.5). Pure. */
+/** A sensor's freshness against the city's update cycle (decision B1). Pure. */
 export function freshnessOf(sensor: CitySensor, updateCycleMinutes: number): Freshness {
-  if (sensor.updatedMinutesAgo > DEAD_AFTER_MINUTES) return 'dead'
   if (sensor.updatedMinutesAgo > updateCycleMinutes) return 'stale'
   return 'fresh'
 }
@@ -192,21 +211,20 @@ export function distanceKm([lng1, lat1]: [number, number], [lng2, lat2]: [number
 }
 
 /**
- * The `count` nearest REPORTING sensors to a point, nearest first: fresh and stale sensors only, so
- * a dead sensor never takes a place and the next reporting sensor moves up (spec 5.5). `excludeId`
- * leaves out the tapped sensor itself. Only sorts; never combines readings (rule 1). Empty input
- * returns an empty list.
+ * The `count` nearest sensors to a point, nearest first, fresh or stale (iteration 4, decision B1:
+ * nothing drops out of the nearest three). `excludeId` leaves out the tapped sensor itself. Only
+ * sorts; never combines readings (rule 1). Empty input returns an empty list.
  */
 export function nearestReporting(
   point: [number, number],
   sensors: CitySensor[],
   count: number,
   excludeId: string | null,
-  updateCycleMinutes: number,
+  _updateCycleMinutes: number,
 ): Array<{ sensor: CitySensor; km: number }> {
   if (sensors.length === 0 || count <= 0) return []
   return sensors
-    .filter((sensor) => sensor.id !== excludeId && freshnessOf(sensor, updateCycleMinutes) !== 'dead')
+    .filter((sensor) => sensor.id !== excludeId)
     .map((sensor) => ({ sensor, km: distanceKm(point, sensor.lngLat) }))
     .sort((a, b) => a.km - b.km)
     .slice(0, count)

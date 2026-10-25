@@ -42,7 +42,7 @@
  *   `standardLink` are gone. The index link reads "IBOCA index" (feedback item 8). Go further has
  *   two groups (J); the Breathe Cities link moved to the "Breathe Cities in Bogotá" section (I).
  *
- * Key exports: CityLink, GrowthSeries, PollutantSourceLine, PollutantCityInfo, PlaceFact, CityPage,
+ * Key exports: AdviceItem, CityLink, GrowthSeries, PollutantSourceLine, PollutantCityInfo, PlaceFact, CityPage,
  *   BOGOTA, hasYearOfArchive, PROTOTYPE_YEAR
  * External dependencies: ./indexes, ./city-sensors, ./sensors/bogota-page.json.
  */
@@ -52,6 +52,17 @@ import { CITY_INDEXES } from './indexes'
 import type { CityAirQualityIndex } from './indexes'
 import { parseCitySensors, POLLUTANT_ORDER } from './city-sensors'
 import type { CitySensor, PollutantId, SensorType } from './city-sensors'
+
+/**
+ * One advice item, as the city publishes it (never reworded), with the group the city ties it to
+ * (iteration 4, decision E). `group` is null for general advice, else the group's English name,
+ * from the `group` column of the city's *-health-advice.csv.
+ */
+export type AdviceItem = { text: string; group: string | null }
+
+/** Bogotá's two named groups (decision E), English names. */
+const PHYSICAL_ACTIVITY = 'People doing physical activity'
+const ALLERGIES = 'People with allergies or respiratory diseases'
 
 /** A labelled external link. */
 export type CityLink = { label: string; url: string }
@@ -111,8 +122,11 @@ export type CityPage = {
    * appears only when this is not null.
    */
   forecastBands: Record<string, number> | null
-  /** The city's advice per index level (type R only), keyed by level order. */
-  advice: Record<number, string[]>
+  /**
+   * The city's advice per index level, keyed by level order (Bogotá: type R only). Items carry their
+   * group (decision E); the page lists general items first, then each group under its own heading.
+   */
+  advice: Record<number, AdviceItem[]>
   /** Population (and area where it matches the map), as published. Shown in the Breathe Cities
    *  section (decision I). Empty when not published (rule 6). */
   placeFacts: PlaceFact[]
@@ -165,30 +179,32 @@ export const BOGOTA: CityPage = {
   // Bogotá publishes its forecast as a numeric IBOCA value per point (feature 2d partial), so there
   // is no band to show and no switch (spec 5.7).
   forecastBands: null,
+  // Groups from the `group` column of bogota-health-advice.csv (decision E): "people doing physical
+  // activity / exercise" and "people with allergies or respiratory diseases"; the rest is general.
   advice: {
     1: [
-      'Make the most of it to do outdoor activities',
-      'Air your home or workplace',
-      'Prefer places with good air quality.',
-      'Make the most of it to exercise outdoors without restrictions.',
+      { text: 'Make the most of it to do outdoor activities', group: null },
+      { text: 'Air your home or workplace', group: null },
+      { text: 'Prefer places with good air quality.', group: null },
+      { text: 'Make the most of it to exercise outdoors without restrictions.', group: PHYSICAL_ACTIVITY },
     ],
     2: [
-      'You can do outdoor activities',
-      'Air your home or workplace',
-      'Prefer places with good air quality.',
-      'If you have allergies or respiratory diseases, take extra precautions.',
+      { text: 'You can do outdoor activities', group: null },
+      { text: 'Air your home or workplace', group: null },
+      { text: 'Prefer places with good air quality.', group: null },
+      { text: 'If you have allergies or respiratory diseases, take extra precautions.', group: ALLERGIES },
     ],
     3: [
-      'If you have a cough or difficulty breathing(b) during physical activity, take breaks more often.',
-      'Reduce physical activity that needs prolonged or intense outdoor effort and prefer to do it indoors, looking after the indoor air quality',
+      { text: 'If you have a cough or difficulty breathing(b) during physical activity, take breaks more often.', group: PHYSICAL_ACTIVITY },
+      { text: 'Reduce physical activity that needs prolonged or intense outdoor effort and prefer to do it indoors, looking after the indoor air quality', group: PHYSICAL_ACTIVITY },
     ],
     4: [
-      'Reduce physical activity (a) that needs prolonged or intense outdoor effort; prefer indoors, taking breaks more often and looking after the indoor air quality (c).',
+      { text: 'Reduce physical activity (a) that needs prolonged or intense outdoor effort; prefer indoors, taking breaks more often and looking after the indoor air quality (c).', group: PHYSICAL_ACTIVITY },
     ],
     5: [
-      'Avoid all outdoor activities, and indoors reduce physical activity(a), taking breaks more often and looking after the indoor air quality(c).',
-      'Move to areas with less air pollution.',
-      'Wear an N95 mask (d) outdoors and indoors while this level of air pollution lasts.',
+      { text: 'Avoid all outdoor activities, and indoors reduce physical activity(a), taking breaks more often and looking after the indoor air quality(c).', group: PHYSICAL_ACTIVITY },
+      { text: 'Move to areas with less air pollution.', group: null },
+      { text: 'Wear an N95 mask (d) outdoors and indoors while this level of air pollution lasts.', group: null },
     ],
   },
   placeFacts: [

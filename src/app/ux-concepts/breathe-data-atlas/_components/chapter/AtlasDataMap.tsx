@@ -61,16 +61,16 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import mapboxgl from 'mapbox-gl'
 import { AtlasMapLegend } from './AtlasMapLegend'
-import { createPinElement, createSensorMarkerElement, setMarkerSelected } from './atlas-markers'
+import { createPinElement, createSensorMarkerElement, markerFillFor, setMarkerSelected } from './atlas-markers'
 import { AtlasDialog } from '../city/AtlasDialog'
-import { SensorDetail } from '../city/SensorDetail'
+import { SensorDetail, SensorDetailAbove, SensorDetailBelow } from '../city/SensorDetail'
 import { neighboursFor, TapCard } from '../city/TapCard'
 import type { CardPlacement, MapSelection } from '../city/TapCard'
 import { BOUNDARY_ATTRIBUTION } from '../../_data/boundaries'
 import type { CityBoundary } from '../../_data/boundaries'
 import { indexLevel, levelDisplayName } from '../../_data/indexes'
 import type { CityPage } from '../../_data/bogota'
-import { freshnessOf, placeName, sensorTypeLabel } from '../../_data/city-sensors'
+import { ageWords, freshnessOf, placeName, sensorTypeLabel } from '../../_data/city-sensors'
 import type { CitySensor, Freshness } from '../../_data/city-sensors'
 
 import 'mapbox-gl/dist/mapbox-gl.css'
@@ -149,8 +149,8 @@ function prefersReducedMotion(): boolean {
 function markerLabel(city: CityPage, sensor: CitySensor, freshness: Freshness): string {
   const type = sensorTypeLabel(sensor.type)
   const name = placeName(sensor)
-  if (freshness === 'dead') return `${name}, ${type}, no reading for over 24 hours. Open sensor card.`
-  if (freshness === 'stale') return `${name}, ${type}, last reading older than the update cycle. Open sensor card.`
+  if (freshness === 'stale') return `${name}, ${type}, last reading ${ageWords(sensor.updatedMinutesAgo)}. Open sensor card.`
+  if (sensor.overallBand === null) return `${name}, ${type}, no ${city.index.name} level reported. Open sensor card.`
   const level = levelDisplayName(indexLevel(city.index, sensor.overallBand))
   return `${name}, ${type}, ${city.index.name} ${level}. Open sensor card.`
 }
@@ -202,9 +202,12 @@ type AtlasDataMapProps = {
   boundary: CityBoundary | null
 }
 
-/** The recentre icon (lucide "locate-fixed" geometry), drawn in currentColor. Decorative. */
+/**
+ * The recentre icon (lucide "rotate-ccw" geometry), drawn in currentColor. Decorative. Iteration 4
+ * (round 3 decision A2): a reset icon, because the crosshair read as "show my location".
+ */
 const RECENTRE_ICON =
-  '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false" style="display:block;margin:auto"><line x1="2" x2="5" y1="12" y2="12"/><line x1="19" x2="22" y1="12" y2="12"/><line x1="12" x2="12" y1="2" y2="5"/><line x1="12" x2="12" y1="19" y2="22"/><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="3"/></svg>'
+  '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false" style="display:block;margin:auto"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>'
 
 /**
  * The recentre button (iteration 3, decision A2 of the coordinator's additions): a Mapbox control
@@ -369,20 +372,20 @@ export function AtlasDataMap({ city, boundary }: AtlasDataMapProps) {
     )
 
     // Markers first, off the style path (the Atlas's first-render fix). Order is stacking order:
-    // dead under stale under fresh, and worse levels last, so the meaningful marker wins a tap.
+    // stale under fresh, and worse levels last, so the meaningful marker wins a tap.
     markersRef.current.forEach((marker) => marker.remove())
     markersRef.current = []
     const rank = (sensor: CitySensor): number => {
       const freshness = freshnessOf(sensor, city.updateCycleMinutes)
-      return freshness === 'dead' ? 0 : freshness === 'stale' ? 1 : 2 + sensor.overallBand
+      return freshness === 'stale' ? 0 : 1 + (sensor.overallBand ?? 0)
     }
     ;[...city.sensors]
       .sort((a, b) => rank(a) - rank(b))
       .forEach((sensor) => {
         const freshness = freshnessOf(sensor, city.updateCycleMinutes)
         const element = createSensorMarkerElement(sensor, {
-          colour: indexLevel(city.index, sensor.overallBand).hex,
-          freshness,
+          fill: markerFillFor(freshness, true, sensor.overallBand),
+          colour: sensor.overallBand === null ? null : indexLevel(city.index, sensor.overallBand).hex,
           label: markerLabel(city, sensor, freshness),
         })
         element.addEventListener('click', (event) => {
@@ -635,8 +638,10 @@ export function AtlasDataMap({ city, boundary }: AtlasDataMapProps) {
         onOpenChange={(open) => {
           if (!open) setDetailSensor(null)
         }}
-        eyebrow="Sensor details"
+        eyebrow=""
         title={detailSensor === null ? '' : placeName(detailSensor)}
+        above={detailSensor === null ? null : <SensorDetailAbove sensor={detailSensor} />}
+        below={detailSensor === null || detailSensor.stationType === null ? null : <SensorDetailBelow sensor={detailSensor} />}
       >
         {detailSensor !== null && <SensorDetail city={city} sensor={detailSensor} />}
       </AtlasDialog>

@@ -20,11 +20,12 @@
  *   code; both are neutral and carry no meaning. Copied from the Atlas sensor card.
  *
  * Key exports: readableTextOn, BandChip, IndexInfo, CurrentAdvice, AdviceLadder, SensorTypeIcon,
- *   Sparkline
+ *   SensorMarkIcon, Sparkline
  * External dependencies: ./BandScale, ../chapter/CreditInfo, ../chapter/ChapterLink, ../../_data/indexes,
  *   ../../_data/bogota (CityPage), ../../_data/city-sensors (SensorType).
  */
 
+import type { ReactNode } from 'react'
 import { BandScale } from './BandScale'
 import { CreditInfo } from '../chapter/CreditInfo'
 import { OutboundLink } from '../chapter/ChapterLink'
@@ -109,15 +110,43 @@ type BandItemsProps = {
   band: number
 }
 
-/** The city's own items for one band (type R), never reworded. */
+/** List style for one block of advice items. */
+const ADVICE_LIST = 'mt-1 list-disc space-y-1 pl-5 text-sm leading-snug text-foreground/90'
+
+/**
+ * The city's own items for one band, never reworded (iteration 4, decision E): general items first,
+ * then each named group's items under a small heading with the group's English name, in the order
+ * the groups first appear in the city's file. Groups appear only in the bands the city ties them to.
+ */
 function BandItems({ city, band }: BandItemsProps) {
   const items = city.advice[band] ?? []
+  const general = items.filter((item) => item.group === null)
+  const groups: string[] = []
+  items.forEach((item) => {
+    if (item.group !== null && !groups.includes(item.group)) groups.push(item.group)
+  })
   return (
-    <ul className="mt-2 list-disc space-y-1 pl-5 text-sm leading-snug text-foreground/90">
-      {items.map((item) => (
-        <li key={item}>{item}</li>
+    <div className="mt-2 space-y-3" data-band-advice={band}>
+      {general.length > 0 && (
+        <ul className={ADVICE_LIST}>
+          {general.map((item) => (
+            <li key={item.text}>{item.text}</li>
+          ))}
+        </ul>
+      )}
+      {groups.map((group) => (
+        <div key={group} data-advice-group={group}>
+          <h5 className="text-xs font-semibold text-foreground">{group}</h5>
+          <ul className={ADVICE_LIST}>
+            {items
+              .filter((item) => item.group === group)
+              .map((item) => (
+                <li key={item.text}>{item.text}</li>
+              ))}
+          </ul>
+        </div>
       ))}
-    </ul>
+    </div>
   )
 }
 
@@ -130,8 +159,9 @@ type CurrentAdviceProps = {
 
 /**
  * The sensor detail's opening block (iteration 3, decision C): no heading and no link line. The
- * band capsule, the same scale bar as the sensor card (marker on the current band), then Bogotá's
- * items for that band. The "IBOCA index" link sits behind an "i" at the block's top right.
+ * same scale bar as the sensor card, its capsule above the current band (iteration 4, decision C:
+ * the capsule is the marker, no separate chip), then the city's items for that band, grouped
+ * (decision E). The index link sits behind an "i" at the block's top right.
  */
 export function CurrentAdvice({ city, band }: CurrentAdviceProps) {
   const level = indexLevel(city.index, band)
@@ -145,9 +175,6 @@ export function CurrentAdvice({ city, band }: CurrentAdviceProps) {
         <IndexInfo city={city} />
       </div>
       <div className="pr-10">
-        <BandChip index={city.index} band={band} pollutant={null} stale={false} />
-      </div>
-      <div className="mt-2">
         <BandScale index={city.index} band={band} />
       </div>
       <BandItems city={city} band={band} />
@@ -195,10 +222,51 @@ export function SensorTypeIcon({ type, fill }: SensorTypeIconProps) {
   )
 }
 
+/** Props for SensorMarkIcon. */
+type SensorMarkIconProps = {
+  type: SensorType
+  /** What the map marker's fill says (../chapter/atlas-markers MarkerFill). */
+  fill: 'band' | 'no-band' | 'neutral' | 'stale'
+  /** The band colour, used only when `fill` is 'band'. */
+  colour: string | null
+}
+
+/**
+ * The sensor's map marker in small, for list rows (iteration 4, decisions B1 to B3): the band colour;
+ * black with a white "–" for a fresh reading with no band; neutral for a city that rates no
+ * stations; grey for stale. Shape is the sensor type, as on the map.
+ */
+export function SensorMarkIcon({ type, fill, colour }: SensorMarkIconProps) {
+  const shape = type === 'reference-grade' ? 'rounded-[2px]' : 'rounded-full'
+  const background =
+    fill === 'band' && colour !== null
+      ? colour
+      : fill === 'no-band'
+        ? '#000000'
+        : fill === 'neutral'
+          ? 'var(--background)'
+          : 'var(--bc-semantic-border)'
+  return (
+    <span
+      aria-hidden="true"
+      data-mark-fill={fill}
+      className={`relative inline-flex h-3.5 w-3.5 shrink-0 items-center justify-center border border-foreground/80 ${shape}`}
+      style={{ backgroundColor: background }}
+    >
+      {fill === 'no-band' && <span className="block h-[2px] w-[7px] rounded-full bg-white" />}
+    </span>
+  )
+}
+
 /** Props for Sparkline. */
 type SparklineProps = {
   values: number[]
   startYear: number
+  /**
+   * What sits right of the line's end, bottom-aligned with it (iteration 4, decision F: the tile's
+   * count), or null. The line then runs from the left edge to just before it.
+   */
+  end: ReactNode | null
 }
 
 /**
@@ -208,7 +276,7 @@ type SparklineProps = {
  * "none") and its strokes keep their width (non-scaling-stroke). Decorative to assistive tech
  * except for the year.
  */
-export function Sparkline({ values, startYear }: SparklineProps) {
+export function Sparkline({ values, startYear, end }: SparklineProps) {
   if (values.length < 2) return null
   const width = 120
   const height = 32
@@ -224,9 +292,11 @@ export function Sparkline({ values, startYear }: SparklineProps) {
     .join(' ')
   return (
     <div className="flex w-full flex-col items-start" data-sparkline="">
+      <div className="flex w-full items-end gap-3">
       <svg
         width="100%"
         height={height}
+        style={{ minWidth: 0, flex: '1 1 0%' }}
         viewBox={`0 0 ${width} ${height}`}
         preserveAspectRatio="none"
         aria-hidden="true"
@@ -236,6 +306,8 @@ export function Sparkline({ values, startYear }: SparklineProps) {
         <line x1={0.5} y1={height + 2} x2={0.5} y2={height - 3} stroke="currentColor" strokeWidth={1} vectorEffect="non-scaling-stroke" className="text-foreground/40" />
         <polyline points={points} fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinejoin="round" strokeLinecap="round" vectorEffect="non-scaling-stroke" className="text-foreground/60" />
       </svg>
+      {end}
+      </div>
       <span className="mt-1 text-[11px] leading-none tabular-nums text-foreground/60">{startYear}</span>
     </div>
   )

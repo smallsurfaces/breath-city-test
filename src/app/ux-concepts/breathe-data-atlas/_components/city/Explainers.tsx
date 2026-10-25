@@ -157,7 +157,7 @@ export function PollutantExplainerFull({ city, pollutant, sites, series, showSpa
           <span className="text-3xl font-bold leading-none text-foreground">{sites}</span>
           {showSparkline && (
             <div className="w-32 shrink-0">
-              <Sparkline values={series.values} startYear={series.startYear} />
+              <Sparkline values={series.values} startYear={series.startYear} end={null} />
             </div>
           )}
         </div>

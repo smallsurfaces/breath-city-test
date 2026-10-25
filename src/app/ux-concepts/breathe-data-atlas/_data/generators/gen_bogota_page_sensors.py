@@ -24,8 +24,14 @@ How the mock stays honest
   - Each station's overall level is the worst of its pollutant bands, which is how IBOCA reports a
     station; it is written into the file as the feed's own field, not derived on the page.
   - Averaging times per pollutant are IBOCA's, from the same research file.
-  - Freshness: the file includes fresh, stale (older than the city's cycle, up to 24 hours) and
-    dead (more than 24 hours) sensors, so every state can be reviewed (spec 5.5).
+  - Freshness (iteration 4, decision B1): two states only, fresh and stale (older than the city's
+    cycle, however old). The file keeps stale sensors from 5 hours to a month old.
+  - Fresh reading, no band (iteration 4, decision B2): NO_BAND lists stations whose feed sent a
+    fresh reading with no IBOCA level (Bogotá's "SIN DATOS"). Their values are still drawn as above
+    (so the draw sequence is unchanged), but `overallBand` and every reading's `band` are written as
+    null: the page shows the reading and no level.
+  - One pollutant read earlier than its station's update (iteration 4, decision D3): OLDER_READING
+    gives that reading its own minutes-ago, shown inside the row's "i".
 
 Usage: python3 _data/generators/gen_bogota_page_sensors.py
 """
@@ -116,6 +122,12 @@ LOCALITIES = {
     'bogota-24': 'Suba',
 }
 
+# Fresh stations whose feed sent no band ("SIN DATOS"), decision B2. One reference, one low-cost.
+NO_BAND = {'bogota-02', 'bogota-17'}
+
+# A reading older than its station's update time (decision D3): (sensor, pollutant) -> minutes.
+OLDER_READING = {('bogota-06', 'SO₂'): 130}
+
 ORDER = ['PM2.5', 'PM10', 'O₃', 'NO₂', 'SO₂', 'CO']
 
 
@@ -157,10 +169,16 @@ for s in atlas['sensors']:
             'unit': UNIT,
             'averaging': AVERAGING[p],
             'band': bands[p],
+            'updatedMinutesAgo': OLDER_READING.get((s['id'], p)),
         }
         for p in ORDER if p in bands
     ]
     coarse_at_least_fine(readings)
+    overall = max(r['band'] for r in readings)
+    if s['id'] in NO_BAND:
+        overall = None
+        for r in readings:
+            r['band'] = None
     sensors.append({
         'id': s['id'],
         'lngLat': s['lngLat'],
@@ -169,7 +187,7 @@ for s in atlas['sensors']:
         'name': STATION_NAMES.get(s['id']) if not s['placed'] else None,
         'location': LOCALITIES.get(s['id']) if s['placed'] else None,
         'stationType': station_type,
-        'overallBand': max(r['band'] for r in readings),
+        'overallBand': overall,
         'updatedMinutesAgo': minutes,
         'readings': readings,
     })
