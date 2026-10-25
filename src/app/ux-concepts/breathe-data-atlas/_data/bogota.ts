@@ -239,6 +239,20 @@ export const BOGOTA: CityPage = {
     linkLead: 'More on Bogotá’s programmes and policies on',
     link: { label: 'Breathe Cities', url: 'https://breathecities.org/cities/bogota/' },
   },
+  // Round 3 decision AC (refined): where to get the sensor data for each pollutant, labelled for
+  // what each link holds; every URL checked with curl on 2026-10-25.
+  pollutantData: {
+    'PM2.5': [{ label: 'Station reports by parameter, RMCAB (choose the pollutant there)', url: 'https://rmcab.ambientebogota.gov.co/Report/stationreport' }, { label: 'Microsensor readings (PM1, PM2.5, PM10), Bogotá open GIS service', url: 'https://geocimab.ambientebogota.gov.co/wserver/rest/services/RED_MICROSENSORES/tabla_microsensores/FeatureServer/0' }],
+    PM10: [{ label: 'Station reports by parameter, RMCAB (choose the pollutant there)', url: 'https://rmcab.ambientebogota.gov.co/Report/stationreport' }, { label: 'Microsensor readings (PM1, PM2.5, PM10), Bogotá open GIS service', url: 'https://geocimab.ambientebogota.gov.co/wserver/rest/services/RED_MICROSENSORES/tabla_microsensores/FeatureServer/0' }],
+    'O₃': [{ label: 'Station reports by parameter, RMCAB (choose the pollutant there)', url: 'https://rmcab.ambientebogota.gov.co/Report/stationreport' }],
+    'NO₂': [{ label: 'Station reports by parameter, RMCAB (choose the pollutant there)', url: 'https://rmcab.ambientebogota.gov.co/Report/stationreport' }],
+    NO: [{ label: 'Station reports by parameter, RMCAB (choose the pollutant there)', url: 'https://rmcab.ambientebogota.gov.co/Report/stationreport' }],
+    'NOₓ': [{ label: 'Station reports by parameter, RMCAB (choose the pollutant there)', url: 'https://rmcab.ambientebogota.gov.co/Report/stationreport' }],
+    'SO₂': [{ label: 'Station reports by parameter, RMCAB (choose the pollutant there)', url: 'https://rmcab.ambientebogota.gov.co/Report/stationreport' }],
+    CO: [{ label: 'Station reports by parameter, RMCAB (choose the pollutant there)', url: 'https://rmcab.ambientebogota.gov.co/Report/stationreport' }],
+    'Black carbon': [{ label: 'Station reports by parameter, RMCAB (choose the pollutant there)', url: 'https://rmcab.ambientebogota.gov.co/Report/stationreport' }],
+    PM1: [{ label: 'Microsensor readings (PM1, PM2.5, PM10), Bogotá open GIS service', url: 'https://geocimab.ambientebogota.gov.co/wserver/rest/services/RED_MICROSENSORES/tabla_microsensores/FeatureServer/0' }],
+  },
   goFurther: {
     services: [
       { label: 'IBOCA air quality map', url: 'https://iboca.ambientebogota.gov.co/mapa/' },

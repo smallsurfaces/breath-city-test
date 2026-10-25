@@ -193,6 +193,13 @@ export type CityPage = {
    * link is null where the city's Breathe Cities page could not be confirmed (rule 6).
    */
   bcIntro: { text: string; linkLead: string; link: CityLink | null }
+  /**
+   * Where to get the sensor data for each published pollutant (round 3 decision AC, refined): the
+   * page or dataset that holds that pollutant's measurements, filtered to it where the portal allows,
+   * labelled for what it holds. A pollutant with no entry falls back to goFurther.getTheData,
+   * labelled as covering all pollutants.
+   */
+  pollutantData: Partial<Record<PollutantId, CityLink[]>>
   /** Go further: the city's own air quality services, and where to get the data. */
   goFurther: { services: CityLink[]; getTheData: CityLink[] }
   /** The city's mock sensors. */
