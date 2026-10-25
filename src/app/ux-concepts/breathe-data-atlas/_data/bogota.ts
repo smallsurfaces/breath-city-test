@@ -25,10 +25,9 @@
  *   - Averaging times: bogota-aqi-bands.csv (IBOCA's own), carried on each mock reading.
  *   - Area and population (Jack, 25 October): the spec's named file publishes neither, so Jack
  *     supplied the Capital District figures from Wikipedia's Bogotá infobox, read 2026-10-25 and
- *     cited there to DANE: area 1,587 km² (Capital District), population 8,034,649 (2022), shown
- *     as "8.0 million (2022)". NOTE: the Capital District includes the rural south (Sumapaz);
- *     the outline the map draws is OSM relation 7426387, "Bogotá ciudad", which does NOT, so the
- *     area label names the Capital District explicitly.
+ *     cited there to DANE: population 8,034,649 (2022), shown as "8.0 million (2022)". The area
+ *     (1,587 km², Capital District) is NOT shown (Jack, 25 October): it includes the rural south
+ *     (Sumapaz), which the map's OSM outline (relation 7426387, "Bogotá ciudad") excludes.
  *   - Links: the content pack's verified links, as the Atlas used them.
  *
  * Mock and sample (spec rule 8)
@@ -103,7 +102,7 @@ export type PollutantCityInfo = {
 /** A plain place fact (area, population) with its source and year, as published. */
 export type PlaceFact = {
   label: string
-  /** As displayed, e.g. "1,587 km²" or "8.0 million". */
+  /** As displayed, e.g. "8.0 million". */
   value: string
   /** The figure's year where the source gives one, else null. */
   year: string | null
@@ -213,13 +212,9 @@ export const BOGOTA: CityPage = {
     ],
   },
   placeFacts: [
-    {
-      label: 'Area (Capital District)',
-      value: '1,587 km²',
-      year: null,
-      source: { label: 'Wikipedia, Bogotá (figures cited to DANE), read 25 October 2026', url: 'https://en.wikipedia.org/wiki/Bogot%C3%A1' },
-      provenance: 'Wikipedia Bogotá infobox, Capital District area 1,587 km², read 2026-10-25; supplied by Jack.',
-    },
+    // No area fact (Jack, 25 October): the 1,587 km² Capital District figure includes Sumapaz,
+    // which our OSM outline 7426387 ("Bogotá ciudad") excludes. Add an area only when there is an
+    // official figure for the exact outline the map draws.
     {
       label: 'Population',
       value: '8.0 million',
