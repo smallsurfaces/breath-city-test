@@ -5,11 +5,13 @@
  * Purpose
  *   Two levels of pollutant explainer (confirmed by Jack, round 1):
  *   - FULL, the pollutant pop-up opened from a tile (PollutantExplainerFull, decision G), in order:
- *       1. Sites measuring it: the count and the sparkline, as on the tile
+ *       1. Sensors measuring [pollutant]: the count and the sparkline, as on the tile (iteration 3,
+ *          decision D1; was "Sites measuring it")
  *       2. What it is                     (WHO)
  *       3. What it does to the body       (WHO, no numbers)
- *       4. What Bogotá advises            all bands: "IBOCA index" once, then each band as
- *                                         swatch and label with its items (AdviceLadder)
+ *       4. IBOCA                          all bands, each as its capsule with its items
+ *                                         (AdviceLadder); the "IBOCA index" link sits behind the
+ *                                         heading's "i" (iteration 3, decisions D2 and D3)
  *       5. Where it comes from in Bogotá  the inventory's categories, shares only where published
  *     "Why Bogotá measures it" is dropped. Each section's source link sits behind an "i" next to
  *     its heading (SourceInfo), not as a visible line.
@@ -19,6 +21,7 @@
  *
  * Sensor-type explainer (decision H)
  *   The two descriptions only: no "On the map it is a square/circle" lines, no grey/hollow footnote.
+ *   Iteration 3 (decision B): headed with OpenAQ's names, "Reference grade" and "Low-cost sensor".
  *
  * Key exports: PollutantExplainerFull, PollutantExplainerShort, SensorTypeExplainer (named)
  * External dependencies: react (types), ./city-ui, ../chapter/CreditInfo, ../chapter/ChapterLink,
@@ -136,7 +139,7 @@ export function PollutantExplainerShort({ pollutant }: PollutantExplainerShortPr
 type PollutantExplainerFullProps = {
   city: CityPage
   pollutant: PollutantId
-  /** Sites measuring it today (the tile's count). */
+  /** Sensors measuring it today (the tile's count). */
   sites: number
   series: GrowthSeries
   /** Whether the city has a year of archive, so the sparkline shows (spec 6.2). */
@@ -148,11 +151,15 @@ export function PollutantExplainerFull({ city, pollutant, sites, series, showSpa
   const local = city.pollutants[pollutant]
   return (
     <div className="space-y-6">
-      <section aria-label={`Sites measuring ${pollutant}`}>
-        <h4 className={STEP_HEADING}>Sites measuring it</h4>
+      <section>
+        <h4 className={STEP_HEADING}>Sensors measuring {pollutant}</h4>
         <div className="mt-1 flex items-end gap-5">
           <span className="text-3xl font-bold leading-none text-foreground">{sites}</span>
-          {showSparkline && <Sparkline values={series.values} startYear={series.startYear} />}
+          {showSparkline && (
+            <div className="w-32 shrink-0">
+              <Sparkline values={series.values} startYear={series.startYear} />
+            </div>
+          )}
         </div>
       </section>
 
@@ -160,8 +167,10 @@ export function PollutantExplainerFull({ city, pollutant, sites, series, showSpa
       <WhatItDoes pollutant={pollutant} />
 
       <section>
-        <h4 className={STEP_HEADING}>What {city.name} advises</h4>
-        <div className="mt-1">
+        <StepHeading sources={[city.adviceLink]} sourcesLabel={`About ${city.index.name}`}>
+          {city.index.name}
+        </StepHeading>
+        <div className="mt-2">
           <AdviceLadder city={city} />
         </div>
       </section>
@@ -191,11 +200,11 @@ export function SensorTypeExplainer() {
       <section>
         <h4 className={`${STEP_HEADING} flex items-center gap-2`}>
           <SensorTypeIcon type="reference-grade" fill={null} />
-          Reference monitor
+          Reference grade
         </h4>
         <p className={BODY}>
           A monitoring station run to official methods, usually in a small cabin with its own instruments for each
-          pollutant. Reference monitors typically measure several pollutants, such as PM2.5, PM10, ozone, nitrogen
+          pollutant. These stations typically measure several pollutants, such as PM2.5, PM10, ozone, nitrogen
           dioxide, sulfur dioxide and carbon monoxide.
         </p>
       </section>

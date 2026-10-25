@@ -4,16 +4,21 @@
  *
  * Purpose
  *   CitySection, "[City]'s air quality network" (decision F): two groups of tiles only.
- *     - "Sensors": one tile per sensor type, with a bare count ("16") and a sample sparkline whose
- *       start year sits as a small axis label under the line's left end. Opens the sensor-type
- *       pop-up (decision H).
- *     - "Sites measuring each pollutant": one tile per pollutant the city measures, bare count
- *       ("24") and sparkline. Opens the pollutant pop-up (decision G).
+ *     - "Sensor types" (iteration 3, decision E1): one tile per sensor type, number first (a bare
+ *       count, "16", leads) and a sample sparkline across the tile's full width whose start year
+ *       sits under the line's left end. Two columns across the full content width at every size
+ *       (E2). Opens the sensor-type pop-up (decision H).
+ *     - "Pollutants monitored (number of sensors)" (E1): one tile per pollutant the city measures,
+ *       the pollutant name leading ("PM2.5" larger than "24", E5), and the sparkline. Two columns
+ *       on a phone, four from tablet (768px) up (E3). Opens the pollutant pop-up (decision G).
+ *     The counts are the map's markers (16 reference grade plus 8 low-cost; all 24 measure PM2.5).
  *     The WHOLE tile is the click target, with a visible affordance: a hover and press state and a
  *     small arrow. No text links, no "Sample figure" pills (decision K2: the nav's notice is the
  *     one disclosure). A city with under one year of archive shows the count only (spec 6.2).
- *   BreatheCitiesSection, "Breathe Cities in [City]" (decision I): the blurb, the population with
- *   its "i", and "More on [City]'s programmes and policies on [Breathe Cities]".
+ *   BreatheCitiesSection, "Breathe Cities in [City]" (decision I; iteration 3, decision F): the
+ *   population ("8.0 million (2022)") with NO "i", then the blurb, then "More on [City]'s programmes
+ *   and policies on [Breathe Cities]". The real build needs the population source back (DANE); the
+ *   provenance stays in the data file.
  *   Counts are of the city's own sensors; nothing is ranked or compared (rule 3).
  *
  * Accessibility
@@ -22,7 +27,7 @@
  *
  * Key exports: CitySection, BreatheCitiesSection (named)
  * External dependencies: react, lucide-react, @/components/concept, ./AtlasDialog, ./Explainers,
- *   ./city-ui, ../chapter/CreditInfo, ../chapter/ChapterLink, ../../_data/bogota,
+ *   ./city-ui, ../../_data/bogota,
  *   ../../_data/city-sensors, ../../_data/pollutant-explainers.
  */
 
@@ -35,8 +40,6 @@ import { ConceptSectionHeader } from '@/components/concept'
 import { AtlasDialog } from './AtlasDialog'
 import { PollutantExplainerFull, SensorTypeExplainer } from './Explainers'
 import { SensorTypeIcon, Sparkline } from './city-ui'
-import { CreditInfo } from '../chapter/CreditInfo'
-import { OutboundLink } from '../chapter/ChapterLink'
 import { hasYearOfArchive } from '../../_data/bogota'
 import type { CityPage, GrowthSeries } from '../../_data/bogota'
 import { POLLUTANT_ORDER, sensorTypeLabel } from '../../_data/city-sensors'
@@ -48,13 +51,21 @@ type OpenExplainer = { kind: 'sensor-type' } | { kind: 'pollutant'; pollutant: P
 
 /** Tile surface: the whole tile is the target, with hover, press and focus states. */
 const TILE =
-  'group relative flex min-h-14 w-full flex-col items-start gap-2 rounded-2xl border border-border bg-background p-4 pr-12 text-left shadow-sm transition-[border-color,background-color,transform] hover:border-foreground/40 hover:bg-muted active:scale-[0.99] active:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground'
+  'group relative flex min-h-14 w-full min-w-0 flex-col items-stretch gap-2 rounded-2xl border border-border bg-background p-4 text-left shadow-sm transition-[border-color,background-color,transform] hover:border-foreground/40 hover:bg-muted active:scale-[0.99] active:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground'
+
+/**
+ * Which figure leads a tile (iteration 3, decision E5): a sensor-type tile leads with its count
+ * ("16" largest, the type above it small); a pollutant tile leads with its name ("PM2.5" largest,
+ * the count under it smaller).
+ */
+type TileLead = 'count' | 'title'
 
 /** Props for one tile. */
 type TileProps = {
   title: string
   icon: ReactNode
   count: number
+  lead: TileLead
   series: GrowthSeries
   showSparkline: boolean
   /** What the tile opens, for its accessible name. */
@@ -62,15 +73,24 @@ type TileProps = {
   onOpen: () => void
 }
 
-/** One tile. */
-function Tile({ title, icon, count, series, showSparkline, opensLabel, onOpen }: TileProps) {
+/** One tile. The sparkline spans the tile's full inner width (decision E4); labels may wrap (E6). */
+function Tile({ title, icon, count, lead, series, showSparkline, opensLabel, onOpen }: TileProps) {
   return (
-    <button type="button" onClick={onOpen} className={TILE} aria-label={`${title}: ${count}. ${opensLabel}`}>
-      <span className="flex items-center gap-2 text-sm font-semibold text-foreground">
-        {icon}
-        {title}
-      </span>
-      <span className="text-2xl font-bold leading-none text-foreground">{count}</span>
+    <button type="button" onClick={onOpen} className={TILE} aria-label={`${title}: ${count}. ${opensLabel}`} data-tile-lead={lead}>
+      {lead === 'count' ? (
+        <>
+          <span className="flex items-start gap-2 pr-9 text-sm font-semibold leading-snug text-foreground">
+            <span className="mt-1 flex">{icon}</span>
+            <span className="min-w-0 break-words">{title}</span>
+          </span>
+          <span className="text-2xl font-bold leading-none text-foreground">{count}</span>
+        </>
+      ) : (
+        <>
+          <span className="min-w-0 break-words pr-9 text-2xl font-bold leading-none text-foreground">{title}</span>
+          <span className="text-sm font-semibold leading-none text-foreground/75">{count}</span>
+        </>
+      )}
       {showSparkline && <Sparkline values={series.values} startYear={series.startYear} />}
       {/* The affordance: a small arrow that moves on hover. */}
       <span
@@ -109,14 +129,16 @@ export function CitySection({ city }: CitySectionProps) {
 
       <div className="space-y-8">
         <div>
-          <h3 className="mb-3 text-base font-semibold text-foreground">Sensors</h3>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <h3 className="mb-3 text-base font-semibold text-foreground">Sensor types</h3>
+          {/* Two columns across the full content width at every size (decision E2). */}
+          <div className="grid grid-cols-2 gap-3" data-tile-grid="sensor-types">
             {types.map((type) => (
               <Tile
                 key={type}
                 title={sensorTypeLabel(type)}
                 icon={<SensorTypeIcon type={type} fill={null} />}
                 count={city.sensors.filter((sensor) => sensor.type === type).length}
+                lead="count"
                 series={city.sensorTypeGrowth[type]}
                 showSparkline={sparklines}
                 opensLabel="Opens what this sensor type is"
@@ -127,14 +149,18 @@ export function CitySection({ city }: CitySectionProps) {
         </div>
 
         <div>
-          <h3 className="mb-3 text-base font-semibold text-foreground">Sites measuring each pollutant</h3>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <h3 className="mb-3 text-base font-semibold text-foreground">Pollutants monitored (number of sensors)</h3>
+          {/* Two columns on a phone, four from tablet up (decision E3; the tablet choice is four, so
+              the section stays short and tablet matches desktop). Bogotá's six tiles leave two empty
+              slots on the second row, which is fine (confirmed). */}
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-4" data-tile-grid="pollutants">
             {pollutants.map((pollutant) => (
               <Tile
                 key={pollutant}
                 title={pollutant}
                 icon={null}
                 count={sitesMeasuring(city, pollutant)}
+                lead="title"
                 series={city.pollutants[pollutant].sitesGrowth}
                 showSparkline={sparklines}
                 opensLabel={`Opens about ${pollutant}`}
@@ -173,26 +199,18 @@ type BreatheCitiesSectionProps = {
   city: CityPage
 }
 
-/** "Breathe Cities in [City]" (decision I). Server-safe apart from the "i" (a client component). */
+/** "Breathe Cities in [City]" (decision I; order reworked in iteration 3, decision F). Server-safe. */
 export function BreatheCitiesSection({ city }: BreatheCitiesSectionProps) {
   return (
     <section aria-label={`Breathe Cities in ${city.name}`} className="mx-auto max-w-6xl px-4">
       <ConceptSectionHeader heading={`Breathe Cities in ${city.name}`} className="mb-6" />
       <div className="max-w-3xl space-y-6">
-        <p className="text-base leading-relaxed text-foreground/85">{city.bcIntro.text}</p>
-
+        {/* Iteration 3 (decision F): population first, with no "i", then the blurb, then the link. */}
         {city.placeFacts.length > 0 && (
           <dl className="flex flex-wrap gap-x-10 gap-y-4">
             {city.placeFacts.map((fact) => (
               <div key={fact.label}>
-                <dt className="flex items-center gap-2 text-sm text-foreground/70">
-                  {fact.label}
-                  <CreditInfo label={`${fact.label} source`} align="start" className="" inDialog={false}>
-                    <OutboundLink href={fact.source.url} className="-my-3 text-sm font-medium text-foreground">
-                      {fact.source.label}
-                    </OutboundLink>
-                  </CreditInfo>
-                </dt>
+                <dt className="text-sm text-foreground/70">{fact.label}</dt>
                 <dd className="text-xl font-bold text-foreground">
                   {fact.value}
                   {fact.year !== null && <span className="text-sm font-normal text-foreground/70"> ({fact.year})</span>}
@@ -201,6 +219,8 @@ export function BreatheCitiesSection({ city }: BreatheCitiesSectionProps) {
             ))}
           </dl>
         )}
+
+        <p className="text-base leading-relaxed text-foreground/85">{city.bcIntro.text}</p>
 
         <p className="text-base text-foreground/85">
           {city.bcIntro.linkLead}{' '}

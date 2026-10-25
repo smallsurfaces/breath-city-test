@@ -237,12 +237,18 @@ export function placeName(sensor: CitySensor): string {
   return `In ${sensor.location ?? 'an unnamed place'}`
 }
 
-/** The sensor type as the sensor card and detail name it (decision C3). */
+/**
+ * The sensor type as the sensor card and detail name it. Iteration 3 (round 2 decision B): the
+ * same OpenAQ names as everywhere else, so this now matches sensorTypeLabel.
+ */
 export function sensorTypeCardLabel(type: SensorType): string {
-  return type === 'reference-grade' ? 'Reference-grade station' : 'Low-cost sensor'
+  return sensorTypeLabel(type)
 }
 
-/** The sensor type as the page names it (legend and tiles). */
+/**
+ * The sensor type as the page names it (legend, tiles, card, detail, pop-up). Iteration 3 (round 2
+ * decision B): OpenAQ's names, "Reference grade" and "Low-cost sensor".
+ */
 export function sensorTypeLabel(type: SensorType): string {
-  return type === 'reference-grade' ? 'Reference monitor' : 'Low-cost sensor'
+  return type === 'reference-grade' ? 'Reference grade' : 'Low-cost sensor'
 }
