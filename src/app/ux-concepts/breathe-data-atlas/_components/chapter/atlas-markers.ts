@@ -13,6 +13,8 @@
  *       no-band  fresh, but the city sent no band (Bogotá's "SIN DATOS"): BLACK with a white "–"
  *                inside, echoing the "--" on Bogotá's own IBOCA map; the hyphen keeps it apart from
  *                any dark band colour and does not rely on colour alone. Pulses (it is live).
+ *       no-band-white  the same for an index whose palette includes black (ISPU Hazardous; index.noBandMarker
+ *                = 'white'): WHITE with a dark "–" and the dark outline, so it never reads as a band.
  *       no-index fresh, in a city that has NO live index at all (Sofia, Milan, round 3, Jack's marker
  *                rule): PLAIN BLACK, no hyphen. The sensor publishes readings; there is no band to
  *                miss. Driven by the city's data (index === null), never by city name. Pulses.
@@ -81,7 +83,7 @@ const SELECTED_SCALE = 1.35
 const PULSE_SIZE = 30
 
 /** What a marker's fill says (see the header). */
-export type MarkerFill = 'band' | 'no-band' | 'no-index' | 'neutral' | 'stale'
+export type MarkerFill = 'band' | 'no-band' | 'no-band-white' | 'no-index' | 'neutral' | 'stale'
 
 /** What one marker shows. */
 export type SensorMarkerStyle = {
@@ -96,11 +98,12 @@ export type SensorMarkerStyle = {
  * The marker fill for a sensor: stale beats everything; then a city with no index (plain black);
  * then band, no band, or neutral. `cityHasIndex` is the city's data (index !== null). Pure.
  */
-export function markerFillFor(freshness: Freshness, ratesStations: boolean, band: number | null, cityHasIndex: boolean): MarkerFill {
+export function markerFillFor(freshness: Freshness, ratesStations: boolean, band: number | null, cityHasIndex: boolean, noBandMarker?: 'white'): MarkerFill {
   if (freshness === 'stale') return 'stale'
   if (!cityHasIndex) return 'no-index'
   if (!ratesStations) return 'neutral'
-  return band === null ? 'no-band' : 'band'
+  if (band !== null) return 'band'
+  return noBandMarker === 'white' ? 'no-band-white' : 'no-band'
 }
 
 /** The marker SVG markup. Pure. */
@@ -109,16 +112,19 @@ function markerSVG(square: boolean, style: SensorMarkerStyle): string {
   const fill =
     style.fill === 'band'
       ? (style.colour ?? SENSOR_STALE_GREY)
-      : style.fill === 'no-band' || style.fill === 'no-index'
+      : style.fill === 'no-band-white'
+        ? SENSOR_HOLLOW_FILL
+        : style.fill === 'no-band' || style.fill === 'no-index'
         ? SENSOR_NO_BAND_FILL
         : style.fill === 'neutral'
           ? SENSOR_NEUTRAL_FILL
           : SENSOR_STALE_GREY
   const stroke = `stroke="${SENSOR_MARKER_INK}" stroke-width="${style.fill === 'neutral' ? 1.5 : 1.25}"`
   // The white hyphen inside a no-band marker (decision B2).
+  // On a white (no-band-white) marker the hyphen is dark and the shape keeps its dark outline.
   const hyphen =
-    style.fill === 'no-band'
-      ? `<line x1="${centre - 3.5}" y1="${centre}" x2="${centre + 3.5}" y2="${centre}" stroke="${SENSOR_HOLLOW_FILL}" stroke-width="2" stroke-linecap="round" />`
+    style.fill === 'no-band' || style.fill === 'no-band-white'
+      ? `<line x1="${centre - 3.5}" y1="${centre}" x2="${centre + 3.5}" y2="${centre}" stroke="${style.fill === 'no-band-white' ? SENSOR_MARKER_INK : SENSOR_HOLLOW_FILL}" stroke-width="2" stroke-linecap="round" />`
       : ''
   const shape = square
     ? `<rect x="${centre - SHAPE_SIZE / 2}" y="${centre - SHAPE_SIZE / 2}" width="${SHAPE_SIZE}" height="${SHAPE_SIZE}" rx="1.5" fill="${fill}" ${stroke} />`

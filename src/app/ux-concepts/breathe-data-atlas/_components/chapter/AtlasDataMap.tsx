@@ -482,7 +482,7 @@ export function AtlasDataMap({ city, boundary }: AtlasDataMapProps) {
         const freshness = freshnessOf(sensor, city.updateCycleMinutes)
         const ratesStations = city.mapMethod === 'station' && city.index !== null
         const element = createSensorMarkerElement(sensor, {
-          fill: markerFillFor(freshness, ratesStations, sensor.overallBand, city.index !== null),
+          fill: markerFillFor(freshness, ratesStations, sensor.overallBand, city.index !== null, city.index?.noBandMarker),
           colour: !ratesStations || sensor.overallBand === null || city.index === null ? null : indexLevel(city.index, sensor.overallBand).hex,
           label: markerLabel(city, sensor, freshness),
         })
