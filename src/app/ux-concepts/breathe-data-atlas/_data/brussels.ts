@@ -55,10 +55,12 @@ export const BRUSSELS: CityPage = {
   country: 'Belgium',
   index: BELAQI,
   mapMethod: 'surface',
-  adviceLink: {
-    label: 'BelAQI index',
-    url: 'https://www.irceline.be/en/air-quality/measurements/belaqi-air-quality-index/information',
-  },
+  // Round 3 decision O: from brussels-aqi-bands.csv (source_document) and brussels-health-advice.csv
+  // (source_url), labelled for what each page holds.
+  indexLinks: [
+    { label: 'About BelAQI (IRCELINE)', url: 'https://www.irceline.be/en/air-quality/measurements/belaqi-2022/info_nov2022' },
+    { label: 'Air quality and health in Brussels (Brussels Environment)', url: 'https://qualitedelair.brussels/' },
+  ],
   methodLine: 'IRCELINE models the BelAQI level for every point in the Brussels-Capital Region each hour.',
   legendLine: 'Colour shows IRCELINE’s BelAQI level across the region.',
   mapCredit: { label: 'BelAQI layer: IRCELINE (sample data in this prototype)', url: 'https://www.irceline.be/en' },

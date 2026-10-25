@@ -163,7 +163,7 @@ export function PollutantExplainerFull({ city, pollutant, sites, series, showSpa
       {/* The city's advice ladder: only for a city with an index (none for Sofia and Milan). */}
       {city.index !== null && (
         <section>
-          <StepHeading sources={city.adviceLink === null ? [] : [city.adviceLink]} sourcesLabel={`About ${city.index.name}`}>
+          <StepHeading sources={city.indexLinks} sourcesLabel={`About ${city.index.name}`}>
             {city.index.name}
           </StepHeading>
           <div className="mt-2">

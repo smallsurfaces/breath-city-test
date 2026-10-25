@@ -39,7 +39,7 @@ export const MILAN: CityPage = {
   country: 'Italy',
   index: null,
   mapMethod: 'none',
-  adviceLink: null,
+  indexLinks: [],
   methodLine: 'ARPA Lombardia publishes its air quality index for Milan once a day, as an image, not as a live level per station.',
   legendLine: 'Milan does not publish a live air quality level per station. Tap a sensor to see its latest readings.',
   mapCredit: null,

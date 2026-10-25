@@ -131,10 +131,17 @@ export function AtlasMapLegend({ city, hasLowCost, hasReferenceGrade }: AtlasMap
             <p>{city.methodLine}</p>
             {index !== null && <p className="mt-2">{index.publisher}</p>}
             {city.mapCredit !== null && <p className="mt-2">{city.mapCredit.label}</p>}
-            {city.adviceLink !== null && (
-              <OutboundLink href={city.adviceLink.url} className="-mb-3 text-sm font-semibold text-foreground underline">
-                {city.adviceLink.label}
-              </OutboundLink>
+            {/* Decision O: the index's labelled links. */}
+            {city.indexLinks.length > 0 && (
+              <ul className="mt-2 space-y-1" data-index-links="">
+                {city.indexLinks.map((link) => (
+                  <li key={link.url}>
+                    <OutboundLink href={link.url} className="-my-3 text-sm font-semibold text-foreground underline">
+                      {link.label}
+                    </OutboundLink>
+                  </li>
+                ))}
+              </ul>
             )}
           </CreditInfo>
         </div>

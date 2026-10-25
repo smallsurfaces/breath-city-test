@@ -65,7 +65,13 @@ export const JAKARTA: CityPage = {
   country: 'Indonesia',
   index: ISPU,
   mapMethod: 'district',
-  adviceLink: { label: 'ISPU index', url: 'https://udara.jakarta.go.id/' },
+  // Round 3 decision O: from jakarta-aqi-bands.csv (source_document) and jakarta-health-advice.csv
+  // (source_url), labelled for what each page holds.
+  indexLinks: [
+    { label: 'ISPU regulation (Permen LHK P.14/2020)', url: 'https://peraturan.bpk.go.id/Details/163466/permen-lhk-no-14-tahun-2020' },
+    { label: 'Udara Jakarta: health advice by ISPU level', url: 'https://udara.jakarta.go.id/' },
+    { label: 'National ISPU portal: what to do at each level', url: 'https://ispu.kemenlh.go.id/app/' },
+  ],
   methodLine: 'Jakarta rates air quality for each district with ISPU.',
   legendLine: 'Colour shows each district’s ISPU level.',
   mapCredit: { label: 'District outlines: © OpenStreetMap contributors (ODbL)', url: 'https://www.openstreetmap.org/copyright' },
