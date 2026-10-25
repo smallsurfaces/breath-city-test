@@ -42,8 +42,11 @@ export type GrowthSeries = {
   status: 'sample'
 }
 
-/** One source category for a pollutant, with its share only where the inventory publishes one. */
-export type PollutantSourceLine = { category: string; share: string | null }
+/**
+ * One source category for a pollutant, with its share only where the inventory publishes one, and
+ * its icon (round 3 decision W: mapped explicitly per city category, never by keyword).
+ */
+export type PollutantSourceLine = { category: string; share: string | null; icon: SourceIconId }
 
 /**
  * The concept-local source icons (round 3 decision J): neutral, one per source kind. Each city maps

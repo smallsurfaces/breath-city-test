@@ -136,17 +136,17 @@ export const JAKARTA: CityPage = {
   pollutants: {
     'PM2.5': {
       sources: [
-        { category: 'Transport and industry (combined)', share: 'above 46%' },
-        { category: 'Waste burning', share: '5%' },
-        { category: 'Commercial', share: '5%' },
-        { category: 'Road dust', share: '3%' },
+        { category: 'Transport and industry (combined)', share: 'above 46%', icon: 'other' },
+        { category: 'Waste burning', share: '5%', icon: 'waste-burning' },
+        { category: 'Commercial', share: '5%', icon: 'other' },
+        { category: 'Road dust', share: '3%', icon: 'road-dust' },
       ],
       sourcesNote: null,
       largestSource: { icon: 'other', label: 'Transport and industry' },
       sitesGrowth: { startYear: 2019, values: [5, 5, 5, 6, 20, 50, 83, 102], status: 'sample' },
     },
     PM10: {
-      sources: [{ category: 'Transport and industry (combined)', share: 'above 46%' }],
+      sources: [{ category: 'Transport and industry (combined)', share: 'above 46%', icon: 'other' }],
       sourcesNote: null,
       largestSource: { icon: 'other', label: 'Transport and industry' },
       sitesGrowth: { startYear: 2019, values: [5, 5, 5, 6, 8, 10, 11, 12], status: 'sample' },
@@ -159,9 +159,9 @@ export const JAKARTA: CityPage = {
     },
     'NO₂': {
       sources: [
-        { category: 'Transport', share: '57% to 84%' },
-        { category: 'Power generation', share: '12% to 24%' },
-        { category: 'Industry (manufacturing)', share: '2% to 26%' },
+        { category: 'Transport', share: '57% to 84%', icon: 'road-traffic' },
+        { category: 'Power generation', share: '12% to 24%', icon: 'industry' },
+        { category: 'Industry (manufacturing)', share: '2% to 26%', icon: 'industry' },
       ],
       sourcesNote: 'Shares are ranges across the emission inventories the plan reviewed.',
       largestSource: { icon: 'road-traffic', label: 'Transport' },
@@ -169,9 +169,9 @@ export const JAKARTA: CityPage = {
     },
     'SO₂': {
       sources: [
-        { category: 'Industry (manufacturing)', share: 'above 62%' },
-        { category: 'Power generation', share: 'about 24%' },
-        { category: 'Transport', share: '3% to 21%' },
+        { category: 'Industry (manufacturing)', share: 'above 62%', icon: 'industry' },
+        { category: 'Power generation', share: 'about 24%', icon: 'industry' },
+        { category: 'Transport', share: '3% to 21%', icon: 'road-traffic' },
       ],
       sourcesNote: 'Shares are ranges across the emission inventories the plan reviewed.',
       largestSource: { icon: 'industry', label: 'Industry' },

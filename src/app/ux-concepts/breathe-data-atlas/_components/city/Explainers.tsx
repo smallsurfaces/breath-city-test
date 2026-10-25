@@ -31,6 +31,7 @@
 import type { ReactNode } from 'react'
 import { AdviceLadder, PassiveTubeIcon, SensorTypeIcon, Sparkline } from './city-ui'
 import { CreditInfo } from '../chapter/CreditInfo'
+import { SourcesChart } from './SourcesChart'
 import { OutboundLink } from '../chapter/ChapterLink'
 import type { CityLink, CityPage, GrowthSeries } from '../../_data/city-page'
 import type { PollutantId } from '../../_data/city-sensors'
@@ -48,15 +49,24 @@ type StepHeadingProps = {
   sources: CityLink[]
   /** Accessible name for the "i". */
   sourcesLabel: string
+  /** Lines shown above the links in the "i" (decision W: the exact published shares); empty for none. */
+  notes: string[]
 }
 
 /** A step heading, with its sources behind an "i" (decision G). Sits inside a dialog. */
-function StepHeading({ children, sources, sourcesLabel }: StepHeadingProps) {
+function StepHeading({ children, sources, sourcesLabel, notes }: StepHeadingProps) {
   return (
     <h4 className={`${STEP_HEADING} flex items-center gap-2`}>
       {children}
       {sources.length > 0 && (
         <CreditInfo label={sourcesLabel} align="start" className="" inDialog={true}>
+          {notes.length > 0 && (
+            <ul className="mb-2 space-y-0.5 text-xs text-foreground/80" data-exact-shares="">
+              {notes.map((note) => (
+                <li key={note}>{note}</li>
+              ))}
+            </ul>
+          )}
           <ul className="space-y-1">
             {sources.map((source) => (
               <li key={source.url}>
@@ -85,7 +95,7 @@ function WhatItIs({ pollutant }: WhoStepsProps) {
   const global = POLLUTANT_EXPLAINERS[pollutant]
   return (
     <section>
-      <StepHeading sources={WHO_SOURCES} sourcesLabel="Sources for what it is">
+      <StepHeading sources={WHO_SOURCES} sourcesLabel="Sources for what it is" notes={[]}>
         What it is
       </StepHeading>
       <p className={BODY}>
@@ -100,7 +110,7 @@ function WhatItDoes({ pollutant }: WhoStepsProps) {
   const global = POLLUTANT_EXPLAINERS[pollutant]
   return (
     <section>
-      <StepHeading sources={WHO_SOURCES} sourcesLabel="Sources for what it does to the body">
+      <StepHeading sources={WHO_SOURCES} sourcesLabel="Sources for what it does to the body" notes={[]}>
         What it does to the body
       </StepHeading>
       {global.shortTerm !== null && (
@@ -163,7 +173,7 @@ export function PollutantExplainerFull({ city, pollutant, sites, series, showSpa
       {/* The city's advice ladder: only for a city with an index (none for Sofia and Milan). */}
       {city.index !== null && (
         <section>
-          <StepHeading sources={city.indexLinks} sourcesLabel={`About ${city.index.name}`}>
+          <StepHeading sources={city.indexLinks} sourcesLabel={`About ${city.index.name}`} notes={[]}>
             {city.index.name}
           </StepHeading>
           <div className="mt-2">
@@ -178,18 +188,13 @@ export function PollutantExplainerFull({ city, pollutant, sites, series, showSpa
           <StepHeading
             sources={city.sourcesCredit === null ? [] : [city.sourcesCredit]}
             sourcesLabel={`Source for where it comes from in ${city.name}`}
+            notes={local.sources.filter((line) => line.share !== null).map((line) => `${line.category}: ${line.share} (as published)`)}
           >
             Where it comes from in {city.name}
           </StepHeading>
           {local.sourcesNote !== null && <p className={BODY}>{local.sourcesNote}</p>}
-          <ul className="mt-1 space-y-1">
-            {local.sources.map((line) => (
-              <li key={line.category} className="flex items-baseline justify-between gap-3 border-b border-border py-1 text-sm text-foreground/85">
-                <span>{line.category}</span>
-                {line.share !== null && <span className="tabular-nums text-foreground">{line.share}</span>}
-              </li>
-            ))}
-          </ul>
+          {/* Decision W: a donut where every share is a single published figure, else icons only. */}
+          <SourcesChart lines={local.sources} />
         </section>
       )}
     </div>

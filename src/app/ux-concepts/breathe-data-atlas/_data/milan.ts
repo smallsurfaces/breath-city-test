@@ -68,10 +68,10 @@ export const MILAN: CityPage = {
   pollutants: {
     'PM2.5': {
       sources: [
-        { category: 'Road transport', share: '31.47%' },
-        { category: 'Other sources and sinks', share: '29.96%' },
-        { category: 'Non-industrial combustion (heating)', share: '20.92%' },
-        { category: 'Combustion in industry', share: '7.11%' },
+        { category: 'Road transport', share: '31.47%', icon: 'road-traffic' },
+        { category: 'Other sources and sinks', share: '29.96%', icon: 'other' },
+        { category: 'Non-industrial combustion (heating)', share: '20.92%', icon: 'home-heating' },
+        { category: 'Combustion in industry', share: '7.11%', icon: 'industry' },
       ],
       sourcesNote: null,
       largestSource: { icon: 'road-traffic', label: 'Road transport' },
@@ -79,10 +79,10 @@ export const MILAN: CityPage = {
     },
     PM10: {
       sources: [
-        { category: 'Road transport', share: '39.13%' },
-        { category: 'Other sources and sinks', share: '22.58%' },
-        { category: 'Production processes', share: '13.67%' },
-        { category: 'Non-industrial combustion (heating)', share: '13.36%' },
+        { category: 'Road transport', share: '39.13%', icon: 'road-traffic' },
+        { category: 'Other sources and sinks', share: '22.58%', icon: 'other' },
+        { category: 'Production processes', share: '13.67%', icon: 'industry' },
+        { category: 'Non-industrial combustion (heating)', share: '13.36%', icon: 'home-heating' },
       ],
       sourcesNote: null,
       largestSource: { icon: 'road-traffic', label: 'Road transport' },
@@ -90,9 +90,9 @@ export const MILAN: CityPage = {
     },
     'O₃': {
       sources: [
-        { category: 'Solvent use', share: '47.79%' },
-        { category: 'Road transport', share: '27.59%' },
-        { category: 'Non-industrial combustion (heating)', share: '8.29%' },
+        { category: 'Solvent use', share: '47.79%', icon: 'other' },
+        { category: 'Road transport', share: '27.59%', icon: 'road-traffic' },
+        { category: 'Non-industrial combustion (heating)', share: '8.29%', icon: 'home-heating' },
       ],
       sourcesNote: 'Ozone is not emitted directly. The inventory lists sources of the gases that form it.',
       largestSource: null,
@@ -100,10 +100,10 @@ export const MILAN: CityPage = {
     },
     'NO₂': {
       sources: [
-        { category: 'Road transport', share: '61.61%' },
-        { category: 'Non-industrial combustion (heating)', share: '21.60%' },
-        { category: 'Combustion in industry', share: '6.02%' },
-        { category: 'Energy production and fuel transformation', share: '5.94%' },
+        { category: 'Road transport', share: '61.61%', icon: 'road-traffic' },
+        { category: 'Non-industrial combustion (heating)', share: '21.60%', icon: 'home-heating' },
+        { category: 'Combustion in industry', share: '6.02%', icon: 'industry' },
+        { category: 'Energy production and fuel transformation', share: '5.94%', icon: 'industry' },
       ],
       sourcesNote: 'Shares are of nitrogen oxides, the group nitrogen dioxide belongs to.',
       largestSource: { icon: 'road-traffic', label: 'Road transport' },
@@ -111,9 +111,9 @@ export const MILAN: CityPage = {
     },
     'SO₂': {
       sources: [
-        { category: 'Non-industrial combustion (heating)', share: '48.75%' },
-        { category: 'Combustion in industry', share: '39.78%' },
-        { category: 'Waste treatment and disposal', share: '6.60%' },
+        { category: 'Non-industrial combustion (heating)', share: '48.75%', icon: 'home-heating' },
+        { category: 'Combustion in industry', share: '39.78%', icon: 'industry' },
+        { category: 'Waste treatment and disposal', share: '6.60%', icon: 'waste-burning' },
       ],
       sourcesNote: null,
       largestSource: { icon: 'home-heating', label: 'Heating' },
@@ -121,9 +121,9 @@ export const MILAN: CityPage = {
     },
     CO: {
       sources: [
-        { category: 'Road transport', share: '63.39%' },
-        { category: 'Non-industrial combustion (heating)', share: '19.53%' },
-        { category: 'Other sources and sinks', share: '13.68%' },
+        { category: 'Road transport', share: '63.39%', icon: 'road-traffic' },
+        { category: 'Non-industrial combustion (heating)', share: '19.53%', icon: 'home-heating' },
+        { category: 'Other sources and sinks', share: '13.68%', icon: 'other' },
       ],
       sourcesNote: null,
       largestSource: { icon: 'road-traffic', label: 'Road transport' },
