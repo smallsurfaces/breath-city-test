@@ -20,6 +20,19 @@
  *       no band), and an arrow that opens that sensor's card. No header value, no
  *       pollutant lines. The dashed lines from the pin are drawn by the map.
  *
+ * Phase 2 (four new cities, SPEC ADDENDUM): the card follows the city's map method.
+ *   station   (Bogotá) as above.
+ *   district  (Jakarta) tap anywhere: the district's band first (scale with capsule, "ISPU", the
+ *             district's name, "More" for the district's advice), then the nearest three, rows with
+ *             neutral icons and no band. Tap a sensor: no band header (the band belongs to the
+ *             district); a small line "In Kebayoran Baru: [Moderate] · ISPU" before "More".
+ *   surface   (Brussels) tap anywhere: the point's band ("At this point") first, then the nearest
+ *             three. Tap a sensor: the band header shows the surface's band at the sensor, labelled
+ *             as the regional model's value at that point.
+ *   none      (Sofia, Milan) no scale, no band, no advice anywhere. Tap anywhere: nearest three with
+ *             distance and freshness. Tap a sensor: name, type, freshness, "More".
+ *   The area band is LOOKED UP (city-page areaBandAt), never computed.
+ *
  * Placement
  *   The card is absolutely positioned inside the map frame by the map (AtlasDataMap), next to the
  *   tapped sensor or the pin, after the map has moved to make room (decision B8). This component only
@@ -44,7 +57,9 @@ import { ArrowRight, ChevronRight, X } from 'lucide-react'
 import { BandChip, SensorMarkIcon, SensorTypeIcon } from './city-ui'
 import { markerFillFor } from '../chapter/atlas-markers'
 import { BandScale } from './BandScale'
-import type { CityPage } from '../../_data/bogota'
+import { areaBandAt } from '../../_data/city-page'
+import type { CityPage } from '../../_data/city-page'
+import type { CityAirQualityIndex } from '../../_data/indexes'
 import { indexLevel, levelDisplayName } from '../../_data/indexes'
 import { ageWords, distanceWords, freshnessOf, nearestReporting, placeName, sensorTypeCardLabel } from '../../_data/city-sensors'
 import type { CitySensor } from '../../_data/city-sensors'
@@ -81,6 +96,8 @@ type TapCardProps = {
   onOpenDetail: (sensor: CitySensor) => void
   /** A nearest-three row: open that sensor's own card. */
   onSelectSensor: (sensor: CitySensor) => void
+  /** "More" on an area band (district or point): open that band's advice. */
+  onOpenArea: (area: { title: string; caption: string; band: number }) => void
 }
 
 /** Props for SensorBody. */
@@ -92,31 +109,50 @@ type SensorBodyProps = {
   headingRef: RefObject<HTMLHeadingElement | null>
 }
 
-/** The sensor card's body (decision C). */
+/** The scale with its capsule and the index named under it (decision C). */
+function ScaleWithName({ index, band, note }: { index: CityAirQualityIndex; band: number; note: string | null }) {
+  return (
+    <>
+      <BandScale index={index} band={band} />
+      <p className="mt-1 text-[11px] font-semibold leading-tight text-foreground/70">
+        {index.name}
+        {note !== null && <span className="font-normal"> · {note}</span>}
+      </p>
+    </>
+  )
+}
+
+/** The sensor card's body (decision C), by the city's map method. */
 function SensorBody({ city, sensor, onOpenDetail, headingId, headingRef }: SensorBodyProps) {
   const freshness = freshnessOf(sensor, city.updateCycleMinutes)
   const live = freshness === 'fresh'
+  const index = city.index
+  const area = areaBandAt(city, sensor.lngLat)
   return (
     <div className="space-y-2 px-4 pb-1 pt-3">
-      {/* 1. The city's scale, its capsule above the current band (iteration 4, decision C), the
-          index named under it. No band (stale, or none reported): a grey bar and the reason. */}
-      <div className="pr-10" data-card-band-header="">
-        {live && sensor.overallBand !== null ? (
-          <>
-            <BandScale index={city.index} band={sensor.overallBand} />
-            <p className="mt-1 text-[11px] font-semibold leading-tight text-foreground/70">{city.index.name}</p>
-          </>
-        ) : (
-          <>
-            <p className="pb-1 text-sm font-semibold text-foreground/70">
-              {live ? `No ${city.index.name} level reported` : `No current ${city.index.name} level`}
-            </p>
-            <BandScale index={city.index} band={null} />
-          </>
-        )}
-      </div>
+      {/* 1. The band header. Station: the station's own band. Surface: the model's band at the
+          sensor. District and none: no header (the band belongs to the district, or there is none). */}
+      {index !== null && city.mapMethod === 'station' && (
+        <div className="pr-10" data-card-band-header="">
+          {live && sensor.overallBand !== null ? (
+            <ScaleWithName index={index} band={sensor.overallBand} note={null} />
+          ) : (
+            <>
+              <p className="pb-1 text-sm font-semibold text-foreground/70">
+                {live ? `No ${index.name} level reported` : `No current ${index.name} level`}
+              </p>
+              <BandScale index={index} band={null} />
+            </>
+          )}
+        </div>
+      )}
+      {index !== null && city.mapMethod === 'surface' && area !== null && area.band !== null && (
+        <div className="pr-10" data-card-band-header="">
+          <ScaleWithName index={index} band={area.band} note="regional model at this point" />
+        </div>
+      )}
       {/* 2. Name or location. */}
-      <h3 id={headingId} ref={headingRef} tabIndex={-1} className="pt-1 text-base font-bold leading-tight text-foreground outline-none">
+      <h3 id={headingId} ref={headingRef} tabIndex={-1} className={`${index !== null && (city.mapMethod === 'station' || city.mapMethod === 'surface') ? 'pt-1' : 'pr-10'} text-base font-bold leading-tight text-foreground outline-none`}>
         {placeName(sensor)}
       </h3>
       {/* 3. Sensor type. */}
@@ -129,6 +165,21 @@ function SensorBody({ city, sensor, onOpenDetail, headingId, headingRef }: Senso
         <span aria-hidden="true" className={`inline-block h-2 w-2 rounded-full ${live ? 'bg-foreground' : 'bg-foreground/30'}`} />
         {live ? `Live · updated ${ageWords(sensor.updatedMinutesAgo)}` : `Last reading ${ageWords(sensor.updatedMinutesAgo)}`}
       </p>
+      {/* District method: the district's band as a small line (SPEC ADDENDUM, Jakarta). */}
+      {index !== null && city.mapMethod === 'district' && area !== null && (
+        <p className="flex flex-wrap items-center gap-1.5 text-sm text-foreground/85" data-card-district-line="">
+          <span>In {area.name}:</span>
+          {area.band !== null ? (
+            <>
+              <BandChip index={index} band={area.band} pollutant={null} stale={false} />
+              <span aria-hidden="true">·</span>
+              <span>{index.name}</span>
+            </>
+          ) : (
+            <span>No {index.name} level reported</span>
+          )}
+        </p>
+      )}
       {/* 5. More. */}
       <button
         type="button"
@@ -153,12 +204,17 @@ type NearestRowProps = {
 /** One nearest-three row (decision D). The whole row is the button; the arrow is its affordance. */
 function NearestRow({ city, sensor, km, onSelect }: NearestRowProps) {
   const live = freshnessOf(sensor, city.updateCycleMinutes) === 'fresh'
-  const level = sensor.overallBand === null ? null : indexLevel(city.index, sensor.overallBand)
-  const status = !live
-    ? `no current ${city.index.name} level`
-    : level === null
-      ? `no ${city.index.name} level reported`
-      : `${city.index.name} ${levelDisplayName(level)}`
+  const index = city.index
+  // Only the station method gives a sensor its own band; elsewhere the rows carry no band column.
+  const ratesStations = city.mapMethod === 'station' && index !== null
+  const level = ratesStations && sensor.overallBand !== null && index !== null ? indexLevel(index, sensor.overallBand) : null
+  const status = !ratesStations || index === null
+    ? null
+    : !live
+      ? `no current ${index.name} level`
+      : level === null
+        ? `no ${index.name} level reported`
+        : `${index.name} ${levelDisplayName(level)}`
   return (
     <li>
       <button
@@ -166,30 +222,76 @@ function NearestRow({ city, sensor, km, onSelect }: NearestRowProps) {
         onClick={onSelect}
         data-nearest-row={sensor.id}
         className="flex min-h-14 w-full items-center gap-2.5 px-4 py-2 text-left transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-foreground"
-        aria-label={`${placeName(sensor)}, ${distanceWords(km)}, ${recencyWords(city, sensor)}, ${status}. Open its card.`}
+        aria-label={`${placeName(sensor)}, ${distanceWords(km)}, ${recencyWords(city, sensor)}${status === null ? '' : `, ${status}`}. Open its card.`}
       >
-        <SensorMarkIcon type={sensor.type} fill={markerFillFor(live ? 'fresh' : 'stale', true, sensor.overallBand)} colour={level?.hex ?? null} />
+        <SensorMarkIcon
+          type={sensor.type}
+          fill={markerFillFor(live ? 'fresh' : 'stale', ratesStations, sensor.overallBand)}
+          colour={level?.hex ?? null}
+        />
         <span className="min-w-0 flex-1">
           <span className="block truncate text-sm font-semibold text-foreground">{placeName(sensor)}</span>
           <span className="block text-xs text-foreground/70">
             {distanceWords(km)} · {recencyWords(city, sensor)}
           </span>
         </span>
-        {live && sensor.overallBand !== null && (
-          <BandChip index={city.index} band={sensor.overallBand} pollutant={null} stale={false} />
+        {ratesStations && live && level !== null && index !== null && sensor.overallBand !== null && (
+          <BandChip index={index} band={sensor.overallBand} pollutant={null} stale={false} />
         )}
-        {live && sensor.overallBand === null && <span className="text-xs text-foreground/70">No level reported</span>}
+        {ratesStations && live && level === null && <span className="text-xs text-foreground/70">No level reported</span>}
         <ChevronRight className="h-4 w-4 shrink-0 text-foreground/70" aria-hidden="true" />
       </button>
     </li>
   )
 }
 
+/** Props for AreaHeader. */
+type AreaHeaderProps = {
+  city: CityPage
+  index: CityAirQualityIndex
+  area: { name: string | null; band: number | null }
+  onOpenArea: TapCardProps['onOpenArea']
+}
+
+/**
+ * The tap-anywhere card's area band, first (SPEC ADDENDUM): Jakarta's district or Brussels's point.
+ * The scale with its capsule, the index named, the place ("Kebayoran Baru" or "At this point"), and
+ * "More" for that band's advice. A district with no band says so and has no "More".
+ */
+function AreaHeader({ city, index, area, onOpenArea }: AreaHeaderProps) {
+  const place = city.mapMethod === 'surface' ? 'At this point' : (area.name ?? 'This district')
+  const caption = city.mapMethod === 'surface' ? 'Regional model at this point' : `In ${area.name ?? 'this district'}`
+  return (
+    <div className="space-y-1 border-b border-border px-4 pb-2 pt-1" data-card-area={city.mapMethod}>
+      {area.band !== null ? (
+        <ScaleWithName index={index} band={area.band} note={city.mapMethod === 'surface' ? 'IRCELINE model' : null} />
+      ) : (
+        <>
+          <p className="pb-1 text-sm font-semibold text-foreground/70">No {index.name} level reported</p>
+          <BandScale index={index} band={null} />
+        </>
+      )}
+      <p className="pt-1 text-base font-bold leading-tight text-foreground">{place}</p>
+      {area.band !== null && (
+        <button
+          type="button"
+          onClick={() => onOpenArea({ title: place, caption, band: area.band as number })}
+          className="-mb-1 inline-flex min-h-14 items-center gap-1.5 rounded-lg text-sm font-semibold text-foreground underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground"
+        >
+          More
+          <ArrowRight className="h-4 w-4" aria-hidden="true" />
+        </button>
+      )}
+    </div>
+  )
+}
+
 /** The tap card. */
-export function TapCard({ city, selection, placement, cardRef, onClose, onOpenDetail, onSelectSensor }: TapCardProps) {
+export function TapCard({ city, selection, placement, cardRef, onClose, onOpenDetail, onSelectSensor, onOpenArea }: TapCardProps) {
   const headingRef = useRef<HTMLHeadingElement | null>(null)
   const neighbours = neighboursFor(city, selection)
   const headingId = 'bda-tap-card-heading'
+  const area = selection.kind === 'point' ? areaBandAt(city, selection.lngLat) : null
 
   // Side effect: a new selection moves focus to the heading, without scrolling the page.
   const selectionKey = selection.kind === 'point' ? selection.lngLat.join(',') : selection.sensor.id
@@ -223,11 +325,21 @@ export function TapCard({ city, selection, placement, cardRef, onClose, onOpenDe
           <SensorBody city={city} sensor={selection.sensor} onOpenDetail={onOpenDetail} headingId={headingId} headingRef={headingRef} />
         ) : (
           <div className="pb-1 pt-3">
-            <h3 id={headingId} ref={headingRef} tabIndex={-1} className="min-h-8 px-4 pr-14 text-base font-bold leading-tight text-foreground outline-none">
+            {area !== null && city.index !== null && (
+              <div className="pr-12">
+                <AreaHeader city={city} index={city.index} area={area} onOpenArea={onOpenArea} />
+              </div>
+            )}
+            <h3
+              id={headingId}
+              ref={headingRef}
+              tabIndex={-1}
+              className={`min-h-8 px-4 pr-14 text-base font-bold leading-tight text-foreground outline-none ${area !== null ? 'pt-2 text-sm' : ''}`}
+            >
               Nearest sensors
             </h3>
             {neighbours.length === 0 ? (
-              <p className="px-4 py-3 text-sm text-foreground/70">No reporting sensors nearby.</p>
+              <p className="px-4 py-3 text-sm text-foreground/70">No sensors nearby.</p>
             ) : (
               <ul className="divide-y divide-border">
                 {neighbours.map(({ sensor, km }) => (

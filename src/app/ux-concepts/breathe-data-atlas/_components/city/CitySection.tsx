@@ -46,8 +46,9 @@ import { ConceptSectionHeader } from '@/components/concept'
 import { AtlasDialog } from './AtlasDialog'
 import { PollutantExplainerFull, SensorTypeExplainer } from './Explainers'
 import { SensorTypeIcon, Sparkline } from './city-ui'
-import { hasYearOfArchive } from '../../_data/bogota'
-import type { CityPage, GrowthSeries } from '../../_data/bogota'
+import { hasYearOfArchive } from '../../_data/city-page'
+import type { CityPage, GrowthSeries, LargestSource } from '../../_data/city-page'
+import { SourceIcon } from './SourceIcon'
 import { POLLUTANT_ORDER, sensorTypeLabel } from '../../_data/city-sensors'
 import type { PollutantId, SensorType } from '../../_data/city-sensors'
 import { POLLUTANT_EXPLAINERS } from '../../_data/pollutant-explainers'
@@ -72,7 +73,8 @@ type TileProps = {
   icon: ReactNode
   count: number
   lead: TileLead
-  series: GrowthSeries
+  /** Null when the city has no sample series for it (then the count stands alone). */
+  series: GrowthSeries | null
   showSparkline: boolean
   /** What the tile opens, for its accessible name. */
   opensLabel: string
@@ -107,13 +109,52 @@ function Tile({ title, icon, count, lead, series, showSparkline, opensLabel, onO
         <span className="min-w-0 break-words pr-9 text-lg font-bold leading-tight text-foreground">{title}</span>
       )}
       <span className="mt-auto block w-full pt-1">
-        {showSparkline ? (
+        {showSparkline && series !== null ? (
           <Sparkline values={series.values} startYear={series.startYear} end={countNode} />
         ) : (
           <span className="flex justify-end">{countNode}</span>
         )}
       </span>
       {/* The affordance: a small arrow that moves on hover. */}
+      <span
+        aria-hidden="true"
+        className="absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-full border border-border text-foreground/70 transition-transform group-hover:translate-x-0.5 group-hover:border-foreground/40 group-hover:text-foreground"
+      >
+        <ArrowRight className="h-3.5 w-3.5" />
+      </span>
+    </button>
+  )
+}
+
+/** Props for PollutantTile. */
+type PollutantTileProps = {
+  pollutant: PollutantId
+  /** The pollutant's largest source in the city (decision J), or null: notation only. */
+  source: LargestSource | null
+  onOpen: () => void
+}
+
+/**
+ * One pollutant tile (round 3 decisions I and J): the pollutant's notation and its arrow, and, where
+ * the city's own source study names a largest source, that source's icon with a small label under
+ * it. No count and no sparkline (decision I: a rising line read as the pollutant trending up).
+ */
+function PollutantTile({ pollutant, source, onOpen }: PollutantTileProps) {
+  return (
+    <button
+      type="button"
+      onClick={onOpen}
+      className={TILE}
+      aria-label={`${pollutant}${source === null ? '' : `, largest source: ${source.label}`}. Opens about ${pollutant}`}
+      data-pollutant-tile={pollutant}
+    >
+      <span className="min-w-0 break-words pr-9 text-lg font-bold leading-tight text-foreground">{pollutant}</span>
+      {source !== null && (
+        <span className="mt-auto flex flex-col items-start gap-1 pt-1 text-foreground/75" data-largest-source={source.icon}>
+          <SourceIcon icon={source.icon} className="h-6 w-6" />
+          <span className="text-xs leading-tight">{source.label}</span>
+        </span>
+      )}
       <span
         aria-hidden="true"
         className="absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-full border border-border text-foreground/70 transition-transform group-hover:translate-x-0.5 group-hover:border-foreground/40 group-hover:text-foreground"
@@ -138,7 +179,10 @@ function sitesMeasuring(city: CityPage, pollutant: PollutantId): number {
 export function CitySection({ city }: CitySectionProps) {
   const [open, setOpen] = useState<OpenExplainer>(null)
   const sparklines = hasYearOfArchive(city)
-  const types: SensorType[] = ['reference-grade', 'low-cost']
+  // Only the sensor types the city has (Brussels and Milan: reference grade only).
+  const types: SensorType[] = (['reference-grade', 'low-cost'] as SensorType[]).filter((type) =>
+    city.sensors.some((sensor) => sensor.type === type),
+  )
   const pollutants = POLLUTANT_ORDER.filter((pollutant) => sitesMeasuring(city, pollutant) > 0)
 
   const dialogTitle =
@@ -160,7 +204,7 @@ export function CitySection({ city }: CitySectionProps) {
                 icon={<SensorTypeIcon type={type} fill={null} />}
                 count={city.sensors.filter((sensor) => sensor.type === type).length}
                 lead="count"
-                series={city.sensorTypeGrowth[type]}
+                series={city.sensorTypeGrowth[type] ?? null}
                 showSparkline={sparklines}
                 opensLabel="Opens what this sensor type is"
                 onOpen={() => setOpen({ kind: 'sensor-type' })}
@@ -170,21 +214,15 @@ export function CitySection({ city }: CitySectionProps) {
         </div>
 
         <div>
-          <h3 className="mb-3 text-base font-semibold text-foreground">Pollutants monitored (number of sensors)</h3>
-          {/* Two columns on a phone, four from tablet up (decision E3; the tablet choice is four, so
-              the section stays short and tablet matches desktop). Bogotá's six tiles leave two empty
-              slots on the second row, which is fine (confirmed). */}
+          <h3 className="mb-3 text-base font-semibold text-foreground">Pollutants monitored</h3>
+          {/* Two columns on a phone, four from tablet up (decision E3). Decision I: name and arrow
+              only, plus the largest-source icon where the city's study names one (decision J). */}
           <div className="grid grid-cols-2 gap-3 md:grid-cols-4" data-tile-grid="pollutants">
             {pollutants.map((pollutant) => (
-              <Tile
+              <PollutantTile
                 key={pollutant}
-                title={pollutant}
-                icon={null}
-                count={sitesMeasuring(city, pollutant)}
-                lead="title"
-                series={city.pollutants[pollutant].sitesGrowth}
-                showSparkline={sparklines}
-                opensLabel={`Opens about ${pollutant}`}
+                pollutant={pollutant}
+                source={city.pollutants[pollutant]?.largestSource ?? null}
                 onOpen={() => setOpen({ kind: 'pollutant', pollutant })}
               />
             ))}
@@ -206,7 +244,7 @@ export function CitySection({ city }: CitySectionProps) {
             city={city}
             pollutant={open.pollutant}
             sites={sitesMeasuring(city, open.pollutant)}
-            series={city.pollutants[open.pollutant].sitesGrowth}
+            series={city.pollutants[open.pollutant]?.sitesGrowth ?? null}
             showSparkline={sparklines}
           />
         )}
@@ -243,6 +281,7 @@ export function BreatheCitiesSection({ city }: BreatheCitiesSectionProps) {
 
         <p className="text-base leading-relaxed text-foreground/85">{city.bcIntro.text}</p>
 
+        {city.bcIntro.link !== null && (
         <p className="text-base text-foreground/85">
           {city.bcIntro.linkLead}{' '}
           <a
@@ -256,6 +295,7 @@ export function BreatheCitiesSection({ city }: BreatheCitiesSectionProps) {
             <span className="sr-only">(opens in a new tab)</span>
           </a>
         </p>
+        )}
       </div>
     </section>
   )

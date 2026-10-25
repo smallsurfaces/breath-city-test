@@ -31,7 +31,7 @@ import { CreditInfo } from '../chapter/CreditInfo'
 import { OutboundLink } from '../chapter/ChapterLink'
 import { indexLevel, levelDisplayName } from '../../_data/indexes'
 import type { CityAirQualityIndex } from '../../_data/indexes'
-import type { CityPage } from '../../_data/bogota'
+import type { CityLink, CityPage } from '../../_data/city-page'
 import type { SensorType } from '../../_data/city-sensors'
 
 /** Text colour on a light index colour. */
@@ -87,18 +87,21 @@ export function BandChip({ index, band, pollutant, stale }: BandChipProps) {
 
 /** Props for IndexInfo. */
 type IndexInfoProps = {
-  city: CityPage
+  index: CityAirQualityIndex
+  /** The index's link ("IBOCA index"), or null: then the "i" is not drawn. */
+  link: CityLink | null
 }
 
 /**
  * The index link behind an "i" (iteration 3, decisions C1 and D2): holds "IBOCA index" with its
  * outbound arrow. Sits inside the sensor detail or the pollutant pop-up, both dialogs.
  */
-export function IndexInfo({ city }: IndexInfoProps) {
+export function IndexInfo({ index, link }: IndexInfoProps) {
+  if (link === null) return null
   return (
-    <CreditInfo label={`About ${city.index.name}`} align="end" className="" inDialog={true}>
-      <OutboundLink href={city.adviceLink.url} className="-my-3 text-sm font-semibold text-foreground underline">
-        {city.adviceLink.label}
+    <CreditInfo label={`About ${index.name}`} align="end" className="" inDialog={true}>
+      <OutboundLink href={link.url} className="-my-3 text-sm font-semibold text-foreground underline">
+        {link.label}
       </OutboundLink>
     </CreditInfo>
   )
@@ -153,8 +156,14 @@ function BandItems({ city, band }: BandItemsProps) {
 /** Props for CurrentAdvice. */
 type CurrentAdviceProps = {
   city: CityPage
-  /** The sensor's current band. The caller shows no advice when there is none (decision E2). */
+  index: CityAirQualityIndex
+  /** The current band. The caller shows no advice when there is none (decision E2). */
   band: number
+  /**
+   * A small line naming where the band belongs when it is not the sensor's own (phase 2): "In
+   * Kebayoran Baru" (Jakarta's district), "Regional model at this point" (Brussels). Null for none.
+   */
+  caption: string | null
 }
 
 /**
@@ -163,19 +172,20 @@ type CurrentAdviceProps = {
  * the capsule is the marker, no separate chip), then the city's items for that band, grouped
  * (decision E). The index link sits behind an "i" at the block's top right.
  */
-export function CurrentAdvice({ city, band }: CurrentAdviceProps) {
-  const level = indexLevel(city.index, band)
+export function CurrentAdvice({ city, index, band, caption }: CurrentAdviceProps) {
+  const level = indexLevel(index, band)
   return (
     <section
-      aria-label={`${city.index.name}: ${levelDisplayName(level)}`}
+      aria-label={`${index.name}: ${levelDisplayName(level)}${caption === null ? '' : `, ${caption}`}`}
       className="relative rounded-xl bg-muted p-4"
       data-current-advice={band}
     >
       <div className="absolute right-3 top-3">
-        <IndexInfo city={city} />
+        <IndexInfo index={index} link={city.adviceLink} />
       </div>
+      {caption !== null && <p className="mb-1 pr-10 text-xs font-semibold text-foreground/75" data-advice-caption="">{caption}</p>}
       <div className="pr-10">
-        <BandScale index={city.index} band={band} />
+        <BandScale index={index} band={band} />
       </div>
       <BandItems city={city} band={band} />
     </section>
@@ -185,18 +195,19 @@ export function CurrentAdvice({ city, band }: CurrentAdviceProps) {
 /** Props for AdviceLadder. */
 type AdviceLadderProps = {
   city: CityPage
+  index: CityAirQualityIndex
 }
 
 /**
  * Every band's advice, best to worst (the pollutant pop-up, decision D3): each band as its capsule,
  * then the city's items. The index link sits behind the section heading's "i" (decision D2).
  */
-export function AdviceLadder({ city }: AdviceLadderProps) {
+export function AdviceLadder({ city, index }: AdviceLadderProps) {
   return (
     <ol className="space-y-4">
-      {city.index.levels.map((level) => (
+      {index.levels.map((level) => (
         <li key={level.order}>
-          <BandChip index={city.index} band={level.order} pollutant={null} stale={false} />
+          <BandChip index={index} band={level.order} pollutant={null} stale={false} />
           <BandItems city={city} band={level.order} />
         </li>
       ))}

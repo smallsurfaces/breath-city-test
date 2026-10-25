@@ -16,6 +16,10 @@
 import { PrototypeHeader } from '../../_components/PrototypeHeader'
 import { CONCEPTS } from '../../_data/concept-registry'
 
+/** The hub's wireframe line plus this concept's sample-data notice (decision H). */
+const DISCLAIMER =
+  'Concept wireframe — no visual design applied yet. Review the UX and the high-level concept, not the visual design. Prototype with sample data.'
+
 export default function BreatheAtlasLayout({
   children,
 }: {
@@ -24,7 +28,9 @@ export default function BreatheAtlasLayout({
   return (
     <>
       {/* Tooling bar (back-to-hub + comments). Title from the registry so it matches the hub. */}
-      <PrototypeHeader buildName={CONCEPTS.breatheDataAtlas.title} />
+      {/* Round 3 decision H: the sample-data notice ends the wireframe line, through the shared
+          component's optional `disclaimer` prop (its default copy is left as it is). */}
+      <PrototypeHeader buildName={CONCEPTS.breatheDataAtlas.title} disclaimer={DISCLAIMER} />
       {children}
     </>
   )

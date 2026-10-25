@@ -46,8 +46,10 @@ export const BC_ABOUT_LINK: CityBrowserLink = {
  * The framing line under the globe (spec 3.3). DRAFT for a ux-writer pass. Presents the network as
  * using data, with the emphasis on use; makes no outcome claim (no city publishes results as data).
  */
-export const FRAMING_LINE =
-  'Cities in the Breathe Cities network use air quality sensors to measure and inform. Choose a city to see how.'
+export const FRAMING_LINE: readonly [string, string] = [
+  'Cities in the Breathe Cities network use air quality sensors to measure and inform.',
+  'Choose a city to see how.',
+]
 
 /** The entry page caveat (decision A2), in the entry page footer. Approved; CAF may fine-tune. */
 export const ENTRY_CAVEAT =

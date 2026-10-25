@@ -32,7 +32,7 @@ import type { ReactNode } from 'react'
 import { AdviceLadder, SensorTypeIcon, Sparkline } from './city-ui'
 import { CreditInfo } from '../chapter/CreditInfo'
 import { OutboundLink } from '../chapter/ChapterLink'
-import type { CityLink, CityPage, GrowthSeries } from '../../_data/bogota'
+import type { CityLink, CityPage, GrowthSeries } from '../../_data/city-page'
 import type { PollutantId } from '../../_data/city-sensors'
 import { POLLUTANT_EXPLAINERS, WHO_GROUPS_LINE, WHO_SOURCE_LINKS } from '../../_data/pollutant-explainers'
 
@@ -141,7 +141,7 @@ type PollutantExplainerFullProps = {
   pollutant: PollutantId
   /** Sensors measuring it today (the tile's count). */
   sites: number
-  series: GrowthSeries
+  series: GrowthSeries | null
   /** Whether the city has a year of archive, so the sparkline shows (spec 6.2). */
   showSparkline: boolean
 }
@@ -151,44 +151,47 @@ export function PollutantExplainerFull({ city, pollutant, sites, series, showSpa
   const local = city.pollutants[pollutant]
   return (
     <div className="space-y-6">
-      <section>
-        <h4 className={STEP_HEADING}>Sensors measuring {pollutant}</h4>
-        <div className="mt-1 flex items-end gap-5">
-          <span className="text-3xl font-bold leading-none text-foreground">{sites}</span>
-          {showSparkline && (
-            <div className="w-32 shrink-0">
-              <Sparkline values={series.values} startYear={series.startYear} end={null} />
-            </div>
-          )}
-        </div>
-      </section>
+      {/* Round 3 decision I (addition): one plain sentence, no sparkline (a rising line read as the
+          pollutant trending up). The count is the city's own sensors that report the pollutant. */}
+      <p className="text-sm text-foreground" data-sensors-measuring="">
+        {sites} {sites === 1 ? 'sensor' : 'sensors'} measuring {pollutant} in {city.name}
+      </p>
 
       <WhatItIs pollutant={pollutant} />
       <WhatItDoes pollutant={pollutant} />
 
-      <section>
-        <StepHeading sources={[city.adviceLink]} sourcesLabel={`About ${city.index.name}`}>
-          {city.index.name}
-        </StepHeading>
-        <div className="mt-2">
-          <AdviceLadder city={city} />
-        </div>
-      </section>
+      {/* The city's advice ladder: only for a city with an index (none for Sofia and Milan). */}
+      {city.index !== null && (
+        <section>
+          <StepHeading sources={city.adviceLink === null ? [] : [city.adviceLink]} sourcesLabel={`About ${city.index.name}`}>
+            {city.index.name}
+          </StepHeading>
+          <div className="mt-2">
+            <AdviceLadder city={city} index={city.index} />
+          </div>
+        </section>
+      )}
 
-      <section>
-        <StepHeading sources={[city.sourcesCredit]} sourcesLabel={`Source for where it comes from in ${city.name}`}>
-          Where it comes from in {city.name}
-        </StepHeading>
-        {local.sourcesNote !== null && <p className={BODY}>{local.sourcesNote}</p>}
-        <ul className="mt-1 space-y-1">
-          {local.sources.map((line) => (
-            <li key={line.category} className="flex items-baseline justify-between gap-3 border-b border-border py-1 text-sm text-foreground/85">
-              <span>{line.category}</span>
-              {line.share !== null && <span className="tabular-nums text-foreground">{line.share}</span>}
-            </li>
-          ))}
-        </ul>
-      </section>
+      {/* Where it comes from: only where the city's own study covers the pollutant (rule 6). */}
+      {local !== undefined && local.sources.length > 0 && (
+        <section>
+          <StepHeading
+            sources={city.sourcesCredit === null ? [] : [city.sourcesCredit]}
+            sourcesLabel={`Source for where it comes from in ${city.name}`}
+          >
+            Where it comes from in {city.name}
+          </StepHeading>
+          {local.sourcesNote !== null && <p className={BODY}>{local.sourcesNote}</p>}
+          <ul className="mt-1 space-y-1">
+            {local.sources.map((line) => (
+              <li key={line.category} className="flex items-baseline justify-between gap-3 border-b border-border py-1 text-sm text-foreground/85">
+                <span>{line.category}</span>
+                {line.share !== null && <span className="tabular-nums text-foreground">{line.share}</span>}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
     </div>
   )
 }

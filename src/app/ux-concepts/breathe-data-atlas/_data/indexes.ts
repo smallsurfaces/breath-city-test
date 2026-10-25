@@ -109,6 +109,43 @@ export const CITY_INDEXES: Record<string, CityAirQualityIndex> = {
     moderateOrder: 2,
     sensitiveOrder: 3,
   },
+  // Breathe Data Atlas phase 2 (2026-10-25). Jakarta: ISPU as Permen LHK P.14/2020 sets it (the
+  // ISPU rows of research/.../jakarta/v2/jakarta-aqi-bands.csv: regulation colour names, hex from the
+  // national ISPU portal legend). English names from the file's band_label. Note: level 5 is black
+  // (#000000) by regulation; Jakarta's sensor markers are neutral (the band belongs to the district),
+  // so it never meets the black "no band" marker.
+  jakarta: {
+    name: 'ISPU',
+    publisher: 'Ministry of Environment and Forestry Regulation P.14/2020 (ISPU), as Jakarta Environment Agency (DLH DKI Jakarta) publishes it',
+    levels: [
+      { order: 1, nameOriginal: 'Baik', nameEnglish: 'Good', hex: '#00CC00' },
+      { order: 2, nameOriginal: 'Sedang', nameEnglish: 'Moderate', hex: '#0000CC' },
+      { order: 3, nameOriginal: 'Tidak Sehat', nameEnglish: 'Unhealthy', hex: '#CCCC00' },
+      { order: 4, nameOriginal: 'Sangat Tidak Sehat', nameEnglish: 'Very unhealthy', hex: '#CC0000' },
+      { order: 5, nameOriginal: 'Berbahaya', nameEnglish: 'Hazardous', hex: '#000000' },
+    ],
+    moderateOrder: 2,
+    sensitiveOrder: 3,
+  },
+  // Brussels: BelAQI, hourly rows of research/.../brussels/v2/brussels-aqi-bands.csv (IRCELINE).
+  brussels: {
+    name: 'BelAQI',
+    publisher: 'IRCELINE (Belgian Interregional Environment Agency), with Brussels Environment',
+    levels: [
+      { order: 1, nameOriginal: 'Excellent', nameEnglish: 'Excellent', hex: '#0000FF' },
+      { order: 2, nameOriginal: 'Very good', nameEnglish: 'Very good', hex: '#0099FF' },
+      { order: 3, nameOriginal: 'Good', nameEnglish: 'Good', hex: '#009900' },
+      { order: 4, nameOriginal: 'Fairly good', nameEnglish: 'Fairly good', hex: '#00FF00' },
+      { order: 5, nameOriginal: 'Moderate', nameEnglish: 'Moderate', hex: '#FFFF00' },
+      { order: 6, nameOriginal: 'Poor', nameEnglish: 'Poor', hex: '#FFBB00' },
+      { order: 7, nameOriginal: 'Very poor', nameEnglish: 'Very poor', hex: '#FF6600' },
+      { order: 8, nameOriginal: 'Bad', nameEnglish: 'Bad', hex: '#FF0000' },
+      { order: 9, nameOriginal: 'Very bad', nameEnglish: 'Very bad', hex: '#CC0000' },
+      { order: 10, nameOriginal: 'Horrible', nameEnglish: 'Horrible', hex: '#990099' },
+    ],
+    moderateOrder: 2,
+    sensitiveOrder: 3,
+  },
   johannesburg: {
     name: 'Air Quality Index (AQI)',
     publisher: 'South African Air Quality Information System (national environment department with the South African Weather Service)',

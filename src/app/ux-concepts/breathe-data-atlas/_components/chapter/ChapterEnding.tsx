@@ -3,9 +3,8 @@
  * Copied from breathe-atlas on 2026-10-25 and re-skinned (the original is never edited):
  *   - The next city's card shows its POSTER MAP (spec 3.1) instead of the landmark photo, and no
  *     intro sentence (spec 3.2, 4.1).
- *   - Only Bogotá has a page in this pass, so the next city (the caller passes Jakarta, the next
- *     city in the spec's order) has no link: its card shows the carousel's greyed-out arrow and is
- *     not a link, matching the no-page treatment everywhere else.
+ *   - Phase 2: the five built cities link; "Next" cycles through them in carousel order (the caller
+ *     passes the next one, see CityPageView). A city without a page would keep the greyed-out arrow.
  *
  * Original header follows.
  *
@@ -84,7 +83,8 @@ export function ChapterEnding({ city, next }: ChapterEndingProps) {
         <div className="group relative flex items-center gap-4 rounded-2xl border border-border bg-background p-4 shadow-sm transition-colors hover:border-foreground/40 sm:gap-6 sm:p-5 md:col-start-2 md:row-start-1">
           {/* The next city's poster map (spec 3.1), decorative: the heading names the city. */}
           <div className="relative h-28 w-24 shrink-0 overflow-hidden rounded-xl bg-muted sm:h-36 sm:w-32">
-            <div className="absolute inset-2">
+            {/* Decision K: the map fills the image area edge to edge. */}
+            <div className="absolute inset-0">
               <PosterMap slug={next.slug} variant="ending" />
             </div>
           </div>

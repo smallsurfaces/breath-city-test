@@ -26,7 +26,7 @@ export default function BreatheDataAtlasPage() {
   return (
     <>
       <main className="min-h-screen bg-background">
-        <AtlasNav />
+        <AtlasNav cityName={null} titleId="" />
         <GlobeCover />
         <section aria-labelledby={BROWSER_HEADING_ID} className="mx-auto max-w-6xl px-4 pb-16 pt-4">
           <CityBrowser headingId={BROWSER_HEADING_ID} currentCityId={null} />

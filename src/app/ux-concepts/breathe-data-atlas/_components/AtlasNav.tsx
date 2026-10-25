@@ -23,6 +23,17 @@
  *   The notice covers the illustrative data and tiers across the whole prototype (brief sections 3
  *   and 7).
  *
+ * Iteration 4 / phase 2 (round 3 decisions G, H and L)
+ *   - G: on a city page the city name sits in the nav: "BC Breathe Cities / Bogotá", a separator,
+ *     the city name a touch lighter than "Breathe Cities". It is the page's ONE h1 (the large title
+ *     under the nav is gone, so the map moves up). On a phone the "Breathe Cities" word is hidden as
+ *     before, so it reads "BC / Bogotá".
+ *   - H: the "Prototype with sample data" pill is gone from the nav; the notice now ends the hub's
+ *     wireframe line (the layout passes PrototypeHeader's `disclaimer`).
+ *   - L: on the entry page, BC's mission line "Helping cities to clean the air we breathe" sits in
+ *     the nav as a small secondary line right of the logo; at phone width it wraps under the logo in
+ *     small text, never truncated.
+ *
  * Styling
  *   Bridged shadcn semantics only (text-foreground, border-border, bg-background, bg-foreground).
  *   No hex. Nav targets are at least 56px tall (frontend-standards R8).
@@ -33,12 +44,21 @@
 
 import Link from 'next/link'
 import { BREATHE_DATA_ATLAS_CHROME } from '../breathe-data-atlas-chrome.config'
+import { BC_MISSION_LINE } from '../_data/cities'
+
+/** Props for AtlasNav. */
+type AtlasNavProps = {
+  /** The city page's city, shown as the page's h1 after the logo (decision G); null on the entry page. */
+  cityName: string | null
+  /** Id for the city h1, so the page's article can be labelled by it; ignored without a city. */
+  titleId: string
+}
 
 /** The site nav row. Server component. */
-export function AtlasNav() {
+export function AtlasNav({ cityName, titleId }: AtlasNavProps) {
   return (
     <nav aria-label="Breathe Data Atlas" className="border-b border-border bg-background">
-      <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4">
+      <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-3 px-4">
         {/* Logo: the BcChrome mark, in neutral tones. Links to the cover. */}
         <Link
           href={BREATHE_DATA_ATLAS_CHROME.logoHref}
@@ -56,10 +76,18 @@ export function AtlasNav() {
           </span>
         </Link>
 
-        {/* Sample-data notice: quiet, always visible, not interactive. */}
-        <span className="inline-flex items-center rounded-full border border-foreground/15 px-2.5 py-1 text-[11px] font-medium leading-tight text-foreground/70 sm:text-xs">
-          Prototype with sample data
-        </span>
+        {cityName !== null ? (
+          // Decision G: "/ Bogotá", the page's one h1.
+          <h1 id={titleId} className="flex min-h-14 items-center gap-3 text-base font-semibold tracking-tight text-foreground/85" data-nav-city="">
+            <span aria-hidden="true" className="font-normal text-foreground/40">/</span>
+            {cityName}
+          </h1>
+        ) : (
+          // Decision L: BC's mission line, small and secondary; wraps under the logo on a phone.
+          <p className="w-full pb-2 text-xs leading-snug text-foreground/70 sm:w-auto sm:pb-0 sm:text-sm" data-nav-mission="">
+            {BC_MISSION_LINE}
+          </p>
+        )}
       </div>
     </nav>
   )

@@ -4,6 +4,10 @@
  * in its place a fixed framing line (draft copy, FRAMING_LINE in ../_data/cover-copy) presents the
  * network as using data. BC's mission line stays.
  *
+ * Round 3 decision M (2026-10-25): the city name stays on the "CITIES" line but goes BEHIND the
+ * globe again (in front it fought with the city card). The arrows stay at the globe's vertical
+ * centre, and "CITIES" still fades while a name occupies its line.
+ *
  * Iteration 2 (round 1 feedback, decisions A1 to A5):
  *   - A1: the city name moves to the "CITIES" line and sits IN FRONT OF the globe, readable in full
  *     (WordmarkCityName, rendered after the canvas, below the controls). The previous/next arrows
@@ -127,8 +131,8 @@ import type { AtlasGlobeApi } from './AtlasGlobe'
 import { navArrowClass } from './atlas-arrow-styles'
 import { CITY_CARD_WIDTH_PX, CITY_CARD_WIDTH_PX_SM, CityCard } from './CityCard'
 import { SPHERE_SHARE_OF_CANVAS } from './globe-framing'
-import { Wordmark, WordmarkCityName } from './Wordmark'
-import { ATLAS_CITIES, BC_MISSION_LINE, CYCLE_ORDER } from '../_data/cities'
+import { Wordmark, WordmarkCityName, WORDMARK_SIZE_CQW } from './Wordmark'
+import { ATLAS_CITIES, CYCLE_ORDER } from '../_data/cities'
 import { FRAMING_LINE } from '../_data/cover-copy'
 import type { AtlasCity } from '../_data/cities'
 
@@ -180,6 +184,19 @@ const WORDMARK_REACH_SHARE = 0.56
  * which is 26px at 1280 and pushed the mission line back below the fold.
  */
 const WORDMARK_EDGE_PAD = '8px'
+/**
+ * Round 3 decision M, amended (2026-10-25): the city name sits BEHIND the globe on the "CITIES" line,
+ * and the globe is shrunk so its bottom edge covers only the TOP HALF of the name's letters. The
+ * wordmark lines keep their place (the reach is still a share of the original diameter,
+ * --atlas-sphere-base), and the globe's radius becomes the reach less this share of the largest name
+ * size (--atlas-name-max, the wordmark cap). In the rendered font the capitals sit 0.05em inside their
+ * 0.8em line box and are about 0.7em tall, so their middle is about 0.4em above the line's outer edge;
+ * 0.42 keeps the lower half clear. Shorter-capped (longer) names are smaller, so even more of them
+ * shows. Never larger than the original globe.
+ */
+const NAME_COVER_SHARE = 0.42
+/** The stage's widest size, px (`max-w-6xl`): the wordmark's cqw resolves against the stage. */
+const STAGE_MAX_PX = 1152
 /** Diameter of the pause/play button, in px (its `h-14 w-14` classes). */
 const PAUSE_BUTTON_PX = 56
 /** Gap between the globe and its previous/next arrows from `sm`, in px (round 2, item 2). */
@@ -234,21 +251,23 @@ const PAUSE_CARD_CLEARANCE_PX_SM = 16
  */
 const COVER_LAYOUT_CSS = `.atlas-cover { container: atlas-cover / inline-size; }
 .atlas-stage {
-  --atlas-sphere: calc(100cqw - ${GUTTER_PX * 2}px);
+  --atlas-sphere-base: calc(100cqw - ${GUTTER_PX * 2}px);
   --atlas-card-w: ${CITY_CARD_WIDTH_PX}px;
   --atlas-pause-clearance: ${PAUSE_CARD_CLEARANCE_PX}px;
-  --atlas-wordmark-reach: calc(${WORDMARK_REACH_SHARE} * var(--atlas-sphere));
+  --atlas-wordmark-reach: calc(${WORDMARK_REACH_SHARE} * var(--atlas-sphere-base));
+  --atlas-name-max: calc(${(WORDMARK_SIZE_CQW / 100).toFixed(5)} * min(100cqw, ${STAGE_MAX_PX}px));
+  --atlas-sphere: min(var(--atlas-sphere-base), calc(2 * (var(--atlas-wordmark-reach) - ${NAME_COVER_SHARE} * var(--atlas-name-max))));
   height: calc(2 * (var(--atlas-wordmark-reach) + ${WORDMARK_EDGE_PAD}));
 }
 @container atlas-cover (min-width: 640px) {
   .atlas-stage {
-    --atlas-sphere: min(calc(100cqw - ${GUTTER_PX * 2}px), ${SPHERE_MAX_PX_TABLET}px);
+    --atlas-sphere-base: min(calc(100cqw - ${GUTTER_PX * 2}px), ${SPHERE_MAX_PX_TABLET}px);
     --atlas-card-w: ${CITY_CARD_WIDTH_PX_SM}px;
     --atlas-pause-clearance: ${PAUSE_CARD_CLEARANCE_PX_SM}px;
   }
 }
 @container atlas-cover (min-width: 1024px) {
-  .atlas-stage { --atlas-sphere: min(calc(100cqw - ${GUTTER_PX * 2}px), ${SPHERE_MAX_PX_DESKTOP}px); }
+  .atlas-stage { --atlas-sphere-base: min(calc(100cqw - ${GUTTER_PX * 2}px), ${SPHERE_MAX_PX_DESKTOP}px); }
 }
 .atlas-canvas-box {
   width: calc(var(--atlas-sphere) / ${SPHERE_SHARE_OF_CANVAS.toFixed(5)});
@@ -696,6 +715,11 @@ export function GlobeCover() {
       >
         <Wordmark cityName={shownCity.name} visible={resting} lineReach="var(--atlas-wordmark-reach)" />
 
+        {/* The city name on the "CITIES" line, BEHIND the globe again (round 3 decision M: in front
+            it fought with the city card). Rendered before the canvas, so the globe draws over it.
+            Ignores pointer events, so drags and taps still reach the globe. */}
+        <WordmarkCityName cityName={shownCity.name} visible={resting} lineReach="var(--atlas-wordmark-reach)" />
+
         {/* The WebGL canvas: a square centred in the stage, sized in CSS so the SPHERE inside it is
             --atlas-sphere wide (see COVER_LAYOUT_CSS and globe-framing.ts). Its transparent margin
             overflows the stage. The canvas pixel size is measured from this box. */}
@@ -722,10 +746,6 @@ export function GlobeCover() {
             onMarkerSelect={handleMarkerSelect}
           />
         </div>
-
-        {/* The city name on the "CITIES" line, in front of the globe (iteration 2, A1). Ignores
-            pointer events, so drags and taps still reach the globe. */}
-        <WordmarkCityName cityName={shownCity.name} visible={resting} lineReach="var(--atlas-wordmark-reach)" />
 
         {/* A square exactly over the sphere, for placing the controls on the globe. It ignores
             pointer events itself, so drags still reach the globe; only the controls take them.
@@ -774,14 +794,17 @@ export function GlobeCover() {
 
       {/* Below the globe (spec 3.2, 3.3): the framing line, fixed, and BC's mission line. The
           per-city mission line that used to change here is gone. */}
-      <div className="mx-auto max-w-2xl px-4 pb-10 pt-2 text-center">
+      {/* Decision N: the full content width (as the carousel section below), centred. */}
+      <div className="mx-auto max-w-6xl px-4 pb-10 pt-2 text-center">
         <p className="text-base font-medium leading-snug text-foreground sm:text-lg">
           {/* No "i" here any more (iteration 2, decision A4): the OpenStreetMap credit is a plain
               line in the entry page footer. */}
-          {FRAMING_LINE}
+          {/* Round 3 decision N: the second sentence always starts its own line. */}
+          {FRAMING_LINE[0]}
+          <br />
+          {FRAMING_LINE[1]}
         </p>
-        {/* BC's mission line: always visible, never fades or changes. */}
-        <p className="mt-2 text-sm text-foreground/70">{BC_MISSION_LINE}</p>
+        {/* BC's mission line moved into the entry page's nav (round 3 decision L). */}
       </div>
     </section>
   )

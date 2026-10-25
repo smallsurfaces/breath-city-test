@@ -65,11 +65,12 @@ import { createPinElement, createSensorMarkerElement, markerFillFor, setMarkerSe
 import { AtlasDialog } from '../city/AtlasDialog'
 import { SensorDetail, SensorDetailAbove, SensorDetailBelow } from '../city/SensorDetail'
 import { neighboursFor, TapCard } from '../city/TapCard'
+import { CurrentAdvice } from '../city/city-ui'
 import type { CardPlacement, MapSelection } from '../city/TapCard'
 import { BOUNDARY_ATTRIBUTION } from '../../_data/boundaries'
 import type { CityBoundary } from '../../_data/boundaries'
 import { indexLevel, levelDisplayName } from '../../_data/indexes'
-import type { CityPage } from '../../_data/bogota'
+import type { CityPage } from '../../_data/city-page'
 import { ageWords, freshnessOf, placeName, sensorTypeLabel } from '../../_data/city-sensors'
 import type { CitySensor, Freshness } from '../../_data/city-sensors'
 
@@ -150,9 +151,87 @@ function markerLabel(city: CityPage, sensor: CitySensor, freshness: Freshness): 
   const type = sensorTypeLabel(sensor.type)
   const name = placeName(sensor)
   if (freshness === 'stale') return `${name}, ${type}, last reading ${ageWords(sensor.updatedMinutesAgo)}. Open sensor card.`
+  // Only the station method gives a marker a band; elsewhere the marker is neutral (phase 2).
+  if (city.mapMethod !== 'station' || city.index === null) return `${name}, ${type}, live. Open sensor card.`
   if (sensor.overallBand === null) return `${name}, ${type}, no ${city.index.name} level reported. Open sensor card.`
   const level = levelDisplayName(indexLevel(city.index, sensor.overallBand))
   return `${name}, ${type}, ${city.index.name} ${level}. Open sensor card.`
+}
+
+/**
+ * Grey the basemap's few coloured layers IN THE STYLE (phase 2), for cities whose map carries an area
+ * band layer: the CSS `grayscale` filter the other pages use would also grey the city's band colours.
+ * Mapbox's own style layers only (water, parks, land cover and the like), set to neutral greys; the
+ * city's colours are never touched. Side effect: sets paint properties on the map.
+ */
+function greyBasemap(map: mapboxgl.Map): void {
+  const layers = map.getStyle()?.layers ?? []
+  layers.forEach((layer) => {
+    if (layer.id.startsWith('bda-')) return
+    const water = /water/.test(layer.id)
+    if (layer.type === 'fill' && /water|park|landuse|landcover|national|pitch|wetland|sand|glacier|aeroway|golf|hillshade|cemetery|hospital|school/.test(layer.id)) {
+      map.setPaintProperty(layer.id, 'fill-color', water ? '#d4d4d4' : '#ebebeb')
+    } else if (layer.type === 'line' && water) {
+      map.setPaintProperty(layer.id, 'line-color', '#c8c8c8')
+    } else if (layer.type === 'symbol') {
+      map.setPaintProperty(layer.id, 'text-color', '#6b6b6b')
+      map.setPaintProperty(layer.id, 'icon-opacity', 0)
+    }
+  })
+}
+
+/** Area layers (phase 2): Jakarta's districts and Brussels's surface, shaded lightly. */
+const AREA_SOURCE = 'bda-area-bands'
+const AREA_FILL_LAYER = 'bda-area-fill'
+const AREA_LINE_LAYER = 'bda-area-line'
+/** Light fills (SPEC ADDENDUM: "keep fills light"). Districts a touch stronger than the surface. */
+const DISTRICT_FILL_OPACITY = 0.22
+const SURFACE_FILL_OPACITY = 0.28
+const DISTRICT_LINE_COLOUR = '#57534e'
+
+/**
+ * The area band layer as GeoJSON, each feature carrying its band colour (from the city's index; no
+ * band, no feature, so a district the city did not rate stays unshaded). Districts: one polygon per
+ * district. Surface: each row's runs of equal level merged into one rectangle, so the grid draws as
+ * a few hundred shapes instead of thousands. Pure.
+ */
+function areaFeatures(city: CityPage): GeoJSON.FeatureCollection {
+  const features: GeoJSON.Feature[] = []
+  const index = city.index
+  if (index === null) return { type: 'FeatureCollection', features }
+  if (city.districts !== null) {
+    city.districts.forEach((district) => {
+      features.push({
+        type: 'Feature',
+        properties: { colour: district.band === null ? null : indexLevel(index, district.band).hex, rated: district.band !== null },
+        geometry: { type: 'Polygon', coordinates: district.rings },
+      })
+    })
+  }
+  const surface = city.surface
+  if (surface !== null) {
+    surface.grid.forEach((row, r) => {
+      let start = 0
+      for (let c = 1; c <= row.length; c += 1) {
+        if (c < row.length && row[c] === row[start]) continue
+        const ch = row[start]
+        const level = ch === 'A' ? 10 : Number(ch)
+        if (level > 0) {
+          const west = surface.west + start * surface.cellLng
+          const east = surface.west + c * surface.cellLng
+          const north = surface.north - r * surface.cellLat
+          const south = north - surface.cellLat
+          features.push({
+            type: 'Feature',
+            properties: { colour: indexLevel(index, level).hex, rated: true },
+            geometry: { type: 'Polygon', coordinates: [[[west, south], [east, south], [east, north], [west, north], [west, south]]] },
+          })
+        }
+        start = c
+      }
+    })
+  }
+  return { type: 'FeatureCollection', features }
 }
 
 /** The mask polygon: the world with the city's rings as holes. */
@@ -260,6 +339,8 @@ export function AtlasDataMap({ city, boundary }: AtlasDataMapProps) {
   const [sensorsPlaced, setSensorsPlaced] = useState<boolean>(false)
   const [selection, setSelection] = useState<MapSelection | null>(null)
   const [detailSensor, setDetailSensor] = useState<CitySensor | null>(null)
+  // "More" on an area band (phase 2): the band's advice in the dialog.
+  const [areaDetail, setAreaDetail] = useState<{ title: string; caption: string; band: number } | null>(null)
   // The latest selection, for map handlers created once.
   const selectionRef = useRef<MapSelection | null>(null)
   useEffect(() => {
@@ -383,9 +464,10 @@ export function AtlasDataMap({ city, boundary }: AtlasDataMapProps) {
       .sort((a, b) => rank(a) - rank(b))
       .forEach((sensor) => {
         const freshness = freshnessOf(sensor, city.updateCycleMinutes)
+        const ratesStations = city.mapMethod === 'station' && city.index !== null
         const element = createSensorMarkerElement(sensor, {
-          fill: markerFillFor(freshness, true, sensor.overallBand),
-          colour: sensor.overallBand === null ? null : indexLevel(city.index, sensor.overallBand).hex,
+          fill: markerFillFor(freshness, ratesStations, sensor.overallBand),
+          colour: !ratesStations || sensor.overallBand === null || city.index === null ? null : indexLevel(city.index, sensor.overallBand).hex,
           label: markerLabel(city, sensor, freshness),
         })
         element.addEventListener('click', (event) => {
@@ -428,6 +510,31 @@ export function AtlasDataMap({ city, boundary }: AtlasDataMapProps) {
     const addStyleLayers = (): void => {
       if (styleDoneRef.current || !map.isStyleLoaded()) return
       styleDoneRef.current = true
+      // Area bands first, so the mask and the outline draw over their edges (phase 2).
+      if ((city.districts !== null || city.surface !== null) && map.getSource(AREA_SOURCE) === undefined) {
+        greyBasemap(map)
+        map.addSource(AREA_SOURCE, { type: 'geojson', data: areaFeatures(city) })
+        map.addLayer({
+          id: AREA_FILL_LAYER,
+          type: 'fill',
+          source: AREA_SOURCE,
+          filter: ['==', ['get', 'rated'], true],
+          paint: {
+            'fill-color': ['get', 'colour'],
+            'fill-opacity': city.surface !== null ? SURFACE_FILL_OPACITY : DISTRICT_FILL_OPACITY,
+            // No hairline seams between the surface's touching cells.
+            'fill-antialias': city.surface === null,
+          },
+        })
+        if (city.districts !== null) {
+          map.addLayer({
+            id: AREA_LINE_LAYER,
+            type: 'line',
+            source: AREA_SOURCE,
+            paint: { 'line-color': DISTRICT_LINE_COLOUR, 'line-width': 0.8, 'line-opacity': 0.55 },
+          })
+        }
+      }
       if (boundary !== null && map.getSource(MASK_SOURCE) === undefined) {
         map.addSource(MASK_SOURCE, {
           type: 'geojson',
@@ -570,20 +677,22 @@ export function AtlasDataMap({ city, boundary }: AtlasDataMapProps) {
   // ── Escape closes the card (when no dialog is open: the dialog owns Escape then) ─────────────
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent): void => {
-      if (event.key === 'Escape' && selectionRef.current !== null && detailSensor === null) {
+      if (event.key === 'Escape' && selectionRef.current !== null && detailSensor === null && areaDetail === null) {
         closeCard(true)
       }
     }
     document.addEventListener('keydown', onKeyDown)
     return () => document.removeEventListener('keydown', onKeyDown)
-  }, [closeCard, detailSensor])
+  }, [closeCard, detailSensor, areaDetail])
 
   const hasLowCost = city.sensors.some((s) => s.type === 'low-cost')
   const hasReferenceGrade = city.sensors.some((s) => s.type === 'reference-grade')
 
   return (
     <div className="flex w-full flex-col border-y border-border bg-muted" data-city={city.slug}>
-      <style>{`.bda-city-map .mapboxgl-canvas { filter: grayscale(1); }`}</style>
+      {/* Greyscale basemap by CSS filter, except where the map carries the city's area colours
+          (phase 2: Jakarta, Brussels), which greyBasemap handles in the style instead. */}
+      {city.districts === null && city.surface === null && <style>{`.bda-city-map .mapboxgl-canvas { filter: grayscale(1); }`}</style>}
       {/* Today / Tomorrow appears only for a forecast published as a band (spec 5.7). */}
       {city.forecastBands !== null && (
         <div role="group" aria-label="Day" className="flex gap-2 border-b border-border bg-background px-4 py-2">
@@ -629,6 +738,7 @@ export function AtlasDataMap({ city, boundary }: AtlasDataMapProps) {
               openerRef.current = markerElementsRef.current[sensor.id] ?? null
               select({ kind: 'sensor', sensor })
             }}
+            onOpenArea={(area) => setAreaDetail(area)}
           />
         )}
       </div>
@@ -644,6 +754,18 @@ export function AtlasDataMap({ city, boundary }: AtlasDataMapProps) {
         below={detailSensor === null || detailSensor.stationType === null ? null : <SensorDetailBelow sensor={detailSensor} />}
       >
         {detailSensor !== null && <SensorDetail city={city} sensor={detailSensor} />}
+      </AtlasDialog>
+      <AtlasDialog
+        open={areaDetail !== null}
+        onOpenChange={(open) => {
+          if (!open) setAreaDetail(null)
+        }}
+        eyebrow={city.mapMethod === 'surface' ? 'Regional model' : 'District'}
+        title={areaDetail === null ? '' : areaDetail.title}
+      >
+        {areaDetail !== null && city.index !== null && (
+          <CurrentAdvice city={city} index={city.index} band={areaDetail.band} caption={areaDetail.caption} />
+        )}
       </AtlasDialog>
     </div>
   )

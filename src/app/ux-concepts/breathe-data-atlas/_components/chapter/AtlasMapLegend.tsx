@@ -80,7 +80,7 @@ import { CreditInfo } from './CreditInfo'
 import { OutboundLink } from './ChapterLink'
 import { levelDisplayName } from '../../_data/indexes'
 import { sensorTypeLabel } from '../../_data/city-sensors'
-import type { CityPage } from '../../_data/bogota'
+import type { CityPage } from '../../_data/city-page'
 
 /** Props for AtlasMapLegend. */
 type AtlasMapLegendProps = {
@@ -121,45 +121,48 @@ export function AtlasMapLegend({ city, hasLowCost, hasReferenceGrade }: AtlasMap
         )}
       </ul>
 
-      {(
-        <div>
-          {/* The index name above the bar, so the scale reads as the city's own. Its publisher line
-              sits behind the "i" beside it (round 2, item 9). */}
-          <div className="flex items-center gap-2">
-            <p className="text-[11px] font-semibold leading-tight text-foreground">{index.name}</p>
-            <CreditInfo label={`About ${index.name}`} align="start" className="" inDialog={false}>
-              <p>{city.methodLine}</p>
-              <p className="mt-2">{index.publisher}</p>
+      <div>
+        {/* The index name above the bar, so the scale reads as the city's own, with its method line,
+            publisher, map credit and link behind the "i". A city with no index (Sofia, Milan) gets
+            the "i" beside "Readings" and no bar (SPEC ADDENDUM). */}
+        <div className="flex items-center gap-2">
+          <p className="text-[11px] font-semibold leading-tight text-foreground">{index === null ? 'Readings' : index.name}</p>
+          <CreditInfo label={index === null ? 'About these readings' : `About ${index.name}`} align="start" className="" inDialog={false}>
+            <p>{city.methodLine}</p>
+            {index !== null && <p className="mt-2">{index.publisher}</p>}
+            {city.mapCredit !== null && <p className="mt-2">{city.mapCredit.label}</p>}
+            {city.adviceLink !== null && (
               <OutboundLink href={city.adviceLink.url} className="-mb-3 text-sm font-semibold text-foreground underline">
                 {city.adviceLink.label}
               </OutboundLink>
-            </CreditInfo>
-          </div>
-          {/* The colour's one job (spec 5.3). */}
-          <p className={`mt-1 ${LABEL}`}>Colour shows each station&apos;s {index.name} level.</p>
-
-          {/* The bar: one segment per level, best to worst, in the city's own colours. Decorative,
-              because the list below names every level. No current-level marker: that is pending
-              Jack's word (see the file header). */}
-          <div aria-hidden="true" className="mt-1.5 flex h-2.5 overflow-hidden rounded-full">
-            {index.levels.map((level) => (
-              <span key={level.order} className="flex-1" style={{ backgroundColor: level.hex }} />
-            ))}
-          </div>
-
-          {/* The level names, in the city's own wording with the English in brackets. One list, two
-              layouts (see the file header): beneath their segments from `sm`, a list under the bar
-              below it. */}
-          <ol className="mt-1.5 flex">
-            {index.levels.map((level) => (
-              <li key={level.order} className="min-w-0 flex-1 px-0.5 text-center" data-legend-level={level.order}>
-                {/* Iteration 4 (decision A1): the plain name under its own segment at every width. */}
-                <span className={`block break-words ${LABEL}`}>{levelDisplayName(level)}</span>
-              </li>
-            ))}
-          </ol>
+            )}
+          </CreditInfo>
         </div>
-      )}
+        {/* The colour's one job (spec 5.3), or why there is no colour. */}
+        <p className={`mt-1 ${LABEL}`} data-legend-line="">{city.legendLine}</p>
+
+        {index !== null && (
+          <>
+            {/* The bar: one segment per level, best to worst, in the city's own colours. Key only. */}
+            <div aria-hidden="true" className="mt-1.5 flex h-2.5 overflow-hidden rounded-full">
+              {index.levels.map((level) => (
+                <span key={level.order} className="flex-1" style={{ backgroundColor: level.hex }} />
+              ))}
+            </div>
+            {/* Iteration 4 (decision A1): the plain name under its own segment at every width. With
+                many levels (BelAQI's ten) a long name hyphenates inside its column. */}
+            <ol className="mt-1.5 flex" lang="en">
+              {index.levels.map((level) => (
+                <li key={level.order} className="min-w-0 flex-1 px-0.5 text-center" data-legend-level={level.order}>
+                  <span className={`block break-words [hyphens:auto] ${LABEL} ${index.levels.length > 6 ? 'max-sm:text-[9px]' : ''}`}>
+                    {levelDisplayName(level)}
+                  </span>
+                </li>
+              ))}
+            </ol>
+          </>
+        )}
+      </div>
     </div>
   )
 }

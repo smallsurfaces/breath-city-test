@@ -347,7 +347,7 @@ export function CityCard({ city, closing, onClosed }: CityCardProps) {
       <ConceptCard noPadding className="flex gap-3 p-3.5 text-left">
         {/* Left column: name, country, arrow. */}
         <div className="flex min-w-0 flex-1 flex-col items-start">
-          <p id={headingId} className="text-lg font-extrabold leading-tight tracking-tight text-foreground sm:text-xl">
+          <p id={headingId} className="text-xl font-extrabold leading-tight tracking-tight text-foreground sm:text-2xl">
             {city.name}
           </p>
           <p className="mt-0.5 text-sm text-foreground/70">{city.country}</p>
@@ -371,7 +371,8 @@ export function CityCard({ city, closing, onClosed }: CityCardProps) {
         {/* Right column: the city's poster map (spec 3.1), the size the photo was. The inner box
             is the safe area the poster is fitted into, bottom-aligned. Decorative. */}
         <div className="relative h-[100px] w-20 shrink-0 overflow-hidden rounded-xl bg-muted">
-          <div className="absolute inset-1.5">
+          {/* Decision K: the map fills the image area edge to edge. */}
+          <div className="absolute inset-0">
             <PosterMap slug={city.slug} variant="globe" />
           </div>
         </div>

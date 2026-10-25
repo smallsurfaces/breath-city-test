@@ -41,7 +41,14 @@ import { BandScale } from './BandScale'
 import { PollutantExplainerShort } from './Explainers'
 import { CreditInfo } from '../chapter/CreditInfo'
 import { OutboundLink } from '../chapter/ChapterLink'
-import type { CityLink, CityPage } from '../../_data/bogota'
+import { areaBandAt } from '../../_data/city-page'
+import type { CityLink, CityPage } from '../../_data/city-page'
+
+/** How an area band is named in the sensor detail: "In Kebayoran Baru", "Regional model at this point". */
+function areaCaption(city: CityPage, name: string | null): string {
+  if (city.mapMethod === 'surface') return 'Regional model at this point'
+  return name === null ? 'In this district' : `In ${name}`
+}
 import { ageWords, freshnessOf, sensorTypeCardLabel } from '../../_data/city-sensors'
 import type { CitySensor, PollutantId } from '../../_data/city-sensors'
 
@@ -92,8 +99,10 @@ function articleFor(averaging: string): string {
  * the ozone level from an 8-hour average." It describes how the level is set, never what the
  * displayed number is. Pure.
  */
-function averagingNote(indexName: string, pollutant: PollutantId, averaging: string): string {
-  return `${indexName} sets the ${POLLUTANT_PROSE_NAME[pollutant]} level from ${articleFor(averaging)} ${averaging}.`
+function averagingNote(city: CityPage, pollutant: PollutantId, averaging: string): string {
+  // A city with no index sets no level (Sofia, Milan): say how the reading is published instead.
+  if (city.index === null) return `${city.name} publishes this reading as ${articleFor(averaging)} ${averaging}.`
+  return `${city.index.name} sets the ${POLLUTANT_PROSE_NAME[pollutant]} level from ${articleFor(averaging)} ${averaging}.`
 }
 
 /** The sensor detail's content. */
@@ -104,13 +113,29 @@ export function SensorDetail({ city, sensor }: SensorDetailProps) {
   const furtherLinks: CityLink[] = [...city.goFurther.services, ...city.goFurther.getTheData]
   // One pollutant explainer open at a time.
   const [openPollutant, setOpenPollutant] = useState<PollutantId | null>(null)
+  // The area band at the sensor (Jakarta's district, Brussels's surface), looked up, never computed.
+  const area = areaBandAt(city, sensor.lngLat)
   const timeLine = fresh ? `Updated ${ageWords(sensor.updatedMinutesAgo)}` : `Last reading ${ageWords(sensor.updatedMinutesAgo)}`
 
   return (
     <div className="space-y-6" data-sensor-detail={sensor.id}>
-      {/* 2. Advice for the current band only; none without a current band (decisions B1, B2). */}
-      {fresh && sensor.overallBand !== null && <CurrentAdvice city={city} band={sensor.overallBand} />}
-      {fresh && sensor.overallBand === null && (
+      {/* 2. Advice for the current band only; none without a current band (decisions B1, B2).
+          Station method: the station's own band, fresh only. District and surface methods: the
+          band the city gives the AREA the sensor stands in, named as such. None method: nothing. */}
+      {city.index !== null && city.mapMethod === 'station' && fresh && sensor.overallBand !== null && (
+        <CurrentAdvice city={city} index={city.index} band={sensor.overallBand} caption={null} />
+      )}
+      {city.index !== null && area !== null && area.band !== null && (
+        <CurrentAdvice city={city} index={city.index} band={area.band} caption={areaCaption(city, area.name)} />
+      )}
+      {city.index !== null && area !== null && area.band === null && (
+        <section className="rounded-xl bg-muted p-4" data-current-advice="none">
+          <p className="text-sm font-semibold text-foreground">
+            {area.name === null ? '' : `In ${area.name}: `}No {city.index.name} level reported
+          </p>
+        </section>
+      )}
+      {city.index !== null && city.mapMethod === 'station' && fresh && sensor.overallBand === null && (
         <section className="rounded-xl bg-muted p-4" data-current-advice="none">
           <p className="text-sm font-semibold text-foreground">
             No {city.index.name} level reported · updated {ageWords(sensor.updatedMinutesAgo)}
@@ -163,13 +188,13 @@ export function SensorDetail({ city, sensor }: SensorDetailProps) {
                       <CreditInfo label={`About this ${reading.pollutant} reading`} align="start" className="" inDialog={true}>
                         {ownTime !== null && <p data-reading-own-time={reading.pollutant}>{ownTime}</p>}
                         <p data-averaging-note={reading.pollutant} className={ownTime !== null ? 'mt-2' : ''}>
-                          {averagingNote(city.index.name, reading.pollutant, reading.averaging)}
+                          {averagingNote(city, reading.pollutant, reading.averaging)}
                         </p>
                       </CreditInfo>
                     </span>
                   </span>
                   {/* The city's band for this pollutant, as context. None when stale or not sent. */}
-                  {fresh && reading.band !== null && (
+                  {fresh && reading.band !== null && city.index !== null && (
                     <span className="pointer-events-none shrink-0">
                       <BandChip index={city.index} band={reading.band} pollutant={null} stale={false} />
                     </span>
