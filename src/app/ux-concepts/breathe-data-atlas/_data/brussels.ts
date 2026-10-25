@@ -177,6 +177,19 @@ export const BRUSSELS: CityPage = {
     linkLead: 'More on Brussels’s programmes and policies on',
     link: { label: 'Breathe Cities', url: 'https://breathecities.org/cities/brussels/' },
   },
+  // Round 3 decision AC (refined): where to get the sensor data for each pollutant, labelled for
+  // what each link holds; every URL checked with curl on 2026-10-25.
+  pollutantData: {
+    'PM2.5': [{ label: 'PM2.5 measurement series, IRCELINE open data (all Belgian stations)', url: 'https://geo.irceline.be/sos/api/v1/timeseries?phenomenon=6001' }],
+    PM10: [{ label: 'PM10 measurement series, IRCELINE open data (all Belgian stations)', url: 'https://geo.irceline.be/sos/api/v1/timeseries?phenomenon=5' }],
+    'O₃': [{ label: 'O₃ measurement series, IRCELINE open data (all Belgian stations)', url: 'https://geo.irceline.be/sos/api/v1/timeseries?phenomenon=7' }],
+    'NO₂': [{ label: 'NO₂ measurement series, IRCELINE open data (all Belgian stations)', url: 'https://geo.irceline.be/sos/api/v1/timeseries?phenomenon=8' }],
+    NO: [{ label: 'NO measurement series, IRCELINE open data (all Belgian stations)', url: 'https://geo.irceline.be/sos/api/v1/timeseries?phenomenon=38' }],
+    'SO₂': [{ label: 'SO₂ measurement series, IRCELINE open data (all Belgian stations)', url: 'https://geo.irceline.be/sos/api/v1/timeseries?phenomenon=1' }],
+    CO: [{ label: 'CO measurement series, IRCELINE open data (all Belgian stations)', url: 'https://geo.irceline.be/sos/api/v1/timeseries?phenomenon=10' }],
+    'Black carbon': [{ label: 'Black carbon measurement series, IRCELINE open data (all Belgian stations)', url: 'https://geo.irceline.be/sos/api/v1/timeseries?phenomenon=391' }],
+    Benzene: [{ label: 'Benzene measurement series, IRCELINE open data (all Belgian stations)', url: 'https://geo.irceline.be/sos/api/v1/timeseries?phenomenon=20' }],
+  },
   goFurther: {
     services: [
       { label: 'Air quality in Brussels (Brussels Environment)', url: 'https://qualitedelair.brussels/' },

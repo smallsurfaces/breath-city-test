@@ -229,6 +229,25 @@ export const MILAN: CityPage = {
     linkLead: 'More on Milan’s programmes and policies on',
     link: { label: 'Breathe Cities', url: 'https://breathecities.org/cities/milan/' },
   },
+  // Round 3 decision AC (refined): where to get the sensor data for each pollutant, labelled for
+  // what each link holds; every URL checked with curl on 2026-10-25.
+  pollutantData: {
+    'PM2.5': [{ label: 'Milan’s PM2.5 sensors, Lombardy open data registry', url: 'https://www.dati.lombardia.it/resource/ib47-atvt.json?comune=Milano&nometiposensore=Particelle+sospese+PM2.5' }, { label: 'Air sensor measurements by sensor, Lombardy open data', url: 'https://www.dati.lombardia.it/d/g2hp-ar79' }],
+    PM10: [{ label: 'Milan’s PM10 sensors, Lombardy open data registry', url: 'https://www.dati.lombardia.it/resource/ib47-atvt.json?comune=Milano&nometiposensore=PM10+%28SM2005%29' }, { label: 'Air sensor measurements by sensor, Lombardy open data', url: 'https://www.dati.lombardia.it/d/g2hp-ar79' }],
+    'O₃': [{ label: 'Milan’s O₃ sensors, Lombardy open data registry', url: 'https://www.dati.lombardia.it/resource/ib47-atvt.json?comune=Milano&nometiposensore=Ozono' }, { label: 'Air sensor measurements by sensor, Lombardy open data', url: 'https://www.dati.lombardia.it/d/g2hp-ar79' }],
+    'NO₂': [{ label: 'Milan’s NO₂ sensors, Lombardy open data registry', url: 'https://www.dati.lombardia.it/resource/ib47-atvt.json?comune=Milano&nometiposensore=Biossido+di+Azoto' }, { label: 'Air sensor measurements by sensor, Lombardy open data', url: 'https://www.dati.lombardia.it/d/g2hp-ar79' }],
+    'NOₓ': [{ label: 'Milan’s NOₓ sensors, Lombardy open data registry', url: 'https://www.dati.lombardia.it/resource/ib47-atvt.json?comune=Milano&nometiposensore=Ossidi+di+Azoto' }, { label: 'Air sensor measurements by sensor, Lombardy open data', url: 'https://www.dati.lombardia.it/d/g2hp-ar79' }],
+    'SO₂': [{ label: 'Milan’s SO₂ sensors, Lombardy open data registry', url: 'https://www.dati.lombardia.it/resource/ib47-atvt.json?comune=Milano&nometiposensore=Biossido+di+Zolfo' }, { label: 'Air sensor measurements by sensor, Lombardy open data', url: 'https://www.dati.lombardia.it/d/g2hp-ar79' }],
+    CO: [{ label: 'Milan’s CO sensors, Lombardy open data registry', url: 'https://www.dati.lombardia.it/resource/ib47-atvt.json?comune=Milano&nometiposensore=Monossido+di+Carbonio' }, { label: 'Air sensor measurements by sensor, Lombardy open data', url: 'https://www.dati.lombardia.it/d/g2hp-ar79' }],
+    'Black carbon': [{ label: 'Milan’s Black carbon sensors, Lombardy open data registry', url: 'https://www.dati.lombardia.it/resource/ib47-atvt.json?comune=Milano&nometiposensore=BlackCarbon' }, { label: 'Air sensor measurements by sensor, Lombardy open data', url: 'https://www.dati.lombardia.it/d/g2hp-ar79' }],
+    Benzene: [{ label: 'Milan’s Benzene sensors, Lombardy open data registry', url: 'https://www.dati.lombardia.it/resource/ib47-atvt.json?comune=Milano&nometiposensore=Benzene' }, { label: 'Air sensor measurements by sensor, Lombardy open data', url: 'https://www.dati.lombardia.it/d/g2hp-ar79' }],
+    'NH₃': [{ label: 'Milan’s NH₃ sensors, Lombardy open data registry', url: 'https://www.dati.lombardia.it/resource/ib47-atvt.json?comune=Milano&nometiposensore=Ammoniaca' }, { label: 'Air sensor measurements by sensor, Lombardy open data', url: 'https://www.dati.lombardia.it/d/g2hp-ar79' }],
+    As: [{ label: 'Milan’s As sensors, Lombardy open data registry', url: 'https://www.dati.lombardia.it/resource/ib47-atvt.json?comune=Milano&nometiposensore=Arsenico' }, { label: 'Air sensor measurements by sensor, Lombardy open data', url: 'https://www.dati.lombardia.it/d/g2hp-ar79' }],
+    Cd: [{ label: 'Milan’s Cd sensors, Lombardy open data registry', url: 'https://www.dati.lombardia.it/resource/ib47-atvt.json?comune=Milano&nometiposensore=Cadmio' }, { label: 'Air sensor measurements by sensor, Lombardy open data', url: 'https://www.dati.lombardia.it/d/g2hp-ar79' }],
+    Ni: [{ label: 'Milan’s Ni sensors, Lombardy open data registry', url: 'https://www.dati.lombardia.it/resource/ib47-atvt.json?comune=Milano&nometiposensore=Nikel' }, { label: 'Air sensor measurements by sensor, Lombardy open data', url: 'https://www.dati.lombardia.it/d/g2hp-ar79' }],
+    Pb: [{ label: 'Milan’s Pb sensors, Lombardy open data registry', url: 'https://www.dati.lombardia.it/resource/ib47-atvt.json?comune=Milano&nometiposensore=Piombo' }, { label: 'Air sensor measurements by sensor, Lombardy open data', url: 'https://www.dati.lombardia.it/d/g2hp-ar79' }],
+    BaP: [{ label: 'Milan’s BaP sensors, Lombardy open data registry', url: 'https://www.dati.lombardia.it/resource/ib47-atvt.json?comune=Milano&nometiposensore=Benzo%28a%29pirene' }, { label: 'Air sensor measurements by sensor, Lombardy open data', url: 'https://www.dati.lombardia.it/d/g2hp-ar79' }],
+  },
   goFurther: {
     services: [
       { label: 'Daily air quality index (ARPA Lombardia)', url: 'https://www.arpalombardia.it/temi-ambientali/aria/modellistica/lindice-di-qualita-dellaria/' },

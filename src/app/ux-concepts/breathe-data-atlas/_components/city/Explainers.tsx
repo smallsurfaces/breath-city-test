@@ -177,6 +177,9 @@ type PollutantExplainerFullProps = {
 /** The full explainer, the pollutant pop-up (decision G). Server-safe: no state. */
 export function PollutantExplainerFull({ city, pollutant, sites, series, showSparkline }: PollutantExplainerFullProps) {
   const local = city.pollutants[pollutant]
+  const dataLinks: CityLink[] =
+    city.pollutantData[pollutant] ??
+    city.goFurther.getTheData.map((link) => ({ label: `${link.label} (all pollutants)`, url: link.url }))
   return (
     <div className="space-y-6">
       {/* Round 3 decision I (addition): one plain sentence, no sparkline (a rising line read as the
@@ -213,6 +216,25 @@ export function PollutantExplainerFull({ city, pollutant, sites, series, showSpa
           {local.sourcesNote !== null && <p className={BODY}>{local.sourcesNote}</p>}
           {/* Decision W: a donut where every share is a single published figure, else icons only. */}
           <SourcesChart lines={local.sources} />
+        </section>
+      )}
+
+      {/* Round 3 decision AC (refined): where to get the sensor data for THIS pollutant, from the
+          city's data file; the city's generic "Get the data" only as a labelled fallback. */}
+      {dataLinks.length > 0 && (
+        <section aria-labelledby={`bda-pollutant-further-${city.slug}`} className="border-t border-border pt-4" data-popup-go-further="">
+          <h4 id={`bda-pollutant-further-${city.slug}`} className="text-base font-semibold text-foreground">
+            Go further
+          </h4>
+          <ul className="mt-1">
+            {dataLinks.map((link) => (
+              <li key={`${link.label}-${link.url}`} className="border-b border-border last:border-b-0">
+                <OutboundLink href={link.url} className="w-full justify-between text-sm font-medium text-foreground">
+                  {link.label}
+                </OutboundLink>
+              </li>
+            ))}
+          </ul>
         </section>
       )}
     </div>

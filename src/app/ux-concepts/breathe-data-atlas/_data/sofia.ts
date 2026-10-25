@@ -181,6 +181,23 @@ export const SOFIA: CityPage = {
     linkLead: 'More on Sofia’s programmes and policies on',
     link: { label: 'Breathe Cities', url: 'https://breathecities.org/cities/sofia/' },
   },
+  // Round 3 decision AC (refined): where to get the sensor data for each pollutant, labelled for
+  // what each link holds; every URL checked with curl on 2026-10-25.
+  pollutantData: {
+    'PM2.5': [{ label: 'Reports by pollutant, air.sofia.bg (choose the pollutant there)', url: 'https://air.sofia.bg/reports/table/public/list/' }],
+    PM10: [{ label: 'Reports by pollutant, air.sofia.bg (choose the pollutant there)', url: 'https://air.sofia.bg/reports/table/public/list/' }],
+    'O₃': [{ label: 'Reports by pollutant, air.sofia.bg (choose the pollutant there)', url: 'https://air.sofia.bg/reports/table/public/list/' }],
+    'NO₂': [{ label: 'Reports by pollutant, air.sofia.bg (choose the pollutant there)', url: 'https://air.sofia.bg/reports/table/public/list/' }],
+    NO: [{ label: 'Reports by pollutant, air.sofia.bg (choose the pollutant there)', url: 'https://air.sofia.bg/reports/table/public/list/' }],
+    'NOₓ': [{ label: 'Reports by pollutant, air.sofia.bg (choose the pollutant there)', url: 'https://air.sofia.bg/reports/table/public/list/' }],
+    'SO₂': [{ label: 'Reports by pollutant, air.sofia.bg (choose the pollutant there)', url: 'https://air.sofia.bg/reports/table/public/list/' }],
+    CO: [{ label: 'Reports by pollutant, air.sofia.bg (choose the pollutant there)', url: 'https://air.sofia.bg/reports/table/public/list/' }],
+    Benzene: [{ label: 'Reports by pollutant, air.sofia.bg (choose the pollutant there)', url: 'https://air.sofia.bg/reports/table/public/list/' }],
+    'H₂S': [{ label: 'Reports by pollutant, air.sofia.bg (choose the pollutant there)', url: 'https://air.sofia.bg/reports/table/public/list/' }],
+    'CH₄': [{ label: 'Reports by pollutant, air.sofia.bg (choose the pollutant there)', url: 'https://air.sofia.bg/reports/table/public/list/' }],
+    NMHC: [{ label: 'Reports by pollutant, air.sofia.bg (choose the pollutant there)', url: 'https://air.sofia.bg/reports/table/public/list/' }],
+    THC: [{ label: 'Reports by pollutant, air.sofia.bg (choose the pollutant there)', url: 'https://air.sofia.bg/reports/table/public/list/' }],
+  },
   goFurther: {
     services: [{ label: 'Sofia air quality information system', url: 'https://air.sofia.bg/' }],
     getTheData: [{ label: 'Data from automatic monitoring stations', url: 'https://air.sofia.bg/airpublic/air/data/forecasts/measures/list/' }],

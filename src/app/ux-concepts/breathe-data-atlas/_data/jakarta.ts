@@ -212,6 +212,19 @@ export const JAKARTA: CityPage = {
     linkLead: 'More on Jakarta’s programmes and policies on',
     link: { label: 'Breathe Cities', url: 'https://breathecities.org/cities/jakarta/' },
   },
+  // Round 3 decision AC (refined): where to get the sensor data for each pollutant, labelled for
+  // what each link holds; every URL checked with curl on 2026-10-25.
+  pollutantData: {
+    'PM2.5': [{ label: 'ISPU data by station (PM2.5 column), Satu Data Jakarta', url: 'https://satudata.jakarta.go.id/open-data/detail?kategori=dataset&page_url=data-indeks-standar-pencemar-udara-ispu-di-provinsi-dki-jakarta&data_no=1' }],
+    PM10: [{ label: 'ISPU data by station (PM10 column), Satu Data Jakarta', url: 'https://satudata.jakarta.go.id/open-data/detail?kategori=dataset&page_url=data-indeks-standar-pencemar-udara-ispu-di-provinsi-dki-jakarta&data_no=1' }],
+    'O₃': [{ label: 'ISPU data by station (O₃ column), Satu Data Jakarta', url: 'https://satudata.jakarta.go.id/open-data/detail?kategori=dataset&page_url=data-indeks-standar-pencemar-udara-ispu-di-provinsi-dki-jakarta&data_no=1' }],
+    'NO₂': [{ label: 'ISPU data by station (NO₂ column), Satu Data Jakarta', url: 'https://satudata.jakarta.go.id/open-data/detail?kategori=dataset&page_url=data-indeks-standar-pencemar-udara-ispu-di-provinsi-dki-jakarta&data_no=1' }],
+    'SO₂': [{ label: 'ISPU data by station (SO₂ column), Satu Data Jakarta', url: 'https://satudata.jakarta.go.id/open-data/detail?kategori=dataset&page_url=data-indeks-standar-pencemar-udara-ispu-di-provinsi-dki-jakarta&data_no=1' }],
+    CO: [{ label: 'ISPU data by station (CO column), Satu Data Jakarta', url: 'https://satudata.jakarta.go.id/open-data/detail?kategori=dataset&page_url=data-indeks-standar-pencemar-udara-ispu-di-provinsi-dki-jakarta&data_no=1' }],
+    NO: [{ label: 'Station readings incl. NO and HC, Udara Jakarta', url: 'https://udara.jakarta.go.id/lokasi-spku' }],
+    HC: [{ label: 'Station readings incl. NO and HC, Udara Jakarta', url: 'https://udara.jakarta.go.id/lokasi-spku' }],
+    TSP: [{ label: 'Suspended particulate matter (SPM), BMKG', url: 'https://www.bmkg.go.id/kualitas-udara/spm' }],
+  },
   goFurther: {
     services: [{ label: 'Udara Jakarta', url: 'https://udara.jakarta.go.id/' }],
     getTheData: [{ label: 'Request air monitoring data (PPID)', url: 'https://lingkunganhidup.jakarta.go.id/layanan/ppid' }],
