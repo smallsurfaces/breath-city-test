@@ -50,14 +50,6 @@
      "updatedMinutesAgo": null
     },
     {
-     "pollutant": "CO",
-     "value": 893,
-     "unit": "µg/m³",
-     "averaging": "8-hour average",
-     "band": 1,
-     "updatedMinutesAgo": null
-    },
-    {
      "pollutant": "NO",
      "value": 12.3,
      "unit": "µg/m³",
@@ -71,6 +63,22 @@
      "unit": "µg/m³",
      "averaging": "1-hour average",
      "band": null,
+     "updatedMinutesAgo": null
+    },
+    {
+     "pollutant": "SO₂",
+     "value": 3.4,
+     "unit": "µg/m³",
+     "averaging": "1-hour average",
+     "band": 1,
+     "updatedMinutesAgo": null
+    },
+    {
+     "pollutant": "CO",
+     "value": 1072,
+     "unit": "µg/m³",
+     "averaging": "8-hour average",
+     "band": 1,
      "updatedMinutesAgo": null
     }
    ]
@@ -91,7 +99,7 @@
    "readings": [
     {
      "pollutant": "PM2.5",
-     "value": 21.9,
+     "value": 25.8,
      "unit": "µg/m³",
      "averaging": "12-hour weighted average (NowCast)",
      "band": null,
@@ -99,7 +107,7 @@
     },
     {
      "pollutant": "PM10",
-     "value": 48.8,
+     "value": 37.1,
      "unit": "µg/m³",
      "averaging": "12-hour weighted average (NowCast)",
      "band": null,
@@ -107,7 +115,7 @@
     },
     {
      "pollutant": "O₃",
-     "value": 19.3,
+     "value": 49.7,
      "unit": "µg/m³",
      "averaging": "8-hour average",
      "band": null,
@@ -115,7 +123,7 @@
     },
     {
      "pollutant": "NO₂",
-     "value": 19.7,
+     "value": 15.0,
      "unit": "µg/m³",
      "averaging": "1-hour average",
      "band": null,
@@ -131,7 +139,31 @@
     },
     {
      "pollutant": "NOₓ",
-     "value": 29.8,
+     "value": 25.1,
+     "unit": "µg/m³",
+     "averaging": "1-hour average",
+     "band": null,
+     "updatedMinutesAgo": null
+    },
+    {
+     "pollutant": "SO₂",
+     "value": 2.5,
+     "unit": "µg/m³",
+     "averaging": "1-hour average",
+     "band": null,
+     "updatedMinutesAgo": null
+    },
+    {
+     "pollutant": "CO",
+     "value": 1250,
+     "unit": "µg/m³",
+     "averaging": "8-hour average",
+     "band": null,
+     "updatedMinutesAgo": null
+    },
+    {
+     "pollutant": "Black carbon",
+     "value": 3.1,
      "unit": "µg/m³",
      "averaging": "1-hour average",
      "band": null,
@@ -155,7 +187,7 @@
    "readings": [
     {
      "pollutant": "PM2.5",
-     "value": 24.4,
+     "value": 27.6,
      "unit": "µg/m³",
      "averaging": "12-hour weighted average (NowCast)",
      "band": 2,
@@ -163,7 +195,7 @@
     },
     {
      "pollutant": "PM10",
-     "value": 36.8,
+     "value": 38.1,
      "unit": "µg/m³",
      "averaging": "12-hour weighted average (NowCast)",
      "band": 2,
@@ -171,7 +203,7 @@
     },
     {
      "pollutant": "O₃",
-     "value": 35.3,
+     "value": 41.0,
      "unit": "µg/m³",
      "averaging": "8-hour average",
      "band": 1,
@@ -179,31 +211,15 @@
     },
     {
      "pollutant": "NO₂",
-     "value": 19.0,
+     "value": 11.1,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": 1,
-     "updatedMinutesAgo": null
-    },
-    {
-     "pollutant": "SO₂",
-     "value": 2.8,
-     "unit": "µg/m³",
-     "averaging": "1-hour average",
-     "band": 1,
-     "updatedMinutesAgo": null
-    },
-    {
-     "pollutant": "CO",
-     "value": 1451,
-     "unit": "µg/m³",
-     "averaging": "8-hour average",
      "band": 1,
      "updatedMinutesAgo": null
     },
     {
      "pollutant": "NO",
-     "value": 17.1,
+     "value": 13.0,
      "unit": "µg/m³",
      "averaging": "1-hour average",
      "band": null,
@@ -211,15 +227,31 @@
     },
     {
      "pollutant": "NOₓ",
-     "value": 45.2,
+     "value": 31.0,
      "unit": "µg/m³",
      "averaging": "1-hour average",
      "band": null,
      "updatedMinutesAgo": null
     },
     {
+     "pollutant": "SO₂",
+     "value": 2.3,
+     "unit": "µg/m³",
+     "averaging": "1-hour average",
+     "band": 1,
+     "updatedMinutesAgo": null
+    },
+    {
+     "pollutant": "CO",
+     "value": 1692,
+     "unit": "µg/m³",
+     "averaging": "8-hour average",
+     "band": 1,
+     "updatedMinutesAgo": null
+    },
+    {
      "pollutant": "Black carbon",
-     "value": 2.5,
+     "value": 4.5,
      "unit": "µg/m³",
      "averaging": "1-hour average",
      "band": null,
@@ -243,7 +275,7 @@
    "readings": [
     {
      "pollutant": "PM2.5",
-     "value": 4.7,
+     "value": 7.8,
      "unit": "µg/m³",
      "averaging": "12-hour weighted average (NowCast)",
      "band": 1,
@@ -251,7 +283,7 @@
     },
     {
      "pollutant": "PM10",
-     "value": 6.5,
+     "value": 19.3,
      "unit": "µg/m³",
      "averaging": "12-hour weighted average (NowCast)",
      "band": 1,
@@ -259,10 +291,50 @@
     },
     {
      "pollutant": "O₃",
-     "value": 95.6,
+     "value": 82.0,
      "unit": "µg/m³",
      "averaging": "8-hour average",
      "band": 2,
+     "updatedMinutesAgo": null
+    },
+    {
+     "pollutant": "NO₂",
+     "value": 6.8,
+     "unit": "µg/m³",
+     "averaging": "1-hour average",
+     "band": 1,
+     "updatedMinutesAgo": null
+    },
+    {
+     "pollutant": "NO",
+     "value": 18.4,
+     "unit": "µg/m³",
+     "averaging": "1-hour average",
+     "band": null,
+     "updatedMinutesAgo": null
+    },
+    {
+     "pollutant": "NOₓ",
+     "value": 35.0,
+     "unit": "µg/m³",
+     "averaging": "1-hour average",
+     "band": null,
+     "updatedMinutesAgo": null
+    },
+    {
+     "pollutant": "SO₂",
+     "value": 4.0,
+     "unit": "µg/m³",
+     "averaging": "1-hour average",
+     "band": 1,
+     "updatedMinutesAgo": null
+    },
+    {
+     "pollutant": "CO",
+     "value": 1900,
+     "unit": "µg/m³",
+     "averaging": "8-hour average",
+     "band": 1,
      "updatedMinutesAgo": null
     }
    ]
@@ -283,7 +355,7 @@
    "readings": [
     {
      "pollutant": "PM2.5",
-     "value": 7.8,
+     "value": 3.1,
      "unit": "µg/m³",
      "averaging": "12-hour weighted average (NowCast)",
      "band": 1,
@@ -291,7 +363,7 @@
     },
     {
      "pollutant": "PM10",
-     "value": 19.3,
+     "value": 12.4,
      "unit": "µg/m³",
      "averaging": "12-hour weighted average (NowCast)",
      "band": 1,
@@ -299,7 +371,7 @@
     },
     {
      "pollutant": "O₃",
-     "value": 19.0,
+     "value": 44.0,
      "unit": "µg/m³",
      "averaging": "8-hour average",
      "band": 1,
@@ -307,31 +379,15 @@
     },
     {
      "pollutant": "NO₂",
-     "value": 6.8,
+     "value": 8.2,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": 1,
-     "updatedMinutesAgo": null
-    },
-    {
-     "pollutant": "SO₂",
-     "value": 4.0,
-     "unit": "µg/m³",
-     "averaging": "1-hour average",
-     "band": 1,
-     "updatedMinutesAgo": null
-    },
-    {
-     "pollutant": "CO",
-     "value": 1900,
-     "unit": "µg/m³",
-     "averaging": "8-hour average",
      "band": 1,
      "updatedMinutesAgo": null
     },
     {
      "pollutant": "NO",
-     "value": 28.7,
+     "value": 16.1,
      "unit": "µg/m³",
      "averaging": "1-hour average",
      "band": null,
@@ -339,7 +395,31 @@
     },
     {
      "pollutant": "NOₓ",
-     "value": 50.7,
+     "value": 32.8,
+     "unit": "µg/m³",
+     "averaging": "1-hour average",
+     "band": null,
+     "updatedMinutesAgo": null
+    },
+    {
+     "pollutant": "SO₂",
+     "value": 5.8,
+     "unit": "µg/m³",
+     "averaging": "1-hour average",
+     "band": 1,
+     "updatedMinutesAgo": null
+    },
+    {
+     "pollutant": "CO",
+     "value": 1316,
+     "unit": "µg/m³",
+     "averaging": "8-hour average",
+     "band": 1,
+     "updatedMinutesAgo": null
+    },
+    {
+     "pollutant": "Black carbon",
+     "value": 5.5,
      "unit": "µg/m³",
      "averaging": "1-hour average",
      "band": null,
@@ -363,7 +443,7 @@
    "readings": [
     {
      "pollutant": "PM2.5",
-     "value": 40.6,
+     "value": 47.2,
      "unit": "µg/m³",
      "averaging": "12-hour weighted average (NowCast)",
      "band": 3,
@@ -371,39 +451,31 @@
     },
     {
      "pollutant": "PM10",
-     "value": 44.0,
+     "value": 66.1,
      "unit": "µg/m³",
      "averaging": "12-hour weighted average (NowCast)",
-     "band": 2,
+     "band": 3,
      "updatedMinutesAgo": null
     },
     {
-     "pollutant": "NO₂",
-     "value": 62.5,
-     "unit": "µg/m³",
-     "averaging": "1-hour average",
-     "band": 2,
-     "updatedMinutesAgo": null
-    },
-    {
-     "pollutant": "SO₂",
-     "value": 2.7,
-     "unit": "µg/m³",
-     "averaging": "1-hour average",
-     "band": 1,
-     "updatedMinutesAgo": 130
-    },
-    {
-     "pollutant": "CO",
-     "value": 1542,
+     "pollutant": "O₃",
+     "value": 24.7,
      "unit": "µg/m³",
      "averaging": "8-hour average",
      "band": 1,
      "updatedMinutesAgo": null
     },
     {
+     "pollutant": "NO₂",
+     "value": 51.8,
+     "unit": "µg/m³",
+     "averaging": "1-hour average",
+     "band": 2,
+     "updatedMinutesAgo": null
+    },
+    {
      "pollutant": "NO",
-     "value": 18.4,
+     "value": 9.7,
      "unit": "µg/m³",
      "averaging": "1-hour average",
      "band": null,
@@ -411,15 +483,31 @@
     },
     {
      "pollutant": "NOₓ",
-     "value": 90.7,
+     "value": 66.6,
      "unit": "µg/m³",
      "averaging": "1-hour average",
      "band": null,
      "updatedMinutesAgo": null
     },
     {
+     "pollutant": "SO₂",
+     "value": 6.0,
+     "unit": "µg/m³",
+     "averaging": "1-hour average",
+     "band": 1,
+     "updatedMinutesAgo": 130
+    },
+    {
+     "pollutant": "CO",
+     "value": 1656,
+     "unit": "µg/m³",
+     "averaging": "8-hour average",
+     "band": 1,
+     "updatedMinutesAgo": null
+    },
+    {
      "pollutant": "Black carbon",
-     "value": 2.9,
+     "value": 2.8,
      "unit": "µg/m³",
      "averaging": "1-hour average",
      "band": null,
@@ -443,7 +531,7 @@
    "readings": [
     {
      "pollutant": "PM2.5",
-     "value": 24.1,
+     "value": 29.0,
      "unit": "µg/m³",
      "averaging": "12-hour weighted average (NowCast)",
      "band": 2,
@@ -451,7 +539,7 @@
     },
     {
      "pollutant": "PM10",
-     "value": 33.7,
+     "value": 40.6,
      "unit": "µg/m³",
      "averaging": "12-hour weighted average (NowCast)",
      "band": 2,
@@ -459,7 +547,7 @@
     },
     {
      "pollutant": "O₃",
-     "value": 14.8,
+     "value": 44.5,
      "unit": "µg/m³",
      "averaging": "8-hour average",
      "band": 1,
@@ -467,7 +555,7 @@
     },
     {
      "pollutant": "NO₂",
-     "value": 9.8,
+     "value": 12.4,
      "unit": "µg/m³",
      "averaging": "1-hour average",
      "band": 1,
@@ -475,7 +563,7 @@
     },
     {
      "pollutant": "NO",
-     "value": 36.5,
+     "value": 7.4,
      "unit": "µg/m³",
      "averaging": "1-hour average",
      "band": null,
@@ -483,10 +571,26 @@
     },
     {
      "pollutant": "NOₓ",
-     "value": 65.6,
+     "value": 23.7,
      "unit": "µg/m³",
      "averaging": "1-hour average",
      "band": null,
+     "updatedMinutesAgo": null
+    },
+    {
+     "pollutant": "SO₂",
+     "value": 5.2,
+     "unit": "µg/m³",
+     "averaging": "1-hour average",
+     "band": 1,
+     "updatedMinutesAgo": null
+    },
+    {
+     "pollutant": "CO",
+     "value": 743,
+     "unit": "µg/m³",
+     "averaging": "8-hour average",
+     "band": 1,
      "updatedMinutesAgo": null
     }
    ]
@@ -507,7 +611,7 @@
    "readings": [
     {
      "pollutant": "PM2.5",
-     "value": 95.6,
+     "value": 123.7,
      "unit": "µg/m³",
      "averaging": "12-hour weighted average (NowCast)",
      "band": 4,
@@ -515,31 +619,15 @@
     },
     {
      "pollutant": "PM10",
-     "value": 133.8,
+     "value": 173.2,
      "unit": "µg/m³",
      "averaging": "12-hour weighted average (NowCast)",
      "band": 4,
      "updatedMinutesAgo": null
     },
     {
-     "pollutant": "O₃",
-     "value": 46.8,
-     "unit": "µg/m³",
-     "averaging": "8-hour average",
-     "band": 1,
-     "updatedMinutesAgo": null
-    },
-    {
-     "pollutant": "NO₂",
-     "value": 68.9,
-     "unit": "µg/m³",
-     "averaging": "1-hour average",
-     "band": 2,
-     "updatedMinutesAgo": null
-    },
-    {
      "pollutant": "SO₂",
-     "value": 2.9,
+     "value": 7.5,
      "unit": "µg/m³",
      "averaging": "1-hour average",
      "band": 1,
@@ -547,34 +635,10 @@
     },
     {
      "pollutant": "CO",
-     "value": 1577,
+     "value": 705,
      "unit": "µg/m³",
      "averaging": "8-hour average",
      "band": 1,
-     "updatedMinutesAgo": null
-    },
-    {
-     "pollutant": "NO",
-     "value": 9.7,
-     "unit": "µg/m³",
-     "averaging": "1-hour average",
-     "band": null,
-     "updatedMinutesAgo": null
-    },
-    {
-     "pollutant": "NOₓ",
-     "value": 83.7,
-     "unit": "µg/m³",
-     "averaging": "1-hour average",
-     "band": null,
-     "updatedMinutesAgo": null
-    },
-    {
-     "pollutant": "Black carbon",
-     "value": 2.8,
-     "unit": "µg/m³",
-     "averaging": "1-hour average",
-     "band": null,
      "updatedMinutesAgo": null
     }
    ]
@@ -595,7 +659,7 @@
    "readings": [
     {
      "pollutant": "PM2.5",
-     "value": 5.2,
+     "value": 5.3,
      "unit": "µg/m³",
      "averaging": "12-hour weighted average (NowCast)",
      "band": 1,
@@ -603,7 +667,7 @@
     },
     {
      "pollutant": "PM10",
-     "value": 14.6,
+     "value": 18.4,
      "unit": "µg/m³",
      "averaging": "12-hour weighted average (NowCast)",
      "band": 1,
@@ -611,10 +675,58 @@
     },
     {
      "pollutant": "O₃",
-     "value": 21.0,
+     "value": 42.6,
      "unit": "µg/m³",
      "averaging": "8-hour average",
      "band": 1,
+     "updatedMinutesAgo": null
+    },
+    {
+     "pollutant": "NO₂",
+     "value": 20.5,
+     "unit": "µg/m³",
+     "averaging": "1-hour average",
+     "band": 1,
+     "updatedMinutesAgo": null
+    },
+    {
+     "pollutant": "NO",
+     "value": 8.5,
+     "unit": "µg/m³",
+     "averaging": "1-hour average",
+     "band": null,
+     "updatedMinutesAgo": null
+    },
+    {
+     "pollutant": "NOₓ",
+     "value": 33.5,
+     "unit": "µg/m³",
+     "averaging": "1-hour average",
+     "band": null,
+     "updatedMinutesAgo": null
+    },
+    {
+     "pollutant": "SO₂",
+     "value": 5.3,
+     "unit": "µg/m³",
+     "averaging": "1-hour average",
+     "band": 1,
+     "updatedMinutesAgo": null
+    },
+    {
+     "pollutant": "CO",
+     "value": 1568,
+     "unit": "µg/m³",
+     "averaging": "8-hour average",
+     "band": 1,
+     "updatedMinutesAgo": null
+    },
+    {
+     "pollutant": "Black carbon",
+     "value": 4.0,
+     "unit": "µg/m³",
+     "averaging": "1-hour average",
+     "band": null,
      "updatedMinutesAgo": null
     }
    ]
@@ -635,7 +747,7 @@
    "readings": [
     {
      "pollutant": "PM2.5",
-     "value": 28.7,
+     "value": 26.9,
      "unit": "µg/m³",
      "averaging": "12-hour weighted average (NowCast)",
      "band": 2,
@@ -643,7 +755,7 @@
     },
     {
      "pollutant": "PM10",
-     "value": 40.2,
+     "value": 37.7,
      "unit": "µg/m³",
      "averaging": "12-hour weighted average (NowCast)",
      "band": 2,
@@ -651,7 +763,7 @@
     },
     {
      "pollutant": "O₃",
-     "value": 56.3,
+     "value": 37.2,
      "unit": "µg/m³",
      "averaging": "8-hour average",
      "band": 1,
@@ -659,31 +771,15 @@
     },
     {
      "pollutant": "NO₂",
-     "value": 7.9,
+     "value": 13.7,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": 1,
-     "updatedMinutesAgo": null
-    },
-    {
-     "pollutant": "SO₂",
-     "value": 4.3,
-     "unit": "µg/m³",
-     "averaging": "1-hour average",
-     "band": 1,
-     "updatedMinutesAgo": null
-    },
-    {
-     "pollutant": "CO",
-     "value": 1729,
-     "unit": "µg/m³",
-     "averaging": "8-hour average",
      "band": 1,
      "updatedMinutesAgo": null
     },
     {
      "pollutant": "NO",
-     "value": 7.4,
+     "value": 12.2,
      "unit": "µg/m³",
      "averaging": "1-hour average",
      "band": null,
@@ -691,18 +787,26 @@
     },
     {
      "pollutant": "NOₓ",
-     "value": 19.2,
+     "value": 32.4,
      "unit": "µg/m³",
      "averaging": "1-hour average",
      "band": null,
      "updatedMinutesAgo": null
     },
     {
-     "pollutant": "Black carbon",
-     "value": 1.9,
+     "pollutant": "SO₂",
+     "value": 6.1,
      "unit": "µg/m³",
      "averaging": "1-hour average",
-     "band": null,
+     "band": 1,
+     "updatedMinutesAgo": null
+    },
+    {
+     "pollutant": "CO",
+     "value": 1201,
+     "unit": "µg/m³",
+     "averaging": "8-hour average",
+     "band": 1,
      "updatedMinutesAgo": null
     }
    ]
@@ -723,7 +827,7 @@
    "readings": [
     {
      "pollutant": "PM2.5",
-     "value": 25.9,
+     "value": 22.9,
      "unit": "µg/m³",
      "averaging": "12-hour weighted average (NowCast)",
      "band": 2,
@@ -731,7 +835,7 @@
     },
     {
      "pollutant": "PM10",
-     "value": 53.6,
+     "value": 46.9,
      "unit": "µg/m³",
      "averaging": "12-hour weighted average (NowCast)",
      "band": 2,
@@ -739,154 +843,10 @@
     },
     {
      "pollutant": "O₃",
-     "value": 39.6,
-     "unit": "µg/m³",
-     "averaging": "8-hour average",
-     "band": 1,
-     "updatedMinutesAgo": null
-    },
-    {
-     "pollutant": "NO₂",
-     "value": 17.5,
-     "unit": "µg/m³",
-     "averaging": "1-hour average",
-     "band": 1,
-     "updatedMinutesAgo": null
-    },
-    {
-     "pollutant": "CO",
-     "value": 1621,
-     "unit": "µg/m³",
-     "averaging": "8-hour average",
-     "band": 1,
-     "updatedMinutesAgo": null
-    },
-    {
-     "pollutant": "NO",
-     "value": 24.7,
-     "unit": "µg/m³",
-     "averaging": "1-hour average",
-     "band": null,
-     "updatedMinutesAgo": null
-    },
-    {
-     "pollutant": "NOₓ",
-     "value": 55.3,
-     "unit": "µg/m³",
-     "averaging": "1-hour average",
-     "band": null,
-     "updatedMinutesAgo": null
-    }
-   ]
-  },
-  {
-   "id": "bogota-12",
-   "lngLat": [
-    -74.08256,
-    4.6906
-   ],
-   "type": "reference-grade",
-   "placed": false,
-   "name": "Las Ferias",
-   "location": null,
-   "stationType": "Traffic",
-   "overallBand": 1,
-   "updatedMinutesAgo": 2900,
-   "readings": [
-    {
-     "pollutant": "PM2.5",
-     "value": 4.5,
-     "unit": "µg/m³",
-     "averaging": "12-hour weighted average (NowCast)",
-     "band": 1,
-     "updatedMinutesAgo": null
-    },
-    {
-     "pollutant": "PM10",
-     "value": 14.1,
-     "unit": "µg/m³",
-     "averaging": "12-hour weighted average (NowCast)",
-     "band": 1,
-     "updatedMinutesAgo": null
-    },
-    {
-     "pollutant": "O₃",
-     "value": 34.7,
-     "unit": "µg/m³",
-     "averaging": "8-hour average",
-     "band": 1,
-     "updatedMinutesAgo": null
-    },
-    {
-     "pollutant": "NO₂",
-     "value": 18.2,
-     "unit": "µg/m³",
-     "averaging": "1-hour average",
-     "band": 1,
-     "updatedMinutesAgo": null
-    },
-    {
-     "pollutant": "SO₂",
-     "value": 4.5,
-     "unit": "µg/m³",
-     "averaging": "1-hour average",
-     "band": 1,
-     "updatedMinutesAgo": null
-    },
-    {
-     "pollutant": "NO",
-     "value": 12.2,
-     "unit": "µg/m³",
-     "averaging": "1-hour average",
-     "band": null,
-     "updatedMinutesAgo": null
-    },
-    {
-     "pollutant": "NOₓ",
      "value": 36.9,
      "unit": "µg/m³",
-     "averaging": "1-hour average",
-     "band": null,
-     "updatedMinutesAgo": null
-    }
-   ]
-  },
-  {
-   "id": "bogota-13",
-   "lngLat": [
-    -74.03199,
-    4.70939
-   ],
-   "type": "reference-grade",
-   "placed": false,
-   "name": "Usaquén",
-   "location": null,
-   "stationType": "Background",
-   "overallBand": 2,
-   "updatedMinutesAgo": 13,
-   "readings": [
-    {
-     "pollutant": "PM2.5",
-     "value": 5.6,
-     "unit": "µg/m³",
-     "averaging": "12-hour weighted average (NowCast)",
-     "band": 1,
-     "updatedMinutesAgo": null
-    },
-    {
-     "pollutant": "PM10",
-     "value": 14.6,
-     "unit": "µg/m³",
-     "averaging": "12-hour weighted average (NowCast)",
-     "band": 1,
-     "updatedMinutesAgo": null
-    },
-    {
-     "pollutant": "O₃",
-     "value": 90.4,
-     "unit": "µg/m³",
      "averaging": "8-hour average",
-     "band": 2,
+     "band": 1,
      "updatedMinutesAgo": null
     },
     {
@@ -912,6 +872,174 @@
      "averaging": "1-hour average",
      "band": null,
      "updatedMinutesAgo": null
+    },
+    {
+     "pollutant": "SO₂",
+     "value": 4.1,
+     "unit": "µg/m³",
+     "averaging": "1-hour average",
+     "band": 1,
+     "updatedMinutesAgo": null
+    },
+    {
+     "pollutant": "Black carbon",
+     "value": 2.8,
+     "unit": "µg/m³",
+     "averaging": "1-hour average",
+     "band": null,
+     "updatedMinutesAgo": null
+    }
+   ]
+  },
+  {
+   "id": "bogota-12",
+   "lngLat": [
+    -74.08256,
+    4.6906
+   ],
+   "type": "reference-grade",
+   "placed": false,
+   "name": "Las Ferias",
+   "location": null,
+   "stationType": "Traffic",
+   "overallBand": 1,
+   "updatedMinutesAgo": 2900,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 7.2,
+     "unit": "µg/m³",
+     "averaging": "12-hour weighted average (NowCast)",
+     "band": 1,
+     "updatedMinutesAgo": null
+    },
+    {
+     "pollutant": "PM10",
+     "value": 20.6,
+     "unit": "µg/m³",
+     "averaging": "12-hour weighted average (NowCast)",
+     "band": 1,
+     "updatedMinutesAgo": null
+    },
+    {
+     "pollutant": "O₃",
+     "value": 50.8,
+     "unit": "µg/m³",
+     "averaging": "8-hour average",
+     "band": 1,
+     "updatedMinutesAgo": null
+    },
+    {
+     "pollutant": "NO₂",
+     "value": 15.0,
+     "unit": "µg/m³",
+     "averaging": "1-hour average",
+     "band": 1,
+     "updatedMinutesAgo": null
+    },
+    {
+     "pollutant": "NO",
+     "value": 29.5,
+     "unit": "µg/m³",
+     "averaging": "1-hour average",
+     "band": null,
+     "updatedMinutesAgo": null
+    },
+    {
+     "pollutant": "NOₓ",
+     "value": 60.1,
+     "unit": "µg/m³",
+     "averaging": "1-hour average",
+     "band": null,
+     "updatedMinutesAgo": null
+    },
+    {
+     "pollutant": "CO",
+     "value": 1970,
+     "unit": "µg/m³",
+     "averaging": "8-hour average",
+     "band": 1,
+     "updatedMinutesAgo": null
+    }
+   ]
+  },
+  {
+   "id": "bogota-13",
+   "lngLat": [
+    -74.03199,
+    4.70939
+   ],
+   "type": "reference-grade",
+   "placed": false,
+   "name": "Usaquén",
+   "location": null,
+   "stationType": "Background",
+   "overallBand": 2,
+   "updatedMinutesAgo": 13,
+   "readings": [
+    {
+     "pollutant": "PM2.5",
+     "value": 4.2,
+     "unit": "µg/m³",
+     "averaging": "12-hour weighted average (NowCast)",
+     "band": 1,
+     "updatedMinutesAgo": null
+    },
+    {
+     "pollutant": "PM10",
+     "value": 17.6,
+     "unit": "µg/m³",
+     "averaging": "12-hour weighted average (NowCast)",
+     "band": 1,
+     "updatedMinutesAgo": null
+    },
+    {
+     "pollutant": "O₃",
+     "value": 81.6,
+     "unit": "µg/m³",
+     "averaging": "8-hour average",
+     "band": 2,
+     "updatedMinutesAgo": null
+    },
+    {
+     "pollutant": "NO₂",
+     "value": 17.0,
+     "unit": "µg/m³",
+     "averaging": "1-hour average",
+     "band": 1,
+     "updatedMinutesAgo": null
+    },
+    {
+     "pollutant": "NO",
+     "value": 9.0,
+     "unit": "µg/m³",
+     "averaging": "1-hour average",
+     "band": null,
+     "updatedMinutesAgo": null
+    },
+    {
+     "pollutant": "NOₓ",
+     "value": 30.8,
+     "unit": "µg/m³",
+     "averaging": "1-hour average",
+     "band": null,
+     "updatedMinutesAgo": null
+    },
+    {
+     "pollutant": "SO₂",
+     "value": 5.7,
+     "unit": "µg/m³",
+     "averaging": "1-hour average",
+     "band": 1,
+     "updatedMinutesAgo": null
+    },
+    {
+     "pollutant": "CO",
+     "value": 643,
+     "unit": "µg/m³",
+     "averaging": "8-hour average",
+     "band": 1,
+     "updatedMinutesAgo": null
     }
    ]
   },
@@ -931,7 +1059,7 @@
    "readings": [
     {
      "pollutant": "PM2.5",
-     "value": 43.9,
+     "value": 46.5,
      "unit": "µg/m³",
      "averaging": "12-hour weighted average (NowCast)",
      "band": 3,
@@ -939,31 +1067,23 @@
     },
     {
      "pollutant": "PM10",
-     "value": 49.2,
+     "value": 65.1,
      "unit": "µg/m³",
      "averaging": "12-hour weighted average (NowCast)",
-     "band": 2,
+     "band": 3,
      "updatedMinutesAgo": null
     },
     {
      "pollutant": "NO₂",
-     "value": 21.5,
+     "value": 16.3,
      "unit": "µg/m³",
      "averaging": "1-hour average",
      "band": 1,
      "updatedMinutesAgo": null
     },
     {
-     "pollutant": "CO",
-     "value": 1800,
-     "unit": "µg/m³",
-     "averaging": "8-hour average",
-     "band": 1,
-     "updatedMinutesAgo": null
-    },
-    {
      "pollutant": "NO",
-     "value": 15.5,
+     "value": 23.1,
      "unit": "µg/m³",
      "averaging": "1-hour average",
      "band": null,
@@ -971,10 +1091,18 @@
     },
     {
      "pollutant": "NOₓ",
-     "value": 45.2,
+     "value": 51.6,
      "unit": "µg/m³",
      "averaging": "1-hour average",
      "band": null,
+     "updatedMinutesAgo": null
+    },
+    {
+     "pollutant": "CO",
+     "value": 1892,
+     "unit": "µg/m³",
+     "averaging": "8-hour average",
+     "band": 1,
      "updatedMinutesAgo": null
     }
    ]
@@ -995,7 +1123,7 @@
    "readings": [
     {
      "pollutant": "PM2.5",
-     "value": 6.3,
+     "value": 8.7,
      "unit": "µg/m³",
      "averaging": "12-hour weighted average (NowCast)",
      "band": 1,
@@ -1003,7 +1131,7 @@
     },
     {
      "pollutant": "PM10",
-     "value": 21.0,
+     "value": 9.3,
      "unit": "µg/m³",
      "averaging": "12-hour weighted average (NowCast)",
      "band": 1,
@@ -1011,7 +1139,39 @@
     },
     {
      "pollutant": "O₃",
-     "value": 25.3,
+     "value": 40.0,
+     "unit": "µg/m³",
+     "averaging": "8-hour average",
+     "band": 1,
+     "updatedMinutesAgo": null
+    },
+    {
+     "pollutant": "NO₂",
+     "value": 12.6,
+     "unit": "µg/m³",
+     "averaging": "1-hour average",
+     "band": 1,
+     "updatedMinutesAgo": null
+    },
+    {
+     "pollutant": "NO",
+     "value": 5.2,
+     "unit": "µg/m³",
+     "averaging": "1-hour average",
+     "band": null,
+     "updatedMinutesAgo": null
+    },
+    {
+     "pollutant": "NOₓ",
+     "value": 20.6,
+     "unit": "µg/m³",
+     "averaging": "1-hour average",
+     "band": null,
+     "updatedMinutesAgo": null
+    },
+    {
+     "pollutant": "CO",
+     "value": 1319,
      "unit": "µg/m³",
      "averaging": "8-hour average",
      "band": 1,
@@ -1035,7 +1195,7 @@
    "readings": [
     {
      "pollutant": "PM2.5",
-     "value": 27.1,
+     "value": 25.7,
      "unit": "µg/m³",
      "averaging": "12-hour weighted average (NowCast)",
      "band": 2,
@@ -1043,7 +1203,7 @@
     },
     {
      "pollutant": "PM10",
-     "value": 36.5,
+     "value": 55.7,
      "unit": "µg/m³",
      "averaging": "12-hour weighted average (NowCast)",
      "band": 2,
@@ -1051,15 +1211,7 @@
     },
     {
      "pollutant": "NO₂",
-     "value": 17.0,
-     "unit": "µg/m³",
-     "averaging": "1-hour average",
-     "band": 1,
-     "updatedMinutesAgo": null
-    },
-    {
-     "pollutant": "SO₂",
-     "value": 5.7,
+     "value": 18.9,
      "unit": "µg/m³",
      "averaging": "1-hour average",
      "band": 1,
@@ -1067,7 +1219,7 @@
     },
     {
      "pollutant": "NO",
-     "value": 29.5,
+     "value": 14.4,
      "unit": "µg/m³",
      "averaging": "1-hour average",
      "band": null,
@@ -1075,10 +1227,18 @@
     },
     {
      "pollutant": "NOₓ",
-     "value": 62.1,
+     "value": 40.9,
      "unit": "µg/m³",
      "averaging": "1-hour average",
      "band": null,
+     "updatedMinutesAgo": null
+    },
+    {
+     "pollutant": "CO",
+     "value": 1103,
+     "unit": "µg/m³",
+     "averaging": "8-hour average",
+     "band": 1,
      "updatedMinutesAgo": null
     }
    ]
@@ -1098,8 +1258,16 @@
    "updatedMinutesAgo": 6,
    "readings": [
     {
+     "pollutant": "PM1",
+     "value": 10.7,
+     "unit": "µg/m³",
+     "averaging": "1-hour average",
+     "band": null,
+     "updatedMinutesAgo": null
+    },
+    {
      "pollutant": "PM2.5",
-     "value": 18.0,
+     "value": 17.6,
      "unit": "µg/m³",
      "averaging": "12-hour weighted average (NowCast)",
      "band": null,
@@ -1107,17 +1275,9 @@
     },
     {
      "pollutant": "PM10",
-     "value": 25.2,
+     "value": 24.6,
      "unit": "µg/m³",
      "averaging": "12-hour weighted average (NowCast)",
-     "band": null,
-     "updatedMinutesAgo": null
-    },
-    {
-     "pollutant": "PM1",
-     "value": 11.2,
-     "unit": "µg/m³",
-     "averaging": "1-hour average",
      "band": null,
      "updatedMinutesAgo": null
     }
@@ -1138,8 +1298,16 @@
    "updatedMinutesAgo": 4,
    "readings": [
     {
+     "pollutant": "PM1",
+     "value": 3.1,
+     "unit": "µg/m³",
+     "averaging": "1-hour average",
+     "band": null,
+     "updatedMinutesAgo": null
+    },
+    {
      "pollutant": "PM2.5",
-     "value": 4.8,
+     "value": 4.7,
      "unit": "µg/m³",
      "averaging": "12-hour weighted average (NowCast)",
      "band": 1,
@@ -1147,18 +1315,10 @@
     },
     {
      "pollutant": "PM10",
-     "value": 15.5,
+     "value": 15.8,
      "unit": "µg/m³",
      "averaging": "12-hour weighted average (NowCast)",
      "band": 1,
-     "updatedMinutesAgo": null
-    },
-    {
-     "pollutant": "PM1",
-     "value": 3.4,
-     "unit": "µg/m³",
-     "averaging": "1-hour average",
-     "band": null,
      "updatedMinutesAgo": null
     }
    ]
@@ -1178,8 +1338,16 @@
    "updatedMinutesAgo": 1250,
    "readings": [
     {
+     "pollutant": "PM1",
+     "value": 6.0,
+     "unit": "µg/m³",
+     "averaging": "1-hour average",
+     "band": null,
+     "updatedMinutesAgo": null
+    },
+    {
      "pollutant": "PM2.5",
-     "value": 8.9,
+     "value": 8.2,
      "unit": "µg/m³",
      "averaging": "12-hour weighted average (NowCast)",
      "band": 1,
@@ -1187,18 +1355,10 @@
     },
     {
      "pollutant": "PM10",
-     "value": 19.7,
+     "value": 11.5,
      "unit": "µg/m³",
      "averaging": "12-hour weighted average (NowCast)",
      "band": 1,
-     "updatedMinutesAgo": null
-    },
-    {
-     "pollutant": "PM1",
-     "value": 5.4,
-     "unit": "µg/m³",
-     "averaging": "1-hour average",
-     "band": null,
      "updatedMinutesAgo": null
     }
    ]
@@ -1218,8 +1378,16 @@
    "updatedMinutesAgo": 10,
    "readings": [
     {
+     "pollutant": "PM1",
+     "value": 32.4,
+     "unit": "µg/m³",
+     "averaging": "1-hour average",
+     "band": null,
+     "updatedMinutesAgo": null
+    },
+    {
      "pollutant": "PM2.5",
-     "value": 42.3,
+     "value": 48.8,
      "unit": "µg/m³",
      "averaging": "12-hour weighted average (NowCast)",
      "band": 3,
@@ -1227,18 +1395,10 @@
     },
     {
      "pollutant": "PM10",
-     "value": 47.6,
+     "value": 68.3,
      "unit": "µg/m³",
      "averaging": "12-hour weighted average (NowCast)",
-     "band": 2,
-     "updatedMinutesAgo": null
-    },
-    {
-     "pollutant": "PM1",
-     "value": 27.7,
-     "unit": "µg/m³",
-     "averaging": "1-hour average",
-     "band": null,
+     "band": 3,
      "updatedMinutesAgo": null
     }
    ]
@@ -1258,8 +1418,16 @@
    "updatedMinutesAgo": 320,
    "readings": [
     {
+     "pollutant": "PM1",
+     "value": 11.7,
+     "unit": "µg/m³",
+     "averaging": "1-hour average",
+     "band": null,
+     "updatedMinutesAgo": null
+    },
+    {
      "pollutant": "PM2.5",
-     "value": 22.4,
+     "value": 17.2,
      "unit": "µg/m³",
      "averaging": "12-hour weighted average (NowCast)",
      "band": 2,
@@ -1267,18 +1435,10 @@
     },
     {
      "pollutant": "PM10",
-     "value": 46.2,
+     "value": 50.2,
      "unit": "µg/m³",
      "averaging": "12-hour weighted average (NowCast)",
      "band": 2,
-     "updatedMinutesAgo": null
-    },
-    {
-     "pollutant": "PM1",
-     "value": 13.6,
-     "unit": "µg/m³",
-     "averaging": "1-hour average",
-     "band": null,
      "updatedMinutesAgo": null
     }
    ]
@@ -1298,8 +1458,16 @@
    "updatedMinutesAgo": 8700,
    "readings": [
     {
+     "pollutant": "PM1",
+     "value": 5.9,
+     "unit": "µg/m³",
+     "averaging": "1-hour average",
+     "band": null,
+     "updatedMinutesAgo": null
+    },
+    {
      "pollutant": "PM2.5",
-     "value": 7.0,
+     "value": 7.9,
      "unit": "µg/m³",
      "averaging": "12-hour weighted average (NowCast)",
      "band": 1,
@@ -1307,18 +1475,10 @@
     },
     {
      "pollutant": "PM10",
-     "value": 21.1,
+     "value": 19.0,
      "unit": "µg/m³",
      "averaging": "12-hour weighted average (NowCast)",
      "band": 1,
-     "updatedMinutesAgo": null
-    },
-    {
-     "pollutant": "PM1",
-     "value": 4.7,
-     "unit": "µg/m³",
-     "averaging": "1-hour average",
-     "band": null,
      "updatedMinutesAgo": null
     }
    ]
@@ -1338,8 +1498,16 @@
    "updatedMinutesAgo": 44000,
    "readings": [
     {
+     "pollutant": "PM1",
+     "value": 17.1,
+     "unit": "µg/m³",
+     "averaging": "1-hour average",
+     "band": null,
+     "updatedMinutesAgo": null
+    },
+    {
      "pollutant": "PM2.5",
-     "value": 27.5,
+     "value": 23.3,
      "unit": "µg/m³",
      "averaging": "12-hour weighted average (NowCast)",
      "band": 2,
@@ -1347,18 +1515,10 @@
     },
     {
      "pollutant": "PM10",
-     "value": 38.5,
+     "value": 32.6,
      "unit": "µg/m³",
      "averaging": "12-hour weighted average (NowCast)",
      "band": 2,
-     "updatedMinutesAgo": null
-    },
-    {
-     "pollutant": "PM1",
-     "value": 20.3,
-     "unit": "µg/m³",
-     "averaging": "1-hour average",
-     "band": null,
      "updatedMinutesAgo": null
     }
    ]
@@ -1378,8 +1538,16 @@
    "updatedMinutesAgo": 5,
    "readings": [
     {
+     "pollutant": "PM1",
+     "value": 4.7,
+     "unit": "µg/m³",
+     "averaging": "1-hour average",
+     "band": null,
+     "updatedMinutesAgo": null
+    },
+    {
      "pollutant": "PM2.5",
-     "value": 2.8,
+     "value": 6.3,
      "unit": "µg/m³",
      "averaging": "12-hour weighted average (NowCast)",
      "band": 1,
@@ -1387,18 +1555,10 @@
     },
     {
      "pollutant": "PM10",
-     "value": 9.9,
+     "value": 14.2,
      "unit": "µg/m³",
      "averaging": "12-hour weighted average (NowCast)",
      "band": 1,
-     "updatedMinutesAgo": null
-    },
-    {
-     "pollutant": "PM1",
-     "value": 1.9,
-     "unit": "µg/m³",
-     "averaging": "1-hour average",
-     "band": null,
      "updatedMinutesAgo": null
     }
    ]
