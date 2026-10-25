@@ -69,7 +69,12 @@ export const BOGOTA: CityPage = {
   country: 'Colombia',
   index: IBOCA,
   mapMethod: 'station',
-  adviceLink: { label: 'IBOCA index', url: 'https://iboca.ambientebogota.gov.co/mapa/' },
+  // Round 3 decision O: three labelled links (Jack's list).
+  indexLinks: [
+    { label: 'About IBOCA', url: 'http://iboca.ambientebogota.gov.co/publicaciones/175/que-es-el-iboca/' },
+    { label: 'IBOCA map: health advice by station', url: 'https://iboca.ambientebogota.gov.co/mapa/' },
+    { label: 'Citizen measures to improve air quality', url: 'http://iboca.ambientebogota.gov.co/publicaciones/181/recomendaciones/' },
+  ],
   methodLine: 'Bogotá rates air quality at each monitoring station with IBOCA.',
   legendLine: 'Colour shows each station’s IBOCA level.',
   mapCredit: null,

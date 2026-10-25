@@ -88,21 +88,27 @@ export function BandChip({ index, band, pollutant, stale }: BandChipProps) {
 /** Props for IndexInfo. */
 type IndexInfoProps = {
   index: CityAirQualityIndex
-  /** The index's link ("IBOCA index"), or null: then the "i" is not drawn. */
-  link: CityLink | null
+  /** The index's labelled links (decision O); empty: then the "i" is not drawn. */
+  links: CityLink[]
 }
 
 /**
  * The index link behind an "i" (iteration 3, decisions C1 and D2): holds "IBOCA index" with its
  * outbound arrow. Sits inside the sensor detail or the pollutant pop-up, both dialogs.
  */
-export function IndexInfo({ index, link }: IndexInfoProps) {
-  if (link === null) return null
+export function IndexInfo({ index, links }: IndexInfoProps) {
+  if (links.length === 0) return null
   return (
     <CreditInfo label={`About ${index.name}`} align="end" className="" inDialog={true}>
-      <OutboundLink href={link.url} className="-my-3 text-sm font-semibold text-foreground underline">
-        {link.label}
-      </OutboundLink>
+      <ul className="space-y-1" data-index-links="">
+        {links.map((link) => (
+          <li key={link.url}>
+            <OutboundLink href={link.url} className="-my-3 text-sm font-semibold text-foreground underline">
+              {link.label}
+            </OutboundLink>
+          </li>
+        ))}
+      </ul>
     </CreditInfo>
   )
 }
@@ -181,7 +187,7 @@ export function CurrentAdvice({ city, index, band, caption }: CurrentAdviceProps
       data-current-advice={band}
     >
       <div className="absolute right-3 top-3">
-        <IndexInfo index={index} link={city.adviceLink} />
+        <IndexInfo index={index} links={city.indexLinks} />
       </div>
       {caption !== null && <p className="mb-1 pr-10 text-xs font-semibold text-foreground/75" data-advice-caption="">{caption}</p>}
       <div className="pr-10">

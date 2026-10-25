@@ -137,8 +137,12 @@ export type CityPage = {
   index: CityAirQualityIndex | null
   /** How the map shows the band (see the file header). */
   mapMethod: MapMethod
-  /** The index's link, named wherever advice appears ("IBOCA index"); null without an index. */
-  adviceLink: CityLink | null
+  /**
+   * The index's links, behind every index "i" (legend, sensor detail advice block, pollutant pop-up),
+   * labelled for what each page holds (round 3 decision O): what the index is, where the city gives
+   * its advice, and similar. From the city's research files only; empty without an index.
+   */
+  indexLinks: CityLink[]
   /** The method line, behind the legend's "i", in the city's own terms. */
   methodLine: string
   /** The legend's one visible line: what the colour shows, or why there is none. */

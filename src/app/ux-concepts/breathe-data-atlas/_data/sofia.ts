@@ -39,7 +39,7 @@ export const SOFIA: CityPage = {
   country: 'Bulgaria',
   index: null,
   mapMethod: 'none',
-  adviceLink: null,
+  indexLinks: [],
   methodLine: 'Sofia publishes readings from its monitoring stations and a PM10 concentration scale, but no air quality index.',
   legendLine: 'Sofia does not publish an air quality index. Tap a sensor to see its latest readings.',
   mapCredit: null,
