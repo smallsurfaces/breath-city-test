@@ -9,7 +9,11 @@
  *   does). The capsule is clamped inside the bar's edges: measured after layout (and on resize), it
  *   never runs past the first or last band; before measurement it starts flush left at the first band,
  *   flush right at the last, centred otherwise. Never an exact position: the segments are equal, so
- *   nothing about the reading's value is implied (spec rule 5). With no current band (stale, or no
+ *   nothing about the reading's value is implied (spec rule 5).
+ *   Round 3 correction to C (Jack's review): the capsule carries a small speech-bubble TAIL in its
+ *   band colour, pointing down at the CENTRE OF THE SEGMENT (part of the capsule, not a separate
+ *   triangle). When the capsule is clamped at the first or last band, the tail still points at the
+ *   segment's centre, not the capsule's. With no current band (stale, or no
  *   band reported) the bar is grey and carries no capsule; the caller says why in words.
  *
  *   Each segment names its band in a small tooltip:
@@ -141,6 +145,15 @@ export function BandScale({ index, band }: BandScaleProps) {
         >
           {levelDisplayName(indexLevel(index, band))}
         </span>
+      )}
+      {position >= 0 && band !== null && (
+        // The capsule's tail: always at the segment's centre, just under the capsule.
+        <span
+          aria-hidden="true"
+          data-scale-capsule-tail=""
+          className="pointer-events-none absolute top-[22px] h-0 w-0 -translate-x-1/2 border-x-[5px] border-t-[6px] border-x-transparent"
+          style={{ left: `${((position + 0.5) / count) * 100}%`, borderTopColor: indexLevel(index, band).hex }}
+        />
       )}
       <div className="flex h-2.5 gap-0.5">
         {index.levels.map((level, position) => {
