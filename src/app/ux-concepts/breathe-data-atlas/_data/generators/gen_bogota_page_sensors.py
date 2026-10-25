@@ -130,12 +130,49 @@ OLDER_READING = {('bogota-06', 'SO₂'): 130}
 
 ORDER = ['PM2.5', 'PM10', 'O₃', 'NO₂', 'SO₂', 'CO']
 
+# Round 3 decision Z: each reference station carries EXACTLY the pollutants its RMCAB channels carry,
+# read from research/landscape/analysis/_data-catalogue/validation/bogota/_evidence/v2/
+# rmcab-getAllStations-2026-10-22.json (each station's `monitors`; OZONO -> O₃, NOX -> NOₓ,
+# eBC -> Black carbon; BBP and weather channels are not pollutants). Recorded here so the generator
+# runs without the research folder. Bosa (bogota-14) is not among RMCAB's 19 stations in that snapshot,
+# so it keeps its earlier mock set (PM2.5, PM10, NO₂, CO, with NO and NOₓ). Readings stay MOCK.
+RMCAB_CHANNELS = {
+    'bogota-01': ['PM2.5', 'PM10', 'O₃', 'NO₂', 'NO', 'NOₓ', 'SO₂', 'CO'],                   # Usme
+    'bogota-02': ['PM2.5', 'PM10', 'O₃', 'NO₂', 'NO', 'NOₓ', 'SO₂', 'CO', 'Black carbon'],   # Ciudad Bolívar
+    'bogota-03': ['PM2.5', 'PM10', 'O₃', 'NO₂', 'NO', 'NOₓ', 'SO₂', 'CO', 'Black carbon'],   # Fontibón
+    'bogota-04': ['PM2.5', 'PM10', 'O₃', 'NO₂', 'NO', 'NOₓ', 'SO₂', 'CO'],                   # Guaymaral
+    'bogota-05': ['PM2.5', 'PM10', 'O₃', 'NO₂', 'NO', 'NOₓ', 'SO₂', 'CO', 'Black carbon'],   # Centro de Alto Rendimiento
+    'bogota-06': ['PM2.5', 'PM10', 'O₃', 'NO₂', 'NO', 'NOₓ', 'SO₂', 'CO', 'Black carbon'],   # Puente Aranda
+    'bogota-07': ['PM2.5', 'PM10', 'O₃', 'NO₂', 'NO', 'NOₓ', 'SO₂', 'CO'],                   # Jazmín
+    'bogota-08': ['PM2.5', 'PM10', 'SO₂', 'CO'],                                             # Carvajal - Sevillana
+    'bogota-09': ['PM2.5', 'PM10', 'O₃', 'NO₂', 'NO', 'NOₓ', 'SO₂', 'CO', 'Black carbon'],   # San Cristóbal
+    'bogota-10': ['PM2.5', 'PM10', 'O₃', 'NO₂', 'NO', 'NOₓ', 'SO₂', 'CO'],                   # MinAmbiente
+    'bogota-11': ['PM2.5', 'PM10', 'O₃', 'NO₂', 'NO', 'NOₓ', 'SO₂', 'Black carbon'],         # Tunal (no CO channel)
+    'bogota-12': ['PM2.5', 'PM10', 'O₃', 'NO₂', 'NO', 'NOₓ', 'CO'],                          # Las Ferias (no SO₂)
+    'bogota-13': ['PM2.5', 'PM10', 'O₃', 'NO₂', 'NO', 'NOₓ', 'SO₂', 'CO'],                   # Usaquén
+    'bogota-15': ['PM2.5', 'PM10', 'O₃', 'NO₂', 'NO', 'NOₓ', 'CO'],                          # Bolivia (no SO₂)
+    'bogota-16': ['PM2.5', 'PM10', 'NO₂', 'NO', 'NOₓ', 'CO'],                                # Móvil Fontibón
+}
+IBOCA_SET = ['PM2.5', 'PM10', 'O₃', 'NO₂', 'SO₂', 'CO']
+
+
+def channel_bands(sensor_id, bands):
+    """The IBOCA bands for a station's RMCAB channels: the plan's band where it has one, else the
+    best band (1), mock. Pollutants the station has no channel for are dropped."""
+    channels = RMCAB_CHANNELS.get(sensor_id)
+    if channels is None:
+        return bands
+    return {p: bands.get(p, 1) for p in IBOCA_SET if p in channels}
+
+
 # Round 3 decision X: Bogotá publishes more than IBOCA's six in its station data
 # (bogota-pollutant-names.csv): PM1 (microsensor tables), NO, NOx and black carbon (RMCAB feed).
 # They carry no IBOCA band (IBOCA does not rate them). MOCK values, drawn from a separate seed so the
 # draws above are unchanged: NO and NOx at every reference station that reports NO₂, black carbon
 # at four stations, PM1 at every low-cost sensor.
 EXTRA_ORDER = ['PM1', 'NO', 'NOₓ', 'Black carbon']
+# The page's pollutant order (city-sensors POLLUTANT_ORDER), for the readings list.
+DISPLAY_ORDER = ['PM1', 'PM2.5', 'PM10', 'O₃', 'NO₂', 'NO', 'NOₓ', 'SO₂', 'CO', 'Black carbon']
 BLACK_CARBON = {'bogota-03', 'bogota-06', 'bogota-08', 'bogota-10'}
 extra_rng = random.Random(1025)
 
@@ -146,11 +183,14 @@ def extras_for(sensor_id, sensor_type, readings):
     no2 = next((r['value'] for r in readings if r['pollutant'] == 'NO₂'), None)
     if sensor_type == 'low-cost':
         out.append(('PM1', round(pm25 * extra_rng.uniform(0.6, 0.8), 1), 'µg/m³', '1-hour average'))
-    if no2 is not None:
+    channels = RMCAB_CHANNELS.get(sensor_id)
+    has_nox = ('NO' in channels) if channels is not None else no2 is not None
+    if has_nox and no2 is not None:
         no = round(extra_rng.uniform(5, 40), 1)
         out.append(('NO', no, 'µg/m³', '1-hour average'))
         out.append(('NOₓ', round(no2 + no * 1.53, 1), 'µg/m³', '1-hour average'))
-    if sensor_id in BLACK_CARBON:
+    has_bc = ('Black carbon' in channels) if channels is not None else sensor_id in BLACK_CARBON
+    if has_bc:
         out.append(('Black carbon', round(extra_rng.uniform(1.5, 6), 1), 'µg/m³', '1-hour average'))
     return [{'pollutant': p, 'value': v, 'unit': u, 'averaging': a, 'band': None, 'updatedMinutesAgo': None} for p, v, u, a in out]
 
@@ -186,6 +226,7 @@ atlas = json.load(open(os.path.join(DATA, 'sensors', 'bogota.json')))
 sensors = []
 for s in atlas['sensors']:
     bands, minutes, station_type = PLAN[s['id']]
+    bands = channel_bands(s['id'], bands)
     readings = [
         {
             'pollutant': p,
@@ -204,7 +245,7 @@ for s in atlas['sensors']:
         overall = None
         for r in readings:
             r['band'] = None
-    readings.sort(key=lambda r: (ORDER + EXTRA_ORDER).index(r['pollutant']))
+    readings.sort(key=lambda r: DISPLAY_ORDER.index(r['pollutant']))
     sensors.append({
         'id': s['id'],
         'lngLat': s['lngLat'],
