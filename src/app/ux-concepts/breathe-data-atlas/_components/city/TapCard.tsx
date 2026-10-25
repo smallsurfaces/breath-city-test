@@ -4,18 +4,20 @@
  * Purpose
  *   Two ways in, one card, never stacked:
  *     - Tap a sensor (decision C): THAT SENSOR ONLY, no nearest-sensors section. In order:
- *         1. the band capsule then the index name, "[Low] · IBOCA" (iteration 3, decisions A1 to
- *            A3), over a scale bar of equal-width segments (BandScale, with a tooltip per segment,
- *            A4), the marker in the middle of the current band; stale or dead: grey, no marker;
+ *         1. the scale bar of equal-width segments (BandScale, a tooltip per segment), with the band
+ *            capsule above the current band as its marker (iteration 4, round 3 decision C) and the
+ *            index name under it. Stale: grey bar, "No current IBOCA level". Fresh but no band sent
+ *            (decision B2): grey bar, "No IBOCA level reported";
  *         2. the station name, or its location where it has no name (placeName);
  *         3. the sensor type ("Reference grade" / "Low-cost sensor", iteration 3 decision B);
  *         4. "Live · updated 6 min ago" (stale: grey, "Last reading 9 hours ago");
  *         5. "More", opening the sensor detail.
  *       No pollutant lines, no raw numbers, no data source line.
  *     - Tap the map (decision D): a pin drops and the card lists the NEAREST THREE REPORTING
- *       sensors, one compact row each (the Vienna list pattern, with the band label instead of a raw
- *       number): sensor-type icon in the band colour, name or location, distance, recency, band
- *       label in the band colour, and an arrow that opens that sensor's card. No header value, no
+ *       sensors, fresh or stale (iteration 4, decision B1: nothing drops out), one compact row each:
+ *       the marker in small (SensorMarkIcon: band colour, black "–", or grey), name or location,
+ *       distance, recency, the band capsule (none when stale; "No level reported" when the city sent
+ *       no band), and an arrow that opens that sensor's card. No header value, no
  *       pollutant lines. The dashed lines from the pin are drawn by the map.
  *
  * Placement
@@ -39,7 +41,8 @@
 import { useEffect, useRef } from 'react'
 import type { CSSProperties, RefObject } from 'react'
 import { ArrowRight, ChevronRight, X } from 'lucide-react'
-import { BandChip, SensorTypeIcon } from './city-ui'
+import { BandChip, SensorMarkIcon, SensorTypeIcon } from './city-ui'
+import { markerFillFor } from '../chapter/atlas-markers'
 import { BandScale } from './BandScale'
 import type { CityPage } from '../../_data/bogota'
 import { indexLevel, levelDisplayName } from '../../_data/indexes'
@@ -61,12 +64,11 @@ export function neighboursFor(city: CityPage, selection: MapSelection): Array<{ 
   return nearestReporting(selection.lngLat, city.sensors, NEAREST_COUNT, null, city.updateCycleMinutes)
 }
 
-/** The recency in words, for a row. Pure. */
+/** The recency in words, for a row (two states only, decision B1). Pure. */
 function recencyWords(city: CityPage, sensor: CitySensor): string {
   const freshness = freshnessOf(sensor, city.updateCycleMinutes)
   if (freshness === 'fresh') return ageWords(sensor.updatedMinutesAgo)
-  if (freshness === 'stale') return `last reading ${ageWords(sensor.updatedMinutesAgo)}`
-  return `no reading for ${ageWords(sensor.updatedMinutesAgo).replace(' ago', '')}`
+  return `last reading ${ageWords(sensor.updatedMinutesAgo)}`
 }
 
 /** Props for TapCard. */
@@ -96,20 +98,23 @@ function SensorBody({ city, sensor, onOpenDetail, headingId, headingRef }: Senso
   const live = freshness === 'fresh'
   return (
     <div className="space-y-2 px-4 pb-1 pt-3">
-      {/* 1. Band colour and label, on the city's scale. */}
-      {/* Iteration 3 (decisions A1 to A3): the band capsule first, then the index name. No dot. */}
-      <p className="flex min-h-6 items-center gap-2 pr-10 text-sm font-semibold text-foreground" data-card-band-header="">
-        {live ? (
+      {/* 1. The city's scale, its capsule above the current band (iteration 4, decision C), the
+          index named under it. No band (stale, or none reported): a grey bar and the reason. */}
+      <div className="pr-10" data-card-band-header="">
+        {live && sensor.overallBand !== null ? (
           <>
-            <BandChip index={city.index} band={sensor.overallBand} pollutant={null} stale={false} />
-            <span aria-hidden="true">·</span>
-            <span>{city.index.name}</span>
+            <BandScale index={city.index} band={sensor.overallBand} />
+            <p className="mt-1 text-[11px] font-semibold leading-tight text-foreground/70">{city.index.name}</p>
           </>
         ) : (
-          <span className="text-foreground/60">No current {city.index.name} level</span>
+          <>
+            <p className="pb-1 text-sm font-semibold text-foreground/70">
+              {live ? `No ${city.index.name} level reported` : `No current ${city.index.name} level`}
+            </p>
+            <BandScale index={city.index} band={null} />
+          </>
         )}
-      </p>
-      <BandScale index={city.index} band={live ? sensor.overallBand : null} />
+      </div>
       {/* 2. Name or location. */}
       <h3 id={headingId} ref={headingRef} tabIndex={-1} className="pt-1 text-base font-bold leading-tight text-foreground outline-none">
         {placeName(sensor)}
@@ -122,11 +127,7 @@ function SensorBody({ city, sensor, onOpenDetail, headingId, headingRef }: Senso
       {/* 4. Live line, or the age of the last reading. */}
       <p className={`flex items-center gap-2 text-sm ${live ? 'text-foreground' : 'text-foreground/60'}`}>
         <span aria-hidden="true" className={`inline-block h-2 w-2 rounded-full ${live ? 'bg-foreground' : 'bg-foreground/30'}`} />
-        {live
-          ? `Live · updated ${ageWords(sensor.updatedMinutesAgo)}`
-          : freshness === 'stale'
-            ? `Last reading ${ageWords(sensor.updatedMinutesAgo)}`
-            : `No reading for ${ageWords(sensor.updatedMinutesAgo).replace(' ago', '')}`}
+        {live ? `Live · updated ${ageWords(sensor.updatedMinutesAgo)}` : `Last reading ${ageWords(sensor.updatedMinutesAgo)}`}
       </p>
       {/* 5. More. */}
       <button
@@ -152,7 +153,12 @@ type NearestRowProps = {
 /** One nearest-three row (decision D). The whole row is the button; the arrow is its affordance. */
 function NearestRow({ city, sensor, km, onSelect }: NearestRowProps) {
   const live = freshnessOf(sensor, city.updateCycleMinutes) === 'fresh'
-  const level = indexLevel(city.index, sensor.overallBand)
+  const level = sensor.overallBand === null ? null : indexLevel(city.index, sensor.overallBand)
+  const status = !live
+    ? `no current ${city.index.name} level`
+    : level === null
+      ? `no ${city.index.name} level reported`
+      : `${city.index.name} ${levelDisplayName(level)}`
   return (
     <li>
       <button
@@ -160,22 +166,19 @@ function NearestRow({ city, sensor, km, onSelect }: NearestRowProps) {
         onClick={onSelect}
         data-nearest-row={sensor.id}
         className="flex min-h-14 w-full items-center gap-2.5 px-4 py-2 text-left transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-foreground"
-        aria-label={`${placeName(sensor)}, ${distanceWords(km)}, ${recencyWords(city, sensor)}, ${
-          live ? `${city.index.name} ${levelDisplayName(level)}` : `no current ${city.index.name} level`
-        }. Open its card.`}
+        aria-label={`${placeName(sensor)}, ${distanceWords(km)}, ${recencyWords(city, sensor)}, ${status}. Open its card.`}
       >
-        <SensorTypeIcon type={sensor.type} fill={live ? level.hex : 'var(--bc-semantic-border)'} />
+        <SensorMarkIcon type={sensor.type} fill={markerFillFor(live ? 'fresh' : 'stale', true, sensor.overallBand)} colour={level?.hex ?? null} />
         <span className="min-w-0 flex-1">
           <span className="block truncate text-sm font-semibold text-foreground">{placeName(sensor)}</span>
           <span className="block text-xs text-foreground/70">
             {distanceWords(km)} · {recencyWords(city, sensor)}
           </span>
         </span>
-        {live ? (
+        {live && sensor.overallBand !== null && (
           <BandChip index={city.index} band={sensor.overallBand} pollutant={null} stale={false} />
-        ) : (
-          <span className="text-xs text-foreground/60">No level</span>
         )}
+        {live && sensor.overallBand === null && <span className="text-xs text-foreground/70">No level reported</span>}
         <ChevronRight className="h-4 w-4 shrink-0 text-foreground/70" aria-hidden="true" />
       </button>
     </li>

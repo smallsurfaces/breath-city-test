@@ -21,6 +21,12 @@
  *   provenance stays in the data file.
  *   Counts are of the city's own sensors; nothing is ranked or compared (rule 3).
  *
+ * Iteration 4 (round 3 decision F)
+ *   Both tile kinds share one layout: title top left (a sensor type with its icon, or the pollutant
+ *   name, bold), the count in the bottom-right corner, larger than the title and aligned with the
+ *   sparkline's end, the sparkline from the left edge to just before it, the start year under its
+ *   left end. Sensor-type counts are bold (number-led); pollutant counts are light.
+ *
  * Accessibility
  *   Each tile is a button (at least 56px tall) whose name says what it is and what it opens. The
  *   pop-up opens in AtlasDialog, which traps focus and returns it to the tile.
@@ -54,9 +60,9 @@ const TILE =
   'group relative flex min-h-14 w-full min-w-0 flex-col items-stretch gap-2 rounded-2xl border border-border bg-background p-4 text-left shadow-sm transition-[border-color,background-color,transform] hover:border-foreground/40 hover:bg-muted active:scale-[0.99] active:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground'
 
 /**
- * Which figure leads a tile (iteration 3, decision E5): a sensor-type tile leads with its count
- * ("16" largest, the type above it small); a pollutant tile leads with its name ("PM2.5" largest,
- * the count under it smaller).
+ * Which figure leads a tile (iteration 4, decision F, replacing iteration 3's E5): 'count' for a
+ * sensor-type tile (bold count, number-led), 'title' for a pollutant tile (bold name, light count).
+ * Both put the count bottom right, larger than the title.
  */
 type TileLead = 'count' | 'title'
 
@@ -73,25 +79,40 @@ type TileProps = {
   onOpen: () => void
 }
 
-/** One tile. The sparkline spans the tile's full inner width (decision E4); labels may wrap (E6). */
+/**
+ * One tile (iteration 4, decision F). Top left: the title (a sensor type with its icon, or the
+ * pollutant name, bold). Bottom: the sparkline from the left edge to just before the count, the
+ * count in the bottom-right corner aligned with the line's end, the start year under the line's left
+ * end. The count is larger than the title on both kinds; a sensor-type tile keeps it BOLD
+ * (number-led), a pollutant tile sets it LIGHT. Without a year of archive the count sits alone,
+ * bottom right (spec 6.2). Labels may wrap (E6).
+ */
 function Tile({ title, icon, count, lead, series, showSparkline, opensLabel, onOpen }: TileProps) {
+  const countNode = (
+    <span
+      data-tile-count=""
+      className={`shrink-0 text-3xl leading-none tabular-nums text-foreground ${lead === 'count' ? 'font-bold' : 'font-light'}`}
+    >
+      {count}
+    </span>
+  )
   return (
     <button type="button" onClick={onOpen} className={TILE} aria-label={`${title}: ${count}. ${opensLabel}`} data-tile-lead={lead}>
       {lead === 'count' ? (
-        <>
-          <span className="flex items-start gap-2 pr-9 text-sm font-semibold leading-snug text-foreground">
-            <span className="mt-1 flex">{icon}</span>
-            <span className="min-w-0 break-words">{title}</span>
-          </span>
-          <span className="text-2xl font-bold leading-none text-foreground">{count}</span>
-        </>
+        <span className="flex items-start gap-2 pr-9 text-sm font-semibold leading-snug text-foreground">
+          <span className="mt-1 flex">{icon}</span>
+          <span className="min-w-0 break-words">{title}</span>
+        </span>
       ) : (
-        <>
-          <span className="min-w-0 break-words pr-9 text-2xl font-bold leading-none text-foreground">{title}</span>
-          <span className="text-sm font-semibold leading-none text-foreground/75">{count}</span>
-        </>
+        <span className="min-w-0 break-words pr-9 text-lg font-bold leading-tight text-foreground">{title}</span>
       )}
-      {showSparkline && <Sparkline values={series.values} startYear={series.startYear} />}
+      <span className="mt-auto block w-full pt-1">
+        {showSparkline ? (
+          <Sparkline values={series.values} startYear={series.startYear} end={countNode} />
+        ) : (
+          <span className="flex justify-end">{countNode}</span>
+        )}
+      </span>
       {/* The affordance: a small arrow that moves on hover. */}
       <span
         aria-hidden="true"

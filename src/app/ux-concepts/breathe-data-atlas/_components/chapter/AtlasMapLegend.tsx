@@ -1,4 +1,9 @@
 /**
+ * ITERATION 4 (round 3 decision A1)
+ *   The phone layout matches desktop: the bar with each level's English name in plain text,
+ *   centred under its own segment, at every width. The phone's capsule row is gone. Long names wrap
+ *   inside their column ("Hazardous" fits under its fifth of a 390px bar on one line).
+ *
  * ITERATION 3 (round 2 feedback, decisions A1, A2 and B)
  *   - Sensor types use OpenAQ's names via sensorTypeLabel: "Reference grade", "Low-cost sensor".
  *   - Level names are English only ("Low", not "Bajo (Low)"). On a phone the names list as band
@@ -73,7 +78,6 @@
 
 import { CreditInfo } from './CreditInfo'
 import { OutboundLink } from './ChapterLink'
-import { BandChip } from '../city/city-ui'
 import { levelDisplayName } from '../../_data/indexes'
 import { sensorTypeLabel } from '../../_data/city-sensors'
 import type { CityPage } from '../../_data/bogota'
@@ -146,16 +150,11 @@ export function AtlasMapLegend({ city, hasLowCost, hasReferenceGrade }: AtlasMap
           {/* The level names, in the city's own wording with the English in brackets. One list, two
               layouts (see the file header): beneath their segments from `sm`, a list under the bar
               below it. */}
-          <ol className="mt-1.5 flex flex-wrap gap-1.5 sm:flex-nowrap sm:gap-0">
+          <ol className="mt-1.5 flex">
             {index.levels.map((level) => (
-              <li key={level.order} className="sm:flex-1 sm:px-1 sm:text-center">
-                {/* Phone: the band capsule (iteration 3, decision A1), which ties the name to its
-                    colour where the names no longer sit under the bar. From `sm` the plain name sits
-                    under its own segment, which does that job. No swatch beside a label. */}
-                <span className="sm:hidden">
-                  <BandChip index={index} band={level.order} pollutant={null} stale={false} />
-                </span>
-                <span className={`hidden sm:inline ${LABEL}`}>{levelDisplayName(level)}</span>
+              <li key={level.order} className="min-w-0 flex-1 px-0.5 text-center" data-legend-level={level.order}>
+                {/* Iteration 4 (decision A1): the plain name under its own segment at every width. */}
+                <span className={`block break-words ${LABEL}`}>{levelDisplayName(level)}</span>
               </li>
             ))}
           </ol>
