@@ -227,7 +227,7 @@ function NearestRow({ city, sensor, km, onSelect }: NearestRowProps) {
       >
         <SensorMarkIcon
           type={sensor.type}
-          fill={markerFillFor(live ? 'fresh' : 'stale', ratesStations, sensor.overallBand, index !== null)}
+          fill={markerFillFor(live ? 'fresh' : 'stale', ratesStations, sensor.overallBand, index !== null, index?.noBandMarker)}
           colour={level?.hex ?? null}
         />
         <span className="min-w-0 flex-1">

@@ -71,6 +71,12 @@ export type CityAirQualityIndex = {
    * Mock data uses this (brief section 7: one sensitive-groups sensor per tier-4 city).
    */
   sensitiveOrder: number
+  /**
+   * Set to 'white' when the index's own palette includes black (ISPU's Hazardous), so the black
+   * "no band" marker would be confused with a real band: that city's no-band marker is white with a
+   * dark "–" instead. Absent means the usual black marker with a white "–". Data-driven, never by city name.
+   */
+  noBandMarker?: 'white'
 }
 
 
@@ -132,6 +138,7 @@ export const CITY_INDEXES: Record<string, CityAirQualityIndex> = {
     ],
     moderateOrder: 2,
     sensitiveOrder: 3,
+    noBandMarker: 'white',
   },
   // Brussels: BelAQI, hourly rows of research/.../brussels/v2/brussels-aqi-bands.csv (IRCELINE).
   brussels: {

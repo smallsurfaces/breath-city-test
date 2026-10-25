@@ -256,7 +256,7 @@ export function PassiveTubeIcon() {
 type SensorMarkIconProps = {
   type: SensorType
   /** What the map marker's fill says (../chapter/atlas-markers MarkerFill). */
-  fill: 'band' | 'no-band' | 'no-index' | 'neutral' | 'stale'
+  fill: 'band' | 'no-band' | 'no-band-white' | 'no-index' | 'neutral' | 'stale'
   /** The band colour, used only when `fill` is 'band'. */
   colour: string | null
 }
@@ -271,7 +271,9 @@ export function SensorMarkIcon({ type, fill, colour }: SensorMarkIconProps) {
   const background =
     fill === 'band' && colour !== null
       ? colour
-      : fill === 'no-band' || fill === 'no-index'
+      : fill === 'no-band-white'
+        ? '#ffffff'
+        : fill === 'no-band' || fill === 'no-index'
         ? '#000000'
         : fill === 'neutral'
           ? 'var(--background)'
@@ -284,6 +286,7 @@ export function SensorMarkIcon({ type, fill, colour }: SensorMarkIconProps) {
       style={{ backgroundColor: background }}
     >
       {fill === 'no-band' && <span className="block h-[2px] w-[7px] rounded-full bg-white" />}
+      {fill === 'no-band-white' && <span className="block h-[2px] w-[7px] rounded-full bg-black" />}
     </span>
   )
 }
