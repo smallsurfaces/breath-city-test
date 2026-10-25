@@ -77,6 +77,7 @@ export const BOGOTA: CityPage = {
   ],
   methodLine: 'Bogotá rates air quality at each monitoring station with IBOCA.',
   legendLine: 'Colour shows each station’s IBOCA level.',
+  legendNote: null,
   mapCredit: null,
   // Spec 5.5 default (3 hours). IBOCA's map refreshes hourly; the default is kept for review.
   updateCycleMinutes: 180,
@@ -211,6 +212,7 @@ export const BOGOTA: CityPage = {
     getTheData: [{ label: 'RMCAB data reports', url: 'http://rmcab.ambientebogota.gov.co/' }],
   },
   sensors: parseCitySensors(bogotaPageSensors as unknown, 'bogota', IBOCA.levels.length),
+  passiveTubes: null,
   districts: null,
   surface: null,
 }

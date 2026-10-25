@@ -63,6 +63,7 @@ export const BRUSSELS: CityPage = {
   ],
   methodLine: 'IRCELINE models the BelAQI level for every point in the Brussels-Capital Region each hour.',
   legendLine: 'Colour shows IRCELINE’s BelAQI level across the region.',
+  legendNote: null,
   mapCredit: { label: 'BelAQI layer: IRCELINE (sample data in this prototype)', url: 'https://www.irceline.be/en' },
   updateCycleMinutes: 180,
   archiveStartYear: 2010,
@@ -139,6 +140,12 @@ export const BRUSSELS: CityPage = {
     getTheData: [{ label: 'IRCELINE measurement time series (open API)', url: 'https://geo.irceline.be/sos/api/v1/timeseries' }],
   },
   sensors: parseCitySensors(brusselsSensors as unknown, 'brussels', BELAQI.levels.length),
+  // Round 3 decision S: Brussels Environment's fixed NO₂ diffusion-tube sites, 29 (research: 0 of
+  // 29 dated, so no sparkline). Real count; never mapped, never banded.
+  passiveTubes: {
+    count: 29,
+    provenance: "Brussels Environment's fixed passive NO₂ diffusion-tube sites, 29, per round 3 decision S (Jack); no per-site dates published.",
+  },
   districts: null,
   surface: parseSurface(brusselsSurface as unknown, BELAQI.levels.length),
 }

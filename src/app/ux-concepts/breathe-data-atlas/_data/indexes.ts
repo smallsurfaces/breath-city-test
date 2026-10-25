@@ -45,6 +45,11 @@ export type IndexLevel = {
   nameEnglish: string
   /** The city's own colour for this level, as published. */
   hex: string
+  /**
+   * The English name with soft-hyphen break points (U+00AD), for the legend on a phone where ten
+   * levels share the width (BelAQI). Display only; omitted where the name never needs to break.
+   */
+  legendBreaks?: string
 }
 
 /** A city's own air quality index. */
@@ -132,16 +137,16 @@ export const CITY_INDEXES: Record<string, CityAirQualityIndex> = {
     name: 'BelAQI',
     publisher: 'IRCELINE (Belgian Interregional Environment Agency), with Brussels Environment',
     levels: [
-      { order: 1, nameOriginal: 'Excellent', nameEnglish: 'Excellent', hex: '#0000FF' },
+      { order: 1, nameOriginal: 'Excellent', nameEnglish: 'Excellent', hex: '#0000FF', legendBreaks: 'Excel\u00ADlent' },
       { order: 2, nameOriginal: 'Very good', nameEnglish: 'Very good', hex: '#0099FF' },
       { order: 3, nameOriginal: 'Good', nameEnglish: 'Good', hex: '#009900' },
       { order: 4, nameOriginal: 'Fairly good', nameEnglish: 'Fairly good', hex: '#00FF00' },
-      { order: 5, nameOriginal: 'Moderate', nameEnglish: 'Moderate', hex: '#FFFF00' },
+      { order: 5, nameOriginal: 'Moderate', nameEnglish: 'Moderate', hex: '#FFFF00', legendBreaks: 'Mode\u00ADrate' },
       { order: 6, nameOriginal: 'Poor', nameEnglish: 'Poor', hex: '#FFBB00' },
       { order: 7, nameOriginal: 'Very poor', nameEnglish: 'Very poor', hex: '#FF6600' },
       { order: 8, nameOriginal: 'Bad', nameEnglish: 'Bad', hex: '#FF0000' },
       { order: 9, nameOriginal: 'Very bad', nameEnglish: 'Very bad', hex: '#CC0000' },
-      { order: 10, nameOriginal: 'Horrible', nameEnglish: 'Horrible', hex: '#990099' },
+      { order: 10, nameOriginal: 'Horrible', nameEnglish: 'Horrible', hex: '#990099', legendBreaks: 'Hor\u00ADrible' },
     ],
     moderateOrder: 2,
     sensitiveOrder: 3,
