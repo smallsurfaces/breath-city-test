@@ -23,9 +23,12 @@
  *   - Pollutant names: bogota-pollutant-names.csv. The page shows the six core pollutants IBOCA
  *     uses; the feed's other channels (NO, NOx, black carbon, PM1) are not IBOCA pollutants.
  *   - Averaging times: bogota-aqi-bands.csv (IBOCA's own), carried on each mock reading.
- *   - Area and population: the spec names bogota-place-layers.csv, but that file lists data layers
- *     and publishes no area or population figure. Rule 6 (absent, not placeholder): `placeFacts` is
- *     EMPTY and the page renders no facts. Add a figure here only with its source and year.
+ *   - Area and population (Jack, 25 October): the spec's named file publishes neither, so Jack
+ *     supplied the Capital District figures from Wikipedia's Bogotá infobox, read 2026-10-25 and
+ *     cited there to DANE: area 1,587 km² (Capital District), population 8,034,649 (2022), shown
+ *     as "8.0 million (2022)". NOTE: the Capital District includes the rural south (Sumapaz);
+ *     the outline the map draws is OSM relation 7426387, "Bogotá ciudad", which does NOT, so the
+ *     area label names the Capital District explicitly.
  *   - Links: the content pack's verified links, as the Atlas used them.
  *
  * Mock and sample (spec rule 8)
@@ -98,7 +101,17 @@ export type PollutantCityInfo = {
 }
 
 /** A plain place fact (area, population) with its source and year, as published. */
-export type PlaceFact = { label: string; value: string; year: string; source: CityLink }
+export type PlaceFact = {
+  label: string
+  /** As displayed, e.g. "1,587 km²" or "8.0 million". */
+  value: string
+  /** The figure's year where the source gives one, else null. */
+  year: string | null
+  /** Where the figure comes from, shown behind the "i". */
+  source: CityLink
+  /** The exact figure and how it was read, kept as provenance (not displayed). */
+  provenance: string
+}
 
 /** One city page's data. */
 export type CityPage = {
@@ -199,7 +212,22 @@ export const BOGOTA: CityPage = {
       'Wear an N95 mask (d) outdoors and indoors while this level of air pollution lasts.',
     ],
   },
-  placeFacts: [],
+  placeFacts: [
+    {
+      label: 'Area (Capital District)',
+      value: '1,587 km²',
+      year: null,
+      source: { label: 'Wikipedia, Bogotá (figures cited to DANE), read 25 October 2026', url: 'https://en.wikipedia.org/wiki/Bogot%C3%A1' },
+      provenance: 'Wikipedia Bogotá infobox, Capital District area 1,587 km², read 2026-10-25; supplied by Jack.',
+    },
+    {
+      label: 'Population',
+      value: '8.0 million',
+      year: '2022',
+      source: { label: 'Wikipedia, Bogotá (figures cited to DANE), read 25 October 2026', url: 'https://en.wikipedia.org/wiki/Bogot%C3%A1' },
+      provenance: 'Wikipedia Bogotá infobox, population 8,034,649 (2022, cited to DANE), read 2026-10-25; supplied by Jack.',
+    },
+  ],
   sensorTypeGrowth: {
     'reference-grade': { startYear: 2015, values: [13, 13, 13, 14, 14, 14, 15, 15, 15, 16, 16, 16], status: 'sample' },
     'low-cost': { startYear: 2022, values: [2, 4, 6, 7, 8], status: 'sample' },

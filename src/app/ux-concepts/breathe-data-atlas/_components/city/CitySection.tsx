@@ -4,7 +4,7 @@
  *
  * Purpose
  *   6.1 Area and population: two plain facts with an "i" credit, ONLY when the city's data carries
- *       them with a source and year. Bogotá's named source publishes neither, so none render (rule 6).
+ *       them with a source (Bogotá: Wikipedia's infobox figures, cited to DANE; see the data file).
  *   6.2 Sensor-type tiles: one per type, today's count (derived from the mock sensor file, so
  *       "Sample figure") and a sample sparkline with its start year. Each opens the sensor-type
  *       explainer. A city with under one year of archive shows the count only (hasYearOfArchive).
@@ -113,7 +113,8 @@ export function CitySection({ city }: CitySectionProps) {
                 </CreditInfo>
               </dt>
               <dd className="text-xl font-bold text-foreground">
-                {fact.value} <span className="text-sm font-normal text-foreground/70">({fact.year})</span>
+                {fact.value}
+                {fact.year !== null && <span className="text-sm font-normal text-foreground/70"> ({fact.year})</span>}
               </dd>
             </div>
           ))}
