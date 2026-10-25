@@ -239,6 +239,19 @@ export function SensorTypeIcon({ type, fill }: SensorTypeIconProps) {
   )
 }
 
+/**
+ * The passive diffusion-tube icon (round 3 decision S): a small upright tube, distinct from the
+ * map's circle and square. Used only on the sensor-type tile and in the sensor types pop-up, since
+ * the tubes are never on the map. Neutral, decorative.
+ */
+export function PassiveTubeIcon() {
+  return (
+    <span aria-hidden="true" data-passive-tube-icon="" className="inline-flex h-3.5 w-3 shrink-0 items-end justify-center">
+      <span className="block h-3.5 w-1.5 rounded-b-full rounded-t-[1px] border border-foreground/70 bg-foreground/25" />
+    </span>
+  )
+}
+
 /** Props for SensorMarkIcon. */
 type SensorMarkIconProps = {
   type: SensorType

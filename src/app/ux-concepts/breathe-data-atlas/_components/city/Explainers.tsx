@@ -29,7 +29,7 @@
  */
 
 import type { ReactNode } from 'react'
-import { AdviceLadder, SensorTypeIcon, Sparkline } from './city-ui'
+import { AdviceLadder, PassiveTubeIcon, SensorTypeIcon, Sparkline } from './city-ui'
 import { CreditInfo } from '../chapter/CreditInfo'
 import { OutboundLink } from '../chapter/ChapterLink'
 import type { CityLink, CityPage, GrowthSeries } from '../../_data/city-page'
@@ -196,10 +196,23 @@ export function PollutantExplainerFull({ city, pollutant, sites, series, showSpa
   )
 }
 
-/** The sensor-type explainer's content (decision H). Server-safe: no state. */
-export function SensorTypeExplainer() {
+/** A sensor kind the city has: a sensor type on its map, or its passive tubes (decision S). */
+export type SensorKind = 'reference-grade' | 'low-cost' | 'passive-tubes'
+
+/** Props for SensorTypeExplainer. */
+type SensorTypeExplainerProps = {
+  /** The kinds this city has, from the same data as its tiles (round 3 decision T). */
+  kinds: SensorKind[]
+}
+
+/**
+ * The sensor-type explainer's content (decision H). Round 3 decision T: only the kinds the city has,
+ * in tile order. Server-safe: no state.
+ */
+export function SensorTypeExplainer({ kinds }: SensorTypeExplainerProps) {
   return (
     <div className="space-y-5">
+      {kinds.includes('reference-grade') && (
       <section>
         <h4 className={`${STEP_HEADING} flex items-center gap-2`}>
           <SensorTypeIcon type="reference-grade" fill={null} />
@@ -211,6 +224,8 @@ export function SensorTypeExplainer() {
           dioxide, sulfur dioxide and carbon monoxide.
         </p>
       </section>
+      )}
+      {kinds.includes('low-cost') && (
       <section>
         <h4 className={`${STEP_HEADING} flex items-center gap-2`}>
           <SensorTypeIcon type="low-cost" fill={null} />
@@ -221,6 +236,20 @@ export function SensorTypeExplainer() {
           sensors typically measure particles (PM2.5, sometimes PM10).
         </p>
       </section>
+      )}
+      {kinds.includes('passive-tubes') && (
+        <section data-explainer-kind="passive-tubes">
+          <h4 className={`${STEP_HEADING} flex items-center gap-2`}>
+            <PassiveTubeIcon />
+            Passive NO₂ diffusion tubes
+          </h4>
+          <p className={BODY}>
+            Small passive tubes that absorb nitrogen dioxide from the air over a few weeks, then are analysed in a
+            laboratory. They give an average over the exposure period rather than a live reading, and are cheap
+            enough to place at many sites.
+          </p>
+        </section>
+      )}
     </div>
   )
 }

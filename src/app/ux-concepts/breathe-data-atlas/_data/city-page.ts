@@ -147,6 +147,12 @@ export type CityPage = {
   methodLine: string
   /** The legend's one visible line: what the colour shows, or why there is none. */
   legendLine: string
+  /**
+   * Replaces the legend's index block with ONE line, optionally linked (round 3 decision U, Milan:
+   * "For today's air quality report, visit ARPA Lombardia"). No heading, no legend line, no "i".
+   * Null everywhere else.
+   */
+  legendNote: { text: string; link: CityLink | null } | null
   /** Who made the map's band layer, credited behind the legend's "i" (Brussels: IRCELINE), or null. */
   mapCredit: CityLink | null
   /** The feed's update cycle in minutes: a reading older than this is stale (decision B1). */
@@ -174,6 +180,13 @@ export type CityPage = {
   goFurther: { services: CityLink[]; getTheData: CityLink[] }
   /** The city's mock sensors. */
   sensors: CitySensor[]
+  /**
+   * A passive-tube network the city publishes (round 3 decision S), shown ONLY as a sensor-type tile
+   * with its published count and in the sensor types pop-up: never on the map, in the nearest three,
+   * or with a band (no published positions; averages over weeks, not live). No sparkline: no per-site
+   * dates are published. Null where the city's research lists none.
+   */
+  passiveTubes: { count: number; provenance: string } | null
   /** Jakarta: the districts with their mock bands; null for other methods. */
   districts: DistrictArea[] | null
   /** Brussels: the mock band surface; null for other methods. */

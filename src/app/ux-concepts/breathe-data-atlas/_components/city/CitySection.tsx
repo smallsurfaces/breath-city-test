@@ -45,7 +45,8 @@ import { ArrowRight, ArrowUpRight } from 'lucide-react'
 import { ConceptSectionHeader } from '@/components/concept'
 import { AtlasDialog } from './AtlasDialog'
 import { PollutantExplainerFull, SensorTypeExplainer } from './Explainers'
-import { SensorTypeIcon, Sparkline } from './city-ui'
+import type { SensorKind } from './Explainers'
+import { PassiveTubeIcon, SensorTypeIcon, Sparkline } from './city-ui'
 import { hasYearOfArchive } from '../../_data/city-page'
 import type { CityPage, GrowthSeries, LargestSource } from '../../_data/city-page'
 import { SourceIcon } from './SourceIcon'
@@ -183,6 +184,8 @@ export function CitySection({ city }: CitySectionProps) {
   const types: SensorType[] = (['reference-grade', 'low-cost'] as SensorType[]).filter((type) =>
     city.sensors.some((sensor) => sensor.type === type),
   )
+  // Round 3 decision T: the pop-up lists exactly the kinds the tiles show (S adds passive tubes).
+  const kinds: SensorKind[] = [...types, ...(city.passiveTubes === null ? [] : (['passive-tubes'] as SensorKind[]))]
   const pollutants = POLLUTANT_ORDER.filter((pollutant) => sitesMeasuring(city, pollutant) > 0)
 
   const dialogTitle =
@@ -210,6 +213,20 @@ export function CitySection({ city }: CitySectionProps) {
                 onOpen={() => setOpen({ kind: 'sensor-type' })}
               />
             ))}
+            {/* Round 3 decision S: the city's passive tubes, count only (no sparkline: no per-site
+                dates), never on the map. */}
+            {city.passiveTubes !== null && (
+              <Tile
+                title="Passive NO₂ diffusion tubes"
+                icon={<PassiveTubeIcon />}
+                count={city.passiveTubes.count}
+                lead="count"
+                series={null}
+                showSparkline={false}
+                opensLabel="Opens what this sensor type is"
+                onOpen={() => setOpen({ kind: 'sensor-type' })}
+              />
+            )}
           </div>
         </div>
 
@@ -238,7 +255,7 @@ export function CitySection({ city }: CitySectionProps) {
         eyebrow={open !== null && open.kind === 'pollutant' ? 'Pollutant' : ''}
         title={dialogTitle}
       >
-        {open !== null && open.kind === 'sensor-type' && <SensorTypeExplainer />}
+        {open !== null && open.kind === 'sensor-type' && <SensorTypeExplainer kinds={kinds} />}
         {open !== null && open.kind === 'pollutant' && (
           <PollutantExplainerFull
             city={city}

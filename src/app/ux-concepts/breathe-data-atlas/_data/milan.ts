@@ -42,6 +42,12 @@ export const MILAN: CityPage = {
   indexLinks: [],
   methodLine: 'ARPA Lombardia publishes its air quality index for Milan once a day, as an image, not as a live level per station.',
   legendLine: 'Milan does not publish a live air quality level per station. Tap a sensor to see its latest readings.',
+  // Round 3 decision U: one line in place of the legend's index block. Link from
+  // milan-aqi-bands.csv source_document (ARPA Lombardia's air quality index page).
+  legendNote: {
+    text: 'For today’s air quality report, visit',
+    link: { label: 'ARPA Lombardia', url: 'https://www.arpalombardia.it/temi-ambientali/aria/modellistica/lindice-di-qualita-dellaria/' },
+  },
   mapCredit: null,
   updateCycleMinutes: 180,
   archiveStartYear: 2010,
@@ -141,6 +147,7 @@ export const MILAN: CityPage = {
     ],
   },
   sensors: parseCitySensors(milanSensors as unknown, 'milan', 0),
+  passiveTubes: null,
   districts: null,
   surface: null,
 }

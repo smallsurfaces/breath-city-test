@@ -74,6 +74,7 @@ export const JAKARTA: CityPage = {
   ],
   methodLine: 'Jakarta rates air quality for each district with ISPU.',
   legendLine: 'Colour shows each district’s ISPU level.',
+  legendNote: null,
   mapCredit: { label: 'District outlines: © OpenStreetMap contributors (ODbL)', url: 'https://www.openstreetmap.org/copyright' },
   updateCycleMinutes: 180,
   archiveStartYear: 2019,
@@ -194,6 +195,7 @@ export const JAKARTA: CityPage = {
     getTheData: [{ label: 'Request air monitoring data (PPID)', url: 'https://lingkunganhidup.jakarta.go.id/layanan/ppid' }],
   },
   sensors: parseCitySensors(jakartaSensors as unknown, 'jakarta', ISPU.levels.length),
+  passiveTubes: null,
   districts: parseDistricts(jakartaDistricts as unknown, ISPU.levels.length),
   surface: null,
 }

@@ -121,6 +121,17 @@ export function AtlasMapLegend({ city, hasLowCost, hasReferenceGrade }: AtlasMap
         )}
       </ul>
 
+      {/* Round 3 decision U (Milan): one linked line replaces the whole index block. */}
+      {city.legendNote !== null ? (
+        <p className="text-sm text-foreground/85" data-legend-note="">
+          {city.legendNote.text}{' '}
+          {city.legendNote.link !== null && (
+            <OutboundLink href={city.legendNote.link.url} className="-my-3 font-semibold text-foreground underline">
+              {city.legendNote.link.label}
+            </OutboundLink>
+          )}
+        </p>
+      ) : (
       <div>
         {/* The index name above the bar, so the scale reads as the city's own, with its method line,
             publisher, map credit and link behind the "i". A city with no index (Sofia, Milan) gets
@@ -161,8 +172,11 @@ export function AtlasMapLegend({ city, hasLowCost, hasReferenceGrade }: AtlasMap
             <ol className="mt-1.5 flex" lang="en">
               {index.levels.map((level) => (
                 <li key={level.order} className="min-w-0 flex-1 px-0.5 text-center" data-legend-level={level.order}>
-                  <span className={`block break-words [hyphens:auto] ${LABEL} ${index.levels.length > 6 ? 'max-sm:text-[9px]' : ''}`}>
-                    {levelDisplayName(level)}
+                  <span
+                    lang="en"
+                    className={`block ${LABEL} ${index.levels.length > 6 ? 'max-sm:text-[9px] [hyphens:auto] [overflow-wrap:normal]' : 'break-words'}`}
+                  >
+                    {level.legendBreaks ?? levelDisplayName(level)}
                   </span>
                 </li>
               ))}
@@ -170,6 +184,7 @@ export function AtlasMapLegend({ city, hasLowCost, hasReferenceGrade }: AtlasMap
           </>
         )}
       </div>
+      )}
     </div>
   )
 }

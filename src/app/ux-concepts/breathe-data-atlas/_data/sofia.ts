@@ -42,6 +42,7 @@ export const SOFIA: CityPage = {
   indexLinks: [],
   methodLine: 'Sofia publishes readings from its monitoring stations and a PM10 concentration scale, but no air quality index.',
   legendLine: 'Sofia does not publish an air quality index. Tap a sensor to see its latest readings.',
+  legendNote: null,
   mapCredit: null,
   updateCycleMinutes: 180,
   archiveStartYear: 2012,
@@ -129,6 +130,7 @@ export const SOFIA: CityPage = {
     getTheData: [{ label: 'Data from automatic monitoring stations', url: 'https://air.sofia.bg/airpublic/air/data/forecasts/measures/list/' }],
   },
   sensors: parseCitySensors(sofiaSensors as unknown, 'sofia', 0),
+  passiveTubes: null,
   districts: null,
   surface: null,
 }
