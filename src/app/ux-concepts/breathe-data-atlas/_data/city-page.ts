@@ -1,6 +1,6 @@
 /**
  * city-page.ts — the shape every Breathe Data Atlas city page's data takes, the area layers
- * (Jakarta's districts, Brussels's surface), and the build-time checks every city runs.
+ * (Brussels's surface; the district method has no city now), and the build-time checks every city runs.
  *
  * Purpose
  *   The Bogotá page (iteration 4) is the template for every city page (SPEC ADDENDUM, 2026-10-25).
@@ -9,8 +9,11 @@
  *   data change between cities.
  *
  * Map methods (SPEC ADDENDUM, "Rules that decide every city's behaviour")
- *   station   Bogotá: the city's feed rates each station; markers carry the station's band.
- *   district  Jakarta: the city rates each district; districts are shaded, markers are neutral.
+ *   station   Bogotá and Jakarta: the city's feed rates each station; markers carry the station's
+ *             band. (Jakarta moved here from 'district' on 2026-10-25: Udara Jakarta publishes ISPU
+ *             per station, and its best/worst boxes rank stations labelled by district.)
+ *   district  No city at present: the city rates each district; districts are shaded, markers are
+ *             neutral. Kept for a future view (Jakarta's district file stays in ./areas, unused).
  *   surface   Brussels: the city's model rates every point (IRCELINE's BelAQI layer, mocked here);
  *             the region is shaded, markers are neutral.
  *   none      Sofia and Milan: the city publishes no live band; neutral markers, no band, no advice.
@@ -211,10 +214,16 @@ export type CityPage = {
    * dates are published. Null where the city's research lists none.
    */
   passiveTubes: { count: number; provenance: string } | null
-  /** Jakarta: the districts with their mock bands; null for other methods. */
+  /** The district method's districts with their mock bands; null for other methods (no city uses it now). */
   districts: DistrictArea[] | null
   /** Brussels: the mock band surface; null for other methods. */
   surface: BandSurface | null
+  /**
+   * What the map's starting view fits (decision V). Omitted: the city outline. 'sensors': the
+   * sensors' extent, for an outline that would leave the city tiny (Jakarta's OSM province outline
+   * runs out to sea to take in the Thousand Islands).
+   */
+  fitTo?: 'sensors'
 }
 
 /**

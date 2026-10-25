@@ -16,7 +16,7 @@
  *       no-index fresh, in a city that has NO live index at all (Sofia, Milan, round 3, Jack's marker
  *                rule): PLAIN BLACK, no hyphen. The sensor publishes readings; there is no band to
  *                miss. Driven by the city's data (index === null), never by city name. Pulses.
- *       neutral  fresh, where the city rates areas, not stations (Jakarta, Brussels): a plain
+ *       neutral  fresh, where the city rates areas, not stations (Brussels): a plain
  *                neutral fill with a neutral pulse. Nothing is missing.
  *       stale    older than the city's cycle, however old: grey, still, never a band colour.
  *     There is no dead or hollow state any more (decision B1).

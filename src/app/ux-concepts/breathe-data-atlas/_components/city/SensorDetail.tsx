@@ -126,7 +126,8 @@ export function SensorDetail({ city, sensor }: SensorDetailProps) {
   const furtherLinks: CityLink[] = [...city.goFurther.services, ...city.goFurther.getTheData]
   // One pollutant explainer open at a time.
   const [openPollutant, setOpenPollutant] = useState<PollutantId | null>(null)
-  // The area band at the sensor (Jakarta's district, Brussels's surface), looked up, never computed.
+  // The area band at the sensor (a district, Brussels's surface), looked up, never computed.
+  // Station cities (Bogotá, Jakarta) have none: their advice comes from the station's own band.
   const area = areaBandAt(city, sensor.lngLat)
   const timeLine = fresh ? `Updated ${ageWords(sensor.updatedMinutesAgo)}` : `Last reading ${ageWords(sensor.updatedMinutesAgo)}`
 

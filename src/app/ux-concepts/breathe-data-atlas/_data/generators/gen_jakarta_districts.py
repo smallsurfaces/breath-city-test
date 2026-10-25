@@ -2,6 +2,10 @@
 """Generate Jakarta's district (kecamatan) layer for the Breathe Data Atlas Jakarta page
 (SPEC ADDENDUM, Jakarta: "districts shaded lightly in their ISPU band colour").
 
+NOT SHOWN since 2026-10-25: Jakarta uses the station method (Udara Jakarta publishes ISPU per
+station). The file is kept, unused by the page, for a possible forecast view; the sensor generator
+still reads it for the mock locality labels.
+
 Output: _data/areas/jakarta-districts.json
 
 What is real and what is not

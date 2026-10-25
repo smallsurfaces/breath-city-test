@@ -167,7 +167,7 @@ type CurrentAdviceProps = {
   band: number
   /**
    * A small line naming where the band belongs when it is not the sensor's own (phase 2): "In
-   * Kebayoran Baru" (Jakarta's district), "Regional model at this point" (Brussels). Null for none.
+   * Kebayoran Baru" (the district method; no city now), "Regional model at this point" (Brussels). Null for none.
    */
   caption: string | null
 }
