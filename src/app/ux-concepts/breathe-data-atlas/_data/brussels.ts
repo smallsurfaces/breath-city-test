@@ -87,10 +87,10 @@ export const BRUSSELS: CityPage = {
   pollutants: {
     'PM2.5': {
       sources: [
-        { category: 'Residential and tertiary heating', share: '41.6%' },
-        { category: 'Road transport', share: '25.5%' },
-        { category: 'Waste', share: '12.4%' },
-        { category: 'Solvents and product use', share: '11.6%' },
+        { category: 'Residential and tertiary heating', share: '41.6%', icon: 'home-heating' },
+        { category: 'Road transport', share: '25.5%', icon: 'road-traffic' },
+        { category: 'Waste', share: '12.4%', icon: 'waste-burning' },
+        { category: 'Solvents and product use', share: '11.6%', icon: 'other' },
       ],
       sourcesNote: null,
       largestSource: { icon: 'home-heating', label: 'Heating buildings' },
@@ -98,8 +98,8 @@ export const BRUSSELS: CityPage = {
     },
     PM10: {
       sources: [
-        { category: 'Road transport', share: '36%' },
-        { category: 'Residential and tertiary heating', share: '32%' },
+        { category: 'Road transport', share: '36%', icon: 'road-traffic' },
+        { category: 'Residential and tertiary heating', share: '32%', icon: 'home-heating' },
       ],
       sourcesNote: null,
       largestSource: { icon: 'road-traffic', label: 'Road transport' },
@@ -107,9 +107,9 @@ export const BRUSSELS: CityPage = {
     },
     'O₃': {
       sources: [
-        { category: 'Industrial processes and product use', share: '37%' },
-        { category: 'Road transport', share: '28%' },
-        { category: 'Residential combustion', share: '13%' },
+        { category: 'Industrial processes and product use', share: '37%', icon: 'industry' },
+        { category: 'Road transport', share: '28%', icon: 'road-traffic' },
+        { category: 'Residential combustion', share: '13%', icon: 'home-heating' },
       ],
       sourcesNote: 'Ozone is not emitted directly. The inventory lists sources of the gases that form it.',
       largestSource: null,
@@ -117,9 +117,9 @@ export const BRUSSELS: CityPage = {
     },
     'NO₂': {
       sources: [
-        { category: 'Road transport', share: '44%' },
-        { category: 'Heating buildings (other stationary combustion)', share: '34.4%' },
-        { category: 'Public power (incinerator, cogeneration)', share: '11.8%' },
+        { category: 'Road transport', share: '44%', icon: 'road-traffic' },
+        { category: 'Heating buildings (other stationary combustion)', share: '34.4%', icon: 'home-heating' },
+        { category: 'Public power (incinerator, cogeneration)', share: '11.8%', icon: 'industry' },
       ],
       sourcesNote: 'Shares are of nitrogen oxides, the group nitrogen dioxide belongs to.',
       largestSource: { icon: 'road-traffic', label: 'Road transport' },

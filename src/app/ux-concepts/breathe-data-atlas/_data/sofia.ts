@@ -70,11 +70,11 @@ export const SOFIA: CityPage = {
   pollutants: {
     'PM2.5': {
       sources: [
-        { category: 'Household heating', share: '73.28%' },
-        { category: 'Resuspended particles from area sources', share: '14.10%' },
-        { category: 'Road transport', share: '11.13%' },
-        { category: 'Industry', share: '1.40%' },
-        { category: 'Construction', share: '0.09%' },
+        { category: 'Household heating', share: '73.28%', icon: 'home-heating' },
+        { category: 'Resuspended particles from area sources', share: '14.10%', icon: 'road-dust' },
+        { category: 'Road transport', share: '11.13%', icon: 'road-traffic' },
+        { category: 'Industry', share: '1.40%', icon: 'industry' },
+        { category: 'Construction', share: '0.09%', icon: 'construction' },
       ],
       sourcesNote: null,
       largestSource: { icon: 'home-heating', label: 'Household heating' },
@@ -82,11 +82,11 @@ export const SOFIA: CityPage = {
     },
     PM10: {
       sources: [
-        { category: 'Household heating', share: '55.97%' },
-        { category: 'Resuspended particles from area sources', share: '31.50%' },
-        { category: 'Road transport', share: '10.78%' },
-        { category: 'Industry', share: '1.09%' },
-        { category: 'Construction', share: '0.66%' },
+        { category: 'Household heating', share: '55.97%', icon: 'home-heating' },
+        { category: 'Resuspended particles from area sources', share: '31.50%', icon: 'road-dust' },
+        { category: 'Road transport', share: '10.78%', icon: 'road-traffic' },
+        { category: 'Industry', share: '1.09%', icon: 'industry' },
+        { category: 'Construction', share: '0.66%', icon: 'construction' },
       ],
       sourcesNote: null,
       largestSource: { icon: 'home-heating', label: 'Household heating' },
@@ -100,9 +100,9 @@ export const SOFIA: CityPage = {
     },
     'NO₂': {
       sources: [
-        { category: 'Road transport', share: '78.73%' },
-        { category: 'Industry', share: '15.55%' },
-        { category: 'Household heating', share: '5.72%' },
+        { category: 'Road transport', share: '78.73%', icon: 'road-traffic' },
+        { category: 'Industry', share: '15.55%', icon: 'industry' },
+        { category: 'Household heating', share: '5.72%', icon: 'home-heating' },
       ],
       sourcesNote: 'Shares are of nitrogen oxides, the group nitrogen dioxide belongs to.',
       largestSource: { icon: 'road-traffic', label: 'Road transport' },
@@ -116,9 +116,9 @@ export const SOFIA: CityPage = {
     },
     CO: {
       sources: [
-        { category: 'Household heating', share: '69.09%' },
-        { category: 'Road transport', share: '30.41%' },
-        { category: 'Industry', share: '0.50%' },
+        { category: 'Household heating', share: '69.09%', icon: 'home-heating' },
+        { category: 'Road transport', share: '30.41%', icon: 'road-traffic' },
+        { category: 'Industry', share: '0.50%', icon: 'industry' },
       ],
       sourcesNote: null,
       largestSource: { icon: 'home-heating', label: 'Household heating' },

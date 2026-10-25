@@ -133,12 +133,12 @@ export const BOGOTA: CityPage = {
   pollutants: {
     'PM2.5': {
       sources: [
-        { category: 'Dust lifted from roads by traffic', share: '40%' },
-        { category: 'Fuel burned by vehicles on roads', share: '17%' },
-        { category: 'Brake and tyre wear', share: '11%' },
-        { category: 'Construction machinery', share: '10%' },
-        { category: 'Construction work', share: '10%' },
-        { category: 'Quarries', share: '6%' },
+        { category: 'Dust lifted from roads by traffic', share: '40%', icon: 'road-dust' },
+        { category: 'Fuel burned by vehicles on roads', share: '17%', icon: 'road-traffic' },
+        { category: 'Brake and tyre wear', share: '11%', icon: 'road-traffic' },
+        { category: 'Construction machinery', share: '10%', icon: 'construction' },
+        { category: 'Construction work', share: '10%', icon: 'construction' },
+        { category: 'Quarries', share: '6%', icon: 'quarrying' },
       ],
       sourcesNote: null,
       // Largest share: road dust resuspension, 40%.
@@ -147,9 +147,9 @@ export const BOGOTA: CityPage = {
     },
     PM10: {
       sources: [
-        { category: 'Dust lifted from roads by traffic', share: null },
-        { category: 'Construction work', share: null },
-        { category: 'Brake and tyre wear', share: null },
+        { category: 'Dust lifted from roads by traffic', share: null, icon: 'road-dust' },
+        { category: 'Construction work', share: null, icon: 'construction' },
+        { category: 'Brake and tyre wear', share: null, icon: 'road-traffic' },
       ],
       sourcesNote: null,
       // Largest share in the file: road dust resuspension (76.2%, derived from the inventory's tonnes).
@@ -158,8 +158,8 @@ export const BOGOTA: CityPage = {
     },
     'O₃': {
       sources: [
-        { category: 'Vehicles on roads', share: null },
-        { category: 'Evaporation from commercial sources', share: null },
+        { category: 'Vehicles on roads', share: null, icon: 'road-traffic' },
+        { category: 'Evaporation from commercial sources', share: null, icon: 'other' },
       ],
       sourcesNote: 'Ozone is not emitted directly. The inventory lists sources of the gases that form it.',
       // Ozone forms in the air: no direct source, so no icon (decision J).
@@ -168,9 +168,9 @@ export const BOGOTA: CityPage = {
     },
     'NO₂': {
       sources: [
-        { category: 'Fuel burned by vehicles on roads', share: null },
-        { category: 'Off-road machinery', share: null },
-        { category: 'Industry', share: null },
+        { category: 'Fuel burned by vehicles on roads', share: null, icon: 'road-traffic' },
+        { category: 'Off-road machinery', share: null, icon: 'construction' },
+        { category: 'Industry', share: null, icon: 'industry' },
       ],
       sourcesNote: null,
       // Largest share in the file: on-road mobile sources, combustion (79.4% of NOx, derived).
@@ -179,8 +179,8 @@ export const BOGOTA: CityPage = {
     },
     'SO₂': {
       sources: [
-        { category: 'Industry', share: null },
-        { category: 'Vehicles on roads', share: null },
+        { category: 'Industry', share: null, icon: 'industry' },
+        { category: 'Vehicles on roads', share: null, icon: 'road-traffic' },
       ],
       sourcesNote: null,
       // Largest share in the file: industrial fixed sources (81.1% of SOx, derived).
@@ -188,7 +188,7 @@ export const BOGOTA: CityPage = {
       sitesGrowth: { startYear: 2015, values: [6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 7, 7], status: 'sample' },
     },
     CO: {
-      sources: [{ category: 'Fuel burned by vehicles on roads', share: null }],
+      sources: [{ category: 'Fuel burned by vehicles on roads', share: null, icon: 'road-traffic' }],
       sourcesNote: null,
       // Largest share in the file: on-road mobile sources, combustion (92.6%, derived).
       largestSource: { icon: 'road-traffic', label: 'Vehicle exhaust' },
