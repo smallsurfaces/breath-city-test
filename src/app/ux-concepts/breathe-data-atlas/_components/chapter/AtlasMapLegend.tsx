@@ -1,4 +1,11 @@
 /**
+ * ITERATION 3 (round 2 feedback, decisions A1, A2 and B)
+ *   - Sensor types use OpenAQ's names via sensorTypeLabel: "Reference grade", "Low-cost sensor".
+ *   - Level names are English only ("Low", not "Bajo (Low)"). On a phone the names list as band
+ *     capsules (the one capsule style), replacing the swatch-plus-name rows; from `sm` the plain
+ *     name sits under its segment. The bar itself stays a key, without a marker or tooltips: every
+ *     level is named in words beside it.
+ *
  * ITERATION 2 (round 1 feedback, decisions B2 and B3)
  *   - ONE "i" for the index, above the colour bands, beside the index name. It holds the method
  *     line ("Bogotá rates air quality at each monitoring station with IBOCA."), the publisher text
@@ -60,12 +67,15 @@
  *   carries colour.
  *
  * Key exports: AtlasMapLegend (named)
- * External dependencies: ./CreditInfo, ../../_data/indexes (CityAirQualityIndex, levelDisplayName).
+ * External dependencies: ./CreditInfo, ./ChapterLink, ../city/city-ui (BandChip),
+ *   ../../_data/indexes (levelDisplayName), ../../_data/city-sensors (sensorTypeLabel).
  */
 
 import { CreditInfo } from './CreditInfo'
 import { OutboundLink } from './ChapterLink'
+import { BandChip } from '../city/city-ui'
 import { levelDisplayName } from '../../_data/indexes'
+import { sensorTypeLabel } from '../../_data/city-sensors'
 import type { CityPage } from '../../_data/bogota'
 
 /** Props for AtlasMapLegend. */
@@ -93,7 +103,7 @@ export function AtlasMapLegend({ city, hasLowCost, hasReferenceGrade }: AtlasMap
               aria-hidden="true"
               className="inline-block h-3 w-3 rounded-full border border-foreground/70 bg-foreground/25"
             />
-            <span className={LABEL}>Low-cost sensor</span>
+            <span className={LABEL}>{sensorTypeLabel('low-cost')}</span>
           </li>
         )}
         {hasReferenceGrade && (
@@ -102,7 +112,7 @@ export function AtlasMapLegend({ city, hasLowCost, hasReferenceGrade }: AtlasMap
               aria-hidden="true"
               className="inline-block h-3 w-3 rounded-[2px] border border-foreground/70 bg-foreground/25"
             />
-            <span className={LABEL}>Reference monitor</span>
+            <span className={LABEL}>{sensorTypeLabel('reference-grade')}</span>
           </li>
         )}
       </ul>
@@ -136,20 +146,16 @@ export function AtlasMapLegend({ city, hasLowCost, hasReferenceGrade }: AtlasMap
           {/* The level names, in the city's own wording with the English in brackets. One list, two
               layouts (see the file header): beneath their segments from `sm`, a list under the bar
               below it. */}
-          <ol className="mt-1.5 flex flex-col gap-1.5 sm:flex-row sm:gap-0">
+          <ol className="mt-1.5 flex flex-wrap gap-1.5 sm:flex-nowrap sm:gap-0">
             {index.levels.map((level) => (
-              <li
-                key={level.order}
-                className="flex items-center gap-2 sm:flex-1 sm:items-start sm:gap-0 sm:px-1 sm:text-center"
-              >
-                {/* Ties a name to its colour in the phone list, where the names no longer sit under
-                    the bar. Hidden from `sm`, where the segment above it does that job. */}
-                <span
-                  aria-hidden="true"
-                  className="inline-block h-2.5 w-4 shrink-0 rounded-[2px] sm:hidden"
-                  style={{ backgroundColor: level.hex }}
-                />
-                <span className={LABEL}>{levelDisplayName(level)}</span>
+              <li key={level.order} className="sm:flex-1 sm:px-1 sm:text-center">
+                {/* Phone: the band capsule (iteration 3, decision A1), which ties the name to its
+                    colour where the names no longer sit under the bar. From `sm` the plain name sits
+                    under its own segment, which does that job. No swatch beside a label. */}
+                <span className="sm:hidden">
+                  <BandChip index={index} band={level.order} pollutant={null} stale={false} />
+                </span>
+                <span className={`hidden sm:inline ${LABEL}`}>{levelDisplayName(level)}</span>
               </li>
             ))}
           </ol>

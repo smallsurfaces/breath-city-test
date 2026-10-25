@@ -17,6 +17,10 @@
  *     - A Today / Tomorrow switch appears ONLY when the city's data carries a forecast published as
  *       a band (5.7). Bogotá's carries none, so there is no switch.
  *
+ * Iteration 3 (round 2): a "Recentre map" button directly below the zoom buttons, in their style
+ *   (RecentreControl). It returns the map to its starting view and clears any card, pin, dashed
+ *   lines and selected marker.
+ *
  * Iteration 2 (round 1 feedback, decisions B5, B6 and B8)
  *   - CITY LOCK (B5): `maxBounds` is the city outline's bounding box plus LOCK_MARGIN of its size on
  *     each side, so panning stops at the city, and minZoom is the zoom that shows that whole box, so
@@ -198,6 +202,46 @@ type AtlasDataMapProps = {
   boundary: CityBoundary | null
 }
 
+/** The recentre icon (lucide "locate-fixed" geometry), drawn in currentColor. Decorative. */
+const RECENTRE_ICON =
+  '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false" style="display:block;margin:auto"><line x1="2" x2="5" y1="12" y2="12"/><line x1="19" x2="22" y1="12" y2="12"/><line x1="12" x2="12" y1="2" y2="5"/><line x1="12" x2="12" y1="19" y2="22"/><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="3"/></svg>'
+
+/**
+ * The recentre button (iteration 3, decision A2 of the coordinator's additions): a Mapbox control
+ * in the zoom buttons' own group style, added straight after NavigationControl in the top-right
+ * corner, so it sits directly below "+" and "−". It matches the zoom buttons' size (Mapbox's
+ * 29px control stack): a 56px button would not fit that stack. Built as an IControl because the
+ * control lives in Mapbox's own DOM, outside React; the press calls back into the component.
+ */
+class RecentreControl implements mapboxgl.IControl {
+  private readonly onRecentre: () => void
+  private container: HTMLDivElement | null = null
+
+  constructor(onRecentre: () => void) {
+    this.onRecentre = onRecentre
+  }
+
+  onAdd(): HTMLElement {
+    const container = document.createElement('div')
+    container.className = 'mapboxgl-ctrl mapboxgl-ctrl-group'
+    const button = document.createElement('button')
+    button.type = 'button'
+    button.setAttribute('aria-label', 'Recentre map')
+    button.title = 'Recentre map'
+    button.dataset.recentre = ''
+    button.innerHTML = RECENTRE_ICON
+    button.addEventListener('click', () => this.onRecentre())
+    container.appendChild(button)
+    this.container = container
+    return container
+  }
+
+  onRemove(): void {
+    this.container?.remove()
+    this.container = null
+  }
+}
+
 /** The city map. Client component: Mapbox needs the browser. */
 export function AtlasDataMap({ city, boundary }: AtlasDataMapProps) {
   const containerRef = useRef<HTMLDivElement | null>(null)
@@ -314,6 +358,15 @@ export function AtlasDataMap({ city, boundary }: AtlasDataMapProps) {
       'bottom-right',
     )
     map.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'top-right')
+    // Directly below the zoom buttons: back to the starting view, with any card, pin, dashed lines
+    // and selected marker cleared (closing the card clears the selection, which clears the rest).
+    map.addControl(
+      new RecentreControl(() => {
+        closeCard(false)
+        map.fitBounds(bounds, { ...FIT_OPTIONS, duration: prefersReducedMotion() ? 0 : 600 })
+      }),
+      'top-right',
+    )
 
     // Markers first, off the style path (the Atlas's first-render fix). Order is stacking order:
     // dead under stale under fresh, and worse levels last, so the meaningful marker wins a tap.

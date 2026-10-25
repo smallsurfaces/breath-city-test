@@ -249,11 +249,10 @@ export function indexLevel(index: CityAirQualityIndex, order: number): IndexLeve
 }
 
 /**
- * A level as the interface shows it: the name the city publishes, with the English name after it
- * when the two differ (the prototype is English only, brief section 2). Never a BC-invented name.
+ * A level as the interface shows it: the English name from the index data only (Breathe Data Atlas
+ * iteration 3, round 2 decision A2: "Low", not "Bajo (Low)"). The live site would show the city's
+ * own wording; for this prototype Jack explains that at the presentation. Never a BC-invented name.
  */
 export function levelDisplayName(level: IndexLevel): string {
-  return level.nameOriginal === level.nameEnglish
-    ? level.nameEnglish
-    : `${level.nameOriginal} (${level.nameEnglish})`
+  return level.nameEnglish
 }

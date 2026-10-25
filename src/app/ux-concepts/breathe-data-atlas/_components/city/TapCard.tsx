@@ -4,10 +4,11 @@
  * Purpose
  *   Two ways in, one card, never stacked:
  *     - Tap a sensor (decision C): THAT SENSOR ONLY, no nearest-sensors section. In order:
- *         1. the city's band colour and label on a scale bar of equal-width segments (BandScale),
- *            the marker in the middle of the current band; stale or dead: grey, no band, no marker;
+ *         1. the band capsule then the index name, "[Low] · IBOCA" (iteration 3, decisions A1 to
+ *            A3), over a scale bar of equal-width segments (BandScale, with a tooltip per segment,
+ *            A4), the marker in the middle of the current band; stale or dead: grey, no marker;
  *         2. the station name, or its location where it has no name (placeName);
- *         3. the sensor type ("Reference-grade station" / "Low-cost sensor");
+ *         3. the sensor type ("Reference grade" / "Low-cost sensor", iteration 3 decision B);
  *         4. "Live · updated 6 min ago" (stale: grey, "Last reading 9 hours ago");
  *         5. "More", opening the sensor detail.
  *       No pollutant lines, no raw numbers, no data source line.
@@ -29,7 +30,7 @@
  *   buttons at least 56px tall.
  *
  * Key exports: TapCard (named), MapSelection (type), CardPlacement (type), neighboursFor
- * External dependencies: react, lucide-react, ./city-ui, ../../_data/bogota, ../../_data/indexes,
+ * External dependencies: react, lucide-react, ./city-ui, ./BandScale, ../../_data/bogota, ../../_data/indexes,
  *   ../../_data/city-sensors.
  */
 
@@ -38,7 +39,8 @@
 import { useEffect, useRef } from 'react'
 import type { CSSProperties, RefObject } from 'react'
 import { ArrowRight, ChevronRight, X } from 'lucide-react'
-import { BandChip, BandScale, SensorTypeIcon } from './city-ui'
+import { BandChip, SensorTypeIcon } from './city-ui'
+import { BandScale } from './BandScale'
 import type { CityPage } from '../../_data/bogota'
 import { indexLevel, levelDisplayName } from '../../_data/indexes'
 import { ageWords, distanceWords, freshnessOf, nearestReporting, placeName, sensorTypeCardLabel } from '../../_data/city-sensors'
@@ -92,15 +94,16 @@ type SensorBodyProps = {
 function SensorBody({ city, sensor, onOpenDetail, headingId, headingRef }: SensorBodyProps) {
   const freshness = freshnessOf(sensor, city.updateCycleMinutes)
   const live = freshness === 'fresh'
-  const level = indexLevel(city.index, sensor.overallBand)
   return (
     <div className="space-y-2 px-4 pb-1 pt-3">
       {/* 1. Band colour and label, on the city's scale. */}
-      <p className="flex min-h-6 items-center gap-2 pr-10 text-sm font-semibold text-foreground">
+      {/* Iteration 3 (decisions A1 to A3): the band capsule first, then the index name. No dot. */}
+      <p className="flex min-h-6 items-center gap-2 pr-10 text-sm font-semibold text-foreground" data-card-band-header="">
         {live ? (
           <>
-            <span aria-hidden="true" className="inline-block h-3 w-3 shrink-0 rounded-full border border-foreground/60" style={{ backgroundColor: level.hex }} />
-            {city.index.name} · {levelDisplayName(level)}
+            <BandChip index={city.index} band={sensor.overallBand} pollutant={null} stale={false} />
+            <span aria-hidden="true">·</span>
+            <span>{city.index.name}</span>
           </>
         ) : (
           <span className="text-foreground/60">No current {city.index.name} level</span>

@@ -1,31 +1,32 @@
 /**
- * city-ui.tsx — small shared pieces of the city page: the band chip, the band scale bar, the city's
- * advice (one band, or every band), the sensor-type icon and the sparkline.
+ * city-ui.tsx — small shared pieces of the city page: the band capsule, the index "i", the city's
+ * advice (one band, or every band), the sensor-type icon and the sparkline. The band scale bar lives
+ * in ./BandScale (it has state for its tooltips).
  *
  * Purpose
  *   The sensor card, the nearest-three card, the sensor detail, the pollutant pop-up and the city
  *   section all show the same few things. Defining them once keeps the rules in one place:
- *     - Colour only where it is the city's own index colour (rule 2): BandChip, BandScale, the
- *       advice swatches and a coloured SensorTypeIcon take their colour from the index level. Stale
- *       is grey (spec 5.5).
- *     - The index is named once wherever advice appears, as one link, "IBOCA index", then each
- *       band as swatch and label (feedback item 8, decisions E2 and G4). No "IBOCA ·" per band.
- *     - No breakpoint numbers (rule 5): nothing here takes a value, only a level. BandScale puts its
- *       marker in the MIDDLE of the current band's segment, never at an exact position (C1).
- *   Iteration 2 removed the "Sample figure" and "Draft content" tags (decision K2) and the
- *   expandable chip (the helper lines and the inline advice are gone, decisions C and E6).
+ *     - Colour only where it is the city's own index colour (rule 2): BandChip and BandScale take
+ *       their colour from the index level. Stale is grey (spec 5.5).
+ *     - Iteration 3 (round 2 decisions A1, A2): ONE capsule style for every band label (BandChip),
+ *       English names only, no dot or swatch beside a label anywhere.
+ *     - The index link sits behind an "i" (IndexInfo, decisions C1 and D2), not as a visible line.
+ *     - No breakpoint numbers (rule 5): nothing here takes a value, only a level.
+ *     - Iteration 3 (decision E4): the sparkline spans the full width of its tile.
  *
  * TOKEN EXCEPTION (named)
  *   DARK_TEXT and LIGHT_TEXT are the two literal text colours used ON a city's index colour, chosen
  *   by contrast. A city's colour is data (it arrives as hex), so the text on it has to be chosen in
  *   code; both are neutral and carry no meaning. Copied from the Atlas sensor card.
  *
- * Key exports: readableTextOn, BandChip, BandScale, IndexLink, CurrentAdvice, AdviceLadder,
- *   SensorTypeIcon, Sparkline
- * External dependencies: ../chapter/ChapterLink (OutboundLink), ../../_data/indexes,
+ * Key exports: readableTextOn, BandChip, IndexInfo, CurrentAdvice, AdviceLadder, SensorTypeIcon,
+ *   Sparkline
+ * External dependencies: ./BandScale, ../chapter/CreditInfo, ../chapter/ChapterLink, ../../_data/indexes,
  *   ../../_data/bogota (CityPage), ../../_data/city-sensors (SensorType).
  */
 
+import { BandScale } from './BandScale'
+import { CreditInfo } from '../chapter/CreditInfo'
 import { OutboundLink } from '../chapter/ChapterLink'
 import { indexLevel, levelDisplayName } from '../../_data/indexes'
 import type { CityAirQualityIndex } from '../../_data/indexes'
@@ -60,91 +61,63 @@ type BandChipProps = {
   stale: boolean
 }
 
-/** A level chip: "Moderado" (or "PM2.5 · Moderado") in the city's own colour for that level. */
+/**
+ * The band capsule, the ONE style for every band label (iteration 3, decision A1): the level's
+ * English name (A2) in a pill filled with the city's colour for that level, text chosen for contrast.
+ * No dot or swatch beside it.
+ */
 export function BandChip({ index, band, pollutant, stale }: BandChipProps) {
   const level = indexLevel(index, band)
-  const text = pollutant === null ? level.nameOriginal : `${pollutant} · ${level.nameOriginal}`
+  const name = levelDisplayName(level)
+  const text = pollutant === null ? name : `${pollutant} · ${name}`
   const colourStyle = stale
     ? { backgroundColor: 'var(--bc-semantic-border)', color: 'var(--bc-semantic-text)' }
     : { backgroundColor: level.hex, color: readableTextOn(level.hex) }
   return (
-    <span className="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold leading-tight" style={colourStyle}>
+    <span
+      className="inline-flex items-center whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-semibold leading-tight"
+      style={colourStyle}
+      data-band-capsule={band}
+    >
       {text}
     </span>
   )
 }
 
-/** Props for BandScale. */
-type BandScaleProps = {
-  index: CityAirQualityIndex
-  /** The current band, or null for a sensor with no current band (stale or dead): no marker. */
-  band: number | null
-}
-
-/**
- * The sensor card's scale (decision C1): one EQUAL-WIDTH segment per band of the city's index, in
- * the city's colours, best to worst, with a marker in the MIDDLE of the current band's segment.
- * Never an exact position: the segments are equal, so nothing about the reading's value is implied.
- * With no current band, the bar is grey and carries no marker. Decorative to assistive tech: the
- * label beside it names the level in words.
- */
-export function BandScale({ index, band }: BandScaleProps) {
-  const count = index.levels.length
-  const markerLeft = band === null ? null : `${((band - 0.5) / count) * 100}%`
-  return (
-    <div aria-hidden="true" className="relative pt-3" data-band-scale={band === null ? 'none' : String(band)}>
-      {markerLeft !== null && (
-        // A small downward caret above the bar, centred on the band's segment.
-        <span
-          className="absolute top-0 h-0 w-0 -translate-x-1/2 border-x-[6px] border-t-[9px] border-x-transparent"
-          style={{ left: markerLeft, borderTopColor: 'var(--foreground)' }}
-        />
-      )}
-      <div className="flex h-2.5 gap-0.5 overflow-hidden rounded-full">
-        {index.levels.map((level) => (
-          <span key={level.order} className="flex-1" style={{ backgroundColor: band === null ? 'var(--bc-semantic-border)' : level.hex }} />
-        ))}
-      </div>
-    </div>
-  )
-}
-
-/** Props for IndexLink. */
-type IndexLinkProps = {
+/** Props for IndexInfo. */
+type IndexInfoProps = {
   city: CityPage
 }
 
-/** The index named once, as a link: "IBOCA index" with the outbound arrow (feedback item 8). */
-export function IndexLink({ city }: IndexLinkProps) {
+/**
+ * The index link behind an "i" (iteration 3, decisions C1 and D2): holds "IBOCA index" with its
+ * outbound arrow. Sits inside the sensor detail or the pollutant pop-up, both dialogs.
+ */
+export function IndexInfo({ city }: IndexInfoProps) {
   return (
-    <OutboundLink href={city.adviceLink.url} className="-my-3 text-sm font-semibold text-foreground underline">
-      {city.adviceLink.label}
-    </OutboundLink>
+    <CreditInfo label={`About ${city.index.name}`} align="end" className="" inDialog={true}>
+      <OutboundLink href={city.adviceLink.url} className="-my-3 text-sm font-semibold text-foreground underline">
+        {city.adviceLink.label}
+      </OutboundLink>
+    </CreditInfo>
   )
 }
 
-/** Props for one band's advice. */
-type BandAdviceProps = {
+/** Props for the city's items for one band. */
+type BandItemsProps = {
   city: CityPage
   band: number
 }
 
-/** One band: its swatch and label, then the city's own items for it (type R), never reworded. */
-function BandAdvice({ city, band }: BandAdviceProps) {
-  const level = indexLevel(city.index, band)
+/** The city's own items for one band (type R), never reworded. */
+function BandItems({ city, band }: BandItemsProps) {
   const items = city.advice[band] ?? []
   return (
-    <div>
-      <p className="flex items-center gap-2 text-sm font-semibold text-foreground">
-        <span aria-hidden="true" className="inline-block h-3 w-5 shrink-0 rounded-[3px]" style={{ backgroundColor: level.hex }} />
-        {levelDisplayName(level)}
-      </p>
-      <ul className="mt-1 list-disc space-y-1 pl-5 text-sm leading-snug text-foreground/90">
-        {items.map((item) => (
-          <li key={item}>{item}</li>
-        ))}
-      </ul>
-    </div>
+    <ul className="mt-2 list-disc space-y-1 pl-5 text-sm leading-snug text-foreground/90">
+      {items.map((item) => (
+        <li key={item}>{item}</li>
+      ))}
+    </ul>
   )
 }
 
@@ -156,17 +129,28 @@ type CurrentAdviceProps = {
 }
 
 /**
- * The sensor detail's opening block (decision E2): "What Bogotá advises" for the CURRENT band only,
- * the index link once, then that band's swatch, label and items.
+ * The sensor detail's opening block (iteration 3, decision C): no heading and no link line. The
+ * band capsule, the same scale bar as the sensor card (marker on the current band), then Bogotá's
+ * items for that band. The "IBOCA index" link sits behind an "i" at the block's top right.
  */
 export function CurrentAdvice({ city, band }: CurrentAdviceProps) {
+  const level = indexLevel(city.index, band)
   return (
-    <section aria-label={`What ${city.name} advises`} className="rounded-xl bg-muted p-4" data-current-advice={band}>
-      <h3 className="text-base font-semibold text-foreground">What {city.name} advises</h3>
-      <IndexLink city={city} />
-      <div className="mt-1">
-        <BandAdvice city={city} band={band} />
+    <section
+      aria-label={`${city.index.name}: ${levelDisplayName(level)}`}
+      className="relative rounded-xl bg-muted p-4"
+      data-current-advice={band}
+    >
+      <div className="absolute right-3 top-3">
+        <IndexInfo city={city} />
       </div>
+      <div className="pr-10">
+        <BandChip index={city.index} band={band} pollutant={null} stale={false} />
+      </div>
+      <div className="mt-2">
+        <BandScale index={city.index} band={band} />
+      </div>
+      <BandItems city={city} band={band} />
     </section>
   )
 }
@@ -176,19 +160,20 @@ type AdviceLadderProps = {
   city: CityPage
 }
 
-/** Every band's advice, best to worst, under one index link (the pollutant pop-up, decision G4). */
+/**
+ * Every band's advice, best to worst (the pollutant pop-up, decision D3): each band as its capsule,
+ * then the city's items. The index link sits behind the section heading's "i" (decision D2).
+ */
 export function AdviceLadder({ city }: AdviceLadderProps) {
   return (
-    <div>
-      <IndexLink city={city} />
-      <ol className="mt-1 space-y-4">
-        {city.index.levels.map((level) => (
-          <li key={level.order}>
-            <BandAdvice city={city} band={level.order} />
-          </li>
-        ))}
-      </ol>
-    </div>
+    <ol className="space-y-4">
+      {city.index.levels.map((level) => (
+        <li key={level.order}>
+          <BandChip index={city.index} band={level.order} pollutant={null} stale={false} />
+          <BandItems city={city} band={level.order} />
+        </li>
+      ))}
+    </ol>
   )
 }
 
@@ -199,7 +184,7 @@ type SensorTypeIconProps = {
   fill: string | null
 }
 
-/** The sensor-type icon: circle for low-cost, square for a reference monitor (the map's shapes). */
+/** The sensor-type icon: circle for low-cost, square for reference grade (the map's shapes). */
 export function SensorTypeIcon({ type, fill }: SensorTypeIconProps) {
   const shape = type === 'reference-grade' ? 'rounded-[2px]' : 'rounded-full'
   if (fill === null) {
@@ -217,9 +202,11 @@ type SparklineProps = {
 }
 
 /**
- * A neutral sparkline of a sample series, with its start year as a small axis label UNDER THE LEFT
- * END of the line (decision F3). No other axis, no values, no colour: CSS/SVG only. Decorative to
- * assistive tech except for the year.
+ * A neutral sparkline of a sample series, spanning the full width of its container (iteration 3,
+ * decision E4), with its start year as a small axis label UNDER THE LEFT END of the line. No other
+ * axis, no values, no colour: CSS/SVG only. The SVG stretches horizontally (preserveAspectRatio
+ * "none") and its strokes keep their width (non-scaling-stroke). Decorative to assistive tech
+ * except for the year.
  */
 export function Sparkline({ values, startYear }: SparklineProps) {
   if (values.length < 2) return null
@@ -236,10 +223,18 @@ export function Sparkline({ values, startYear }: SparklineProps) {
     })
     .join(' ')
   return (
-    <div className="flex flex-col items-start">
-      <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} aria-hidden="true" focusable="false" className="overflow-visible">
-        <line x1={0.5} y1={height + 2} x2={0.5} y2={height - 3} stroke="currentColor" strokeWidth={1} className="text-foreground/40" />
-        <polyline points={points} fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinejoin="round" strokeLinecap="round" className="text-foreground/60" />
+    <div className="flex w-full flex-col items-start" data-sparkline="">
+      <svg
+        width="100%"
+        height={height}
+        viewBox={`0 0 ${width} ${height}`}
+        preserveAspectRatio="none"
+        aria-hidden="true"
+        focusable="false"
+        className="block w-full overflow-visible"
+      >
+        <line x1={0.5} y1={height + 2} x2={0.5} y2={height - 3} stroke="currentColor" strokeWidth={1} vectorEffect="non-scaling-stroke" className="text-foreground/40" />
+        <polyline points={points} fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinejoin="round" strokeLinecap="round" vectorEffect="non-scaling-stroke" className="text-foreground/60" />
       </svg>
       <span className="mt-1 text-[11px] leading-none tabular-nums text-foreground/60">{startYear}</span>
     </div>
