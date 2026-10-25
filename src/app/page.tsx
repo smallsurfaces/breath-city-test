@@ -90,6 +90,7 @@ export default function HomePage() {
             CONCEPTS.aqNetwork,
             CONCEPTS.globalToolkitNetwork,
             CONCEPTS.breatheAtlas,
+            CONCEPTS.breatheDataAtlas,
           ].map((concept) => (
             <div key={concept.route} className="flex items-center gap-3">
               <span className="text-sm w-52 shrink-0" style={{ color: "var(--bc-semantic-text)" }}>

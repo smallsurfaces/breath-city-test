@@ -28,7 +28,7 @@
  */
 
 /** Stable concept identifiers — one per UX concept (NOT per version). */
-export type ConceptId = 'roadmap' | 'residentConcerns' | 'toolkit' | 'aqNetwork' | 'globalToolkitNetwork' | 'breatheAtlas'
+export type ConceptId = 'roadmap' | 'residentConcerns' | 'toolkit' | 'aqNetwork' | 'globalToolkitNetwork' | 'breatheAtlas' | 'breatheDataAtlas'
 
 /** A single concept's catalogue entry: its canonical title + canonical route. */
 export type ConceptEntry = {
@@ -68,6 +68,12 @@ export const CONCEPTS: Record<ConceptId, ConceptEntry> = {
   breatheAtlas: {
     title: 'Global Site Concept - Breathe Atlas',
     route: '/ux-concepts/breathe-atlas',
+  },
+  // Added 2026-10-25 (Jack): the next iteration of Breathe Atlas, built on a copy of it. The
+  // breathe-atlas entry above stays as shown to CAF and BP.
+  breatheDataAtlas: {
+    title: 'Global Site Concept - Breathe Data Atlas',
+    route: '/ux-concepts/breathe-data-atlas',
   },
 }
 

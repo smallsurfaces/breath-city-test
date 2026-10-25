@@ -1,0 +1,57 @@
+{
+ "_note": "Approximate station positions for the Breathe Data Atlas poster map only (spec 3.1). NOT surveyed coordinates and NOT a snapshot: read by eye from a screenshot of the city's own map. Never shown as numbers. Generated 2026-10-25.",
+ "city": "brussels",
+ "positionSource": "approximate, from the city's official map (IRCELINE PM2.5 current hourly mean map; screenshot, 2026-10-25)",
+ "reference": "design/globalsite/next-iteration/reference/brussels-irceline-pm25-station-map-2026-10-25.webp",
+ "method": "Six markers read from the screenshot inside the Brussels-Capital Region, georeferenced by eye against the Mechelen and Leuven labels. Two more (Ixelles 41R002, Woluwe-Saint-Lambert 41WOL1) placed by commune from IRCELINE's per-site station codes, because the zoomed-out screenshot overlaps them.",
+ "stations": [
+  {
+   "lngLat": [
+    4.3884,
+    50.8959
+   ]
+  },
+  {
+   "lngLat": [
+    4.3773,
+    50.8843
+   ]
+  },
+  {
+   "lngLat": [
+    4.3285,
+    50.8494
+   ]
+  },
+  {
+   "lngLat": [
+    4.3606,
+    50.8422
+   ]
+  },
+  {
+   "lngLat": [
+    4.2812,
+    50.8583
+   ]
+  },
+  {
+   "lngLat": [
+    4.3522,
+    50.7939
+   ]
+  },
+  {
+   "lngLat": [
+    4.3805,
+    50.8255
+   ]
+  },
+  {
+   "lngLat": [
+    4.433,
+    50.851
+   ]
+  }
+ ]
+}

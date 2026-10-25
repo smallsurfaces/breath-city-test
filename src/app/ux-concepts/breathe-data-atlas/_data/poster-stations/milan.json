@@ -1,0 +1,39 @@
+{
+ "_note": "Approximate station positions for the Breathe Data Atlas poster map only (spec 3.1). NOT surveyed coordinates and NOT a snapshot: read by eye from a screenshot of the city's own map. Never shown as numbers. Generated 2026-10-25.",
+ "city": "milan",
+ "positionSource": "approximate, from the city's official map (AMAT \"Rapporto giornaliero sulla qualità dell'aria\", Comune di Milano; screenshot, 2026-10-23)",
+ "reference": "design/globalsite/next-iteration/reference/milan-amat-daily-report-station-map-2026-10-23.webp",
+ "method": "Five markers inside the comune. Georeferenced by eye against the \"Milano\" label (Duomo) and the Linate airport label, with a Web Mercator scale. Station names are unconfirmed and never shown.",
+ "stations": [
+  {
+   "lngLat": [
+    9.1949,
+    45.4952
+   ]
+  },
+  {
+   "lngLat": [
+    9.2019,
+    45.4704
+   ]
+  },
+  {
+   "lngLat": [
+    9.1992,
+    45.4637
+   ]
+  },
+  {
+   "lngLat": [
+    9.2371,
+    45.4739
+   ]
+  },
+  {
+   "lngLat": [
+    9.1745,
+    45.4452
+   ]
+  }
+ ]
+}

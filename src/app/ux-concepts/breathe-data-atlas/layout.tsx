@@ -1,0 +1,31 @@
+/**
+ * layout.tsx — Breathe Data Atlas concept chrome wrapper (copied from breathe-atlas, 2026-10-25).
+ *
+ * Purpose
+ *   Wraps every Breathe Data Atlas page in the standard hub tooling bar (PrototypeHeader: back-to-hub,
+ *   comments, wireframe disclaimer), titled from the single-source concept registry so the bar
+ *   matches the hub card. The concept's own site nav (AtlasNav) is mounted per page (cover and
+ *   chapters), because the brief specifies a minimal nav that differs from the shared BcHeader, and
+ *   because each page tells the nav which city (if any) the All cities panel should highlight.
+ *
+ * Key exports: BreatheAtlasLayout (default)
+ * External dependencies: PrototypeHeader (../../_components/PrototypeHeader),
+ *   ../../_data/concept-registry (CONCEPTS).
+ */
+
+import { PrototypeHeader } from '../../_components/PrototypeHeader'
+import { CONCEPTS } from '../../_data/concept-registry'
+
+export default function BreatheAtlasLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  return (
+    <>
+      {/* Tooling bar (back-to-hub + comments). Title from the registry so it matches the hub. */}
+      <PrototypeHeader buildName={CONCEPTS.breatheDataAtlas.title} />
+      {children}
+    </>
+  )
+}
