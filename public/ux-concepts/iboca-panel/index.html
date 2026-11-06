@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<!--
+  index.html — IBOCA station panel prototype: host page.
+  Mirrors IBOCA's mapa.html head (Bootstrap 3.3.7, Font Awesome 4.6.3, jQuery 3.1.0
+  and IBOCA's own CSS, in mapa.html's order) so the <iboca-panel> element is shown
+  surviving the real cascade. The map is a static screenshot; nothing here calls
+  IBOCA servers. Breathe Cities design stream prototype, 2026-11-06.
+-->
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>IBOCA 2.0 · panel de estación (prototipo)</title>
+<!-- IBOCA's own stack, same versions as the live mapa.html:14-22 -->
+<link href="vendor/bootstrap-3.3.7/css/bootstrap.min.css" rel="stylesheet" media="screen">
+<link href="vendor/font-awesome-4.6.3/css/font-awesome.min.css" rel="stylesheet">
+<link href="vendor/iboca/mapEsri.css" rel="stylesheet">
+<link href="vendor/iboca/media-user.min.css" rel="stylesheet">
+<link href="vendor/iboca/iboca-user.css" rel="stylesheet">
+<link href="vendor/iboca/portal-user.min.css" rel="stylesheet">
+<link href="vendor/iboca/bloqueMegamenu.css" rel="stylesheet">
+<style>
+  /* Prototype-only stage: a fixed 1549x977 copy of the live desktop map, scaled to fit. */
+  html, body { margin: 0; height: 100%; background: #1f1f1f; overflow: hidden; }
+  #stage-wrap { position: fixed; inset: 0; overflow: hidden; }
+  #stage { position: absolute; left: 0; top: 0; width: 1549px; height: 977px; transform-origin: 0 0;
+           background: #f2efe9 url("assets/map/iboca-live-map-desktop-2026-11-06.webp") no-repeat 0 0 / 1549px 977px; }
+  /* .lateral-info is IBOCA's real container (mapEsri.css:508). Here it is pinned over
+     the old panel in the screenshot; on IBOCA's page their own rule places it. */
+  #stage .lateral-info { left: 9px; top: 12px; width: 400px; height: 913px; overflow: visible; box-shadow: none; background: transparent; }
+  .hotspot { position: absolute; width: 44px; height: 44px; margin: -22px 0 0 -22px; padding: 0; border: 0;
+             border-radius: 50%; background: transparent; cursor: pointer; }
+  .hotspot:hover, .hotspot:focus-visible { outline: none; box-shadow: 0 0 0 3px #fff, 0 0 0 6px #1a1a1a; }
+  .hotspot[aria-pressed="true"] { box-shadow: 0 0 0 3px #fff, 0 0 0 6px #568c2a; }
+  .hotspot[aria-pressed="true"]:hover, .hotspot[aria-pressed="true"]:focus-visible { box-shadow: 0 0 0 3px #fff, 0 0 0 6px #1a1a1a; }
+  /* Pollutant controls: painted over the screenshot's own pills so the selected state is truthful. */
+  .pol-hotspot { position: absolute; padding: 0; border: 0; cursor: pointer; font: 500 13px/1 "Helvetica Neue", Arial, sans-serif; }
+  .pol-hotspot.pill { border-radius: 100px; background: #eeeeee; color: #333333; }
+  .pol-hotspot.pill[aria-pressed="true"] { background: #4f8c2c; color: #ffffff; font-weight: 700; }
+  .pol-hotspot.tab { background: transparent; color: transparent; border-radius: 4px; }
+  .pol-hotspot:hover, .pol-hotspot:focus-visible { outline: none; box-shadow: 0 0 0 2px #fff, 0 0 0 4px #1a1a1a; }
+  .sr-only-proto { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+</style>
+</head>
+<body>
+<div id="stage-wrap">
+  <div id="stage" role="region" aria-label="Mapa de IBOCA (imagen estática del sitio en vivo, 6 de noviembre de 2026)">
+    <div id="hotspots" aria-label="Estaciones en el mapa"></div>
+    <div id="pollutant-hotspots" aria-label="Contaminante"></div>
+    <!-- The one integration point: IBOCA's .lateral-info hosts the element. -->
+    <div class="lateral-info">
+      <iboca-panel></iboca-panel>
+    </div>
+  </div>
+</div>
+<p class="sr-only-proto">Prototipo: mapa estático. Pulse Escape sobre el mapa para cerrar el panel.</p>
+<script src="vendor/jquery-3.1.0/jquery.min.js"></script>
+<script src="vendor/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+<script src="panel/iboca-panel.js"></script>
+<script src="host.js"></script>
+</body>
+</html>

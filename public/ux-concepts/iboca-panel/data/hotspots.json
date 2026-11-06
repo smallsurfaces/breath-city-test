@@ -1,0 +1,166 @@
+{
+ "_method": "Marker centres read by eye from the 1549x977 screenshot; station identity assigned by a least-squares lat/long->pixel similarity fit (x = a + s*lng, y = b - s*lat) with greedy nearest assignment, iterated. Hotspot position = the marker centre.",
+ "transform": {
+  "s": 2919.368,
+  "a": 217185.27,
+  "b": 14017.78
+ },
+ "image": {
+  "w": 1549,
+  "h": 977
+ },
+ "hotspots": [
+  {
+   "stationId": 1,
+   "nombre": "Carvajal - Sevillana",
+   "x": 719,
+   "y": 601,
+   "markerValue": "113",
+   "fitResidualPx": 0.7
+  },
+  {
+   "stationId": 2,
+   "nombre": "CDAR",
+   "x": 907,
+   "y": 419,
+   "markerValue": "68",
+   "fitResidualPx": 0.7
+  },
+  {
+   "stationId": 3,
+   "nombre": "Móvil 7ma",
+   "x": 972,
+   "y": 457,
+   "markerValue": "35",
+   "fitResidualPx": 0.5
+  },
+  {
+   "stationId": 4,
+   "nombre": "Guaymaral",
+   "x": 1023,
+   "y": 52,
+   "markerValue": "32",
+   "fitResidualPx": 0.3
+  },
+  {
+   "stationId": 5,
+   "nombre": "Kennedy",
+   "x": 681,
+   "y": 516,
+   "markerValue": "90",
+   "fitResidualPx": 0.0
+  },
+  {
+   "stationId": 6,
+   "nombre": "Las Ferias",
+   "x": 911,
+   "y": 323,
+   "markerValue": "58",
+   "fitResidualPx": 1.2
+  },
+  {
+   "stationId": 7,
+   "nombre": "MinAmbiente",
+   "x": 956,
+   "y": 515,
+   "markerValue": "36",
+   "fitResidualPx": 0.3
+  },
+  {
+   "stationId": 8,
+   "nombre": "Puente Aranda",
+   "x": 809,
+   "y": 496,
+   "markerValue": "76",
+   "fitResidualPx": 0.4
+  },
+  {
+   "stationId": 9,
+   "nombre": "San Cristobal",
+   "x": 907,
+   "y": 669,
+   "markerValue": "41",
+   "fitResidualPx": 0.9
+  },
+  {
+   "stationId": 10,
+   "nombre": "Suba",
+   "x": 879,
+   "y": 114,
+   "markerValue": "56",
+   "fitResidualPx": 0.4
+  },
+  {
+   "stationId": 11,
+   "nombre": "Tunal",
+   "x": 770,
+   "y": 658,
+   "markerValue": "63",
+   "fitResidualPx": 0.3
+  },
+  {
+   "stationId": 12,
+   "nombre": "Usaquen",
+   "x": 1057,
+   "y": 269,
+   "markerValue": "41",
+   "fitResidualPx": 1.7
+  },
+  {
+   "stationId": 50,
+   "nombre": "Fontibon",
+   "x": 732,
+   "y": 360,
+   "markerValue": "--",
+   "fitResidualPx": 0.3
+  },
+  {
+   "stationId": 52,
+   "nombre": "Bolivia",
+   "x": 785,
+   "y": 192,
+   "markerValue": "60",
+   "fitResidualPx": 0.4
+  },
+  {
+   "stationId": 53,
+   "nombre": "Jazmín",
+   "x": 817,
+   "y": 564,
+   "markerValue": "65",
+   "fitResidualPx": 0.6
+  },
+  {
+   "stationId": 54,
+   "nombre": "Usme",
+   "x": 826,
+   "y": 790,
+   "markerValue": "93",
+   "fitResidualPx": 0.5
+  },
+  {
+   "stationId": 56,
+   "nombre": "Ciudad Bolívar",
+   "x": 667,
+   "y": 654,
+   "markerValue": "110",
+   "fitResidualPx": 0.7
+  },
+  {
+   "stationId": 57,
+   "nombre": "Colina",
+   "x": 949,
+   "y": 188,
+   "markerValue": "57",
+   "fitResidualPx": 0.3
+  },
+  {
+   "stationId": 58,
+   "nombre": "Móvil Fontibón",
+   "x": 718,
+   "y": 391,
+   "markerValue": "72",
+   "fitResidualPx": 0.6
+  }
+ ]
+}

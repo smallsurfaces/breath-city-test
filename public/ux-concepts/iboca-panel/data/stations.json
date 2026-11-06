@@ -1,0 +1,714 @@
+{
+ "_source": "IBOCA allstations response saved 2026-11-06 (06:00 Bogota readings). Base64 photos extracted to assets/stations/.",
+ "_rules": {
+  "time": "All *_last_date values are America/Bogota local time, zoneless, as served.",
+  "sinDatos": "status sin-datos = the fixture index is '--' or null. Never derived from the viewer's clock.",
+  "sinMonitor": "status sin-monitor (O3 only) = last O3 reading more than 30 days before the snapshot. Inferred: IBOCA has no 'measures this pollutant' flag."
+ },
+ "snapshot": "2026-11-06 06:00",
+ "stations": [
+  {
+   "id": 1,
+   "nombre": "Carvajal - Sevillana",
+   "abreviatura": "CSE",
+   "localidad": "KENNEDY",
+   "lat": 4.5958,
+   "lng": -74.14855,
+   "photo": "assets/stations/station-1.jpg",
+   "iboca": {
+    "index": 84,
+    "band": "Moderado",
+    "note": "Headline IBOCA; equal to the PM2.5 sub-index at all 19 stations in this snapshot"
+   },
+   "pollutants": {
+    "pm25": {
+     "index": 84,
+     "band": "Moderado",
+     "concentration": 22.04,
+     "lastDate": "2026-11-06 06:00",
+     "status": "ok"
+    },
+    "pm10": {
+     "index": 122,
+     "band": "Regular",
+     "concentration": 70.0,
+     "lastDate": "2026-11-06 06:00",
+     "status": "ok"
+    },
+    "o3": {
+     "index": null,
+     "band": null,
+     "concentration": null,
+     "lastDate": "2022-09-22 17:00",
+     "status": "sin-monitor"
+    }
+   }
+  },
+  {
+   "id": 2,
+   "nombre": "CDAR",
+   "abreviatura": "CDAR",
+   "localidad": "BARRIOS UNIDOS",
+   "lat": 4.65837,
+   "lng": -74.084,
+   "photo": "assets/stations/station-2.jpg",
+   "iboca": {
+    "index": 62,
+    "band": "Moderado",
+    "note": "Headline IBOCA; equal to the PM2.5 sub-index at all 19 stations in this snapshot"
+   },
+   "pollutants": {
+    "pm25": {
+     "index": 62,
+     "band": "Moderado",
+     "concentration": 14.72,
+     "lastDate": "2026-11-06 06:00",
+     "status": "ok"
+    },
+    "pm10": {
+     "index": 53,
+     "band": "Moderado",
+     "concentration": 24.88,
+     "lastDate": "2026-11-06 06:00",
+     "status": "ok"
+    },
+    "o3": {
+     "index": null,
+     "band": null,
+     "concentration": 0.23,
+     "lastDate": "2026-11-06 06:00",
+     "status": "sin-datos"
+    }
+   }
+  },
+  {
+   "id": 3,
+   "nombre": "Móvil 7ma",
+   "abreviatura": "MOV",
+   "localidad": "CHAPINERO",
+   "lat": 4.645228,
+   "lng": -74.06152,
+   "photo": "assets/stations/station-3.jpg",
+   "iboca": {
+    "index": 33,
+    "band": "Bajo",
+    "note": "Headline IBOCA; equal to the PM2.5 sub-index at all 19 stations in this snapshot"
+   },
+   "pollutants": {
+    "pm25": {
+     "index": 33,
+     "band": "Bajo",
+     "concentration": 9.0,
+     "lastDate": "2026-11-06 06:00",
+     "status": "ok"
+    },
+    "pm10": {
+     "index": 24,
+     "band": "Bajo",
+     "concentration": 6.3,
+     "lastDate": "2026-11-06 06:00",
+     "status": "ok"
+    },
+    "o3": {
+     "index": null,
+     "band": null,
+     "concentration": null,
+     "lastDate": "2022-06-25 09:00",
+     "status": "sin-monitor"
+    }
+   }
+  },
+  {
+   "id": 4,
+   "nombre": "Guaymaral",
+   "abreviatura": "GYR",
+   "localidad": "SUBA",
+   "lat": 4.78374,
+   "lng": -74.04417,
+   "photo": "assets/stations/station-4.jpg",
+   "iboca": {
+    "index": 73,
+    "band": "Moderado",
+    "note": "Headline IBOCA; equal to the PM2.5 sub-index at all 19 stations in this snapshot"
+   },
+   "pollutants": {
+    "pm25": {
+     "index": 73,
+     "band": "Moderado",
+     "concentration": 31.0,
+     "lastDate": "2026-11-06 06:00",
+     "status": "ok"
+    },
+    "pm10": {
+     "index": 61,
+     "band": "Moderado",
+     "concentration": 46.0,
+     "lastDate": "2026-11-06 06:00",
+     "status": "ok"
+    },
+    "o3": {
+     "index": 1,
+     "band": "Bajo",
+     "concentration": 1.3,
+     "lastDate": "2026-11-06 06:00",
+     "status": "ok"
+    }
+   }
+  },
+  {
+   "id": 5,
+   "nombre": "Kennedy",
+   "abreviatura": "KEN",
+   "localidad": "KENNEDY",
+   "lat": 4.6249,
+   "lng": -74.16135,
+   "photo": "assets/stations/station-5.jpg",
+   "iboca": {
+    "index": 89,
+    "band": "Moderado",
+    "note": "Headline IBOCA; equal to the PM2.5 sub-index at all 19 stations in this snapshot"
+   },
+   "pollutants": {
+    "pm25": {
+     "index": 89,
+     "band": "Moderado",
+     "concentration": 27.05,
+     "lastDate": "2026-11-06 06:00",
+     "status": "ok"
+    },
+    "pm10": {
+     "index": 83,
+     "band": "Moderado",
+     "concentration": 49.25,
+     "lastDate": "2026-11-06 06:00",
+     "status": "ok"
+    },
+    "o3": {
+     "index": 1,
+     "band": "Bajo",
+     "concentration": 0.95,
+     "lastDate": "2026-11-06 06:00",
+     "status": "ok"
+    }
+   }
+  },
+  {
+   "id": 6,
+   "nombre": "Las Ferias",
+   "abreviatura": "LFR",
+   "localidad": "ENGATIVA",
+   "lat": 4.6906,
+   "lng": -74.08256,
+   "photo": "assets/stations/station-6.jpg",
+   "iboca": {
+    "index": 56,
+    "band": "Moderado",
+    "note": "Headline IBOCA; equal to the PM2.5 sub-index at all 19 stations in this snapshot"
+   },
+   "pollutants": {
+    "pm25": {
+     "index": 56,
+     "band": "Moderado",
+     "concentration": 16.0,
+     "lastDate": "2026-11-06 06:00",
+     "status": "ok"
+    },
+    "pm10": {
+     "index": 46,
+     "band": "Bajo",
+     "concentration": 20.79,
+     "lastDate": "2026-11-06 06:00",
+     "status": "ok"
+    },
+    "o3": {
+     "index": 2,
+     "band": "Bajo",
+     "concentration": 0.41,
+     "lastDate": "2026-11-06 06:00",
+     "status": "ok"
+    }
+   }
+  },
+  {
+   "id": 7,
+   "nombre": "MinAmbiente",
+   "abreviatura": "MAM",
+   "localidad": "SANTA FE",
+   "lat": 4.62529,
+   "lng": -74.06724,
+   "photo": "assets/stations/station-7.jpg",
+   "iboca": {
+    "index": 37,
+    "band": "Bajo",
+    "note": "Headline IBOCA; equal to the PM2.5 sub-index at all 19 stations in this snapshot"
+   },
+   "pollutants": {
+    "pm25": {
+     "index": 37,
+     "band": "Bajo",
+     "concentration": 10.0,
+     "lastDate": "2026-11-06 06:00",
+     "status": "ok"
+    },
+    "pm10": {
+     "index": 26,
+     "band": "Bajo",
+     "concentration": 12.0,
+     "lastDate": "2026-11-06 06:00",
+     "status": "ok"
+    },
+    "o3": {
+     "index": 3,
+     "band": "Bajo",
+     "concentration": 4.25,
+     "lastDate": "2026-11-06 06:00",
+     "status": "ok"
+    }
+   }
+  },
+  {
+   "id": 8,
+   "nombre": "Puente Aranda",
+   "abreviatura": "PTE",
+   "localidad": "PUENTE ARANDA",
+   "lat": 4.63187,
+   "lng": -74.11757,
+   "photo": "assets/stations/station-8.jpg",
+   "iboca": {
+    "index": 68,
+    "band": "Moderado",
+    "note": "Headline IBOCA; equal to the PM2.5 sub-index at all 19 stations in this snapshot"
+   },
+   "pollutants": {
+    "pm25": {
+     "index": 68,
+     "band": "Moderado",
+     "concentration": 16.98,
+     "lastDate": "2026-11-06 06:00",
+     "status": "ok"
+    },
+    "pm10": {
+     "index": 55,
+     "band": "Moderado",
+     "concentration": 23.61,
+     "lastDate": "2026-11-06 06:00",
+     "status": "ok"
+    },
+    "o3": {
+     "index": 1,
+     "band": "Bajo",
+     "concentration": 1.67,
+     "lastDate": "2026-11-06 06:00",
+     "status": "ok"
+    }
+   }
+  },
+  {
+   "id": 9,
+   "nombre": "San Cristobal",
+   "abreviatura": "SCR",
+   "localidad": "SAN CRISTOBAL",
+   "lat": 4.5725,
+   "lng": -74.0836,
+   "photo": "assets/stations/station-9.jpg",
+   "iboca": {
+    "index": 33,
+    "band": "Bajo",
+    "note": "Headline IBOCA; equal to the PM2.5 sub-index at all 19 stations in this snapshot"
+   },
+   "pollutants": {
+    "pm25": {
+     "index": 33,
+     "band": "Bajo",
+     "concentration": 8.0,
+     "lastDate": "2026-11-06 06:00",
+     "status": "ok"
+    },
+    "pm10": {
+     "index": 36,
+     "band": "Bajo",
+     "concentration": 26.0,
+     "lastDate": "2026-11-06 06:00",
+     "status": "ok"
+    },
+    "o3": {
+     "index": 3,
+     "band": "Bajo",
+     "concentration": 3.22,
+     "lastDate": "2026-11-06 06:00",
+     "status": "ok"
+    }
+   }
+  },
+  {
+   "id": 10,
+   "nombre": "Suba",
+   "abreviatura": "SUB",
+   "localidad": null,
+   "lat": 4.76251,
+   "lng": -74.09343,
+   "photo": "assets/stations/station-10.jpg",
+   "iboca": {
+    "index": 76,
+    "band": "Moderado",
+    "note": "Headline IBOCA; equal to the PM2.5 sub-index at all 19 stations in this snapshot"
+   },
+   "pollutants": {
+    "pm25": {
+     "index": 76,
+     "band": "Moderado",
+     "concentration": 33.0,
+     "lastDate": "2026-11-06 06:00",
+     "status": "ok"
+    },
+    "pm10": {
+     "index": 38,
+     "band": "Bajo",
+     "concentration": 21.4,
+     "lastDate": "2026-11-06 06:00",
+     "status": "ok"
+    },
+    "o3": {
+     "index": 1,
+     "band": "Bajo",
+     "concentration": 0.75,
+     "lastDate": "2026-11-06 06:00",
+     "status": "ok"
+    }
+   }
+  },
+  {
+   "id": 11,
+   "nombre": "Tunal",
+   "abreviatura": "TUN",
+   "localidad": "TUNJUELITO",
+   "lat": 4.57619,
+   "lng": -74.13093,
+   "photo": "assets/stations/station-11.jpg",
+   "iboca": {
+    "index": 68,
+    "band": "Moderado",
+    "note": "Headline IBOCA; equal to the PM2.5 sub-index at all 19 stations in this snapshot"
+   },
+   "pollutants": {
+    "pm25": {
+     "index": 68,
+     "band": "Moderado",
+     "concentration": 21.0,
+     "lastDate": "2026-11-06 06:00",
+     "status": "ok"
+    },
+    "pm10": {
+     "index": 72,
+     "band": "Moderado",
+     "concentration": 53.0,
+     "lastDate": "2026-11-06 06:00",
+     "status": "ok"
+    },
+    "o3": {
+     "index": 1,
+     "band": "Bajo",
+     "concentration": 1.6,
+     "lastDate": "2026-11-06 06:00",
+     "status": "ok"
+    }
+   }
+  },
+  {
+   "id": 12,
+   "nombre": "Usaquen",
+   "abreviatura": "USQ",
+   "localidad": "USAQUEN",
+   "lat": 4.70939,
+   "lng": -74.03199,
+   "photo": "assets/stations/station-12.jpg",
+   "iboca": {
+    "index": 27,
+    "band": "Bajo",
+    "note": "Headline IBOCA; equal to the PM2.5 sub-index at all 19 stations in this snapshot"
+   },
+   "pollutants": {
+    "pm25": {
+     "index": 27,
+     "band": "Bajo",
+     "concentration": 5.05,
+     "lastDate": "2026-11-06 06:00",
+     "status": "ok"
+    },
+    "pm10": {
+     "index": 29,
+     "band": "Bajo",
+     "concentration": 16.57,
+     "lastDate": "2026-11-06 06:00",
+     "status": "ok"
+    },
+    "o3": {
+     "index": null,
+     "band": null,
+     "concentration": null,
+     "lastDate": "2024-12-19 14:00",
+     "status": "sin-monitor"
+    }
+   }
+  },
+  {
+   "id": 50,
+   "nombre": "Fontibon",
+   "abreviatura": "FTB",
+   "localidad": null,
+   "lat": 4.6782472,
+   "lng": -74.1438166,
+   "photo": "assets/stations/generic-skyline.jpg",
+   "iboca": {
+    "index": null,
+    "band": null,
+    "note": "Headline IBOCA; equal to the PM2.5 sub-index at all 19 stations in this snapshot"
+   },
+   "pollutants": {
+    "pm25": {
+     "index": null,
+     "band": null,
+     "concentration": 25.72,
+     "lastDate": "2026-11-05 23:00",
+     "status": "sin-datos"
+    },
+    "pm10": {
+     "index": null,
+     "band": null,
+     "concentration": 49.0,
+     "lastDate": "2026-11-05 23:00",
+     "status": "sin-datos"
+    },
+    "o3": {
+     "index": null,
+     "band": null,
+     "concentration": null,
+     "lastDate": "2026-09-08 08:00",
+     "status": "sin-monitor"
+    }
+   }
+  },
+  {
+   "id": 52,
+   "nombre": "Bolivia",
+   "abreviatura": "BOL",
+   "localidad": null,
+   "lat": 4.735821,
+   "lng": -74.125839,
+   "photo": "assets/stations/generic-skyline.jpg",
+   "iboca": {
+    "index": 76,
+    "band": "Moderado",
+    "note": "Headline IBOCA; equal to the PM2.5 sub-index at all 19 stations in this snapshot"
+   },
+   "pollutants": {
+    "pm25": {
+     "index": 76,
+     "band": "Moderado",
+     "concentration": 27.79,
+     "lastDate": "2026-11-06 06:00",
+     "status": "ok"
+    },
+    "pm10": {
+     "index": 61,
+     "band": "Moderado",
+     "concentration": 31.93,
+     "lastDate": "2026-11-06 06:00",
+     "status": "ok"
+    },
+    "o3": {
+     "index": 1,
+     "band": "Bajo",
+     "concentration": 0.4,
+     "lastDate": "2026-11-06 06:00",
+     "status": "ok"
+    }
+   }
+  },
+  {
+   "id": 53,
+   "nombre": "Jazmín",
+   "abreviatura": "JAZ",
+   "localidad": null,
+   "lat": 4.6085,
+   "lng": -74.1149444444444,
+   "photo": "assets/stations/generic-skyline.jpg",
+   "iboca": {
+    "index": 61,
+    "band": "Moderado",
+    "note": "Headline IBOCA; equal to the PM2.5 sub-index at all 19 stations in this snapshot"
+   },
+   "pollutants": {
+    "pm25": {
+     "index": 61,
+     "band": "Moderado",
+     "concentration": 16.12,
+     "lastDate": "2026-11-06 06:00",
+     "status": "ok"
+    },
+    "pm10": {
+     "index": 47,
+     "band": "Bajo",
+     "concentration": 25.15,
+     "lastDate": "2026-11-06 06:00",
+     "status": "ok"
+    },
+    "o3": {
+     "index": 1,
+     "band": "Bajo",
+     "concentration": 0.57,
+     "lastDate": "2026-11-06 06:00",
+     "status": "ok"
+    }
+   }
+  },
+  {
+   "id": 54,
+   "nombre": "Usme",
+   "abreviatura": "USM",
+   "localidad": null,
+   "lat": 4.53120556,
+   "lng": -74.1117138888889,
+   "photo": "assets/stations/generic-skyline.jpg",
+   "iboca": {
+    "index": 89,
+    "band": "Moderado",
+    "note": "Headline IBOCA; equal to the PM2.5 sub-index at all 19 stations in this snapshot"
+   },
+   "pollutants": {
+    "pm25": {
+     "index": 89,
+     "band": "Moderado",
+     "concentration": 26.52,
+     "lastDate": "2026-11-06 06:00",
+     "status": "ok"
+    },
+    "pm10": {
+     "index": 64,
+     "band": "Moderado",
+     "concentration": 27.78,
+     "lastDate": "2026-11-06 06:00",
+     "status": "ok"
+    },
+    "o3": {
+     "index": null,
+     "band": null,
+     "concentration": 3.23,
+     "lastDate": "2026-11-05 18:00",
+     "status": "sin-datos"
+    }
+   }
+  },
+  {
+   "id": 56,
+   "nombre": "Ciudad Bolívar",
+   "abreviatura": "CBV",
+   "localidad": null,
+   "lat": 4.5778056,
+   "lng": -74.1662777777778,
+   "photo": "assets/stations/generic-skyline.jpg",
+   "iboca": {
+    "index": null,
+    "band": null,
+    "note": "Headline IBOCA; equal to the PM2.5 sub-index at all 19 stations in this snapshot"
+   },
+   "pollutants": {
+    "pm25": {
+     "index": null,
+     "band": null,
+     "concentration": 35.61,
+     "lastDate": "2026-11-06 06:00",
+     "status": "sin-datos"
+    },
+    "pm10": {
+     "index": 114,
+     "band": "Regular",
+     "concentration": 65.08,
+     "lastDate": "2026-11-06 06:00",
+     "status": "ok"
+    },
+    "o3": {
+     "index": 1,
+     "band": "Bajo",
+     "concentration": 0.57,
+     "lastDate": "2026-11-06 06:00",
+     "status": "ok"
+    }
+   }
+  },
+  {
+   "id": 57,
+   "nombre": "Colina",
+   "abreviatura": "COL",
+   "localidad": null,
+   "lat": 4.73725,
+   "lng": -74.06944,
+   "photo": "assets/stations/generic-skyline.jpg",
+   "iboca": {
+    "index": 58,
+    "band": "Moderado",
+    "note": "Headline IBOCA; equal to the PM2.5 sub-index at all 19 stations in this snapshot"
+   },
+   "pollutants": {
+    "pm25": {
+     "index": 58,
+     "band": "Moderado",
+     "concentration": 18.11,
+     "lastDate": "2026-11-06 06:00",
+     "status": "ok"
+    },
+    "pm10": {
+     "index": 31,
+     "band": "Bajo",
+     "concentration": 12.29,
+     "lastDate": "2026-11-06 06:00",
+     "status": "ok"
+    },
+    "o3": {
+     "index": 4,
+     "band": "Bajo",
+     "concentration": 5.63,
+     "lastDate": "2026-11-06 06:00",
+     "status": "ok"
+    }
+   }
+  },
+  {
+   "id": 58,
+   "nombre": "Móvil Fontibón",
+   "abreviatura": "MOV2",
+   "localidad": null,
+   "lat": 4.667694,
+   "lng": -74.148861,
+   "photo": "assets/stations/generic-skyline.jpg",
+   "iboca": {
+    "index": 63,
+    "band": "Moderado",
+    "note": "Headline IBOCA; equal to the PM2.5 sub-index at all 19 stations in this snapshot"
+   },
+   "pollutants": {
+    "pm25": {
+     "index": 63,
+     "band": "Moderado",
+     "concentration": 14.92,
+     "lastDate": "2026-11-06 06:00",
+     "status": "ok"
+    },
+    "pm10": {
+     "index": 62,
+     "band": "Moderado",
+     "concentration": 30.35,
+     "lastDate": "2026-11-06 06:00",
+     "status": "ok"
+    },
+    "o3": {
+     "index": null,
+     "band": null,
+     "concentration": null,
+     "lastDate": "2024-09-23 08:00",
+     "status": "sin-monitor"
+    }
+   }
+  }
+ ]
+}

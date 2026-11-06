@@ -1,0 +1,120 @@
+.open > .dropdown-menu {
+    display: block;
+    min-width: 800px;
+    /*right: inherit;*/
+}
+
+.megamenu {
+    position: relative;
+}
+
+.megamenu.nav > li {
+    position: initial;
+}
+
+.open > .dropdown-menu > .row {
+    margin-left: 0;
+    margin-right: 0;
+}
+
+.nxBlockMegamenu .megamenu.navbar-position {
+    float: right;
+    margin-right: -15px
+}
+
+@media (min-width: 769px) {
+    .collpase {
+        display: block;
+    }
+
+    .panel-collapse.collapse.in {
+        display: block;
+    }
+
+    .panel-collapse.collpase {
+        display: block;
+    }
+}
+
+@media (max-width: 768px) {
+    .open > .dropdown-menu {
+        min-width: 320px !important;
+        max-width: 320px !important;
+        /*background: white!important;*/
+    }
+
+    .navbar-collapse {
+        overflow-x: hidden;
+    }
+
+}
+
+@media (max-width: 767px) {
+    #headerContent > div > .navbar > .navbar-header {
+        float: left;
+        position: relative;
+        z-index: 1;
+    }
+
+    header .tipoDisplay > .megamenu {
+        width: 100%;
+        margin-top: -55px;
+    }
+
+    .megamenu.nav > li {
+        border-bottom: 1px solid rgba(0, 0, 0, .15);
+    }
+
+    .dropdown-menu > .megamenuContenedorSuperior {
+        padding: 0;
+    }
+
+    .megamenu > li a {
+        display: block;
+    }
+
+    .megamenu > li a strong {
+        font-weight: 400;
+    }
+
+    ul.panel-collapse {
+        padding-left: 10px;
+    }
+
+    ul.panel-collapse li {
+        list-style: none;
+    }
+}
+
+/*
+@media screen and (max-width: 768px) {
+    .row-offcanvas {
+        position: relative;
+        -webkit-transition: all 0.25s ease-out;
+        -moz-transition: all 0.25s ease-out;
+        transition: all 0.25s ease-out;
+    }
+    .row-offcanvas-right .sidebar-offcanvas {
+        right: -60%;
+
+        margin-right: 0px;
+        background-color: #f3f3f3;
+    }
+    .row-offcanvas-left .sidebar-offcanvas {
+        left: -50%;
+    }
+    .row-offcanvas-right.active {
+        right: 60%;
+    }
+    .row-offcanvas-left.active {
+        left: 50%;
+    }
+    .sidebar-offcanvas {
+        position: absolute;
+        top: 0;
+        width: 60%;
+        height: 100%;
+        display: none;
+
+    }
+}*/
