@@ -218,6 +218,31 @@ export default function HomePage() {
         </p>
 
         <div className="flex flex-col gap-3 w-full max-w-xl">
+          {/* IBOCA 2.0 station panel — static prototype in IBOCA's own stack (jQuery + Bootstrap 3
+              host, web-component panel) served from public/. Plain <a>, not Link: it is a static
+              file, not an App Router route, and public/ does not serve directory index files. */}
+          <div className="flex items-center gap-3">
+            <div className="flex flex-col w-52 shrink-0">
+              <span className="text-sm" style={{ color: "var(--bc-semantic-text)" }}>
+                IBOCA 2.0 — Bogotá station panel
+              </span>
+              <span className="text-xs" style={{ color: "var(--bc-semantic-muted)" }}>
+                Design-to-build test — IBOCA&apos;s own stack, snapshot data
+              </span>
+            </div>
+            <a
+              href="/ux-concepts/iboca-panel/index.html"
+              className="inline-flex items-center justify-center px-4 py-2 rounded-xl text-sm font-medium transition-colors"
+              style={{
+                backgroundColor: "var(--bc-semantic-brand)",
+                color: "var(--bc-color-white)",
+                borderRadius: "var(--bc-border-radius-md)",
+              }}
+            >
+              Prototype →
+            </a>
+          </div>
+
           <div className="flex items-center gap-3">
             <div className="flex flex-col w-52 shrink-0">
               <span className="text-sm" style={{ color: "var(--bc-semantic-text)" }}>
