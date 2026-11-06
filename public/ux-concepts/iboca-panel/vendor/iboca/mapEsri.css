@@ -1,0 +1,687 @@
+@import url('https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400,500;700&display=swap');
+
+#contaminant-change {
+    background: #fff;
+    color: #494949;
+    position: absolute;
+    margin-top: 7em;
+    z-index: 9;
+    right: 1em;
+    padding: 5px 10px;
+    box-shadow: 0 0 6px rgba(0, 0, 0, 0.3);
+}
+#change-iboca-contaminate {
+    text-align: center;
+    border-radius: 8px 8px 0 0;
+    width: 100%;
+    float: left;
+}
+#img_iboca_change { width: 40% }
+#img_contaminante_change { width: 60% }
+#img_iboca_change, #img_contaminante_change {
+    background-color: transparent;
+    border: 0;
+    padding: 5px 0;
+    float: left;
+    font-weight: 700;
+    font-size: 13px;
+}
+
+#img_iboca_change:hover, #img_iboca_change:focus, #img_contaminante_change:hover, #img_contaminante_change:focus {
+    color: #4e8c2c;
+}
+#img_iboca_change:hover:before, #img_contaminante_change:hover:before {
+    background: #4e8c2c;
+}
+
+.blue-font {
+    color: #4e8c2c !important;
+}
+
+.blue-font:before{
+    background-color: #4e8c2c !important;
+}
+
+#redirect-home-page{
+    position: absolute;
+    margin: 15px;
+    left: 0;
+    background-color: white;
+    box-shadow: 1px 1px 5px #bfbfbf;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: block;
+    text-align: center;
+    line-height: 45px;
+}
+
+#img-go-to-home{
+    font-size: 16px;
+    width: 35px;
+}
+
+
+#cargando{
+    display: none;
+}
+#div-buttons-contaminantes {
+    border-radius: 0 0 8px 8px;
+    text-align: center;
+    width: 100%;
+    height: 40%;
+    display: inline-block;
+    padding-top: 2px;
+    padding-bottom: 10px;
+}
+
+.buttons-contaminantes {
+    border: none;
+    width: 25%;
+    color: #494949;
+    background-color: #efefef;
+    border-radius: 15px;
+    padding: 0.2em;
+    font-size: 12px;
+}
+.buttons-contaminantes:hover, .buttons-contaminantes:focus {
+    background-color: #4e8c2c !important;
+    color: #fff;
+    outline: none;
+}
+#button-contaminantes-pm25 {
+    background-color: #4e8c2c;
+    color: white;
+}
+
+.item-color-iboca{
+    padding: 3px;
+    color: #383838;
+    font-size: 13px;
+    font-weight: bold;
+    text-align: center;
+    display: inline-block;
+}
+
+#div-contaminantes{
+    display: inline-flex;
+    background-color: white;
+    box-shadow: 0 0 6px rgba(0, 0, 0, 0.3);
+    padding: 5px;
+}
+
+#div-colores .fila-colores {
+    padding-bottom: 5px;
+}
+
+#div-colores .fila-colores .fa-circle {
+    padding-right: 7px;
+}
+
+.esri-ui-top-left {
+    display: none;
+}
+
+
+.content-img {
+    width: 30px;
+    padding-top: 6px;
+    padding-right: 5px;
+    float: left;
+}
+.image-left-detail-station {
+    max-height: 31px;
+    max-width: 26px;
+    margin: auto;
+    display: block;
+}
+#value_variables_meteorologicas {
+    font-weight: normal;
+}
+.width-30 {
+    width: 33.3%;
+    font-size: 12px;
+    text-align: center;
+    display: grid;
+    float: left;
+}
+#graphics-stations #button-open-modal-historical {
+    background: #4e8c2c;
+    z-index: 99;
+    margin: 5px;
+}
+.esri-zoom .esri-widget--button{
+    display: none !important;
+}
+
+.div-buttons-graphics{
+    float: right;
+}
+
+.div-buttons-graphics > button{
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.change-historico_pronostico {
+    text-align: center;
+    border-radius: 8px 8px 0 0;
+    background: rgba(0,0,0,0.9);
+    color: white;
+    width: 100%;
+}
+.span-change-historico-pronostico {
+    text-align: center;
+    vertical-align: middle;
+    display: inline-block;
+}
+.span-change-historico-pronostico .btn {
+    background: transparent;
+    padding: 5px 20px;
+    font-size: 15px;
+}
+.span-change-historico-pronostico .btn:hover, .span-change-historico-pronostico .btn:focus {
+    text-decoration: none;
+    width: 100%;
+}
+.span-change-historico-pronostico hr {
+    color: #000;
+    margin: 0.5em;
+    border: 0;
+    border-top: 2px solid rgba(0, 124, 177, 0.8);
+}
+
+.historiucal-pronostical-selected {
+    border-bottom: 4px solid #1AACE3;
+    background: transparent;
+    text-decoration: none;
+}
+
+#image-change-station-forecast {
+    display: none;
+}
+
+.hr-map {
+    color: #000;
+    margin: 0.5em 0;
+    border: 0;
+    border-top: 1px solid rgba(0, 0, 0, 0.3);
+}
+
+.content-modal-graphic{
+    width: 100%;
+    height: 100%;
+}
+
+.item-recomendations {
+    bottom: 0;
+    height: 130px;
+    color: #0a0a0a;
+}
+.carousel-control-recomendations {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 5%;
+    font-size: 20px;
+    margin-top: 2em;
+    text-align: center;
+}
+.carousel-caption-actions {
+    font-size: 12px;
+    color: #0a0a0a;
+    right: 10%;
+    left: 10%;
+    text-align: left;
+    height: 100%;
+    text-shadow: none;
+}
+.carousel-control-actions {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 5%;
+    font-size: 20px;
+    margin-top: 2em;
+    text-align: center;
+}
+.carousel-control-actions .fa {
+    color: #a0a0a0;
+}
+.carousel-control-actions.left {
+    left: 10px;
+}
+.carousel-control-actions.right {
+    right: 10px;
+    left: auto
+}
+#div-contaminantes{
+    display: none;
+}
+.esri-widget--button{
+    display: none;
+}
+.switch {
+    position: relative;
+    display: inline-block;
+}
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+.slider {
+    position: relative;
+    cursor: pointer;
+    transition: .4s;
+    width: 40px;
+    display: inline-block;
+    height: 15px;
+}
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 12px;
+    width: 12px;
+    right: 16px;
+    bottom: 2px;
+    background-color: white;
+    -webkit-transition: .4s;
+    transition: .4s;
+}
+
+input:checked + .slider {
+    background-color: #4e8c2c;
+}
+
+input:focus + .slider {
+    box-shadow: 0 0 1px #4e8c2c;
+}
+
+input:checked + .slider:before {
+    -webkit-transform: translateX(15px);
+    -ms-transform: translateX(15px);
+    transform: translateX(15px);
+}
+
+/* Rounded sliders */
+.slider.round {
+    border-radius: 15px;
+}
+.slider.round:before {
+    border-radius: 50%;
+}
+.div-scalas-title-pollutant{
+    font-weight: 700;
+}
+#div-select-base-map-ideca{
+    position: absolute;
+    border-radius: 8px 8px 0 0;
+    height: auto;
+    bottom: 0;
+    right: 0;
+    margin-right: 100px;
+}
+#div-modal-interpolation{
+    position: absolute;
+    right: 10em;
+    padding: 5px;
+    margin-top: 13em;
+    height: auto;
+    color: #494949;
+    cursor: pointer;
+}
+
+#div-checkbox-interpolation {
+    background-color: #efefef;
+    position: absolute;
+    right: 1em;
+    padding: 5px;
+    margin-top: 13em;
+    height: auto;
+    color: #494949;
+}
+
+#div-checkbox-interpolation > label{
+    margin-bottom: 0;
+}
+
+.modal-footer{
+    border-top: none;
+}
+.subindice{
+    font-size: 86%;
+}
+.superindice{
+    display: inline-block;
+    font-size: 66%;
+    vertical-align: top;
+}
+.cuadro-scala{
+    display: inline-block;
+    text-align: center;
+    padding-left: 4px;
+}
+
+#graphic-historical-hours>div>div>div>svg>g:first-of-type{
+    font-weight: bold;
+}
+
+#graphic-forecast-hours>div>div>div>svg>g:first-of-type{
+    font-weight: bold;
+}
+
+.esri-view .esri-view-surface--inset-outline:focus::after{
+    outline: none !important;
+}
+
+
+
+/**** CSS 2021 CVILLADA ****/
+body {
+    overflow: hidden;
+    font-family: 'Work Sans', sans-serif !important;
+}
+.h1, .h2, .h3, .h4, .h5, .h6, h1, h2, h3, h4, h5, h6{
+    font-family: 'Work Sans', sans-serif !important;
+}
+#main-content{
+    width: 100%;
+    height: 96%;
+}
+hr {
+    width: 100%;
+    float: left;
+}
+span.text-info {
+    color: #a0a0a0 ;
+    float: right;
+    cursor: pointer;
+}
+/* Selector de estación */
+#div-stations-selector {
+    margin-top: -15px;
+    text-align: center;
+}
+#div-stations-selector select#station-selector {
+    width: 90%;
+    border: 0;
+    box-shadow: 0 0px 6px rgba(0, 0, 0, 0.3);
+    border-radius: 6px;
+    padding: 5px 8px;
+}
+/* Graficas */
+#graphic-piechart-historical {
+    width: 100%;
+    float: left;
+}
+#graphics-stations #graphic-24-hours, #graphics-stations #graphic-168-hours, #graphics-stations #graphic-36-hours, #graphics-stations #graphic-48-hours {
+    background: transparent;
+    width: 50%;
+    float: left;
+}
+.grahpics-google-charts-historical {
+    width: 100%;
+    float: left;
+}
+.grahpics-google-charts-forecast{
+    width: 100%;
+    float: left;
+}
+button#btn-open-moda-graphics, button#btn-open-moda-graphics-pronostico {
+    background: transparent;
+    color: #619730;
+    height: 28px;
+    border: 1px solid #619730;
+    margin: auto;
+    display: block;
+    border-radius: 15px;
+    padding: 0px 15px;
+    text-transform: uppercase;
+    font-size: 12px;
+    outline: none;
+}
+button#btn-open-moda-graphics:hover, button#btn-open-moda-graphics-pronostico:hover {
+    background: #619730;
+    color: #fff;
+}
+
+/* Escala de colores */
+.colors-scala {
+    right: 1em;
+    position: absolute;
+    margin-top: 1em;
+}
+
+.rango-sin-datos{
+    background: #fff;
+    box-shadow: 0 0 6px rgba(0, 0, 0, .3);
+    color: black;
+    height: 57px;
+    padding: 5px;
+    vertical-align: top;
+}
+
+.rango-sin-datos > div{
+    background-color: #c3c3c3;
+    border-radius: 12px;
+    display: block;
+    font-size: 16px;
+    margin: 0 auto;
+    width: 22px;
+}
+
+#div-colores {
+    background: #fff;
+    padding: 5px;
+    box-shadow: 0 0 6px rgba(0,0,0, 0.3);
+    display: inline-block;
+}
+
+#div-colores .item-color-iboca span {
+    width: 100%;
+    height: 5px;
+    display: block;
+}
+
+#change-iboca-contaminate button:after {
+    content: '';
+    width: 100%;
+    height: 2px;
+    display: block;
+    background: #efefef;
+}
+#change-iboca-contaminate button.blue-font:after {
+    background: #4e8c2c;
+}
+#div-checkbox-interpolation span {
+    display: inline-block;
+    vertical-align: middle;
+    font-size: 13px;
+    line-height: normal;
+}
+
+
+/* Barra información */
+.lateral-info {
+    position: absolute;
+    left: 1em;
+    top: 1em;
+    width: 400px;
+    height: 92%;
+    background: #fff;
+    box-shadow: 0 0px 8px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+}
+#div-complete-information-station {
+    padding: 1em;
+    overflow-y: scroll;
+    height: 75%;
+}
+#div-complete-information-station .p-name-station-upz-detail {
+    font-size: 1.2em;
+    text-align: center;
+    display: block;
+    margin-bottom: 10px;
+}
+.div-information-station .img-face,
+.div-total-detail-station .box-rango {
+    text-align: center;
+}
+.div-total-detail-station .box-rango {
+    padding: 5px;
+    margin-bottom: 5px;
+    text-transform: uppercase;
+    color: #fff;
+}
+.div-total-detail-station .box-rango .title {
+    display: block;
+    font-size: 12px;
+}
+.div-total-detail-station .box-rango #p_valor_calidad_aire_estacion {
+    border-right: 1px solid;
+    padding-right: 5px;
+    margin-right: 5px;
+    font-size: 17px;
+}
+.div-total-detail-station .box-rango #p_calidad_aire {
+    font-size: 17px;
+}
+.div-total-detail-station .bg-favorable { background: #00e400; }
+.div-total-detail-station .bg-moderada { background: #ffe000; }
+.div-total-detail-station .bg-regular { background: #ff7e00; }
+.div-total-detail-station .bg-mala { background: #ff0000; }
+.div-total-detail-station .bg-peligrosa { background: #8f3f97; }
+.div-total-detail-station .bg-sindatos { background: #c3c3c3; }
+
+.color-bar-rank{
+    display: inline-block;
+}
+
+.color-bar-rank-selected{
+    border: 1px solid black;
+    padding: 0 2px 2px 2px;
+}
+
+.color-bar-item{
+    border-radius:2px;
+    display: inline-block;
+    height:20px;
+    vertical-align: middle;
+    width: 12px;
+}
+
+.color-bar-item-selected{
+    border: 1px solid black;
+    display: inline-block;
+    height:22px !important;
+}
+
+#div-complete-information-station .close-button-map {
+    float: right;
+    font-size: 26px;
+    font-weight: 700;
+    line-height: 0.9;
+    text-shadow: 0 1px 0 #fff;
+    filter: alpha(opacity=20);
+    opacity: 1;
+    -webkit-appearance: none;
+    cursor: pointer;
+    background: 0 0;
+    border: 0;
+}
+#div-complete-information-station .close-button-map span{
+    color: #494949;
+}
+.image-station {
+    max-height: 150px;
+    overflow: hidden;
+}
+.image-station img {
+    overflow: hidden;
+    margin: auto;
+    width: 100%;
+}
+#div-complete-information-station .div-recomendations-station .div-recomendations-internal h4 {
+    font-weight: bold;
+    font-size: 1em;
+}
+
+/*Slider recomendaciones*/
+#div-recomendations-station {
+    float: left;
+    width: 100%;
+}
+.carousel {
+    width: 100%;
+    float: left;
+}
+#div-recomendations-station h3, #graphic-complete-station h3 {
+    font-weight: bold ;
+    font-size: 1em;
+    float: left;
+    margin-top: 0;
+}
+#div-recomendations-station .fa {
+    color: #a0a0a0;
+}
+#div-recomendations-station .left {
+    left: 10px;
+}
+#div-recomendations-station .right {
+    right: 10px;
+    left: auto;
+}
+#div-recomendations-station .carousel-indicators {
+    bottom: 0;
+}
+#div-recomendations-station .carousel-indicators li {
+    background-color: #a0a0a0 !important;
+}
+#div-recomendations-station .carousel-indicators li.active {
+    background-color: #619730 !important;
+    width: 10px;
+    height: 10px;
+    margin: 1px;
+}
+.carousel-caption-recomendations {
+    right: 10%;
+    left: 10%;
+    padding-top: 10px;
+    top: 0;
+}
+.carousel-caption-recomendations h5 {
+    font-size: 12px;
+    color: #a0a0a0;
+    text-align: left;
+    text-shadow: none;
+    font-style: italic;
+}
+
+/*Footer*/
+.dModIBOCA footer {
+    display: block !important;
+    z-index: 9;
+    background: #619730;
+    width: 100%;
+    border-bottom: 0;
+    color: #fff;
+    padding: 8px;
+    text-align: center;
+}
+.dModIBOCA footer p {
+    display: inline-block;
+    margin-bottom: 0;
+    padding: 0 10px;
+}
+.update-information {
+    text-align: center;
+    font-size: 13px;
+    float: left;
+    width: 100%;
+}
+.update-information .box-detail-ubication {
+    background: transparent;
+}

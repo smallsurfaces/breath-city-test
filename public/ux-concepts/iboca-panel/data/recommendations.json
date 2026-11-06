@@ -1,0 +1,235 @@
+{
+ "_source": "IBOCA recomendationsRange responses saved 2026-11-06 (probe values 10.4, 50.6, 100.9, 150.4, 200.6). Icons from the local IBOCA asset kit, matched by upload timestamp.",
+ "_missingIcons": [],
+ "bands": {
+  "Bajo": {
+   "range": "0-50",
+   "rango_id": 3,
+   "salud": [
+    {
+     "titulo": "Aproveche para realizar actividades al aire libre",
+     "icon": "assets/icons/1743536935.png"
+    },
+    {
+     "titulo": "Ventile la vivienda o lugar de trabajo",
+     "icon": "assets/icons/1743536954.png"
+    },
+    {
+     "titulo": "Prefiera lugares con buena calidad del aire.",
+     "icon": "assets/icons/1743536981.png"
+    },
+    {
+     "titulo": "Aproveche para hacer ejercicio al aire libre sin restricciones.",
+     "icon": "assets/icons/1743658147.png"
+    }
+   ],
+   "ambiente": [
+    {
+     "titulo": "Utilice el transporte público colectivo en lugar del vehículo particular.",
+     "icon": "assets/icons/1743537059.png"
+    },
+    {
+     "titulo": "Mantenga el vehículo en condiciones de mantenimiento adecuadas, así aumenta la vida útil de sus componentes, se ahorra combustible y se reduce la emisión de contaminantes atmosféricos.",
+     "icon": "assets/icons/1743537123.png"
+    },
+    {
+     "titulo": "Mantenga al día la revisión técnico-mecánica de su vehículo.",
+     "icon": "assets/icons/1743537153.png"
+    },
+    {
+     "titulo": "Siga las  recomendaciones de conducción sostenible para reducir la emisión de contaminantes atmosféricos y el consumo de combustible.",
+     "icon": "assets/icons/1743537187.png"
+    },
+    {
+     "titulo": "De ser posible, comparta el vehículo particular con quienes requieran movilizarse.",
+     "icon": "assets/icons/1743537210.png"
+    },
+    {
+     "titulo": "De ser posible, movilícese en bicicleta y caminando.",
+     "icon": "assets/icons/1743537229.png"
+    }
+   ]
+  },
+  "Moderado": {
+   "range": "51-100",
+   "rango_id": 4,
+   "salud": [
+    {
+     "titulo": "Puede realizar actividades al aire libre",
+     "icon": "assets/icons/1743537596.png"
+    },
+    {
+     "titulo": "Ventile la vivienda o lugar de trabajo",
+     "icon": "assets/icons/1743537611.png"
+    },
+    {
+     "titulo": "Prefiera lugares con buena calidad del aire.",
+     "icon": "assets/icons/1743537995.png"
+    },
+    {
+     "titulo": "Si tiene alergias o enfermedades respiratorias, tome precauciones adicionales.",
+     "icon": "assets/icons/1743657578.png"
+    }
+   ],
+   "ambiente": [
+    {
+     "titulo": "Use el transporte público colectivo en lugar de vehículo particular.",
+     "icon": "assets/icons/1743538251.png"
+    },
+    {
+     "titulo": "Mantenga el vehículo en condiciones de mantenimiento adecuadas, así aumenta la vida útil de sus componentes, se ahorra combustible y se reduce la emisión de contaminantes atmosféricos.",
+     "icon": "assets/icons/1743538237.png"
+    },
+    {
+     "titulo": "Mantenga al día la revisión técnico-mecánica de su vehículo.",
+     "icon": "assets/icons/1743538220.png"
+    },
+    {
+     "titulo": "Siga las  recomendaciones de conducción sostenible para reducir la emisión de contaminantes atmosféricos y el consumo de combustible.",
+     "icon": "assets/icons/1743538195.png"
+    },
+    {
+     "titulo": "De ser posible, comparta el vehículo particular con quienes requieran movilizarse.",
+     "icon": "assets/icons/1743538175.png"
+    },
+    {
+     "titulo": "De ser posible, movilícese en bicicleta y caminando.",
+     "icon": "assets/icons/1743538157.png"
+    }
+   ]
+  },
+  "Regular": {
+   "range": "101-150",
+   "rango_id": 5,
+   "salud": [
+    {
+     "titulo": "Si al realizar actividad física presenta tos o dificultad para respirar(b), realice descansos con mayor frecuencia.",
+     "icon": "assets/icons/1743539293.png"
+    },
+    {
+     "titulo": "Reduzca la actividad fisica que requiera esfuerzo prolongado o intenso al aire libre y prefiera realizarlas en espacios cerrados, cuidando su calidad del aire",
+     "icon": "assets/icons/1706045153.png"
+    }
+   ],
+   "ambiente": [
+    {
+     "titulo": "Utilice el transporte público colectivo en lugar del vehículo particular.",
+     "icon": "assets/icons/1743539345.png"
+    },
+    {
+     "titulo": "Mantenga el vehículo en condiciones de mantenimiento adecuadas, así aumenta la vida útil de sus componentes, se ahorra combustible y se reduce la emisión de contaminantes atmosféricos.",
+     "icon": "assets/icons/1743539485.png"
+    },
+    {
+     "titulo": "Mantenga al día la revisión técnico-mecánica de su vehículo.",
+     "icon": "assets/icons/1743539528.png"
+    },
+    {
+     "titulo": "Siga las  recomendaciones de conducción sostenible para reducir la emisión de contaminantes atmosféricos y el consumo de combustible",
+     "icon": "assets/icons/1743539547.png"
+    },
+    {
+     "titulo": "Evite el uso del vehículo particular, pero si es necesario usarlo, trate de compartirlo con quienes requieran movilizarse.",
+     "icon": "assets/icons/1743539569.png"
+    },
+    {
+     "titulo": "Cargue combustible el menor número de veces posible.",
+     "icon": "assets/icons/1743539596.png"
+    },
+    {
+     "titulo": "Para movilizarse en bicicleta o caminando, siga las recomendaciones en salud.",
+     "icon": "assets/icons/1743539625.png"
+    },
+    {
+     "titulo": "De ser posible, opte por el teletrabajo y postergue las actividades fuera de casa.",
+     "icon": "assets/icons/1743539645.png"
+    }
+   ]
+  },
+  "Alto": {
+   "range": "151-200",
+   "rango_id": 6,
+   "salud": [
+    {
+     "titulo": "Reduzca la actividad física (a) que requiera esfuerzo prolongado o intenso al aire libre, prefiera realizarlas en espacios cerrados tomando descansos con mayor frecuencia, cuidando su calidad del aire (c).",
+     "icon": "assets/icons/1743539894.png"
+    }
+   ],
+   "ambiente": [
+    {
+     "titulo": "Utiliza el transporte público colectivo en lugar del carro particular.",
+     "icon": "assets/icons/1743539953.png"
+    },
+    {
+     "titulo": "Mantenga el vehículo en condiciones de mantenimiento adecuadas, así aumenta la vida útil de sus componentes, se ahorra combustible y se reduce la emisión de contaminantes atmosféricos.",
+     "icon": "assets/icons/1743539982.png"
+    },
+    {
+     "titulo": "Mantenga al día la revisión técnico-mecánica de su vehículo.",
+     "icon": "assets/icons/1743539999.png"
+    },
+    {
+     "titulo": "Siga las  recomendaciones de conducción sostenible para reducir la emisión de contaminantes atmosféricos y el consumo de combustible",
+     "icon": "assets/icons/1743540026.png"
+    },
+    {
+     "titulo": "Evite el uso del vehículo particular, pero si es necesario usarlo, trate de compartirlo con quienes requieran movilizarse.",
+     "icon": "assets/icons/1743540050.png"
+    },
+    {
+     "titulo": "Cargue combustible el menor número de veces posible.",
+     "icon": "assets/icons/1743540066.png"
+    },
+    {
+     "titulo": "Para movilizarse en bicicleta o caminando, siga las recomendaciones en salud.",
+     "icon": "assets/icons/1743540090.png"
+    },
+    {
+     "titulo": "De ser posible, opte por el teletrabajo y postergue las actividades fuera de casa.",
+     "icon": "assets/icons/1743540102.png"
+    }
+   ]
+  },
+  "Peligroso": {
+   "range": "201-500",
+   "rango_id": 7,
+   "salud": [
+    {
+     "titulo": "Evite todas las actividades al aire libre y en espacios cerrados reduzca la actividad física(a) tomando descansos con mayor frecuencia, cuidando su calidad del aire(c).",
+     "icon": "assets/icons/1743540676.png"
+    },
+    {
+     "titulo": "Movilícese  a zonas de menor contaminación del aire.",
+     "icon": "assets/icons/1743540728.png"
+    },
+    {
+     "titulo": "Use tapabocas N95 (d)  en espacios abiertos y cerrados mientras persista este estado de contaminación del aire.",
+     "icon": "assets/icons/1743540692.png"
+    }
+   ],
+   "ambiente": [
+    {
+     "titulo": "Evite salir de la vivienda, salvo para actividades estrictamente esenciales",
+     "icon": "assets/icons/1743540806.png"
+    },
+    {
+     "titulo": "Evite el uso del vehículo particular, pero si es necesario usarlo, trate de compartirlo con quienes requieran movilizarse.",
+     "icon": "assets/icons/1743540759.png"
+    },
+    {
+     "titulo": "De ser posible, opte por el teletrabajo y postergue las actividades fuera de casa.",
+     "icon": "assets/icons/1743540786.png"
+    },
+    {
+     "titulo": "En caso de que el uso del vehiculo sea extrictamente necesario , siga las recomedaciones de conducción ecológica que contribuyan a emitir la menor cantidad posible de contaminantes atmosféricos",
+     "icon": "assets/icons/1743540823.png"
+    },
+    {
+     "titulo": "Cargue combustible el menor número de veces posible.",
+     "icon": "assets/icons/1743540773.png"
+    }
+   ],
+   "note": "IBOCA returns recommendations only for 201-300. Values 301-500 reuse this set (recomendationsRange/300.4 and /400.4 returned zero items)."
+  }
+ }
+}
